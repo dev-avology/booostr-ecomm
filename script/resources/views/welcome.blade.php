@@ -1,6 +1,25 @@
 @extends('layouts.frontend.app')
 
 @section('title','HomePage')
+<section>
+  <div class="hero-area">
+      <div class="container">
+          <div class="row align-items-center">
+              <div class="col-lg-12">
+                  <div class="hero-content">
+                    coming soon...
+                  </div>
+              
+              </div>
+          </div>
+      </div>
+  </div>
+</section>
+@endsection
+<?php /*
+@extends('layouts.frontend.app')
+
+@section('title','HomePage')
 
 @section('content')
 <!-- header area start -->
@@ -289,3 +308,4 @@
 @include('layouts.frontend.partials.footer')
 <!-- footer area end -->
 @endsection
+/*?>
