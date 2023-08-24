@@ -15,7 +15,6 @@
       </div>
   </div>
 </section>
-@endsection
 <?php /*
 @extends('layouts.frontend.app')
 
