@@ -79,7 +79,7 @@
 @can('merchant.index','merchant.create','merchant.edit')
 <li class="{{ Request::is('admin/partner*') ? 'active' : '' }}">
    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-users"></i>
-   <span>{{ __('Partners') }}</span></a>
+   <span>{{ __('Club Partners') }}</span></a>
    <ul class="dropdown-menu">
       <li><a class="nav-link" href="{{ route('admin.partner.create') }}">{{ __('Create Partner') }}</a></li>
       <li><a class="nav-link" href="{{ route('admin.partner.index') }}">{{ __('Manage Partner') }}</a></li>
@@ -106,7 +106,7 @@
 </li>
 @endcan
 
-<li class="menu-header">{{ __('Payment Gateway') }}</li>
+<!-- <li class="menu-header">{{ __('Payment Gateway') }}</li>
 @can('getway.index')
 <li class="{{ Request::is('admin/gateway*') ? 'active' : '' }}">
    <a class="nav-link" href="{{ route('admin.gateway.index') }}">
@@ -114,7 +114,7 @@
    <span>{{ __('Gateway') }}</span>
    </a>
 </li>
-@endcan
+@endcan -->
 
 <!-- <li class="menu-header">{{ __('Manage Report') }}</li>
 @can('report')
@@ -185,12 +185,12 @@
    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-cogs"></i>
    <span>{{ __('Settings') }}</span></a>
    <ul class="dropdown-menu">
-      @can('language.index')
+      <!-- @can('language.index')
       <li class="{{ Request::is('admin/language') ? 'active' : '' }}">
          <a href="{{ route('admin.language.index') }}"
             class="nav-link"><span>{{ __('Languages') }}</span></a>
       </li>
-      @endcan
+      @endcan -->
       @can('menu')
       <li><a class="nav-link" href="{{ route('admin.menu.index') }}">{{ __('Menu Settings') }}</a>
       </li>

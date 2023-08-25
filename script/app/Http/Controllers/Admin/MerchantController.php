@@ -116,7 +116,7 @@ class MerchantController extends Controller
          abort_if(!Auth()->user()->can('merchant.edit'), 401);
         $data = User::withCount('tenant','orders','supports','active_orders')->withSum('orders','price')->where('role_id',2)->findOrFail($id);
         $orders = Order::with('plan', 'getway','orderlog')->where('user_id',$id)->latest()->paginate(30);
-        $tenants=Tenant::where('user_id',$id)->withCount('domains')->latest()->get();
+        $tenants=[];//Tenant::where('user_id',$id)->withCount('domains')->latest()->get();
         return view('admin.merchant.show', compact('data','orders','tenants'));
     }
 

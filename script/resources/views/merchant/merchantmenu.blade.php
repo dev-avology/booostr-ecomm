@@ -18,11 +18,11 @@
         <span>{{ __('Fund History') }}</span>
     </a>
 </li> -->
-<li class="menu-header">{{ __('Store Management') }}</li>
+<li class="menu-header">{{ __('Club Store Management') }}</li>
 <li class="{{ Request::is('partner/domain*') ? 'active' : '' }}">
     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
         <i class="fas fa-store"></i>
-        <span>{{ __('My Stores') }}</span>
+        <span>{{ __('My Club Stores') }}</span>
     </a>
     <ul class="dropdown-menu">
         <li><a class="nav-link" href="{{ route('merchant.domain.create') }}">{{ __('Add Store') }}</a></li>
