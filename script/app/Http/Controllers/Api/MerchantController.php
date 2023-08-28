@@ -56,7 +56,10 @@ class MerchantController extends Controller
       $obj->role_id = 2;
       $obj->save();
       DB::commit();
-      return response()->json(["status"=>1,"message"=>'Partner Created Successfully',"result"=>["partner_id"=>$obj->id]]);
+
+      //make login token
+      $token = $this->guard()->attempt(["email"=>$request->email,"password"=>$request->password]);
+      return response()->json(["status"=>1,"message"=>'Partner Created Successfully',"result"=>["partner_id"=>$obj->id,"token"=>$token]]);
     } catch (\Exception $e) {
       DB::rollback();
     }
