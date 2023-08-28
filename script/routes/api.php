@@ -19,15 +19,22 @@ use App\Http\Middleware\AvalogyMiddleware;
 Route::group([
     'middleware' => [AvalogyMiddleware::class],
 ], function () {
-    Route::post('/super/createstore','Api\MerchantController@createstore');
+    Route::post('/partner/create','Api\MerchantController@createmerchant');
+    Route::post('/partner/login','Api\MerchantController@login');
+});
+
+Route::post('/partner/createstore', 'Api\MerchantController@createstore')->middleware('auth:api');
+
+Route::group([
+    'middleware' => [AvalogyMiddleware::class],
+    'prefix'     => '/partner/store/{tenant}',
+], function () {
+    
 });
 
 Route::group([
     'prefix'     => '/store/{tenant}',
     'middleware' => [InitializeTenancyByPath::class,'tenantenvironment'],
 ], function () {
-
     Route::get('cron/product-price-reset','Seller\CronController@ProductPriceReset');
-
-    
 });
