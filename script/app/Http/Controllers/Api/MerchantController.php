@@ -39,15 +39,18 @@ class MerchantController extends Controller
       'email' => 'required|email',
       //'password' => 'required|min:8|max:50|confirmed',
       'store_name' => 'required|max:150|unique:tenants,id|regex:/^\S*$/u',
-      'club_id'=>'required|integer|min:2|max:20',
+      'club_id'=>'required|integer|min:1|max:200000',
     ]);
     if ($validator->fails()) {
       return response()->json(["status"=>0,"message"=>$validator->errors()], 422);
     }
 
     $name = Str::slug($request->store_name);
-   
-    $tenant = Tenant::where('id', $name)->first();
+    $club_id=$request->club_id;
+    $tenant = Tenant::where(function ($query) use ($name,$club_id) {
+          $query->where('id', '=', $name)
+                ->orWhere('club_id', '=', $club_id);
+      })->first();
     if ($tenant) {
       $error = 'Store URL is unavailable';
       return response()->json(["status"=>0,"message"=>$error], 422);
@@ -65,6 +68,7 @@ class MerchantController extends Controller
       'store_name' => $name,
       'email' => $request->email,
       'password' => $request->email, //$request->password,
+      'club_id'=>$club_id
     ];
 
     Session::put('store_data',$store_data);
@@ -259,6 +263,7 @@ class MerchantController extends Controller
     }
     $plan_id = Session::get('plan');
     $name = Str::slug(Session::get('store_data')['store_name']);
+    $club_id = Session::get('store_data')['club_id'];
     $order_id = Session::get('order_id');
     abort_if(empty($order_id), 404);
     ini_set('max_execution_time', '0');
@@ -291,7 +296,7 @@ class MerchantController extends Controller
     $tenant->order_id = $order->id;
     $tenant->user_id = 2;//Auth::id();
     $tenant->will_expire = $expiry_date;
-
+    $tenant->club_id=$club_id;
     $tenant->save();
 
     DB::beginTransaction();

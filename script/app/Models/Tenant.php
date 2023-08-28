@@ -16,7 +16,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      * @var array
      */
     protected $fillable = [
-        'id', 'order_id','user_id','will_expire','data','status','auto_renew','uid','long'
+        'id', 'order_id','user_id','will_expire','data','status','auto_renew','uid','long','club_id'
     ];
    
     public static function getCustomColumns(): array
