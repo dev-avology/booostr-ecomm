@@ -37,7 +37,7 @@ class MerchantController extends Controller
   public function createmerchant(Request $request)
   {
     
-    $validator = Validator::make([
+    $validator = Validator::make($request->all(),[
       'name' => 'required|max:50',
       'email' => 'required|max:100|email|unique:users',
       'password' => 'required|min:6',
