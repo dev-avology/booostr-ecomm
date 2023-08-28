@@ -83,6 +83,7 @@ class Kernel extends HttpKernel
         'tenantenvironment' => \App\Http\Middleware\Tenantenvironment::class,
         'user' => \App\Http\Middleware\Usermiddleware::class,
         'Isinstalled' => \App\Http\Middleware\IsinstalledMiddleware::class,
+        'Avalogy' => \App\Http\Middleware\AvalogyMiddleware::class,
         
     ];
 }

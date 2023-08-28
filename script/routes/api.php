@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
+use App\Http\Middleware\AvalogyMiddleware;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -15,7 +16,11 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
 */
 
 
-
+Route::group([
+    'middleware' => [AvalogyMiddleware::class],
+], function () {
+    Route::get('/super/createstore','Api\MerchantController@createstore');
+});
 
 Route::group([
     'prefix'     => '/store/{tenant}',
