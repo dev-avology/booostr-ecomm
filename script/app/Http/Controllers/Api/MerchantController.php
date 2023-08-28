@@ -54,25 +54,31 @@ class MerchantController extends Controller
       $obj->email = $request->email;
       $obj->status = isset($request->status) ? $request->status : 1;
       $obj->role_id = 2;
+      $token =  Str::random(60);
+      $obj->api_token=$token;
       $obj->save();
       DB::commit();
-
       //make login token
-      $token = $this->guard()->attempt(["email"=>$request->email,"password"=>$request->password]);
+      
       return response()->json(["status"=>1,"message"=>'Partner Created Successfully',"result"=>["partner_id"=>$obj->id,"token"=>$token]]);
     } catch (\Exception $e) {
       DB::rollback();
+      return response()->json(["status"=>0,"message"=>$e->getMessage()],422);
     }
     return response()->json(["status"=>0,"message"=>'Error Occured'],422);
   }
 
   public function login(Request $request){
-
-    $credentials = $request->only(["email","password"]);
-    if ($token = $this->guard()->attempt($credentials)) {
+    if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){
+        $user = Auth::user();
+        $token =  Str::random(60);
+        $user()->forceFill([
+          'api_token' => $token,
+      ])->save();
         return response()->json(["status"=>1,"message"=>'login success',"result"=>["token"=>$token]]);
+    }else{
+      return response()->json(["status"=>0,"message"=>'Sorry, email or password is wrong'],422);
     }
-    return response()->json(["status"=>0,"message"=>'Sorry, email or password is wrong'],422);
 }
 
   public function createstore(Request $request)
