@@ -28,26 +28,37 @@ use App\Models\Tenantorder;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 class MerchantController extends Controller
 {
 
   public function createstore(Request $request)
   {
-
-    $request->validate([
-
+    
+    $validator = Validator::make($request->all(), [
       'email' => 'required|email',
       //'password' => 'required|min:8|max:50|confirmed',
-      'store_name' => 'required|max:50|unique:tenants,id|regex:/^\S*$/u',
+      'store_name' => 'required|max:150|unique:tenants,id|regex:/^\S*$/u',
+      'club_id'=>'required|integer|min:2|max:20',
     ]);
+    if ($validator->fails()) {
+      return response()->json(["status"=>0,"message"=>$validator->errors()], 422);
+    }
 
     $name = Str::slug($request->store_name);
-
+   
     $tenant = Tenant::where('id', $name)->first();
-
     if ($tenant) {
-      $error['errors']['domain'] = 'Store URL is unavailable';
-      return response()->json($error, 422);
+      $error = 'Store URL is unavailable';
+      return response()->json(["status"=>0,"message"=>$error], 422);
+    }
+ 
+    //domain check
+    $domain_name = $name . '.' . env('APP_PROTOCOLESS_URL');
+    $domain=Domain::where('domain', $domain_name)->first();
+    if ($domain) {
+      $error = 'Store URL is unavailable';
+      return response()->json(["status"=>0,"message"=>$error], 422);
     }
    
     $store_data = [
@@ -67,7 +78,7 @@ class MerchantController extends Controller
     $plan = Plan::findOrFail($planid);
     $tax = Option::where('key', 'tax')->first();
     $plan_data = json_decode($plan->data);
-
+    
     if ($plan->is_trial == 1) {
       $domain['name'] = Session::get('store_data')['store_name'];
       Session::put('domain_data', $domain);
@@ -88,6 +99,7 @@ class MerchantController extends Controller
       Session::put('plan', $plan->id);
       return $this->storePlan();
     } 
+    return response()->json(["status"=>0,"message"=>'error']);
   }
 
   private function deposit(Request $request)
@@ -242,8 +254,8 @@ class MerchantController extends Controller
   private function storePlan()
   {
     if (!Session::has('domain_data')) {
-      $error['errors']['email'] = 'Domain already created!!';
-      return response()->json(['data' => ['redirect_url' => route('merchant.domain.list'), 'store_status' => 0, 'response' => 'success']]);
+      $error= 'Domain already created!!';
+      return response()->json(["status"=>0,"message"=>$error,"result"=>['redirect_url' => route('merchant.domain.list'), 'store_status' => 0]]);
     }
     $plan_id = Session::get('plan');
     $name = Str::slug(Session::get('store_data')['store_name']);
@@ -308,10 +320,8 @@ class MerchantController extends Controller
       DB::commit();
     } catch (\Throwable $th) {
       DB::rollback();
-      return $th;
-      $error['errors']['email'] = 'Error Occured';
-
-      return response()->json($error, 422);
+      $error=$th->getMessage();
+      return response()->json(["status"=>0,"message"=>$error], 422);
     }
     Session::forget('order_id');
 
@@ -351,9 +361,9 @@ class MerchantController extends Controller
     Session::forget('store_data');
     Session::forget('plan');
     if (env('AUTO_DB_CREATE') == true && $tenant->status == 1) {
-      return response()->json(['data' => ['redirect_url' => $redirect_url, 'store_status' => $tenant->status, 'response' => 'success']]);
+      return response()->json(["status"=>1,"message"=>"","result"=>['redirect_url' => $redirect_url, 'store_status' => $tenant->status, 'response' => 'success',"club_id"=>$tenant_id]]);
     } else {
-      return response()->json(['data' => ['redirect_url' => $redirect_url, 'store_status' => $tenant->status, 'response' => 'success_redirect']]);
+      return response()->json(["status"=>1,"message"=>"","result"=>['redirect_url' => $redirect_url, 'store_status' => $tenant->status, 'response' => 'success_redirect',"club_id"=>$tenant_id]]);
     }
   }
 

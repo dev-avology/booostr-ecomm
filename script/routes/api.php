@@ -19,7 +19,7 @@ use App\Http\Middleware\AvalogyMiddleware;
 Route::group([
     'middleware' => [AvalogyMiddleware::class],
 ], function () {
-    Route::get('/super/createstore','Api\MerchantController@createstore');
+    Route::post('/super/createstore','Api\MerchantController@createstore');
 });
 
 Route::group([
