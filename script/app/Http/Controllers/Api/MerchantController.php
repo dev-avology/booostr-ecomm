@@ -59,7 +59,6 @@ class MerchantController extends Controller
       $obj->save();
       DB::commit();
       //make login token
-      
       return response()->json(["status"=>1,"message"=>'Partner Created Successfully',"result"=>["partner_id"=>$obj->id,"token"=>$token]]);
     } catch (\Exception $e) {
       DB::rollback();
@@ -72,9 +71,8 @@ class MerchantController extends Controller
     if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){
         $user = Auth::user();
         $token =  Str::random(60);
-        $user()->forceFill([
-          'api_token' => $token,
-      ])->save();
+        $user->api_token= $token;
+        $user->save();
         return response()->json(["status"=>1,"message"=>'login success',"result"=>["token"=>$token]]);
     }else{
       return response()->json(["status"=>0,"message"=>'Sorry, email or password is wrong'],422);
@@ -83,7 +81,6 @@ class MerchantController extends Controller
 
   public function createstore(Request $request)
   {
-    
     $validator = Validator::make($request->all(), [
       'email' => 'required|email',
       //'password' => 'required|min:8|max:50|confirmed',
@@ -101,7 +98,7 @@ class MerchantController extends Controller
                 ->orWhere('club_id', '=', $club_id);
       })->first();
     if ($tenant) {
-      $error = 'Store URL is unavailable';
+      $error = 'Store is already creeated';
       return response()->json(["status"=>0,"message"=>$error], 422);
     }
  
