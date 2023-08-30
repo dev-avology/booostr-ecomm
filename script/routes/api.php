@@ -27,18 +27,22 @@ Route::group([
 Route::post('/partner/createstore', 'Api\MerchantController@createstore')->middleware('auth:api');
 
 Route::group([
+    'prefix'     => '/storedata',
+    'middleware' => [AvalogyMiddleware::class,InitializeTenancyByRequestData::class,'tenantenvironment'],
+], function () {
+    Route::get('/products', 'Api\ProductController@productList');
+    
+});
+
+
+
+Route::group([
     'middleware' => [AvalogyMiddleware::class],
     'prefix'     => '/partner/store/{tenant}',
 ], function () {
     
 });
-Route::group([
-    'prefix'     => '/storedata',
-    'middleware' => [InitializeTenancyByRequestData::class,'tenantenvironment'],
-], function () {
-    Route::get('/products', 'Api\ProductController@productList');
-    
-});
+
 
 
 
