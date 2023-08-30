@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
 use App\Http\Middleware\AvalogyMiddleware;
+use Stancl\Tenancy\Middleware\InitializeTenancyByRequestData;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -31,10 +32,21 @@ Route::group([
 ], function () {
     
 });
+Route::group([
+    'prefix'     => '/storedata',
+    'middleware' => [InitializeTenancyByRequestData::class,'tenantenvironment'],
+], function () {
+    Route::get('/products', 'Api\ProductController@productList');
+    
+});
+
+
 
 Route::group([
     'prefix'     => '/store/{tenant}',
     'middleware' => [InitializeTenancyByPath::class,'tenantenvironment'],
 ], function () {
+
     Route::get('cron/product-price-reset','Seller\CronController@ProductPriceReset');
+    
 });
