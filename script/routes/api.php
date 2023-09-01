@@ -33,7 +33,7 @@ Route::group([
     Route::get('/products', 'Api\ProductController@productList');
     Route::post('/product/search', 'Api\ProductController@search');
     Route::post('/cart/add_to_cart', 'Api\ProductController@addtocart');
-    Route::post('/cart/remove_from_cart/{$id}', 'Api\ProductController@removecart');
+    Route::post('/cart/remove_from_cart/{id}', 'Api\ProductController@removecart');
     Route::post('/cart/update_cart', 'Api\ProductController@removecart');
     Route::post('/checkout/order', 'Api\ProductController@CartQty');
 });
