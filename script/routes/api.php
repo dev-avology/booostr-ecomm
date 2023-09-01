@@ -20,18 +20,22 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByRequestData;
 Route::group([
     'middleware' => [AvalogyMiddleware::class],
 ], function () {
-    Route::post('/partner/create','Api\MerchantController@createmerchant');
-    Route::post('/partner/login','Api\MerchantController@login');
+    Route::post('/partner/create', 'Api\MerchantController@createmerchant');
+    Route::post('/partner/login', 'Api\MerchantController@login');
 });
 
 Route::post('/partner/createstore', 'Api\MerchantController@createstore')->middleware('auth:api');
 
 Route::group([
     'prefix'     => '/storedata',
-    'middleware' => [AvalogyMiddleware::class,InitializeTenancyByRequestData::class,'tenantenvironment'],
+    'middleware' => [AvalogyMiddleware::class, InitializeTenancyByRequestData::class, 'tenantenvironment'],
 ], function () {
     Route::get('/products', 'Api\ProductController@productList');
-    
+    Route::post('/products/search', 'Api\ProductController@search');
+    Route::post('/products/add_to_cart', 'Api\ProductController@addtocart');
+    Route::post('/products/remove_from_cart', 'Api\ProductController@removecart');
+    Route::post('/products/update_cart', 'Api\ProductController@removecart');
+    Route::post('/products/order', 'Api\ProductController@CartQty');
 });
 
 
@@ -40,17 +44,12 @@ Route::group([
     'middleware' => [AvalogyMiddleware::class],
     'prefix'     => '/partner/store/{tenant}',
 ], function () {
-    
 });
-
-
-
 
 Route::group([
     'prefix'     => '/store/{tenant}',
-    'middleware' => [InitializeTenancyByPath::class,'tenantenvironment'],
+    'middleware' => [InitializeTenancyByPath::class, 'tenantenvironment'],
 ], function () {
 
-    Route::get('cron/product-price-reset','Seller\CronController@ProductPriceReset');
-    
+    Route::get('cron/product-price-reset', 'Seller\CronController@ProductPriceReset');
 });
