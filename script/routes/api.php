@@ -31,11 +31,11 @@ Route::group([
     'middleware' => [AvalogyMiddleware::class, InitializeTenancyByRequestData::class, 'tenantenvironment'],
 ], function () {
     Route::get('/products', 'Api\ProductController@productList');
-    Route::post('/products/search', 'Api\ProductController@search');
-    Route::post('/products/add_to_cart', 'Api\ProductController@addtocart');
-    Route::post('/products/remove_from_cart', 'Api\ProductController@removecart');
-    Route::post('/products/update_cart', 'Api\ProductController@removecart');
-    Route::post('/products/order', 'Api\ProductController@CartQty');
+    Route::post('/product/search', 'Api\ProductController@search');
+    Route::post('/cart/add_to_cart', 'Api\ProductController@addtocart');
+    Route::post('/cart/remove_from_cart', 'Api\ProductController@removecart');
+    Route::post('/cart/update_cart', 'Api\ProductController@removecart');
+    Route::post('/checkout/order', 'Api\ProductController@CartQty');
 });
 
 

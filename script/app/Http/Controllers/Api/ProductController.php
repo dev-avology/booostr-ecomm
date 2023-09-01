@@ -44,8 +44,8 @@ class ProductController extends Controller
             ->whereHas('firstprice')
             ->whereHas('lastprice')
             ->where(function ($query) use ($request) {
-                $query->where('title', 'like', '%' . $request->src . '%')
-                    ->orWhere('full_id', 'like', '%' . $request->src . '%');
+                $query->where('title', 'like', '%' . $request->keyword . '%')
+                    ->orWhere('full_id', 'like', '%' . $request->keyword . '%');
             })->latest()->paginate(100);
 
         return response()->json(["status" => true, "message" => "searched products", "result" => $posts]);
