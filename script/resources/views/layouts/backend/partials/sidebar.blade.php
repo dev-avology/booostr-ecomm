@@ -22,11 +22,11 @@
             @endif
         </ul>
         @if(Auth::user()->role_id == 3)
-        <div class=" mb-4 p-3 hide-sidebar-mini">
+        <!-- <div class=" mb-4 p-3 hide-sidebar-mini">
             <a href="{{ url('seller/site-settings') }}" class="btn btn-primary btn-lg btn-block btn-icon-split">
               <i class="fas fa-cog"></i> {{ __('App Settings') }}
             </a>
-          </div> 
+          </div>  -->
         @endif  
     </aside>
 </div>

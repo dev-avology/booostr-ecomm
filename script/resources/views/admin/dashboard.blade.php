@@ -1,6 +1,7 @@
 @extends('layouts.backend.app')
 
 @section('content')
+<?php /*
 <section class="section">
 	<div class="row">
 		<div class="col-lg-3 col-md-6 col-sm-6 col-12">
@@ -504,6 +505,7 @@
 		</div>
 	</div>
 </div>
+*/?>
 <input type="hidden" id="base_url" value="{{ url('/') }}">
 <input type="hidden" id="site_url" value="{{ url('/') }}">
 <input type="hidden" id="dashboard_static" value="{{ url('/admin/dashboard/static') }}">

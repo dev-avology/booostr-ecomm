@@ -9,7 +9,7 @@
   </form>
   <ul class="navbar-nav navbar-right">
     @if (Auth::User()->role_id == 3)
-    <li><a target="_blank" href="{{ url('/') }}" class="btn btn-white view-demo"><i class="fas fa-eye"></i> View Site</a></li>
+    <!-- <li><a target="_blank" href="{{ url('/') }}" class="btn btn-white view-demo"><i class="fas fa-eye"></i> View Site</a></li> -->
     @endif
     @if (Auth()->user()->role_id == 3 && url()->current() == url('/seller/dashboard'))
     <li class="dropdown dropdown-list-toggle"><a href="#" data-toggle="dropdown" class="nav-link notification-toggle nav-link-lg"><i class="far fa-bell"></i></a>

@@ -86,13 +86,13 @@
     </a>
 </li> -->
 
-<li class="menu-header">{{ __('Payment Gateway') }}</li>
+<!-- <li class="menu-header">{{ __('Payment Gateway') }}</li>
 <li class="{{ Request::is('seller/payment/gateway*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/payment/gateway') }}">
         <i class="fas fa-money-check-alt"></i>
         <span>{{ __('Payment Gateways') }}</span>
     </a>
-</li>
+</li> -->
 <!-- <li class="menu-header">{{ __('Table Management') }}</li>
 <li class="{{ Request::is('seller/table*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/table') }}">
