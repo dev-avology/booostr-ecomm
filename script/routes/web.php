@@ -107,12 +107,12 @@ Route::group(['domain' => env('APP_URL')], function($domain)
         // Route::resource('menu', 'MenuController');
         // Route::post('/menus/destroy', 'MenuController@destroy')->name('menus.destroy');
         // Route::post('menues/node', 'MenuController@MenuNodeStore')->name('menus.MenuNodeStore');
-        // //role routes
-        // Route::resource('role', 'RoleController');
-        // Route::post('roles/destroy', 'RoleController@destroy')->name('roles.destroy');
-        // // Admin Route
-        // Route::resource('admin', 'AdminController');
-        // Route::post('/admins/destroy', 'AdminController@destroy')->name('admins.destroy');
+        //role routes
+        Route::resource('role', 'RoleController');
+        Route::post('roles/destroy', 'RoleController@destroy')->name('roles.destroy');
+        // Admin Route
+        Route::resource('admin', 'AdminController');
+        Route::post('/admins/destroy', 'AdminController@destroy')->name('admins.destroy');
 
         // //Gateway crud controller
         // Route::resource('gateway', 'PaymentGatewayController');
