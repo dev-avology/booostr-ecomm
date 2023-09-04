@@ -5,7 +5,8 @@
             <span>{{ __('Dashboard') }}</span></a>
     </li>
 @endcan
-<!-- <li class="menu-header">{{ __('Store Management') }}</li>
+<?php /*
+<li class="menu-header">{{ __('Store Management') }}</li>
 @can('plan.index', 'plan.create')
 <li class="nav-item dropdown {{ Request::is('admin/plan*') ? 'active' : '' }}">
       <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="far fa-money-bill-alt"></i>
@@ -73,8 +74,8 @@
    <span>{{ __('Store Templates') }}</span>
    </a>
 </li>
-@endcan -->
-<?php /*
+@endcan
+
 <li class="menu-header">{{ __('User Management') }}</li>
 @can('merchant.index','merchant.create','merchant.edit')
 <li class="{{ Request::is('admin/partner*') ? 'active' : '' }}">
@@ -106,8 +107,8 @@
    </ul>
 </li>
 @endcan
-
-<!-- <li class="menu-header">{{ __('Payment Gateway') }}</li>
+<?php /*
+<li class="menu-header">{{ __('Payment Gateway') }}</li>
 @can('getway.index')
 <li class="{{ Request::is('admin/gateway*') ? 'active' : '' }}">
    <a class="nav-link" href="{{ route('admin.gateway.index') }}">
@@ -115,9 +116,9 @@
    <span>{{ __('Gateway') }}</span>
    </a>
 </li>
-@endcan -->
+@endcan
 
-<!-- <li class="menu-header">{{ __('Manage Report') }}</li>
+<li class="menu-header">{{ __('Manage Report') }}</li>
 @can('report')
 <li
    class="{{ Request::is('admin/report') ? 'active' : '' }}">
@@ -178,7 +179,7 @@
    <a href="{{ route('admin.support.index') }}" class="nav-link"><i class="fas fa-headset"></i>
    <span>{{ __('Support') }}</span></a>
 </li>
-@endcan  -->
+@endcan 
 
 <li class="menu-header">{{ __('Settings') }}</li>
 <li
@@ -186,25 +187,25 @@
    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-cogs"></i>
    <span>{{ __('Settings') }}</span></a>
    <ul class="dropdown-menu">
-      <!-- @can('language.index')
+      @can('language.index')
       <li class="{{ Request::is('admin/language') ? 'active' : '' }}">
          <a href="{{ route('admin.language.index') }}"
             class="nav-link"><span>{{ __('Languages') }}</span></a>
       </li>
-      @endcan -->
+      @endcan
       @can('menu')
       <li><a class="nav-link" href="{{ route('admin.menu.index') }}">{{ __('Menu Settings') }}</a>
       </li>
-      <!-- @endcan
-      <li><a class="nav-link" href="{{ route('admin.seo.index') }}">{{ __('SEO Settings') }}</a> -->
+      @endcan
+      <li><a class="nav-link" href="{{ route('admin.seo.index') }}">{{ __('SEO Settings') }}</a>
       <li><a class="nav-link" href="{{ route('admin.env.index') }}">{{ __('System Settings') }}</a>
       </li>
    </ul>
 </li>
 
-<!-- <li class="{{ Request::is('admin/theme/settings') ? 'active' : '' }}">
+<li class="{{ Request::is('admin/theme/settings') ? 'active' : '' }}">
    <a href="{{ route('admin.theme.settings') }}" class="nav-link">
    <i class="fas fa-pencil-ruler"></i>
    <span>{{ __('Theme Settings') }}</span>
    </a>
-</li> -->
+</li>*/?>

@@ -5,7 +5,8 @@
         <span>{{ __('Dashboard') }}</span>
     </a>
 </li>
-<!-- <li class="menu-header">{{ __('Wallet') }}</li>
+<?php /*
+<li class="menu-header">{{ __('Wallet') }}</li>
 <li class="{{ Request::is('partner/fund') ? 'active' : '' }}">
     <a class="nav-link" href="{{ route('merchant.fund.index') }}">
         <i class="fas fa-money-check-alt"></i>
@@ -17,7 +18,8 @@
         <i class="fas fa-list"></i>
         <span>{{ __('Fund History') }}</span>
     </a>
-</li> -->
+</li>
+
 <li class="menu-header">{{ __('Club Store Management') }}</li>
 <li class="{{ Request::is('partner/domain*') ? 'active' : '' }}">
     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
@@ -29,7 +31,8 @@
         <li><a class="nav-link" href="{{ route('merchant.domain.list') }}">{{ __('My Stores') }}</a></li>
     </ul>
 </li>
-<!-- <li class="{{ Request::is('partner/order') ? 'active' : '' }}">
+
+<li class="{{ Request::is('partner/order') ? 'active' : '' }}">
     <a class="nav-link" href="{{ route('merchant.order.index') }}">
         <i class="fas fa-th"></i>
         <span>{{ __('My Orders') }}</span>
@@ -47,4 +50,5 @@
         <i class="fas fa-chart-bar"></i>
         <span>{{ __('Payment Report') }}</span>
     </a>
-</li> -->
+</li>
+*/ ?>

@@ -5,7 +5,8 @@
         <span>{{ __('Dashboard') }}</span>
     </a>
 </li>
-<!-- <li class="menu-header">{{ __('Order Management') }}</li>
+<?php /*
+<li class="menu-header">{{ __('Order Management') }}</li>
 <li class="{{ Request::is('seller/pos*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/pos') }}">
      <i class="fas fa-cart-plus"></i>
@@ -29,7 +30,8 @@
      <i class="fas fa-tags"></i>
      <span>{{ __('Order Status') }}</span>
  </a>
-</li> -->
+</li>
+*/ ?>
 
 
 <li class="menu-header">{{ __('Product Management') }}</li>
@@ -66,13 +68,14 @@
         </li> -->
     </ul>
 </li>
-<!-- <li class="{{ Request::is('seller/review*') ? 'active' : '' }}">
+<?php /*
+ <li class="{{ Request::is('seller/review*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/review') }}">
         <i class="fas fa-star-half-alt"></i>
         <span>{{ __('Reviews') }}</span>
     </a>
-</li> -->
-<!-- <li class="menu-header">{{ __('User Management') }}</li>
+</li> 
+ <li class="menu-header">{{ __('User Management') }}</li>
 <li class="{{ Request::is('seller/user*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/user') }}">
         <i class="fas fa-users"></i>
@@ -84,48 +87,48 @@
         <i class="fas fa-motorcycle"></i>
         <span>{{ __('Riders') }}</span>
     </a>
-</li> -->
+</li>
 
-<!-- <li class="menu-header">{{ __('Payment Gateway') }}</li>
+<li class="menu-header">{{ __('Payment Gateway') }}</li>
 <li class="{{ Request::is('seller/payment/gateway*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/payment/gateway') }}">
         <i class="fas fa-money-check-alt"></i>
         <span>{{ __('Payment Gateways') }}</span>
     </a>
-</li> -->
-<!-- <li class="menu-header">{{ __('Table Management') }}</li>
+</li>
+<li class="menu-header">{{ __('Table Management') }}</li>
 <li class="{{ Request::is('seller/table*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/table') }}">
         <i class="fas fa-table"></i>
         <span>{{ __('Tables') }}</span>
     </a>
-</li> -->
-<!-- <li class="menu-header">{{ __('Website Management') }}</li>
+</li>
+<li class="menu-header">{{ __('Website Management') }}</li>
 <li class="{{ Request::is('seller/page*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/page') }}">
         <i class="fas fa-file"></i>
         <span>{{ __('Pages') }}</span>
     </a>
-</li> -->
-<!-- <li class="{{ Request::is('seller/blog*') ? 'active' : '' }}">
+</li>
+<li class="{{ Request::is('seller/blog*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/blog') }}">
         <i class="fas fa-blog"></i>
         <span>{{ __('Blogs') }}</span>
     </a>
-</li> -->
-<!-- <li class="{{ Request::is('seller/slider*') ? 'active' : '' }}">
+</li>
+<li class="{{ Request::is('seller/slider*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/slider') }}">
         <i class="fas fa-sliders-h"></i>
         <span>{{ __('Sliders') }}</span>
     </a>
-</li> -->
-<!-- <li class="{{ Request::is('seller/special-menu*') ? 'active' : '' }}">
+</li>
+<li class="{{ Request::is('seller/special-menu*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/special-menu') }}">
         <i class="fas fa-th"></i>
         <span>{{ __('Special Menus') }}</span>
     </a>
-</li> -->
-<!-- <li class="{{ Request::is('seller/banner*') ? 'active' : '' }} {{ Request::is('seller/banner*') ? 'active' : '' }}">
+</li>
+<li class="{{ Request::is('seller/banner*') ? 'active' : '' }} {{ Request::is('seller/banner*') ? 'active' : '' }}">
     <a class="nav-link has-dropdown" href="#">
         <i class="fas fa-box"></i>
         <span>{{ __('Banners') }}</span>
@@ -134,8 +137,8 @@
         <li><a class="nav-link" href="{{ url('/seller/banner/short-banner') }}"><span>{{ __('Short Banner') }}</span></a></li>
         <li><a class="nav-link" href="{{ url('/seller/banner/large-banner') }}"><span>{{ __('Large Banner') }}</span></a></li>
     </ul>
-</li> -->
-<!-- <li class="{{ Request::is('seller/settings*') ? 'active' : '' }} {{ Request::is('seller/settings*') ? 'active' : '' }}">
+</li>
+<li class="{{ Request::is('seller/settings*') ? 'active' : '' }} {{ Request::is('seller/settings*') ? 'active' : '' }}">
     <a class="nav-link has-dropdown" href="#">
         <i class="fas fa-cog"></i>
         <span>{{ __('Settings') }}</span>
@@ -146,4 +149,5 @@
        <li><a class="nav-link" href="{{ url('/seller/settings/pwa') }}"><span> {{ __('PWA Configuration') }}</span></a></li>
        <li><a class="nav-link" href="{{ url('/seller/settings/seo') }}"><span>{{ __('SEO Settings') }}</span></a></li>
    </ul>
-</li> -->
+</li>
+*/?>
