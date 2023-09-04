@@ -165,7 +165,9 @@ class MerchantController extends Controller
     }
     $plan_id = Session::get('plan');
     $name = Str::slug(Session::get('store_data')['store_name']);
-    $club_id = Session::get('store_data')['club_id'];
+    $store_data=Session::get('store_data');
+    $club_id = isset($store_data['club_id'])?$store_data['club_id']:0;
+    
     $order_id = Session::get('order_id');
     abort_if(empty($order_id), 404);
     ini_set('max_execution_time', '0');
@@ -199,9 +201,8 @@ class MerchantController extends Controller
     $tenant->user_id = 2;//Auth::id();
     $tenant->will_expire = $expiry_date;
     $tenant->club_id=$club_id;
-    $tenant->logo=Session::get('store_data')['logo'];
+    $tenant->logo=isset($store_data['logo'])?$store_data['logo']:'';
     $tenant->save();
-
     DB::beginTransaction();
     try {
       $tenant_id = Str::slug($name);

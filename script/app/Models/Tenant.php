@@ -16,7 +16,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      * @var array
      */
     protected $fillable = [
-        'id', 'order_id','user_id','will_expire','data','status','auto_renew','uid','long','club_id'
+        'id', 'order_id','user_id','will_expire','data','status','auto_renew','uid','long','club_id','logo'
     ];
    
     public static function getCustomColumns(): array
@@ -31,8 +31,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'auto_renew',
             'uid',
             'lat',
-            'long'
-            
+            'long',
+            'club_id',
+            'logo'
             
         ];
     }
