@@ -118,7 +118,7 @@ class MerchantController extends Controller
     ];
     if (isset($request->logo) && !empty($request->logo)) {
       $filename = 'store_' .$club_id.'.png';
-      Storage::disk('public')->put($filename, $request->logo);
+      Storage::disk('public')->put('store_logo/'.$filename, $request->logo);
       $store_data['logo']=$filename;
   }
 
