@@ -2,7 +2,7 @@
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand">
         @if(Auth::user()->role_id == 1)
-        <a href="{{ url('/') }}"><img src="/uploads/booostr-logo-long-top-header.png" height="40"/></a>
+        <a href="{{ url('/admin/dashboard') }}"><img src="/uploads/booostr-logo-long-top-header.png" height="40"/></a>
         @elseif (Auth::user()->role_id == 2)
         <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
         @elseif (Auth::user()->role_id == 3)
