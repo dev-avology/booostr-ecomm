@@ -44,9 +44,9 @@
         <li>
             <a class="nav-link" href="{{ url('/seller/product') }}">{{ __('Products') }}</a>
         </li>
-        <li>
+        <!-- <li>
             <a class="nav-link" href="{{ url('/seller/features') }}">{{ __('Product Features') }}</a>
-        </li>
+        </li> -->
         
         <!-- <li>
             <a class="nav-link" href="{{ url('/seller/barcode') }}">{{ __('Barcode Print') }}</a>

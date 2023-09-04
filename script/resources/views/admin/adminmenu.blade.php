@@ -93,13 +93,13 @@
 <li
    class="dropdown {{ Request::is('admin/role*') ? 'active' : '' }} {{ Request::is('admin/users*') ? 'active' : '' }}">
    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-      class="fas fa-user-shield"></i><span>{{ __('Admins & Roles') }}</span></a>
+      class="fas fa-user-shield"></i><span>{{ __('Admins Users') }}</span></a>
    <ul class="dropdown-menu">
-      @can('role.list')
+      <!-- @can('role.list')
       <li>
          <a class="nav-link" href="{{ route('admin.role.index') }}">{{ __('Roles') }}</a>
       </li>
-      @endcan
+      @endcan -->
       @can('admin.list')
       <li><a class="nav-link" href="{{ route('admin.admin.index') }}">{{ __('Admins') }}</a>
       </li>

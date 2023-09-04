@@ -58,10 +58,10 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         abort_if(!getpermission('products'),401);
-        if (postlimitcheck() == false) {
-            $errors['errors']['error']='Maximum product limit exceeded';
-            return response()->json($errors,401);
-        }
+        // if (postlimitcheck() == false) {
+        //     $errors['errors']['error']='Maximum product limit exceeded';
+        //     return response()->json($errors,401);
+        // }
 
         $validated = $request->validate([
             'name' => 'required|max:100',
