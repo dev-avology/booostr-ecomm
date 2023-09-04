@@ -22,9 +22,10 @@ Route::group([
 ], function () {
     Route::post('/partner/create', 'Api\MerchantController@createmerchant');
     Route::post('/partner/login', 'Api\MerchantController@login');
+    Route::post('/partner/createstore', 'Api\MerchantController@createstore');
 });
 
-Route::post('/partner/createstore', 'Api\MerchantController@createstore')->middleware('auth:api');
+// Route::post('/partner/createstore', 'Api\MerchantController@createstore')->middleware('auth:api');
 
 Route::group([
     'prefix'     => '/storedata',

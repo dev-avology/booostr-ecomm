@@ -75,114 +75,114 @@ Route::group(['domain' => env('APP_URL')], function($domain)
         Route::get('/dashboard/deposit/perfomance/{period}','DashboardController@depositPerfomance');
         Route::get('/dashboard/order_statics/{month}','DashboardController@order_statics');
         Route::get('/dashboard/visitors/{days}','DashboardController@google_analytics');
-        Route::resource('cron', 'CronController');
+        // Route::resource('cron', 'CronController');
 
-        Route::resource('store', 'StoreController');
-        Route::post('stores/destroys', 'StoreController@destroy')->name('stores.destroys');
+        // Route::resource('store', 'StoreController');
+        // Route::post('stores/destroys', 'StoreController@destroy')->name('stores.destroys');
 
-        Route::resource('domain', 'DomainController');
-        Route::post('domains/destroys', 'DomainController@destroy')->name('domains.destroys');
+        // Route::resource('domain', 'DomainController');
+        // Route::post('domains/destroys', 'DomainController@destroy')->name('domains.destroys');
 
-        Route::get('domain/edit/database/{id}', 'StoreController@databaseView')->name('domain.database.edit');
-        Route::put('domain/update/database/{id}', 'StoreController@databaseUpdate')->name('database.update');
-        Route::get('domain/edit/plan/{id}', 'StoreController@planView')->name('domain.plan.edit');
-        Route::put('domain/update/plan/{id}', 'StoreController@planUpdate')->name('domain.plan.update');
+        // Route::get('domain/edit/database/{id}', 'StoreController@databaseView')->name('domain.database.edit');
+        // Route::put('domain/update/database/{id}', 'StoreController@databaseUpdate')->name('database.update');
+        // Route::get('domain/edit/plan/{id}', 'StoreController@planView')->name('domain.plan.edit');
+        // Route::put('domain/update/plan/{id}', 'StoreController@planUpdate')->name('domain.plan.update');
 
-        Route::resource('seo', 'SeoController');
+        // Route::resource('seo', 'SeoController');
 
-        Route::resource('env', 'EnvController');
-        Route::get('site/settings', 'EnvController@theme_settings')->name('site.settings');
+        // Route::resource('env', 'EnvController');
+        // Route::get('site/settings', 'EnvController@theme_settings')->name('site.settings');
 
-        Route::resource('plan', 'PlanController');
-        Route::post('plans/delete', 'PlanController@destroy')->name('plans.destroys');
-        Route::get('/plan/config/settings','PlanController@settings')->name('plan.settings');
-        Route::put('/plan/config/update/{type}','PlanController@settingsUpdate')->name('plan.settings.update');
+        // Route::resource('plan', 'PlanController');
+        // Route::post('plans/delete', 'PlanController@destroy')->name('plans.destroys');
+        // Route::get('/plan/config/settings','PlanController@settings')->name('plan.settings');
+        // Route::put('/plan/config/update/{type}','PlanController@settingsUpdate')->name('plan.settings.update');
 
-        //language
-        Route::resource('language', 'LanguageController');
-        Route::get('languages/delete/{id}', 'LanguageController@destroy')->name('languages.delete');
-        Route::post('languages/setActiveLanuguage', 'LanguageController@setActiveLanuguage')->name('languages.active');
-        Route::post('languages/add_key', 'LanguageController@add_key')->name('language.add_key');
-        // Menu Route
-        Route::resource('menu', 'MenuController');
-        Route::post('/menus/destroy', 'MenuController@destroy')->name('menus.destroy');
-        Route::post('menues/node', 'MenuController@MenuNodeStore')->name('menus.MenuNodeStore');
-        //role routes
-        Route::resource('role', 'RoleController');
-        Route::post('roles/destroy', 'RoleController@destroy')->name('roles.destroy');
-        // Admin Route
-        Route::resource('admin', 'AdminController');
-        Route::post('/admins/destroy', 'AdminController@destroy')->name('admins.destroy');
+        // //language
+        // Route::resource('language', 'LanguageController');
+        // Route::get('languages/delete/{id}', 'LanguageController@destroy')->name('languages.delete');
+        // Route::post('languages/setActiveLanuguage', 'LanguageController@setActiveLanuguage')->name('languages.active');
+        // Route::post('languages/add_key', 'LanguageController@add_key')->name('language.add_key');
+        // // Menu Route
+        // Route::resource('menu', 'MenuController');
+        // Route::post('/menus/destroy', 'MenuController@destroy')->name('menus.destroy');
+        // Route::post('menues/node', 'MenuController@MenuNodeStore')->name('menus.MenuNodeStore');
+        // //role routes
+        // Route::resource('role', 'RoleController');
+        // Route::post('roles/destroy', 'RoleController@destroy')->name('roles.destroy');
+        // // Admin Route
+        // Route::resource('admin', 'AdminController');
+        // Route::post('/admins/destroy', 'AdminController@destroy')->name('admins.destroy');
 
-        //Gateway crud controller
-        Route::resource('gateway', 'PaymentGatewayController');
-        //Blog crud controller
-        Route::resource('blog', 'BlogController');
-        //Page crud controller
-        Route::resource('page', 'PageController');
+        // //Gateway crud controller
+        // Route::resource('gateway', 'PaymentGatewayController');
+        // //Blog crud controller
+        // Route::resource('blog', 'BlogController');
+        // //Page crud controller
+        // Route::resource('page', 'PageController');
 
-        Route::resource('template','ThemeController');
+        // Route::resource('template','ThemeController');
 
-        Route::get('/dns/settings', 'StoreController@dnsSettingView')->name('dns.settings');
-        Route::put('/dns/update', 'StoreController@dnsUpdate')->name('dns.update');
+        // Route::get('/dns/settings', 'StoreController@dnsSettingView')->name('dns.settings');
+        // Route::put('/dns/update', 'StoreController@dnsUpdate')->name('dns.update');
 
-        Route::get('/developer/instruction', 'StoreController@instructionView')->name('developer.instruction');
-        Route::put('/instruction/update', 'StoreController@instructionUpdate')->name('developer.instruction.update');
+        // Route::get('/developer/instruction', 'StoreController@instructionView')->name('developer.instruction');
+        // Route::put('/instruction/update', 'StoreController@instructionUpdate')->name('developer.instruction.update');
 
-        //Support Route
-        Route::resource('support', 'SupportController');
-        Route::post('supportInfo', 'SupportController@getSupportData')->name('support.info');
-        Route::post('supportstatus', 'SupportController@supportStatus')->name('support.status');
+        // //Support Route
+        // Route::resource('support', 'SupportController');
+        // Route::post('supportInfo', 'SupportController@getSupportData')->name('support.info');
+        // Route::post('supportstatus', 'SupportController@supportStatus')->name('support.status');
 
-        //Option route
-        Route::get('option/edit/{key}', 'OptionController@edit')->name('option.edit');
-        Route::post('option/update/{key}', 'OptionController@update')->name('option.update');
-        Route::get('option/sco-index', 'OptionController@seoIndex')->name('option.seo-index');
-        Route::get('option/seo-edit/{id}', 'OptionController@seoEdit')->name('option.seo-edit');
-        Route::put('option/seo-update/{id}', 'OptionController@seoUpdate')->name('option.seo-update');
-
-
-        //Theme settings
-        Route::get('theme/settings', 'OptionController@settingsEdit')->name('theme.settings');
-        Route::put('theme/settings-update/{id}', 'OptionController@settingsUpdate')->name('theme.settings.update');
-        Route::get('theme/settings/General','ThemesettingsController@general')->name('settings.general');
-        Route::post('theme/settings/General','ThemesettingsController@generalupdate')->name('settings.general.update');
-        Route::get('theme/settings/services','ThemesettingsController@serviceindex')->name('settings.service.index');
-        Route::get('theme/settings/services/create','ThemesettingsController@servicecreate')->name('settings.service.create');
-        Route::post('theme/settings/services/store','ThemesettingsController@servicestore')->name('settings.service.store');
-        Route::get('theme/settings/services/{id}/edit','ThemesettingsController@serviceedit')->name('settings.service.edit');
-        Route::put('theme/settings/services/update/{id}','ThemesettingsController@serviceupdate')->name('settings.service.update');
-        Route::post('theme/settings/services/destroy','ThemesettingsController@servicedestroy')->name('settings.service.destroy');
-        Route::get('theme/footer','ThemesettingsController@footerindex')->name('settings.footer.index');
-        Route::post('theme/settings/footer','ThemesettingsController@footerupdate')->name('settings.footer.update');
-        Route::get('theme/settings/themes','ThemesettingsController@demo_lists')->name('settings.demo');
-        Route::get('theme/settings/theme/create','ThemesettingsController@demo_create')->name('settings.demo.create');
-        Route::post('theme/settings/theme/create','ThemesettingsController@demo_store')->name('settings.demo.store');
-        Route::get('theme/settings/theme/{id}/edit','ThemesettingsController@demo_edit')->name('settings.demo.edit');
-        Route::put('theme/settings/theme/update/{id}','ThemesettingsController@demo_update')->name('settings.demo.update');
-        Route::post('theme/settings/theme/destroy','ThemesettingsController@demo_destroy')->name('settings.demo.destroy');
+        // //Option route
+        // Route::get('option/edit/{key}', 'OptionController@edit')->name('option.edit');
+        // Route::post('option/update/{key}', 'OptionController@update')->name('option.update');
+        // Route::get('option/sco-index', 'OptionController@seoIndex')->name('option.seo-index');
+        // Route::get('option/seo-edit/{id}', 'OptionController@seoEdit')->name('option.seo-edit');
+        // Route::put('option/seo-update/{id}', 'OptionController@seoUpdate')->name('option.seo-update');
 
 
-        //Order Route
-        Route::resource('order', 'OrderController');
+        // //Theme settings
+        // Route::get('theme/settings', 'OptionController@settingsEdit')->name('theme.settings');
+        // Route::put('theme/settings-update/{id}', 'OptionController@settingsUpdate')->name('theme.settings.update');
+        // Route::get('theme/settings/General','ThemesettingsController@general')->name('settings.general');
+        // Route::post('theme/settings/General','ThemesettingsController@generalupdate')->name('settings.general.update');
+        // Route::get('theme/settings/services','ThemesettingsController@serviceindex')->name('settings.service.index');
+        // Route::get('theme/settings/services/create','ThemesettingsController@servicecreate')->name('settings.service.create');
+        // Route::post('theme/settings/services/store','ThemesettingsController@servicestore')->name('settings.service.store');
+        // Route::get('theme/settings/services/{id}/edit','ThemesettingsController@serviceedit')->name('settings.service.edit');
+        // Route::put('theme/settings/services/update/{id}','ThemesettingsController@serviceupdate')->name('settings.service.update');
+        // Route::post('theme/settings/services/destroy','ThemesettingsController@servicedestroy')->name('settings.service.destroy');
+        // Route::get('theme/footer','ThemesettingsController@footerindex')->name('settings.footer.index');
+        // Route::post('theme/settings/footer','ThemesettingsController@footerupdate')->name('settings.footer.update');
+        // Route::get('theme/settings/themes','ThemesettingsController@demo_lists')->name('settings.demo');
+        // Route::get('theme/settings/theme/create','ThemesettingsController@demo_create')->name('settings.demo.create');
+        // Route::post('theme/settings/theme/create','ThemesettingsController@demo_store')->name('settings.demo.store');
+        // Route::get('theme/settings/theme/{id}/edit','ThemesettingsController@demo_edit')->name('settings.demo.edit');
+        // Route::put('theme/settings/theme/update/{id}','ThemesettingsController@demo_update')->name('settings.demo.update');
+        // Route::post('theme/settings/theme/destroy','ThemesettingsController@demo_destroy')->name('settings.demo.destroy');
 
-        //merchant crud and mail controller
-        Route::resource('partner', 'MerchantController');
-        Route::post('merchant-send-mail/{id}', 'MerchantController@sendMail');
-        Route::get('merchant-login/{id}', 'MerchantController@login')->name('merchant.login');
+
+        // //Order Route
+        // Route::resource('order', 'OrderController');
+
+        // //merchant crud and mail controller
+        // Route::resource('partner', 'MerchantController');
+        // Route::post('merchant-send-mail/{id}', 'MerchantController@sendMail');
+        // Route::get('merchant-login/{id}', 'MerchantController@login')->name('merchant.login');
 
 
-        //Report Route
-        Route::resource('report', 'ReportController');
-        Route::get('order-excel', 'ReportController@excel')->name('order.excel');
-        Route::get('order-csv', 'ReportController@csv')->name('order.csv');
-        Route::get('order-pdf', 'ReportController@pdf')->name('order.pdf');
-        Route::get('report-invoice/{id}', 'ReportController@invoicePdf')->name('report.pdf');
+        // //Report Route
+        // Route::resource('report', 'ReportController');
+        // Route::get('order-excel', 'ReportController@excel')->name('order.excel');
+        // Route::get('order-csv', 'ReportController@csv')->name('order.csv');
+        // Route::get('order-pdf', 'ReportController@pdf')->name('order.pdf');
+        // Route::get('report-invoice/{id}', 'ReportController@invoicePdf')->name('report.pdf');
 
-        // Fund History Route
-        Route::get('fund/history','FundController@history')->name('fund.history');
-        Route::post('fund/approved','FundController@approved')->name('fund.approved');
-        Route::post('fund/store','FundController@store')->name('fund.store');
+        // // Fund History Route
+        // Route::get('fund/history','FundController@history')->name('fund.history');
+        // Route::post('fund/approved','FundController@approved')->name('fund.approved');
+        // Route::post('fund/store','FundController@store')->name('fund.store');
 
         // Theme Settings
 
@@ -193,77 +193,77 @@ Route::group(['domain' => env('APP_URL')], function($domain)
         Route::get('dashboard', 'DashboardController@index')->name('dashboard');
         Route::get('/dashboard-data','DashboardController@staticData');
 
-        Route::get('domain', 'DomainController@index')->name('domain.list');
-        Route::get('domain/create','DomainController@create')->name('domain.create');
-        Route::get('domain/edit/{id}', 'DomainController@edit')->name('domain.edit');
-        Route::put('domain/update/{id}', 'DomainController@update')->name('domain.update');
-        Route::post('domain/check','DomainController@check')->name('domain.check');
-        Route::post('domain/store','DomainController@store')->name('domain.store');
-        Route::get('domain/select/plan','DomainController@gateway')->name('domain.payment');
+        // Route::get('domain', 'DomainController@index')->name('domain.list');
+        // Route::get('domain/create','DomainController@create')->name('domain.create');
+        // Route::get('domain/edit/{id}', 'DomainController@edit')->name('domain.edit');
+        // Route::put('domain/update/{id}', 'DomainController@update')->name('domain.update');
+        // Route::post('domain/check','DomainController@check')->name('domain.check');
+        // Route::post('domain/store','DomainController@store')->name('domain.store');
+        // Route::get('domain/select/plan','DomainController@gateway')->name('domain.payment');
 
-        Route::get('domain/configuration/{id}', 'DomainController@domainConfig')->name('domain.domainConfig');
-        Route::post('domain/add-subdomain/{id}','DomainController@addSubdomain')->name('add.subdomain');
-        Route::put('domain/update-subdomain/{id}','DomainController@updateSubdomain')->name('update.subdomain');
-        Route::delete('domain/delete-subdomain/{id}','DomainController@destroy')->name('destroy.subdomain');
+        // Route::get('domain/configuration/{id}', 'DomainController@domainConfig')->name('domain.domainConfig');
+        // Route::post('domain/add-subdomain/{id}','DomainController@addSubdomain')->name('add.subdomain');
+        // Route::put('domain/update-subdomain/{id}','DomainController@updateSubdomain')->name('update.subdomain');
+        // Route::delete('domain/delete-subdomain/{id}','DomainController@destroy')->name('destroy.subdomain');
 
 
-        Route::post('domain/add-customdomain/{id}','DomainController@addCustomDomain')->name('add.customdomain');
-        Route::put('domain/update-customdomain/{id}','DomainController@updateCustomDomain')->name('update.customdomain');
-        Route::delete('domain/delete-customdomain/{id}','DomainController@destroyCustomdomain')->name('destroy.customdomain');
+        // Route::post('domain/add-customdomain/{id}','DomainController@addCustomDomain')->name('add.customdomain');
+        // Route::put('domain/update-customdomain/{id}','DomainController@updateCustomDomain')->name('update.customdomain');
+        // Route::delete('domain/delete-customdomain/{id}','DomainController@destroyCustomdomain')->name('destroy.customdomain');
 
-        Route::get('/domain/transfer/{id}','DomainController@transferView')->name('domain.transfer');
-        Route::post('/domain/otp/{id}','DomainController@sendOtp')->name('domain.transfer.otp')->middleware('throttle:5,1');
-        Route::post('/domain/varifyotp/{id}','DomainController@verifyOtp')->name('domain.verify.otp')->middleware('throttle:5,1');
+        // Route::get('/domain/transfer/{id}','DomainController@transferView')->name('domain.transfer');
+        // Route::post('/domain/otp/{id}','DomainController@sendOtp')->name('domain.transfer.otp')->middleware('throttle:5,1');
+        // Route::post('/domain/varifyotp/{id}','DomainController@verifyOtp')->name('domain.verify.otp')->middleware('throttle:5,1');
 
-        Route::get('/domain/developer-mode/{id}','DomainController@developerView')->name('domain.developer');
-        Route::post('/domain/migrate-seed/{id}','DomainController@migrateWithSeed')->name('domain.migrate-seed');
-        Route::post('/domain/migrate/{id}','DomainController@migrate')->name('domain.migrate');
-        Route::post('/domain/clear-cache/{id}','DomainController@cacheClear')->name('domain.clear-cache');
-        Route::post('/domain/remove-storage/{id}','DomainController@removeStorage')->name('domain.storage.clear');
-        Route::post('/domain/login/{id}','DomainController@login')->name('domain.login');
-        Route::post('/domain-login/{id}','DomainController@loginByDomain')->name('domain.login.domain');
+        // Route::get('/domain/developer-mode/{id}','DomainController@developerView')->name('domain.developer');
+        // Route::post('/domain/migrate-seed/{id}','DomainController@migrateWithSeed')->name('domain.migrate-seed');
+        // Route::post('/domain/migrate/{id}','DomainController@migrate')->name('domain.migrate');
+        // Route::post('/domain/clear-cache/{id}','DomainController@cacheClear')->name('domain.clear-cache');
+        // Route::post('/domain/remove-storage/{id}','DomainController@removeStorage')->name('domain.storage.clear');
+        // Route::post('/domain/login/{id}','DomainController@login')->name('domain.login');
+        // Route::post('/domain-login/{id}','DomainController@loginByDomain')->name('domain.login.domain');
 
-        Route::get('/domain/renew/{id}','PlanController@renewView')->name('domain.renew');
-        Route::get('/plan/domain/{id}','PlanController@changePlan')->name('domain.plan');
-        Route::get('/plancharge/{domain}/{id}', 'PlanController@ChanePlanGateways')->name('plan.gateways');
-        Route::post('/domain/renewcharge/{id}','PlanController@renewCharge')->name('plan.renew-plan');
+        // Route::get('/domain/renew/{id}','PlanController@renewView')->name('domain.renew');
+        // Route::get('/plan/domain/{id}','PlanController@changePlan')->name('domain.plan');
+        // Route::get('/plancharge/{domain}/{id}', 'PlanController@ChanePlanGateways')->name('plan.gateways');
+        // Route::post('/domain/renewcharge/{id}','PlanController@renewCharge')->name('plan.renew-plan');
 
-        Route::get('/gateways/{id}', 'PlanController@gateways')->name('plan.gateways');
-        Route::post('/deposit', 'PlanController@deposit')->name('plan.deposit');
-        Route::get('plan-invoice/{id}', 'PlanController@invoicePdf');
-        Route::resource('plan', 'PlanController');
-        Route::get('enroll', 'PlanController@enroll')->name('plan.enroll');
-        Route::post('enroll/store', 'PlanController@storePlan')->name('enroll.domain');
+        // Route::get('/gateways/{id}', 'PlanController@gateways')->name('plan.gateways');
+        // Route::post('/deposit', 'PlanController@deposit')->name('plan.deposit');
+        // Route::get('plan-invoice/{id}', 'PlanController@invoicePdf');
+        // Route::resource('plan', 'PlanController');
+        // Route::get('enroll', 'PlanController@enroll')->name('plan.enroll');
+        // Route::post('enroll/store', 'PlanController@storePlan')->name('enroll.domain');
 
-        // Store Create
-        Route::get('store/create','PlanController@strorecreate')->name('plan.strorecreate');
+        // // Store Create
+        // Route::get('store/create','PlanController@strorecreate')->name('plan.strorecreate');
 
-        //Payment status route
-        Route::get('payment/success', 'PlanController@success')->name('payment.success');
-        Route::get('payment/failed', 'PlanController@failed')->name('payment.failed');
-        //Support Route
-        Route::resource('support', 'SupportController');
+        // //Payment status route
+        // Route::get('payment/success', 'PlanController@success')->name('payment.success');
+        // Route::get('payment/failed', 'PlanController@failed')->name('payment.failed');
+        // //Support Route
+        // Route::resource('support', 'SupportController');
 
-        //Report Route
-        Route::resource('report', 'ReportController');
+        // //Report Route
+        // Route::resource('report', 'ReportController');
 
-        // Fund Route
-        Route::resource('fund','FundController');
-        Route::get('fund/payment/select','FundController@payment')->name('fund.payment');
-        Route::post('fund/deposit','FundController@deposit')->name('fund.deposit');
-        Route::get('fund/history/list','FundController@history')->name('fund.history');
+        // // Fund Route
+        // Route::resource('fund','FundController');
+        // Route::get('fund/payment/select','FundController@payment')->name('fund.payment');
+        // Route::post('fund/deposit','FundController@deposit')->name('fund.deposit');
+        // Route::get('fund/history/list','FundController@history')->name('fund.history');
 
-        Route::get('fund/redirect/success', 'FundController@success')->name('fund.success');
-        Route::get('fund/redirect/fail', 'FundController@fail')->name('fund.fail');
+        // Route::get('fund/redirect/success', 'FundController@success')->name('fund.success');
+        // Route::get('fund/redirect/fail', 'FundController@fail')->name('fund.fail');
 
-        Route::get('plan-renew/redirect/success','PlanController@renewSuccess');
-        Route::get('plan-renew/redirect/fail','PlanController@renewFail');
+        // Route::get('plan-renew/redirect/success','PlanController@renewSuccess');
+        // Route::get('plan-renew/redirect/fail','PlanController@renewFail');
 
-        // Lock Store
-        Route::get('store/lock/{id}','PlanController@lock')->name('store.lock');
+        // // Lock Store
+        // Route::get('store/lock/{id}','PlanController@lock')->name('store.lock');
 
-        // Order Routes
-        Route::get('order','OrderController@index')->name('order.index');
+        // // Order Routes
+        // Route::get('order','OrderController@index')->name('order.index');
     });
 
 });

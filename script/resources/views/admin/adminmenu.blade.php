@@ -74,7 +74,7 @@
    </a>
 </li>
 @endcan -->
-
+<?php /*
 <li class="menu-header">{{ __('User Management') }}</li>
 @can('merchant.index','merchant.create','merchant.edit')
 <li class="{{ Request::is('admin/partner*') ? 'active' : '' }}">
@@ -86,6 +86,7 @@
    </ul>
 </li>
 @endcan
+*/?>
 
 @can('role.list', 'admin.list')
 <li

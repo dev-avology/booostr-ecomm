@@ -1,7 +1,16 @@
 <div class="main-sidebar">
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand">
-            <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
+        @if(Auth::user()->role_id == 1)
+        <a href="{{ url('/') }}"><img src="/uploads/booostr-logo-long-top-header.png" height="40"/></a>
+        @elseif (Auth::user()->role_id == 2)
+        <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
+        @elseif (Auth::user()->role_id == 3)
+        <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
+        @elseif (Auth::user()->role_id == 5)
+        <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
+        @endif
+            
         </div>
         <div class="sidebar-brand sidebar-brand-sm">
             <a href="{{ url('login') }}">{{ Str::limit(env('APP_NAME'), $limit = 1) }}</a>

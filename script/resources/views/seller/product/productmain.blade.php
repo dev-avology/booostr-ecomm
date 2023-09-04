@@ -19,7 +19,7 @@
             <li class="nav-item">
               <a class="nav-link {{ url('/seller/product/edit/'.$product_id.'/image') == url()->current() ? 'active' : '' }}"  href="{{ url('/seller/product/edit/'.$product_id.'/image') }}">{{ __('Images') }}</a>
             </li>
-            <li class="nav-item">
+            <!-- <li class="nav-item">
               <a class="nav-link {{ url('/seller/product/edit/'.$product_id.'/discount') == url()->current() ? 'active' : '' }}"  href="{{ url('/seller/product/edit/'.$product_id.'/discount') }}">{{ __('Discount') }}</a>
             </li>
             <li class="nav-item">
@@ -29,7 +29,7 @@
                <a class="nav-link {{ url('/seller/product/edit/'.$product_id.'/express-checkout') == url()->current() ? 'active' : '' }}"  href="{{ url('/seller/product/edit/'.$product_id.'/express-checkout') }}">{{ __('Express Checkout') }}</a>
             <li class="nav-item">
                <a class="nav-link {{ url('/seller/product/edit/'.$product_id.'/barcode') == url()->current() ? 'active' : '' }}"  href="{{ url('/seller/product/edit/'.$product_id.'/barcode') }}">{{ __('Barcode Print') }} @if(tenant('barcode') != 'on')  <i class="fa fa-lock text-danger"></i> @endif</a>   
-            </li>
+            </li> -->
           </ul>
         </div>
         <div class="col-sm-9">

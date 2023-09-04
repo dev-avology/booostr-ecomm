@@ -125,7 +125,8 @@
                </div>
                {{-- /right side --}}
             </div>
-            <div class="row">
+            <input type="hidden" value="0" name="product_type" />
+            <!-- <div class="row">
                {{-- left side --}}
                <div class="col-lg-4">
                   <strong>{{ __('Product Type') }}</strong>
@@ -148,7 +149,7 @@
                      </div>
                   </div>
                </div>
-            </div>
+            </div> -->
             <div class="row single_product_price_area">
                {{-- left side --}}
                <div class="col-lg-4">
@@ -219,8 +220,7 @@
                {{-- right side --}}
                <div class="col-lg-8">
                   <div class="card card-primary">
-                     <div class="attribute_render_area">
-                     </div>
+                     <div class="attribute_render_area"></div>
                      <button class="btn btn-primary col-sm-12 add_more_attribute" type="button"><i class="fa fa-plus"></i> {{ __('Add More') }}</button>
 
                      <button class="btn btn-primary mt-2 basicbtn" type="submit">{{ __('Create Product') }}</button>

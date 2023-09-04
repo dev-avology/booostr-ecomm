@@ -22,9 +22,9 @@
 <div class="card card-primary">
     <div class="card-body">
         <div class="row mb-2">
-            <div class="col-lg-12">
+            <!-- <div class="col-lg-12">
                 <a href="#" class="btn btn-primary float-right" data-toggle="modal" data-target="#import">{{ __('Bulk Import') }}</a>
-            </div>
+            </div> -->
         </div>
         <br>
         <div class="float-right">

@@ -254,7 +254,7 @@
     </div>
 
 
-    <div class="card card-primary">
+    <!-- <div class="card card-primary">
       <div class="card-header">
         <h4>{{ __('Top Selling Products') }}</h4>
       </div>
@@ -264,9 +264,9 @@
         
         </div>
       </div>
-    </div>
+    </div> -->
 
-    <div class="card card-primary">
+    <!-- <div class="card card-primary">
       <div class="card-header">
         <h4>{{ __('Top Rated Products') }}</h4>
       </div>
@@ -275,9 +275,9 @@
          
         </div>
       </div>
-    </div>
+    </div> -->
 
-    <div class="card card-primary">
+    <!-- <div class="card card-primary">
       <div class="card-header">
         <h4>{{ __('Top Customers') }}</h4>
 
@@ -288,13 +288,13 @@
           
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
   <div class="col-lg-4">
   
    
     @if(tenant('qr_code') == 'on')
-    <div class="card card-primary">
+    <!-- <div class="card card-primary">
       <div class="card-header">
         <h4>{{ __('Scan Your Site') }}</h4>
       </div>
@@ -306,7 +306,7 @@
           <button class="btn btn-primary w-100 btn-lg downloadPng" >{{ __('Download') }}</button>
         </div>
       </div>
-    </div>
+    </div> -->
     @endif
 
     <div class="card gradient-bottom card-primary">
@@ -326,7 +326,7 @@
       </div>
     </div>
 
-     <div class="card card-primary">
+    <!-- <div class="card card-primary">
       <div class="card-header">
         <h4>{{ __('Subscription Status') }}</h4> 
         <div class="card-header-action ">
@@ -344,7 +344,7 @@
           <button class="btn btn-primary w-100 btn-lg clear_site_cache" >{{ __('Clear Site Cache') }}</button>
         </div>
       </div>
-    </div>
+    </div> -->
 
     
 

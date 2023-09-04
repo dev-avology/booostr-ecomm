@@ -18,7 +18,6 @@ use File;
 use App\Models\Order;
 use App\Models\Plan;
 use Crypt;
-use Storage;
 use App\Mail\PlanMail;
 use App\Models\Ordermeta;
 use App\Models\Tenantmeta;
@@ -30,6 +29,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 class MerchantController extends Controller
 {
 
@@ -116,6 +116,11 @@ class MerchantController extends Controller
       'password' => $request->email, //$request->password,
       'club_id'=>$club_id
     ];
+    if (isset($request->logo) && !empty($request->logo)) {
+      $filename = 'store_' .$club_id.'.png';
+      Storage::disk('public')->put($filename, $request->logo);
+      $store_data['logo']=$filename;
+  }
 
     Session::put('store_data',$store_data);
     return $this->gateways();
@@ -137,7 +142,7 @@ class MerchantController extends Controller
 
       $order = new Order;
       $order->plan_id = $plan->id;
-      $order->user_id = Auth::id();
+      $order->user_id = 2;//Auth::id();
       $order->getway_id = 13;
       $order->tax = $tax_amount;
       $order->price = $plan->price;
@@ -191,9 +196,10 @@ class MerchantController extends Controller
     $tenant->id = Str::slug($name);
     $tenant->uid = \App\Tenant::count() + 1;
     $tenant->order_id = $order->id;
-    $tenant->user_id = Auth::id();
+    $tenant->user_id = 2;//Auth::id();
     $tenant->will_expire = $expiry_date;
     $tenant->club_id=$club_id;
+    $tenant->logo=Session::get('store_data')['logo'];
     $tenant->save();
 
     DB::beginTransaction();
@@ -256,7 +262,6 @@ class MerchantController extends Controller
         $redirect_url = env('APP_URL_WITH_TENANT') . $name . '/redirect/login?email=' . Session::get('store_data')['email'] . '&&password=' . Session::get('store_data')['password'];
       }
     } else {
-
       $redirect_url = route('merchant.domain.list');
     }
 
