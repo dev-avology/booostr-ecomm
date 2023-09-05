@@ -16,7 +16,7 @@ class AddLogoTenantsTable extends Migration
     public function up(): void
     {
         Schema::table('tenants', function (Blueprint $table) {
-            $table->bigInteger('logo')->default(NULL)->after('club_id');
+            $table->string('logo')->default(NULL)->after('club_id');
         });
     }
 

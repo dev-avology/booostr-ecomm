@@ -6,7 +6,11 @@
         @elseif (Auth::user()->role_id == 2)
         <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
         @elseif (Auth::user()->role_id == 3)
-        <a href="#"><img src="/uploads/booostr-logo-long-top-header.png" height="40"/></a>
+          @if(!empty(tenant()->logo))
+            <a href="#"><img src="/uploads/store_logo/{{tenant()->logo}}" style="max-width: 80px;"/></a>
+          @else
+            <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
+          @endif
         @elseif (Auth::user()->role_id == 5)
         <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
         @endif
