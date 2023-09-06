@@ -32,6 +32,7 @@ Route::group([
     'middleware' => [AvalogyMiddleware::class, InitializeTenancyByRequestData::class, 'tenantenvironment'],
 ], function () {
     Route::get('/products', 'Api\ProductController@productList');
+    Route::get('/product/{id}', 'Api\ProductController@productDetail');
     Route::post('/product/search', 'Api\ProductController@search');
     Route::post('/cart/add_to_cart', 'Api\ProductController@addtocart');
     Route::post('/cart/remove_from_cart/{id}', 'Api\ProductController@removecart');

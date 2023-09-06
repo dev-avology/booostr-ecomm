@@ -117,9 +117,9 @@ class MerchantController extends Controller
       'club_id'=>$club_id
     ];
     if (isset($request->logo) && !empty($request->logo)) {
-      $filename = 'store_' .$club_id.'.png';
-      Storage::disk('public')->put('store_logo/'.$filename, $request->logo);
-      $store_data['logo']=$filename;
+      // $filename = 'store_' .$club_id.'.png';
+      // Storage::disk('public')->put('store_logo/'.$filename, $request->logo);
+      $store_data['logo']=$request->logo;//$filename;
   }
 
     Session::put('store_data',$store_data);
@@ -258,7 +258,7 @@ class MerchantController extends Controller
 
     if (env('AUTO_DB_CREATE') == true && $tenant->status == 1) {
       if (env('AUTO_SUBDOMAIN_APPROVE') == true) {
-        $redirect_url = '//' . $name . '.' . env('APP_PROTOCOLESS_URL') . '/redirect/login?email=' . Session::get('store_data')['email'] . '&&password=' . Session::get('store_data')['password'];
+        $redirect_url = $name . '.' . env('APP_PROTOCOLESS_URL') . '/redirect/login?email=' . Session::get('store_data')['email'] . '&&password=' . Session::get('store_data')['password'];
       } else {
         $redirect_url = env('APP_URL_WITH_TENANT') . $name . '/redirect/login?email=' . Session::get('store_data')['email'] . '&&password=' . Session::get('store_data')['password'];
       }

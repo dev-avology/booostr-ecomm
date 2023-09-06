@@ -7,7 +7,7 @@
         <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
         @elseif (Auth::user()->role_id == 3)
           @if(!empty(tenant()->logo))
-            <a href="#"><img src="/uploads/store_logo/{{tenant()->logo}}" style="max-width: 80px;"/></a>
+            <a href="#"><img src="{{env('WP_URL')}}{{tenant()->logo}}" style="max-width: 80px;"/></a>
           @else
             <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
           @endif

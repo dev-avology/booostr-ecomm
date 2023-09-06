@@ -24,16 +24,35 @@ class ProductController extends Controller
     public function productList(Request $request)
     {
         $posts = Term::query()->where('type', 'product')->with('media', 'firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice');
-
         if (!empty($request->category)) {
             $posts = $posts->whereHas('termcategories', function ($query) use ($request) {
                 return $query->where('category_id', $request->category);
             });
         }
-
         $posts = $posts->latest()->paginate(50);
-
         return response()->json(["status" => true, "message" => "products", "result" => $posts]);
+    }
+
+    
+    public function productDetail(Request $request,$id)
+    {
+        $info=Term::query()->where('type','product')->where('status',1)->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','seo')->withCount('reviews')->where('id', $id)->first();
+        if(empty($info)){
+            return response()->json(["status" => false, "message" => "sorry, product not found", "result" => []]);
+        }
+        $medias=json_decode($info->medias->value ?? '');
+        $preview=asset($info->preview->value ?? 'uploads/default.png');
+        $galleries=[];
+        array_push($galleries,$preview);
+
+        foreach($medias ?? [] as $row){
+            array_push($galleries,asset($row));
+        }
+        unset($info->medias);
+        unset($info->preview);
+        $info->gallery=$galleries;
+        return response()->json(["status" => true, "message" => "products", "result" =>$info,"galleries"=>$galleries]);
+        
     }
 
     public function search(Request $request)
@@ -51,9 +70,7 @@ class ProductController extends Controller
         return response()->json(["status" => true, "message" => "searched products", "result" => $posts]);
     }
 
-    public function addtocart(Request $request)
-    {
-
+    public function addtocart(Request $request){
 
         $productcartdata['product_id'] = '';
         if ($request->id) {
@@ -103,33 +120,23 @@ class ProductController extends Controller
         } else {
             $price = $info->firstprice;
             $weight = $price->weight ?? 0;
-
             $options = [
-
                 'sku' => $price->sku,
                 'stock' => $price->qty,
                 'options' => [],
-
-
             ];
-
-
-
             if ($price->stock_manage == 1 && $price->stock_status == 1) {
                 $options['stock'] = $price->qty;
                 $options['price_id'] = [$price->id];
             } else {
                 $options['stock'] = null;
             }
-
             Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);
         }
-
         $productcartdata['cart_content'] = Cart::content();
         $productcartdata['cart_subtotal'] = Cart::subtotal();
         $productcartdata['cart_tax'] = Cart::tax();
         $productcartdata['cart_total'] = Cart::total();
-
         return response()->json(["status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
     }
 
