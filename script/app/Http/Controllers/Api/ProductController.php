@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use App\Models\Productoption;
 use App\Models\Category;
 use App\Models\Term;
@@ -13,7 +14,7 @@ use App\Models\Location;
 use App\Models\Order;
 use App\Models\Coupon;
 use Carbon\Carbon;
-use Cart;
+use Darryldecode\Cart\Cart;
 use DB;
 use Auth;
 
@@ -71,15 +72,16 @@ class ProductController extends Controller
     }
 
     public function addtocart(Request $request){
-
-        $productcartdata['product_id'] = '';
+        
+        $cartid=!empty($request->header('cartid'))?$request->header('cartid'):Str::random(10);
+        $info='';
         if ($request->id) {
-            $info = Term::query()->where('type', 'product')->where('status', 1)->findOrFail($request->id);
-        } else {
-            $errors['errors']['error'] = 'Opps product not available';
-            return response()->json(["status" => 0, "message" => 'Opps product not available', "result" => $errors], 401);
+            $info = Term::query()->where('id',$request->id)->where('type', 'product')->where('status', 1)->first();
+        } 
+        if(empty( $info)){
+            return response()->json(["status" => 0, "message" => 'Opps product not available', "result" => []]);
         }
-
+        
         if ($info->is_variation == 1) {
             $groups = [];
             foreach ($request->option ?? [] as $key => $option) {
@@ -131,24 +133,33 @@ class ProductController extends Controller
             } else {
                 $options['stock'] = null;
             }
-            Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);
+            Cart::session($cartid)->add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);
         }
-        $productcartdata['cart_content'] = Cart::content();
-        $productcartdata['cart_subtotal'] = Cart::subtotal();
-        $productcartdata['cart_tax'] = Cart::tax();
-        $productcartdata['cart_total'] = Cart::total();
+        $productcartdata['cartid'] = $cartid;
+        $productcartdata['cart_content'] = Cart::session($cartid)->content();
+        $productcartdata['cart_subtotal'] = Cart::session($cartid)->subtotal();
+        $productcartdata['cart_tax'] = Cart::session($cartid)->tax();
+        $productcartdata['cart_total'] = Cart::session($cartid)->total();
         return response()->json(["status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
     }
 
 
 
 
-    public function removecart($id)
+    public function removecart(Request $request,$id)
     {
-        Cart::remove($id);
-        $productcartdata['cart_subtotal'] = Cart::subtotal();
-        $productcartdata['cart_tax'] = Cart::tax();
-        $productcartdata['cart_total'] = Cart::total();
+        $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
+        if(empty($cartid)){
+            return response()->json(["status" => 0, "message" => 'Opps cart not found', "result" => []]);
+        }
+
+        $rowid=Cart::session($cartid)->search(function ($cartItem, $rowId) use($id) {
+            return $cartItem->id === $id;
+        });
+        Cart::session($cartid)->remove($rowid);
+        $productcartdata['cart_subtotal'] = Cart::session($cartid)->subtotal();
+        $productcartdata['cart_tax'] = Cart::session($cartid)->tax();
+        $productcartdata['cart_total'] = Cart::session($cartid)->total();
 
         return response()->json(["status" => true, "message" => 'Removed From Cart Sucessfullly', "result" => $productcartdata]);
     }
