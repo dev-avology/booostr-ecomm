@@ -247,6 +247,7 @@ return [
         'JsonLd'        => Artesaos\SEOTools\Facades\JsonLd::class,
         'JsonLdMulti'   => Artesaos\SEOTools\Facades\JsonLdMulti::class,
         'SEO'           => Artesaos\SEOTools\Facades\SEOTools::class,
+        'DarrylCart' => Darryldecode\Cart\Facades\CartFacade::class
 
 
     ],
