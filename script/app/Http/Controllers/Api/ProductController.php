@@ -14,13 +14,12 @@ use App\Models\Location;
 use App\Models\Order;
 use App\Models\Coupon;
 use Carbon\Carbon;
-use DarrylCart;
+use Cart;
 use DB;
 use Auth;
 
 class ProductController extends Controller
 {
-
 
     public function productList(Request $request)
     {
@@ -133,13 +132,13 @@ class ProductController extends Controller
             } else {
                 $options['stock'] = null;
             }
-            DarrylCart::session($cartid)->add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);
+            Cart::session($cartid)->add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);
         }
         $productcartdata['cartid'] = $cartid;
-        $productcartdata['cart_content'] = DarrylCart::session($cartid)->content();
-        $productcartdata['cart_subtotal'] = DarrylCart::session($cartid)->subtotal();
-        $productcartdata['cart_tax'] = DarrylCart::session($cartid)->tax();
-        $productcartdata['cart_total'] = DarrylCart::session($cartid)->total();
+        $productcartdata['cart_content'] = Cart::session($cartid)->content();
+        $productcartdata['cart_subtotal'] = Cart::session($cartid)->subtotal();
+        $productcartdata['cart_tax'] = Cart::session($cartid)->tax();
+        $productcartdata['cart_total'] = Cart::session($cartid)->total();
         return response()->json(["status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
     }
 
@@ -153,13 +152,13 @@ class ProductController extends Controller
             return response()->json(["status" => 0, "message" => 'Opps cart not found', "result" => []]);
         }
 
-        $rowid=DarrylCart::session($cartid)->search(function ($cartItem, $rowId) use($id) {
+        $rowid=Cart::session($cartid)->search(function ($cartItem, $rowId) use($id) {
             return $cartItem->id === $id;
         });
-        DarrylCart::session($cartid)->remove($rowid);
-        $productcartdata['cart_subtotal'] = DarrylCart::session($cartid)->subtotal();
-        $productcartdata['cart_tax'] = DarrylCart::session($cartid)->tax();
-        $productcartdata['cart_total'] = DarrylCart::session($cartid)->total();
+        Cart::session($cartid)->remove($rowid);
+        $productcartdata['cart_subtotal'] = Cart::session($cartid)->subtotal();
+        $productcartdata['cart_tax'] = Cart::session($cartid)->tax();
+        $productcartdata['cart_total'] = Cart::session($cartid)->total();
 
         return response()->json(["status" => true, "message" => 'Removed From Cart Sucessfullly', "result" => $productcartdata]);
     }
