@@ -23,6 +23,7 @@ class CreateTermsTable extends Migration
             $table->integer('status')->default(1);
             $table->double('featured')->nullable();
             $table->double('rating')->nullable();
+            $table->integer('list_type')->default(0)->comment("0->all,1->store,2->pos");
             $table->timestamps();
         });
     }

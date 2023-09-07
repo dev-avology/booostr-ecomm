@@ -70,6 +70,18 @@
                            </div>
                         </div>
                         <div class="from-group row mb-2">
+                           <label for="" class="col-lg-12">{{ __('List On') }} : </label>
+                           <div class="col-lg-4">
+                              <input type="radio" name="list_type" value="0" checked/> All
+                           </div>
+                           <div class="col-lg-4">
+                              <input type="radio" name="list_type" value="1"/> Web Only
+                           </div>
+                           <div class="col-lg-4">
+                              <input type="radio" name="list_type" value="2"/> POS Only
+                           </div>
+                        </div>
+                        <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Status') }} : </label>
                            <div class="col-lg-12">
                               <select name="status"  class="form-control selectric">

@@ -88,6 +88,7 @@ class ProductController extends Controller
         $term->type='product';
         $term->status=$request->status;
         $term->is_variation=$request->product_type;
+        $term->list_type=$request->list_type;
         $term->save();
 
        if ($request->short_description) {
@@ -256,6 +257,7 @@ class ProductController extends Controller
             $term->slug=$request->slug;
             $term->status=$request->status;
             $term->featured=$request->featured;
+            $term->list_type=$request->list_type;
             $term->save();
 
             if ($request->short_description) {

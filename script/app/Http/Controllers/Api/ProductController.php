@@ -24,7 +24,7 @@ class ProductController extends Controller
 
     public function productList(Request $request)
     {
-        $posts = Term::query()->where('type', 'product')->with('media', 'firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice');
+        $posts = Term::query()->where('type', 'product')->whereIn('list_type', [0,1])->with('media', 'firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice');
         if (!empty($request->category)) {
             $posts = $posts->whereHas('termcategories', function ($query) use ($request) {
                 return $query->where('category_id', $request->category);
@@ -37,7 +37,7 @@ class ProductController extends Controller
     
     public function productDetail(Request $request,$id)
     {
-        $info=Term::query()->where('type','product')->where('status',1)->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','seo')->withCount('reviews')->where('id', $id)->first();
+        $info=Term::query()->where('type','product')->where('status',1)->whereIn('list_type', [0,1])->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','seo')->withCount('reviews')->where('id', $id)->first();
         if(empty($info)){
             return response()->json(["status" => false, "message" => "sorry, product not found", "result" => []]);
         }
@@ -60,6 +60,7 @@ class ProductController extends Controller
     {
         $posts = Term::query()
             ->where('type', 'product')
+            ->whereIn('list_type', [0,1])
             ->with('media', 'firstprice', 'lastprice')
             ->whereHas('firstprice')
             ->whereHas('lastprice')
