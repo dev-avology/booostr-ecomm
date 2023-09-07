@@ -17,6 +17,7 @@ use Carbon\Carbon;
 use Cart;
 use DB;
 use Auth;
+use Exception;
 
 class ProductController extends Controller
 {
@@ -70,17 +71,19 @@ class ProductController extends Controller
         return response()->json(["status" => true, "message" => "searched products", "result" => $posts]);
     }
 
-    public function addtocart(Request $request){
-        
-        $cartid=!empty($request->header('cartid'))?$request->header('cartid'):Str::random(10);
-        $info='';
+    public function addtocart(Request $request)
+    {
+
+        $cartid = !empty($request->header('cartid')) ? $request->header('cartid') : Str::random(10);
+        $info = '';
         if ($request->id) {
-            $info = Term::query()->where('id',$request->id)->where('type', 'product')->where('status', 1)->first();
-        } 
-        if(empty( $info)){
-            return response()->json(["status" => 0, "message" => 'Opps product not available', "result" => []]);
+            $info = Term::query()->where('id', $request->id)->where('type', 'product')->where('status', 1)->with('excerpt','preview')->first();
         }
         
+        if (empty($info)) {
+            return response()->json(["status" => 0, "message" => 'Opps product not available', "result" => []]);
+        }
+        Cart::instance($cartid);
         if ($info->is_variation == 1) {
             $groups = [];
             foreach ($request->option ?? [] as $key => $option) {
@@ -88,21 +91,16 @@ class ProductController extends Controller
                 foreach ($option as $k => $value) {
                     array_push($option_values, $value);
                 }
-
                 $group = Productoption::with(array('priceswithcategories' => function ($query) use ($option_values) {
                     return $query->whereIn('id', $option_values);
                 }))->with('category')->where('id', $key)->first();
-
                 array_push($groups, $group);
             }
-
             $final_price = 0;
             $final_weight = 0;
             $price_option = [];
             $priceids = [];
             foreach ($groups as $key => $row) {
-
-
                 foreach ($row->priceswithcategories as $key => $value) {
                     if ($value->stock_manage == 1) {
                         array_push($priceids, $value->id);
@@ -116,8 +114,13 @@ class ProductController extends Controller
                     $price_option[$row->category->name][$value->id]['name'] = $value->category->name;
                 }
             }
-
-            //Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $final_price, 'weight' => $final_weight, 'options' => ['options' => $price_option, 'sku' => null, 'stock' => null, 'price_id' => $priceids]]);
+            Cart::add(
+                ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $final_price, 'weight' => $final_weight, 
+                'options' => [
+                    'options' => $price_option, 'sku' => null, 'stock' => null, 'price_id' => $priceids,'short_description'=>($info->excerpt->value ?? ''),
+                    'preview'=>asset($info->preview->value ?? 'uploads/default.png')
+                    ]
+                ]);
         } else {
             $price = $info->firstprice;
             $weight = $price->weight ?? 0;
@@ -125,6 +128,8 @@ class ProductController extends Controller
                 'sku' => $price->sku,
                 'stock' => $price->qty,
                 'options' => [],
+                'short_description'=>($info->excerpt->value ?? ''),
+                'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
             ];
             if ($price->stock_manage == 1 && $price->stock_status == 1) {
                 $options['stock'] = $price->qty;
@@ -134,6 +139,11 @@ class ProductController extends Controller
             }
             Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);
         }
+        try {
+            Cart::store($cartid);
+        } catch (Exception $e) {
+            Cart::updatestore($cartid);
+        }
         $productcartdata['cartid'] = $cartid;
         $productcartdata['cart_content'] = Cart::content();
         $productcartdata['cart_subtotal'] = Cart::subtotal();
@@ -142,8 +152,32 @@ class ProductController extends Controller
         return response()->json(["status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
     }
 
-
-
+    public function getcart(Request $request)
+    {
+        $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
+        if(empty($cartid)){
+            return response()->json(["status" => 0, "message" => 'Opps cart not found', "result" => []]);
+        }
+        //initialize cart
+        Cart::instance($cartid);
+        //load cart in session
+        Cart::restore($cartid);
+        if(Cart::content()->isEmpty()){
+            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
+        }
+        //resave cart
+        try{
+            Cart::store($cartid);
+        }catch(Exception $e){
+            Cart::updatestore($cartid);
+        }
+        $productcartdata['cartid'] = $cartid;
+        $productcartdata['cart_content'] = Cart::content();
+        $productcartdata['cart_subtotal'] = Cart::subtotal();
+        $productcartdata['cart_tax'] = Cart::tax();
+        $productcartdata['cart_total'] = Cart::total();
+        return response()->json(["status" => true, "message" => 'Cart Data', "result" => $productcartdata]);
+    }
 
     public function removecart(Request $request,$id)
     {
@@ -151,25 +185,63 @@ class ProductController extends Controller
         if(empty($cartid)){
             return response()->json(["status" => 0, "message" => 'Opps cart not found', "result" => []]);
         }
-
-        $rowid=Cart::search(function ($cartItem, $rowId) use($id) {
-            return $cartItem->id === $id;
+        //initialize cart
+        Cart::instance($cartid);
+        //load cart in session
+        Cart::restore($cartid);
+        if(Cart::content()->isEmpty()){
+            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
+        }
+        $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
+            return $cartItem->id == $id?$rowId:false;
         });
-        Cart::remove($rowid);
+        if($rowid->isNotEmpty()){
+            Cart::remove($rowid->first()->rowId);//remove
+        }
+        try{
+            Cart::store($cartid);
+        }catch(Exception $e){
+            Cart::updatestore($cartid);
+        }
+        $productcartdata['cartid'] = $cartid;
+        $productcartdata['cart_content'] = Cart::content();
         $productcartdata['cart_subtotal'] = Cart::subtotal();
         $productcartdata['cart_tax'] = Cart::tax();
         $productcartdata['cart_total'] = Cart::total();
-
         return response()->json(["status" => true, "message" => 'Removed From Cart Sucessfullly', "result" => $productcartdata]);
     }
 
     public function CartQty(Request $request)
     {
-        Cart::update($request->id, $request->qty);
+        $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
+        if(empty($cartid)){
+            return response()->json(["status" => 0, "message" => 'Opps cart not found', "result" => []]);
+        }
+        Cart::instance($cartid);
+        Cart::restore($cartid);
+        $id=$request->id;
+        if(empty($request->id)||!isset($request->qty)){
+            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
+        }
+        if(Cart::content()->isEmpty()){
+            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
+        }
+        $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
+            return $cartItem->id == $id?$rowId:false;
+        });
+        if($rowid->isNotEmpty()){
+            Cart::update($rowid->first()->rowId, $request->qty);//QTY update
+        }
+        try{
+            Cart::store($cartid);
+        }catch(Exception $e){
+            Cart::updatestore($cartid);
+        }
+        $productcartdata['cartid'] = $cartid;
+        $productcartdata['cart_content'] = Cart::content();
         $productcartdata['cart_subtotal'] = Cart::subtotal();
         $productcartdata['cart_tax'] = Cart::tax();
         $productcartdata['cart_total'] = Cart::total();
-
         return response()->json(["status" => true, "message" => 'Cart Updated  Sucessfullly', "result" => $productcartdata]);
     }
 

@@ -230,7 +230,7 @@ class MerchantController extends Controller
     } catch (\Throwable $th) {
       DB::rollback();
       $error=$th->getMessage();
-      return response()->json(["status"=>0,"message"=>$error], 422);
+      return response()->json(["status"=>0,"message"=>$error,"result"=>[]]);
     }
     Session::forget('order_id');
 
