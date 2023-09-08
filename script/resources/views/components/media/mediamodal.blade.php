@@ -10,12 +10,12 @@
          </button>
       </div>
       <div class="modal-body">
-         <ul class="nav nav-tabs" id="myTab3" role="tablist">
+         <ul class="nav nav-tabs" id="myTab3" role="tablist" style="border-bottom: 1px solid #dee2e6;">
             <li class="nav-item">
-               <a class="nav-link active" id="home-tab3" data-toggle="tab" href="#upload_area" role="tab" aria-controls="home" aria-selected="true">Upload File</a>
+               <a class="nav-link text-center active" id="home-tab3" data-toggle="tab" href="#upload_area" role="tab" aria-controls="home" aria-selected="true">Upload File</a>
             </li>
             <li class="nav-item">
-               <a class="nav-link" id="profile-tab3" data-toggle="tab" href="#media_list" role="tab" aria-controls="profile" aria-selected="false">Media List</a>
+               <a class="nav-link text-center" id="profile-tab3" data-toggle="tab" href="#media_list" role="tab" aria-controls="profile" aria-selected="false">Media List</a>
             </li>
          </ul>
          <div class="tab-content" id="myTabContent2">
