@@ -19,7 +19,7 @@
                     </div>
                     <div class="card-body">
                       <div class="row">
-                        <div class="col-12 col-sm-12 col-md-4">
+                        <!-- <div class="col-12 col-sm-12 col-md-4">
                           <ul class="nav nav-pills flex-column" id="myTab4" role="tablist">
                             <li class="nav-item">
                               <a class="nav-link active" id="home-tab4" data-toggle="tab" href="#home4" role="tab" aria-controls="home" aria-selected="false">Manual Payments</a>
@@ -28,13 +28,13 @@
                               <a class="nav-link" id="profile-tab4" data-toggle="tab" href="#profile4" role="tab" aria-controls="profile" aria-selected="false">Alternative Payments</a>
                             </li>
                           </ul>
-                        </div>
-                        <div class="col-12 col-sm-12 col-md-8">
+                        </div> -->
+                        <div class="col-12 col-sm-12 col-md-12">
                           <div class="tab-content no-padding" id="myTab2Content">
-                            <div class="tab-pane fade active show" id="home4" role="tabpanel" aria-labelledby="home-tab4">
-                              <!-- <div class="custom-payment-btn mb-3">
+                            <!-- <div class="tab-pane fade active show" id="home4" role="tabpanel" aria-labelledby="home-tab4">
+                              <div class="custom-payment-btn mb-3">
                                 <a href="{{ route('seller.custom.payment.create') }}" class="btn btn-primary btn-lg">{{ __('Create Payment Method') }}</a>
-                              </div> -->
+                              </div>
                               <div class="payment-gateway-section">
                                 
                                 @foreach ($installed_payments as $gateway)
@@ -54,8 +54,8 @@
                                 @endif
                                 @endforeach
                             </div>
-                            </div>
-                            <div class="tab-pane fade" id="profile4" role="tabpanel" aria-labelledby="profile-tab4">
+                            </div> -->
+                            <!-- <div class="tab-pane fade" id="profile4" role="tabpanel" aria-labelledby="profile-tab4"> -->
                                 <div class="payment-gateway-section">
                                  
                                     @foreach ($payments_gateways as $gateway)
@@ -66,7 +66,7 @@
                                           <div class="gateway-name">
                                               <h2>{{ $gateway->name }}</h2>
                                               
-                                              <p>{{ in_array($gateway->namespace,$namespaces) ? __('Installed') :  __('Install') }}</p>
+                                              <p>{{ in_array($gateway->namespace,$namespaces) ? __('') :  __('Install') }}</p>
                                           </div>
                                         </div>
 
@@ -90,7 +90,7 @@
                                     @endif
                                     @endforeach
                                 </div>
-                            </div>
+                            <!-- </div> -->
                           </div>
                         </div>
                       </div>
