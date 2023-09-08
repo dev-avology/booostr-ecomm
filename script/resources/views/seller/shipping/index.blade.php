@@ -3,7 +3,7 @@
 @section('title','Shippings')
 
 @section('head')
-@include('layouts.backend.partials.headersection',['title'=>'Shipping Methods','button_name'=> 'Create New','button_link'=> url('seller/shipping/create')])
+@include('layouts.backend.partials.headersection',['title'=>'Shipping Rates','button_name'=> 'Create New','button_link'=> url('seller/shipping/create')])
 @endsection
 
 @section('content')

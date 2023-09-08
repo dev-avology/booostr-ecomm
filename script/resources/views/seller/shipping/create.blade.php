@@ -15,7 +15,7 @@
       <a href="{{ url('seller/shipping') }}" class="btn btn-primary mr-2">
       <i class="fas fa-arrow-left"></i>
       </a>
-      <h1>{{ __('Create Shipping') }}</h1>
+      <h1>{{ __('Create Shipping Rate') }}</h1>
    </div>
    {{-- /section title --}}
    <div class="row">
