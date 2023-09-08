@@ -160,7 +160,7 @@
 <li class="{{ Request::is('seller/shipping') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/shipping') }}">
         <i class="fas fa-truck"></i>
-        <span>{{ __('Shipping and Delivery') }}</span>
+        <span>{{ __('Shipping Rates') }}</span>
     </a>
 </li>
 <li class="{{ Request::is('seller/location') ? 'active' : '' }}">
