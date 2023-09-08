@@ -20,7 +20,7 @@
          </ul>
          <div class="tab-content" id="myTabContent2">
             <div class="tab-pane fade show active" id="upload_area" role="tabpanel" aria-labelledby="home-tab3">
-               <form method="post" action="{{ route('seller.media.store') }}" class="dropzone dropzones">
+               <form method="post" action="{{ route('seller.media.store') }}" class="dropzoneinsidemodel dropzones">
                   @csrf
                   <div class="fallback">
                      <input name="media" type="file"  multiple />

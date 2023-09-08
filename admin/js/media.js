@@ -74,7 +74,7 @@ $(function(){
         acceptedFiles : "image/*",
         addRemoveLinks: false,
         forceFallback: false,
-        maxFilesize:3,
+        maxFilesize:1,//MB
         parallelUploads: 1,
 
     });//end drop zone
@@ -90,7 +90,29 @@ $(function(){
   });
 });
 
-
+$(function(){
+	var urlinsidemodel= $('.dropzoneinsidemodel').attr('action');
+	 var uploader = new Dropzone(".dropzoneinsidemodel",{
+		  url: urlinsidemodel,
+		  paramName : "media",
+		  uploadMultiple :false,
+		  acceptedFiles : "image/*",
+		  addRemoveLinks: false,
+		  forceFallback: false,
+		  maxFilesize:1,//MB
+		  parallelUploads: 1,
+  
+	  });//end drop zone
+  
+	uploader.on("success", function(file,response) {
+		previousImages.push(response);
+		$('.media-images').remove();
+		render_media(previousImages,checkboxtype,'.radio-media-list');
+		render_media(images,checkboxtype,'.radio-media-list');
+		//trigger media list
+		$(".modal.media-single").find("#profile-tab3").trigger('click');
+	});
+  });
 /*----------------------
         Modal Active
       ------------------------*/

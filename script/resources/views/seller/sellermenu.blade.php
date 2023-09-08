@@ -54,9 +54,9 @@
         <li>
             <a class="nav-link" href="{{ url('/seller/attribute') }}">{{ __('Attributes') }}</a>
         </li>
-        <!-- <li>
+        <li>
             <a class="nav-link" href="{{ url('/seller/tag') }}">{{ __('Tags') }}</a>
-        </li> -->
+        </li>
         <li>
             <a class="nav-link" href="{{ url('/seller/category') }}">{{ __('Categories') }}</a>
         </li>

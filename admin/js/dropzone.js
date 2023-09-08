@@ -438,7 +438,7 @@ var Dropzone = /*#__PURE__*/function (_Emitter) {
         /**
          * The text used before any files are dropped.
          */
-        dictDefaultMessage: "Drop files here to upload",
+        dictDefaultMessage: "Drag and drop image files here to upload OR click here to browse for an image file to upload",
 
         /**
          * The text that replaces the default message text it the browser is not supported.
@@ -456,7 +456,7 @@ var Dropzone = /*#__PURE__*/function (_Emitter) {
          * If the filesize is too big.
          * `{{filesize}}` and `{{maxFilesize}}` will be replaced with the respective configuration values.
          */
-        dictFileTooBig: "File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.",
+        dictFileTooBig: "File is too big ({{filesize}}MiB). Max filesize allowed {{maxFilesize}}MiB .",
 
         /**
          * If the file doesn't match the file type.
