@@ -5,14 +5,18 @@
 <div class="modal-dialog modal-xl">
    <div class="modal-content">
       <div class="modal-header">
-         <ul class="nav nav-pills" id="myTab3" role="tablist">
+         <!-- <ul class="nav nav-tabs" id="myTab3" role="tablist">
             <li class="nav-item">
                <a class="nav-link active" id="home-tab3" data-toggle="tab" href="#upload_area" role="tab" aria-controls="home" aria-selected="true">Upload File</a>
             </li>
             <li class="nav-item">
                <a class="nav-link" id="profile-tab3" data-toggle="tab" href="#media_list" role="tab" aria-controls="profile" aria-selected="false">Media List</a>
             </li>
-         </ul>
+         </ul> -->
+         <div class="nav nav-tabs" id="myTab3" role="tablist">
+            <button class="nav-link active" id="home-tab3" data-bs-toggle="tab" data-bs-target="#upload_area" type="button" role="tab" aria-controls="home" aria-selected="true">Upload File</button>
+            <button class="nav-link" id="profile-tab3" data-bs-toggle="tab" data-bs-target="#media_list" type="button" role="tab" aria-controls="profile" aria-selected="false">Media List</button>
+         </div>
          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
          <span aria-hidden="true">&times;</span>
          </button>

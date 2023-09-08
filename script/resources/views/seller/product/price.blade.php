@@ -27,13 +27,13 @@
          <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Product Price') }} : </label>
             <div class="col-lg-12">
-               <input type="number" step="any" class="form-control" name="price" value="{{ $info->price->price ?? '' }}">
+               <input type="number" step="any" class="form-control" name="price" value="{{ $info->price->price ?? '' }}" placeholder="0.00">
             </div>
          </div>
          <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Quantity') }} : </label>
             <div class="col-lg-12">
-               <input type="number" class="form-control" name="qty" value="{{ $info->price->qty ?? '' }}">
+               <input type="number" class="form-control" name="qty" value="{{ $info->price->qty ?? '' }}" placeholder="0">
             </div>
          </div>
          <div class="from-group row mb-2">
@@ -45,7 +45,7 @@
          <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Weight') }} : </label>
             <div class="col-lg-12">
-               <input type="number" step="any" class="form-control" name="weight" value="{{ $info->price->weight ?? '' }}">
+               <input type="number" step="any" class="form-control" name="weight" value="{{ $info->price->weight ?? '' }}" placeholder="0.00">
             </div>
          </div>
          @php
@@ -53,7 +53,7 @@
          $stock_status=$info->price->stock_status ?? '';
          @endphp
          <div class="from-group row mb-2">
-            <label for="" class="col-lg-12">{{ __('Stock manage') }} : </label>
+            <label for="" class="col-lg-12">{{ __('Manage Stock') }} : </label>
             <div class="col-lg-12">
                <select name="stock_manage" class="form-control selectric">
                <option value="1" @if($stock_manage == 1) selected="" @endif>{{ __('Yes') }}</option>
