@@ -56,7 +56,7 @@
                 </select>
             </div>
         </div>
-        <div class="from-group row mb-2">
+        <!-- <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Select Product Tags') }} : </label>
             <div class="col-lg-12">
                 <select name="categories[]" multiple="" class="form-control select2">
@@ -65,7 +65,7 @@
                 </select>
                 <input type="hidden" name="type" value="general">
             </div>
-        </div>
+        </div> -->
 
         <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Select Featured Type') }} : </label>
