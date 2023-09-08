@@ -74,7 +74,7 @@
                                         @foreach($installed_payments as $row)
                                         @if($row->namespace == $gateway->namespace)
                                         <div class="gateway-right">
-                                          <a href="{{ route('seller.payment.edit',$row->id) }}" class="btn btn-success"><i class="fa fa-edit"></i></a>
+                                          <a href="{{ route('seller.payment.edit',$row->id) }}" class="btn btn-primary"><i class="fa fa-edit"></i></a>
                                         </div>
                                         @endif
                                         @endforeach
