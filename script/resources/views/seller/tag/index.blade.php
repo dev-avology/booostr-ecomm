@@ -25,7 +25,7 @@
                             <thead>
                                 <tr>
                                     <th>{{ __('Name') }}</th>
-                                    <th>{{ __('Url') }}</th>
+                                    <!-- <th>{{ __('Url') }}</th> -->
                                     <th>{{ __('Created At') }}</th>
                                     <th>{{ __('Action') }}</th>
                                 </tr>
@@ -34,7 +34,7 @@
                                 @foreach($posts as $row)
                                 <tr>
                                   <td>{{ $row->name }}</td>
-                                  <td>{{ url('/tag',$row->slug) }}</td>
+                                  <!-- <td>{{ url('/tag',$row->slug) }}</td> -->
                                   <td>{{ date('d-m-Y', strtotime($row->created_at)) }}</td>
                                   <td class="">
                                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
