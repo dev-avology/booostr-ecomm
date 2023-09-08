@@ -32,9 +32,9 @@
                         <div class="col-12 col-sm-12 col-md-8">
                           <div class="tab-content no-padding" id="myTab2Content">
                             <div class="tab-pane fade active show" id="home4" role="tabpanel" aria-labelledby="home-tab4">
-                              <div class="custom-payment-btn mb-3">
+                              <!-- <div class="custom-payment-btn mb-3">
                                 <a href="{{ route('seller.custom.payment.create') }}" class="btn btn-primary btn-lg">{{ __('Create Payment Method') }}</a>
-                              </div>
+                              </div> -->
                               <div class="payment-gateway-section">
                                 
                                 @foreach ($installed_payments as $gateway)

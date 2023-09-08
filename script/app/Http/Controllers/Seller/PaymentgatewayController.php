@@ -23,11 +23,6 @@ class PaymentgatewayController extends Controller
         foreach ($installed_payments as $key => $row) {
            array_push($namespaces,$row->namespace);
         }
-
-        
-
-
-       
         return view('seller.paymentgateway.index',compact('payments_gateways','installed_payments','namespaces'));
     }
 
@@ -99,11 +94,11 @@ class PaymentgatewayController extends Controller
 
     }
 
-    public function custom_payment_create()
-    {
-        abort_if(!getpermission('payment_gateway'),401);
-        return view('seller.paymentgateway.create');
-    }
+    // public function custom_payment_create()
+    // {
+    //     abort_if(!getpermission('payment_gateway'),401);
+    //     return view('seller.paymentgateway.create');
+    // }
 
     public function custom_payment(Request $request)
     {
