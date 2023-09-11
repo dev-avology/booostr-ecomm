@@ -24,7 +24,7 @@
 		<!-- Start Checkout -->
 		<section class="shop checkout section">
 			<div class="container">
-				@if(Cart::count() != 0)
+				@if(Cart::instance('default')->count() != 0)
 				<form class="form orderform" method="post" action="{{ route('make.order') }}">
 					@csrf
 				<div class="row"> 

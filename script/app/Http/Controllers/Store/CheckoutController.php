@@ -81,7 +81,7 @@ class CheckoutController extends Controller
         
         Cart::instance($cartid);
         //load cart in session
-        Cart::restore($cartid);
+        Cart::checkout_restore($cartid);
         if(Cart::content()->isEmpty()){
             return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Opps Your cart is empty']);
         }
