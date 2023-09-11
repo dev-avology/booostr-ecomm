@@ -504,6 +504,21 @@ class PageController extends Controller
         return view(baseview('wishlist'),compact('contents','page_data'));
     }
 
+    public function redirect_to_checkout(Request $request,$cartid,$redirect_url='/')
+    {
+        if (empty($cartid)) {
+            return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Opps something went wrong']);
+        }
+        Cart::instance($cartid);
+        //load cart in session
+        Cart::restore($cartid);
+        if(Cart::content()->isEmpty()){
+            return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Opps Your cart is empty']);
+        }
+        Session::put('redirect_url',$redirect_url);
+        return redirect()->to('/checkout');
+        
+    }
     public function checkout(Request $request)
     {
         $tax=optionfromcache('tax');

@@ -53,6 +53,6 @@ Route::group([
     'prefix'     => '/store/{tenant}',
     'middleware' => [InitializeTenancyByPath::class, 'tenantenvironment'],
 ], function () {
-
+    Route::get('checkout-redirect/{cartid}/{redirect_url}', 'Store\PageController@redirect_to_checkout');
     Route::get('cron/product-price-reset', 'Seller\CronController@ProductPriceReset');
 });
