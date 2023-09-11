@@ -46,7 +46,7 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::get('/menu', 'Store\PageController@menu');
     Route::get('/cart', 'Store\PageController@cart');
     Route::get('/wishlist', 'Store\PageController@wishlist');
-    Route::get('/direct_checkout/{cartid}/{redirect_url}', 'Store\PageController@direct_checkout');
+    Route::get('/direct_checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_checkout');
     Route::get('/checkout', 'Store\PageController@checkout');
     Route::get('/thanks', 'Store\PageController@thanks');
     Route::post('make-order', 'Store\OrderController@makeOrder')->name('make.order');
