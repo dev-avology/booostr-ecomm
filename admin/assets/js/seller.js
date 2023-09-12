@@ -68,10 +68,10 @@ function dashboard_order_statics(month) {
         
 
         success: function(response){ 
-            $('#pending_order').html(response.total_pending);
-            $('#completed_order').html(response.total_completed);
-            $('#shipping_order').html(response.total_processing);
-            $('#total_order').html(response.total_orders);
+            $('#pending_order').html(amount_format(response.total_pending));
+            $('#completed_order').html(amount_format(response.total_completed));
+            $('#shipping_order').html(amount_format(response.total_processing));
+            $('#total_order').html(amount_format(response.total_orders));
         }
     })
 }
@@ -93,10 +93,10 @@ function loadStaticData() {
         success: function(response){ 
 
             $('#sales_of_earnings').html(amount_format(response.totalEarnings));
-            $('#total_sales').html(response.totalSales);
+            $('#total_sales').html(amount_format(response.totalSales));
             
             $('#monthly_total_sales').html(amount_format(response.thismonth_sale_amount));
-            $('#today_order').html(response.today_orders);
+            $('#today_order').html(amount_format(response.today_orders));
             $('#today_total_sales').html(amount_format(response.today_sale_amount));
             $('#last_month_total_sales').html(amount_format(response.lastmonth_sale_amount));
             $('#last_seven_days_total_sales').html(amount_format(response.lastweek_sale_amount));
