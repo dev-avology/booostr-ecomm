@@ -20,7 +20,6 @@ use Artesaos\SEOTools\Facades\SEOTools;
 use Mail;
 use App\Mail\ContactMail;
 
-
 class CheckoutController extends Controller
 {
     
@@ -101,7 +100,7 @@ class CheckoutController extends Controller
             $locations=[];
         }
         //dd($locations->shippings);
-        $getways=Getway::where('status','!=',0)->get();
+        $getways=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
 
         $order_method=$request->t ?? 'delivery';
         
@@ -143,7 +142,17 @@ class CheckoutController extends Controller
         $pre_order=$order_settings->pre_order ?? 'off';
         $source_code=$order_settings->source_code ?? 'on';
 
-
+        
+        $payment_data['currency']   = $getways->currency_name ?? 'USD';
+        $payment_data['test_mode']  = $getways->test_mode;
+        $payment_data['charge']     = $getways->charge ?? 0;
+        $payment_data['getway_id']  = $getways->id;
+        if (!empty($getways->data)) {
+            foreach (json_decode($getways->data ?? '') ?? [] as $key => $info) {
+                $payment_data[$key] = $info;
+            };
+        }
+        $shipping_methods=Category::where('status',1)->where('type','shipping')->select('name','id','slug','status')->get();
         // if(Session::has('stripe_credentials')){
         //     $Info=Session::get('stripe_credentials');
         //     if (tenant() != null) {
@@ -177,7 +186,7 @@ class CheckoutController extends Controller
 
         // Session::put('stripe_credentials',$data);
 
-        return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','meta','page_data','pickup_order','pre_order','source_code'));
+        return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','meta','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods'));
     }
 
 

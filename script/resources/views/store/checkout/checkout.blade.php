@@ -119,19 +119,7 @@
 								</div>
 							</div>
 
-							@if(count($locations) != 0)
-							<div class="col-lg-6 col-md-6 col-12 delivery_address_area">
-								<div class="form-group">
-									<label>Select Delivery Area<span>*</span></label>
-									<select name="location" id="locations">
-										<option value="" selected="" disabled=""></option>
-										@foreach($locations as $key => $row)
-										<option value="{{ $row->id }}" data-shipping="{{ $row->shippings }}">{{ $row->name }}</option>
-										@endforeach
-									</select>
-								</div>
-							</div>
-							@endif
+							
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_area">
 								<div class="form-group">
 									<label><i class="fa fa-address-card-o"></i> {{ __('Address') }} <span>*</span></label>
@@ -192,6 +180,45 @@
 
 						<!--/ End Form -->
 					</div>
+
+						<!-- Shopping Cart -->
+						<div class="shopping-cart section">
+							<div class="container">
+
+								<div class="row">
+									<div class="col-12">
+										<!-- Total Amount -->
+										<div class="card">
+											<div class="card-body">
+												<div class="px-4">
+													
+														<div class="form-row">
+															<label for="card-element">
+																{{ __('Credit or debit card') }}
+															</label>
+															<div id="card-element">
+																<!-- A Stripe Element will be inserted here. -->
+															</div>
+															<!-- Used to display form errors. -->
+															<div id="card-errors" role="alert"></div>
+															<button type="submit" class="btn btn-primary btn-lg w-100 mt-4" id="submit_btn">{{ __('Submit Payment') }}</button>
+														</div>
+													
+												</div>
+											</div>
+										</div>
+										<!--/ End Total Amount -->
+									</div>
+								</div>
+							</div>
+							<input type="hidden" id="publishable_key" value="{{ $payment_data['publishable_key'] }}">
+						</div>
+						<!--/ End Shopping Cart -->
+
+
+
+
+
 				</div>
 				<div class="col-lg-4 col-12 col-35">
 					<div class="order-details container carts-right">
@@ -241,7 +268,11 @@
 							<h2>{{ __('Shipping Method') }}</h2>
 							<div class="content">
 								<div class="checkbox shipping_render_area">
-
+									@foreach($shipping_methods as $shipping_method)
+									<label class="checkbox-inline shipping_method" for="shipping{{$shipping_method->id}.}">
+										<input name="shipping_method" class="shipping_item" value="{{$shipping_method->id}}" data-price="{{$shipping_method->slug}}"  id="shipping{{$shipping_method->id}}" type="radio" > {{$shipping_method->name}}
+									</label>
+									@endforeach
 								</div>
 							</div>
 						</div>
@@ -253,10 +284,9 @@
 							<div class="content">
 								<div class="checkbox">
 
-									@foreach($getways as $getway)
-									<label class="checkbox-inline" for="getway{{ $getway->id }}"><input name="payment_method" class="getway" id="getway{{ $getway->id }}" type="radio" data-logo="/{{ $getway->logo }}" data-rate="{{ $getway->rate }}" data-charge="{{ $getway->charge }}" data-currency="{{ $getway->currency_name }}" data-instruction="{{ $getway->instruction }}" value="{{ $getway->id }}"> {{ $getway->name }}</label>
-									@endforeach
-
+									
+									<label class="checkbox-inline" for="getway{{ $getways->id }}"><input name="payment_method" class="getway" id="getway{{ $getways->id }}" type="radio" data-logo="/{{ $getways->logo }}" data-rate="{{ $getways->rate }}" data-charge="{{ $getways->charge }}" data-currency="{{ $getways->currency_name }}" data-instruction="{{ $getways->instruction }}" value="{{ $getways->id }}"> {{ $getways->name }}</label>
+									
 								</div>
 								<ul class="none payement_inst">
 									<li><img src="" class="getway_logo" height="50"></li>
@@ -312,9 +342,6 @@
 <input type="hidden" id="latitude" value="{{ tenant('lat') }}">
 <input type="hidden" id="longitude" value="{{ tenant('long') }}">
 <input type="hidden" id="city" value="{{ $invoice_data->store_legal_city ?? '' }}">
-
-
-
 
 @endsection
 @push('js')
@@ -381,5 +408,10 @@
 <script type="text/javascript" src="{{ asset('theme/resto/js/google-api.js') }}"></script>
 @endif
 
-<script type="text/javascript" src="{{ asset('theme/checkout.js') }}"></script>
+<script type="text/javascript" src="{{ asset('checkout/js/checkout.js') }}"></script>
+@endpush
+@push('js')
+<script src="https://js.stripe.com/v3/"></script>
+<script src="{{ asset('checkout/js/stripe.js') }}"></script>
+
 @endpush
