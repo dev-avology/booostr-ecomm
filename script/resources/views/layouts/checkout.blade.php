@@ -22,11 +22,18 @@
       <link rel="stylesheet" href="{{ asset('theme/resto/css/bootstrap.min.css') }}">
       <link rel="stylesheet" href="{{ asset('theme/resto/css/icofont.css') }}">
       <link rel="stylesheet" href="{{ asset('theme/resto/css/nice-select.css') }}">
+      <link rel="stylesheet" href="{{ asset('theme/resto/css/animate.css') }}">
+      <link rel="stylesheet" href="{{ asset('theme/resto/css/tiny-slider.css') }}">
+      <link rel="stylesheet" href="{{ asset('theme/resto/css/glightbox.min.css') }}">
       <link rel="stylesheet" href="{{ asset('theme/resto/css/perfect-scrollbar.css') }}">
       <!-- Theme Styles -->
+      <link rel="stylesheet" href="{{ asset('theme/resto/css/reset.css') }}">
+      <link rel="stylesheet" href="{{ asset('theme/resto/style.css') }}">
+      <link rel="stylesheet" href="{{ asset('theme/resto/css/responsive.css') }}">
+      <link rel="stylesheet" href="{{ asset('theme/helper.css') }}">
       <link rel="stylesheet" href="{{ asset('checkout/css/style.css') }}">
       @stack('css')
-      {{ load_header() }}
+      <!-- {{ load_header() }} -->
    </head>
    <body>
      @php
@@ -43,24 +50,7 @@
          your experience and security.
       </p>
      <![endif]-->
-      @if(isset($autoload_data['site_settings']))
-      @php
-      $site_settings=json_decode($autoload_data['site_settings']);
-      $site_settings=$site_settings->meta ?? '';
-      $preloader=$site_settings->preloader ?? 'yes';
-      @endphp
-
-      @if($preloader == 'yes')
-      <div class="preloader">
-         <div class="preloader-inner">
-            <div class="preloader-icon"><span></span><span></span></div>
-         </div>
-      </div>
-      @endif
-
-      @endif
-
-     @include('theme.resto.layouts.header',['autoload_data'=>$autoload_data,'cart_count'=>$cart_count,'wishlist_count'=>$wishlist_count,'average_times'=>$average_times,'site_settings'=>$site_settings ?? ''])
+   
      @yield('content')
  
 <!--  scroll-top -->
@@ -82,6 +72,12 @@
 <script src="{{ asset('theme/resto/js/bootstrap.min.js') }}"></script>
 <script src="{{ asset('theme/resto/js/nice-select.js') }}"></script>
 <script src="{{ asset('theme/resto/js/wow.min.js') }}"></script>
+<script src="{{ asset('theme/resto/js/tiny-slider.js') }}"></script>
+<script src="{{ asset('theme/resto/js/glightbox.min.js') }}"></script>
+<script src="{{ asset('theme/resto/js/perfect-scrollbar.min.js') }}"></script>
+<script src="{{ asset('checkout/js/main.js') }}"></script>
+<script src="{{ asset('theme/helper.js?v=1.0') }}"></script>
+<script src="{{ asset('theme/resto/js/theme-helper.js') }}"></script>
 
 @stack('js')
 {{ load_footer() }}

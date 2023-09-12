@@ -85,7 +85,7 @@ class CheckoutController extends Controller
         if(Cart::content()->isEmpty()){
             return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Opps Your cart is empty']);
         }
-        echo "<pre>";print_r(Cart::content());echo "</pre>";
+        
         Session::put('redirect_url',$redirect_url);
 
         $tax=optionfromcache('tax');
