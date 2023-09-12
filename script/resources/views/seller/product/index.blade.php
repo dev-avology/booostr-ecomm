@@ -33,11 +33,11 @@
 
                     <input type="text" id="src" class="form-control" placeholder="Search..." required="" name="src" autocomplete="off" value="{{ $request->src ?? '' }}">
                     <select class="form-control selectric" name="type" id="type">
-                       
+
                         <option value="full_id" @if($type == 'full_id') selected @endif>{{ __('Search By Id') }}</option>
                         <option value="title" @if($type == 'title') selected @endif>{{ __('Search By Name') }}</option>
                     </select>
-                    <div class="input-group-append">                                            
+                    <div class="input-group-append">
                         <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
                     </div>
                 </div>
@@ -51,16 +51,16 @@
                         <option disabled selected="">{{ __('Select Action') }}</option>
                         <option value="1">{{ __('Publish Now') }}</option>
                         <option value="0">{{ __('Draft') }}</option>
-                        
-                       
+
+
                         <option value="delete" class="text-danger">{{ __('Delete Permanently') }}</option>
-                       
+
                     </select>
-                    <div class="input-group-append">                                            
+                    <div class="input-group-append">
                         <button class="btn btn-primary basicbtn" type="submit">{{ __('Submit') }}</button>
                     </div>
                 </div>
-                
+
             </div>
             <div class="table-responsive custom-table">
                 <table class="table">
@@ -72,7 +72,7 @@
                                     <label class="custom-control-label checkAll" for="selectAll"></label>
                                 </div>
                             </th>
-                            
+
                             <th>{{ __('Name') }}</th>
                             <th class="text-right"><i class="far fa-image"></i></th>
                             <th class="text-right">{{ __('Type') }}</th>
@@ -92,18 +92,18 @@
                                     <label class="custom-control-label" for="customCheck{{ $row->id }}"></label>
                                 </div>
                             </td>
-                             
+
                                   <td>{{ Str::limit($row->title,20) }} ({{$row->full_id}})</td>
                                   <td class="text-right"><img src="{{ asset($row->media->value ?? 'uploads/default.png') }}" height="50" alt=""></td>
                                   <td class="text-right">{{ $row->is_variation == 1 ? 'Variations' : 'Simple'  }}</td>
-                                  <td class="text-right">{{$row->price->price ?? '' }}{{ $row->is_variation == 1 ? '*' : ''  }}</td>
+                                  <td class="text-right">${{$row->price->price ? number_format($row->price->price,2) : ''}}{{ $row->is_variation == 1 ? '*' : ''  }}</td>
                                   <td class="text-right"><span class="badge badge-{{ $row->status == 1 ? 'success' : 'danger' }}">{{ $row->status == 1 ? 'Active' : 'Disable' }}</span></td>
                                   <td>{{ $row->orders_count }}</td>
                                   <td class="text-right">{{ date('d-m-Y', strtotime($row->created_at)) }}</td>
                                   <td class="text-right">
                                     <a class="text-primary" href="{{ route('seller.product.edit', $row->id) }}"><i class="fa fa-edit"></i></a>
                                 </td>
-                            </tr>  
+                            </tr>
                         @endforeach
                     </tbody>
                 </table>
