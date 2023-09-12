@@ -1719,3 +1719,8 @@ tr:first-child > td > .fc-day-grid-event {
     display: block; }
     .wizard-steps .wizard-step {
       margin-bottom: 50px; } }
+
+/* updated at 12-09-2023 */
+form.general-info-form .select2 {
+  width: 100% !important;
+}
