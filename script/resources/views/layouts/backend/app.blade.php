@@ -5,10 +5,12 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>{{ config('app.name') }} | {{ Request::segment(2) }}</title>
+  {{-- <title>{{ config('app.name') }} | {{ Request::segment(2) }}</title> --}}
+  <title>{{ Auth::user()->name ? Auth::user()->name : config('app.name') }} | {{ __('Booostr Store Management Tool') }}</title>
+
   <!-- Favicon icon -->
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <link rel="icon" type="image/png" href="{{ asset('uploads/favicon.ico') }}"/>
+  <link rel="icon" type="image/png" href="{{ asset('uploads/favicon.jpg') }}"/>
 
   <!-- General CSS Files -->
   <link rel="stylesheet" href="{{ asset('admin/assets/css/bootstrap.min.css') }}">
