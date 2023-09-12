@@ -67,12 +67,13 @@
 			@csrf
 			<div class="row">
 				<div class="col-lg-8 col-12 col-65">
-					<div class="checkout-form">
-						<h2>{{ $page_data->checkout_form_title ?? 'Make Your Checkout Here' }}</h2>
-						<p>{{ $page_data->checkout_form_description ?? '' }}</p>
+					<div class="checkout-form container pb-3">
+						<!-- <h2>{{ $page_data->checkout_form_title ?? 'Billing Address' }}</h2> -->
+						<h3 class="mt-3 mb-1">Billing Address</h2>
+						<em>Please create your account to check your order status quickly</em>
 						<!-- Form -->
 
-						<div class="row">
+						<div class="row mt-3">
 							<div class="col-lg-12 col-md-12 col-12">
 								@if ($errors->any())
 								<div class="alert alert-danger">
@@ -100,20 +101,20 @@
 							</div>
 							<div class="col-lg-6 col-md-6 col-12">
 								<div class="form-group">
-									<label>{{ __('Name') }}<span>*</span></label>
+									<label><i class="fa fa-user"></i>{{ __('Full Name') }}<span>*</span></label>
 									<input type="text" name="name" value="{{ Auth::check() ? Auth::user()->name : '' }}" placeholder="" required="required">
 								</div>
 							</div>
 
 							<div class="col-lg-6 col-md-6 col-12">
 								<div class="form-group">
-									<label>{{ __('Email Address') }}<span>*</span></label>
+									<label><i class="fa fa-envelope"></i>{{ __('Email Address') }}<span>*</span></label>
 									<input value="{{ Auth::check() ? Auth::user()->email : '' }}" type="email" name="email" placeholder="" required="required">
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12">
 								<div class="form-group">
-									<label>{{ __('Phone Number') }}<span>*</span></label>
+									<label><i class="fa fa-address-card-o"></i>{{ __('Phone Number') }}<span>*</span></label>
 									<input type="number" name="phone" value="{{ Auth::check() ? Auth::user()->phone : '' }}" placeholder="" required="required" maxlength="20">
 								</div>
 							</div>
@@ -133,18 +134,30 @@
 							@endif
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_area">
 								<div class="form-group">
-									<label>{{ __('Delivery Address') }} <span>*</span></label>
+									<label><i class="fa fa-address-card-o"></i> {{ __('Address') }} <span>*</span></label>
 									<input type="text" class="location_input" id="location_input" name="address" placeholder="" required="required" value="{{ $meta->address ?? '' }}">
 								</div>
 							</div>
-							@if(count($locations) != 0)
+							<div class="col-lg-6 col-md-6 col-12 delivery_address_city">
+								<div class="form-group">
+									<label><i class="fa fa-institution"></i> {{ __('City') }} <span>*</span></label>
+									<input type="text" class="location_input" id="location_city" name="city" placeholder="" required="required" value="{{ $meta->city ?? '' }}">
+								</div>
+							</div>
+							<div class="col-lg-6 col-md-6 col-12 delivery_address_state">
+								<div class="form-group">
+									<label> {{ __('State') }} <span>*</span></label>
+									<input type="text" class="location_input" id="location_state" name="state" placeholder="" required="required" value="{{ $meta->state ?? '' }}">
+								</div>
+							</div>
+							
 							<div class="col-lg-6 col-md-6 col-12 post_code_area">
 								<div class="form-group">
 									<label>{{ __('Postal Code') }}<span>*</span></label>
 									<input type="text" name="post_code" placeholder="" value="{{ $meta->post_code ?? '' }}" required="required">
 								</div>
 							</div>
-							@endif
+							
 							@if($order_settings->shipping_amount_type == 'distance')
 							<div class="col-lg-12 col-md-12 col-12 map_area">
 								<div class="form-group">
@@ -181,10 +194,17 @@
 					</div>
 				</div>
 				<div class="col-lg-4 col-12 col-35">
-					<div class="order-details">
+					<div class="order-details container carts-right">
 						<!-- Order Widget -->
 						<div class="single-widget">
-							<h2>{{ __('CART  TOTALS') }}</h2>
+							
+							<div class="">
+								<h2>{{ __('CART  SUMMARY') }}<span class="price" style="color:black"><i class="fa fa-shopping-cart"></i> <b>{{Cart::instance('default')->countItems()}}</b></span></h2>
+								@foreach(Cart::instance('default')->content() as $item)
+									<p><a href="#"> <img src="{{$item->options->preview}}" alt="img">{{$item->name}}</a> <span class="price">{{ get_option('currency_data',true)->currency_icon }}{{$item->price}}</span></p>
+								@endforeach
+								<hr>
+							</div>
 							@if($pickup_order == 'on')
 							<div class="order-type-section">
 								<input type="radio" name="order_method" id="is_pickup" class="order_method {{ $pickup_order == 'off' ? 'none' : '' }}" value="pickup" @if($order_method=='pickup' ) checked="" @endif>

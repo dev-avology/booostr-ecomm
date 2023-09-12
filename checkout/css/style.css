@@ -54,10 +54,11 @@ body{
     }
     
     .checkout-main .container {
-      background-color: #f2f2f2;
+      background-color: #f2f2f2 !important;
       padding: 5px 20px 15px 20px;
-      border: 1px solid lightgrey;
+      border: 1px solid lightgrey !important;
       border-radius: 3px;
+      box-shadow:unset !important;
     }
     
     .checkout-main input[type=text] {
@@ -145,6 +146,12 @@ body{
     .carts-right p a img {
         width: 50px;
         margin-right: 10px;
+    }
+    .shop.checkout .form .form-group {
+      margin-bottom: 2px;
+    }
+    .shop.checkout .form .form-group label i{
+      margin-right: 8px;
     }
     /* Responsive layout */
     @media (max-width: 800px) {

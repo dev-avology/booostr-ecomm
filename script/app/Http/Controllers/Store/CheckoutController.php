@@ -85,7 +85,7 @@ class CheckoutController extends Controller
         if(Cart::content()->isEmpty()){
             return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Opps Your cart is empty']);
         }
-        
+        // echo "<pre>";print_r(Cart::content());echo"</pre>";
         Session::put('redirect_url',$redirect_url);
 
         $tax=optionfromcache('tax');
@@ -100,7 +100,7 @@ class CheckoutController extends Controller
         else{
             $locations=[];
         }
-        
+        //dd($locations->shippings);
         $getways=Getway::where('status','!=',0)->get();
 
         $order_method=$request->t ?? 'delivery';
@@ -144,38 +144,38 @@ class CheckoutController extends Controller
         $source_code=$order_settings->source_code ?? 'on';
 
 
-        if(Session::has('stripe_credentials')){
-            $Info=Session::get('stripe_credentials');
-            if (tenant() != null) {
-              return view(baseview('payments/stripe'),compact('Info'));
-            }
-           return view('merchant.plan.payment.stripe',compact('Info'));
-        }
+        // if(Session::has('stripe_credentials')){
+        //     $Info=Session::get('stripe_credentials');
+        //     if (tenant() != null) {
+        //       return view(baseview('payments/stripe'),compact('Info'));
+        //     }
+        //    return view('merchant.plan.payment.stripe',compact('Info'));
+        // }
 
-        $publishable_key=$array['publishable_key'];
-        $secret_key=$array['secret_key'];
-        $currency=$array['currency'];
-        $email=$array['email'];
-        $amount=$array['amount'];
-        $totalAmount=$array['pay_amount'];
-        $name=$array['name'];
-        $billName=$array['billName'];
-        $test_mode=$array['test_mode'];
-        $data['publishable_key']=$publishable_key;
-        $data['secret_key']=$secret_key;
-        $data['payment_mode']='stripe';
-        $data['amount']=$totalAmount;
-        $data['test_mode']=$test_mode;
+        // $publishable_key=$array['publishable_key'];
+        // $secret_key=$array['secret_key'];
+        // $currency=$array['currency'];
+        // $email=$array['email'];
+        // $amount=$array['amount'];
+        // $totalAmount=$array['pay_amount'];
+        // $name=$array['name'];
+        // $billName=$array['billName'];
+        // $test_mode=$array['test_mode'];
+        // $data['publishable_key']=$publishable_key;
+        // $data['secret_key']=$secret_key;
+        // $data['payment_mode']='stripe';
+        // $data['amount']=$totalAmount;
+        // $data['test_mode']=$test_mode;
        
-        $data['charge']=$array['charge'];
-        $data['main_amount']=$array['amount'];
-        $data['getway_id']=$array['getway_id'];
-        $data['is_fallback']=$array['is_fallback'] ?? 0;
-        $data['payment_type']=$array['payment_type'] ?? '';
-        $data['currency']=$array['currency'];
+        // $data['charge']=$array['charge'];
+        // $data['main_amount']=$array['amount'];
+        // $data['getway_id']=$array['getway_id'];
+        // $data['is_fallback']=$array['is_fallback'] ?? 0;
+        // $data['payment_type']=$array['payment_type'] ?? '';
+        // $data['currency']=$array['currency'];
         
 
-        Session::put('stripe_credentials',$data);
+        // Session::put('stripe_credentials',$data);
 
         return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','meta','page_data','pickup_order','pre_order','source_code'));
     }
