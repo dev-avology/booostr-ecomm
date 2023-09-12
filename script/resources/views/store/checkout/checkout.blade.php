@@ -63,7 +63,7 @@
 	<div class="checkout-container">
 		<h1 class="page-title">{{ $page_data->cart_page_title ?? 'Checkout' }}</h1>
 		@if(Cart::instance('default')->count() != 0)
-		<form class="form orderform" method="post" action="{{ route('make.order') }}">
+		<form class="form orderform" method="post" action="{{ route('checkout.makeorder') }}">
 			@csrf
 			<div class="row">
 				<div class="col-lg-8 col-12 col-65">
@@ -234,7 +234,7 @@
 								<div class="checkbox">
 
 									@foreach($getways as $getway)
-									<label class="checkbox-inline" for="getway{{ $getway->id }}"><input name="payment_method" class="getway" id="getway{{ $getway->id }}" type="radio" data-logo="{{ $getway->logo }}" data-rate="{{ $getway->rate }}" data-charge="{{ $getway->charge }}" data-currency="{{ $getway->currency_name }}" data-instruction="{{ $getway->instruction }}" value="{{ $getway->id }}"> {{ $getway->name }}</label>
+									<label class="checkbox-inline" for="getway{{ $getway->id }}"><input name="payment_method" class="getway" id="getway{{ $getway->id }}" type="radio" data-logo="/{{ $getway->logo }}" data-rate="{{ $getway->rate }}" data-charge="{{ $getway->charge }}" data-currency="{{ $getway->currency_name }}" data-instruction="{{ $getway->instruction }}" value="{{ $getway->id }}"> {{ $getway->name }}</label>
 									@endforeach
 
 								</div>
@@ -257,24 +257,7 @@
 							</div>
 						</div>
 
-						@if($pre_order == 'on')
-						<div class="single-widget">
-							<h2><input type="checkbox" id="pre_order" class="pre_order" name="pre_order" value="1"> <label for="pre_order">{{ __('Pre Order ?') }}</label></h2>
-							<div class="content pre_order_area none">
-								<div class="checkbox">
-									<div class="form-group">
-										<label>{{ __('Delivery Date ?') }}</label>
-										<input type="date" name="date" class="form-control date">
-									</div>
-									<div class="form-group">
-										<label>{{ __('Delivery Time ?') }}</label>
-										<input type="time" id="time" class="form-control">
-										<input type="hidden" name="time" class="time">
-									</div>
-								</div>
-							</div>
-						</div>
-						@endif
+						
 						<!--/ End Order Widget -->
 
 						<!-- Button Widget -->
@@ -327,12 +310,11 @@
 <script type="text/javascript" src="{{ asset('theme/disable-source-code.js') }}"></script>
 @endif
 @if($order_settings->shipping_amount_type == 'distance')
-<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ $order_settings->google_api ?? '' }}&libraries=places&radius=5&location={{ tenant('lat') }}%2C{{ tenant('long') }}&callback=initialize"></script>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmimJcxCmMIgBR0G0UKmQAgfr7RSS8pDg&libraries=places&radius=5&location={{ tenant('lat') }}%2C{{ tenant('long') }}&callback=initialize"></script>
+<!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ $order_settings->google_api ?? '' }}&libraries=places&radius=5&location={{ tenant('lat') }}%2C{{ tenant('long') }}&callback=initialize"></script> -->
 <script type="text/javascript">
 	"use strict";
-
-
-
 	if ($('#my_lat').val() != null) {
 		localStorage.setItem('lat', $('#my_lat').val());
 
@@ -346,8 +328,6 @@
 		localStorage.setItem('location', $('#location_input').val());
 	}
 
-
-
 	if (localStorage.getItem('location') != null) {
 		var locs = localStorage.getItem('location');
 	} else {
@@ -358,34 +338,18 @@
 		var lati = localStorage.getItem('lat');
 		$('#my_lat').val(lati)
 	} else {
-		var lati = {
-			{
-				tenant('lat')
-			}
-		};
+		var lati = {{tenant('lat')}};
 	}
 	if (localStorage.getItem('long') !== null) {
 		var longlat = localStorage.getItem('long');
 		$('#my_long').val(longlat)
 	} else {
-		var longlat = {
-			{
-				tenant('long')
-			}
-		};
+		var longlat = {{tenant('long')}};
 	}
 
-	const maxRange = {
-		{
-			$order_settings - > google_api_range ?? 0
-		}
-	};
+	const maxRange = {{$order_settings->google_api_range ?? 0}};
 	const resturentlocation = "{{ $invoice_data->store_legal_address ?? '' }}";
-	const feePerkilo = {
-		{
-			$order_settings - > delivery_fee ?? 0
-		}
-	};
+	const feePerkilo = {{$order_settings->delivery_fee ?? 0}};
 
 	var mapOptions;
 	var map;
