@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Str;
 use Auth;
 use App\Models\User;
+use Illuminate\Support\Facades\Validator;
 
 class MediaController extends Controller
 {
@@ -27,7 +28,7 @@ class MediaController extends Controller
 
     public function bulk_upload()
     {
-        
+
     }
     /**
      * Display a listing of the resource.
@@ -65,12 +66,18 @@ class MediaController extends Controller
                return response()->json($errors,401);
            }
        }
-      
 
-       request()->validate([
-        'media.*' => 'required|image|max:3000'
 
-       ]);
+       // now validate the uploaded image in supported format
+       $validator  = Validator::make($request->all(),[
+        'media' => 'required|image|mimes:jpeg,png,gif,svg|max:1024',
+        ]);
+
+        // if validation fails return errorresponse with error
+        if ($validator->fails()) {
+            $response = $validator->errors()->all();
+            return response()->json(['error' => $response, 'message' => $response], 500);
+        }
 
        $is_onwer=0;
        $total_file_size=$request->file('media')->getSize();;
@@ -90,25 +97,25 @@ class MediaController extends Controller
        $path='uploads/'.$auth_id.date('/y').'/'.date('m').'/';
 
         if ($driver == 'local') {
-             $image->move($path, $name); 
+             $image->move($path, $name);
              $schemeurl=parse_url(url('/'));
-             
-           
+
+
              $file_url=asset($path.$name);
 
-            
+
         }
         else{
-           
+
             Storage::disk($driver)->put($path.$name, file_get_contents(Request()->file('media')));
 
             $file_url= Storage::disk($driver)->url($path.$name);
             $total_file_size=Storage::disk($driver)->size($path.$name);
         }
-        
+
         array_push($images, $path.$name);
 
-        
+
 
         $imgArr=explode('.', $path.$name);
 
@@ -122,7 +129,7 @@ class MediaController extends Controller
                 $file_size=$img->filesize();
                 $total_file_size=10000+$total_file_size;
                 array_push($images, $imgname);
-                
+
              }
              else{
                 $img=Image::make(Request()->file('media'))->fit($size->width,$size->height)->encode();
@@ -132,7 +139,7 @@ class MediaController extends Controller
                 array_push($images, $imgname);
              }
 
-             
+
          }
 
          $total_file_size=$this->getMb($total_file_size);
@@ -150,9 +157,9 @@ class MediaController extends Controller
 
          $responseData['url']=$media->url;
          $responseData['id']=$media->id;
-         return $responseData;  
+         return $responseData;
 
-   
+
 
     }
 
@@ -243,7 +250,7 @@ class MediaController extends Controller
        return response()->json('Delete Success');
     }
 
-    
+
 
 
 
@@ -253,13 +260,13 @@ class MediaController extends Controller
 
      function getMb($set_bytes)
      {
-     
+
      $set_kb = 1000;
      $set_mb = $set_kb * 1024;
-     
+
      return str_replace(',','',number_format($set_bytes / $set_mb,4));
 
-     
+
      }
 
  }
