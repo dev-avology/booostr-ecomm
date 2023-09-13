@@ -58,19 +58,19 @@ class DashboardController extends Controller
     {
         $month=Carbon::parse($month)->month;
         $year=Carbon::parse(date('Y'))->year;
-        
+
 
         $total_orders=Order::whereMonth('created_at', '=',$month)->whereYear('created_at', '=',$year)->count();
         $total_pending=Order::whereMonth('created_at', '=',$month)->whereYear('created_at', '=',$year)->where('status_id',3)->count();
         $total_completed=Order::whereMonth('created_at', '=',$month)->whereYear('created_at', '=',$year)->where('status_id',1)->count();
         $total_processing=Order::whereMonth('created_at', '=',$month)->whereYear('created_at', '=',$year)->where([['status_id','!=',1],['status_id','!=',2]])->count();
-       
-        
-        
-        $data['total_orders']=number_format($total_orders);
-        $data['total_pending']=number_format($total_pending);
-        $data['total_completed']=number_format($total_completed);
-        $data['total_processing']=number_format($total_processing);
+
+
+
+        $data['total_orders']=number_format($total_orders, 2);
+        $data['total_pending']=number_format($total_pending, 2);
+        $data['total_completed']=number_format($total_completed, 2);
+        $data['total_processing']=number_format($total_processing, 2);
 
         return response()->json($data);
     }
@@ -89,7 +89,7 @@ class DashboardController extends Controller
                 else{
                     $data[ucfirst(str_replace('_',' ',$key))]=number_format(tenant($key),2).' - '.number_format(Media::sum('size'),2).'MB';
                 }
-                
+
             }
             elseif($key=='post_limit'){
                 if ((int)tenant($key) == -1) {
@@ -116,7 +116,7 @@ class DashboardController extends Controller
             else{
                 $data[ucfirst(str_replace('_',' ',$key))]=tenant($key) != null ? tenant($key) : '';
             }
-            
+
          }
 
          return $data;
@@ -124,7 +124,7 @@ class DashboardController extends Controller
 
     public function staticData()
     {
-       
+
         $year=Carbon::parse(date('Y'))->year;
         $today=Carbon::today();
 
@@ -134,7 +134,7 @@ class DashboardController extends Controller
 
         $totalSales=Order::where('status_id',1)->whereYear('created_at', '=',$year)->count();
         $totalSales=number_format($totalSales);
-       
+
 
         $today_sale_amount = Order::where('status_id','!=',2)->whereDate('created_at', $today)->sum('total');
         $today_sale_amount=amount_format($today_sale_amount,'sign');
@@ -171,7 +171,7 @@ class DashboardController extends Controller
         $earnings=Order::whereYear('created_at', '=',$year)->where('status_id',1)->orderBy('id', 'asc')->selectRaw('year(created_at) year, monthname(created_at) month, sum(total) total')
                 ->groupBy('year', 'month')
                 ->get();
-        
+
 
         $current_pending_orders=Order::where('status_id',3)
                 ->whereDate('created_at', $today)
@@ -204,17 +204,17 @@ class DashboardController extends Controller
 
                     return $data;
                 });
-                
-        
-        $data['totalEarnings']=$totalEarnings;
-        $data['totalSales']=$totalSales;
-       
-        $data['today_sale_amount']=$today_sale_amount;
-        $data['today_orders']=$today_orders;
-        $data['yesterday_sale_amount']=$yesterday_sale_amount;
-        $data['lastweek_sale_amount']=$lastweek_sale_amount;
-        $data['lastmonth_sale_amount']=$lastmonth_sale_amount;
-        $data['thismonth_sale_amount']=$thismonth_sale_amount;
+
+
+        $data['totalEarnings']=number_format($totalEarnings, 2);
+        $data['totalSales']=number_format($totalSales, 2);
+
+        $data['today_sale_amount']=number_format($today_sale_amount, 2);
+        $data['today_orders']=number_format($today_orders, 2);
+        $data['yesterday_sale_amount']=number_format($yesterday_sale_amount, 2);
+        $data['lastweek_sale_amount']=number_format($lastweek_sale_amount, 2);
+        $data['lastmonth_sale_amount']=number_format($lastmonth_sale_amount, 2);
+        $data['thismonth_sale_amount']=number_format($thismonth_sale_amount, 2);
         $data['orders']=$orders;
         $data['current_pending_orders']=$current_pending_orders;
         $data['today_orders_list']=$today_orders_list;
@@ -235,7 +235,7 @@ class DashboardController extends Controller
 
     public function perfomance($period)
     {
-        
+
 
         if ($period != 365) {
             $earnings=Order::whereDate('created_at', '>', Carbon::now()->subDays($period))->where('status_id','!=',2)->orderBy('id', 'asc')->selectRaw('year(created_at) year, date(created_at) date, sum(total) total')->groupBy('year','date')->get();
@@ -243,23 +243,23 @@ class DashboardController extends Controller
         else{
             $earnings=Order::whereDate('created_at', '>', Carbon::now()->subDays($period))->where('status_id','!=',2)->orderBy('id', 'asc')->selectRaw('year(created_at) year, monthname(created_at) month, sum(total) total')->groupBy('year','month')->get();
         }
-       
-        
-        return response()->json($earnings);     
+
+
+        return response()->json($earnings);
     }
 
     public function orderPerfomace($period)
     {
-        
+
         $categories=Category::where('type','status')->select('id','name','type','slug')->get();
 
         $counters=[];
 
         foreach ($categories as $key => $value) {
             $data=[];
-            
+
             $count= Order::whereDate('created_at', '>', Carbon::now()->subDays($period))->where('status_id',$value->id)->count();
-            
+
             array_push($data,$value->name);
             array_push($data,$count);
 
@@ -268,8 +268,8 @@ class DashboardController extends Controller
 
         }
 
-        
-        return response()->json($counters);     
+
+        return response()->json($counters);
     }
 
 
