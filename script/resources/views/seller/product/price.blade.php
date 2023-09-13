@@ -33,7 +33,7 @@
          <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Product Price') }} : </label>
             <div class="col-lg-12">
-               <input type="number" step="any" class="form-control" name="price" value="{{ $info->price->price ?? '' }}" placeholder="0.00">
+               <input type="text" step="any" class="form-control" name="price" value="{{ $info->price->price ? '$'.number_format($info->price->price, 2) : '' }}" placeholder="0.00">
             </div>
          </div>
          <div class="from-group row mb-2">
