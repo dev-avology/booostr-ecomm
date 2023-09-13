@@ -14,6 +14,12 @@
     @csrf
     @method("PUT")
      <div class="from-group row mb-2">
+        <label for="" class="col-lg-12">{{ __('Name :') }} </label>
+        <div class="col-lg-12">
+            <input type="text" readonly name="name" required="" class="form-control" placeholder="Enter Product Name" value="{{ $info->title }}">
+        </div>
+     </div>
+     <div class="from-group row mb-2">
         <label for="" class="col-lg-12">{{ __('Featured Image') }} : </label>
         <div class="col-lg-12">
           {{mediasection(['preview'=>$info->media->value ?? '','value'=>$info->media->value ?? ''])}}
@@ -25,13 +31,13 @@
           {{mediasectionmulti(['value'=>$medias])}}
         </div>
      </div>
-    <input type="hidden" name="type" value="images">         
+    <input type="hidden" name="type" value="images">
     <div class="from-group  mb-2">
         <button class="btn btn-primary basicbtn col-lg-2" type="submit"><i class="far fa-save"></i> {{ __('Update') }}</button>
     </div>
 </form>
 </div>
-{{ mediasingle() }} 
+{{ mediasingle() }}
 @endsection
 
 @push('script')

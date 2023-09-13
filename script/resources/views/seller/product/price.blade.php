@@ -14,6 +14,12 @@
       @csrf
       @method("PUT")
       <div class="from-group row mb-2">
+        <label for="" class="col-lg-12">{{ __('Name :') }} </label>
+        <div class="col-lg-12">
+            <input type="text" readonly name="name" required="" class="form-control" placeholder="Enter Product Name" value="{{ $info->title }}">
+        </div>
+      </div>
+      <div class="from-group row mb-2">
          <label for="" class="col-lg-12">{{ __('Price Type') }} : </label>
          <div class="col-lg-12">
             <select name="product_type"  class="form-control product_type selectric">
@@ -85,7 +91,7 @@
                <div class="accordion-header h-50" role="button" data-toggle="collapse" data-target="#panel-body-{{ $key }}">
                   <div class="float-left">
                      <h6>
-                        <span id="option_name4">{{ $row->categorywithchild->name ?? '' }}</span> 
+                        <span id="option_name4">{{ $row->categorywithchild->name ?? '' }}</span>
                         @if($row->is_required == 1)<span class="text-danger">*</span> @endif
                     </h6>
                   </div>
@@ -105,16 +111,16 @@
                         <label for="" >{{ __('Select Attribute Values :') }} </label>
                         <select required  class="form-control select2 childattribute childattribute{{$key}} multi-select" multiple="">
                             @foreach($row->categorywithchild->categories as $category)
-                            <option  
-                            @if(in_array($category->id, $selected_childs)) 
-                            selected 
-                            @endif 
-                            value="{{ $category->id }}" 
-                            data-parentid="{{ $row->id }}" 
-                            data-parent="{{ $row->categorywithchild->name ?? '' }}" 
-                            data-short="{{ $key }}" 
-                            data-attrname="{{ $category->name }}" 
-                            class='child_attr{{ $category->id }} 
+                            <option
+                            @if(in_array($category->id, $selected_childs))
+                            selected
+                            @endif
+                            value="{{ $category->id }}"
+                            data-parentid="{{ $row->id }}"
+                            data-parent="{{ $row->categorywithchild->name ?? '' }}"
+                            data-short="{{ $key }}"
+                            data-attrname="{{ $category->name }}"
+                            class='child_attr{{ $category->id }}
                             childattr{{ $key }}'
                             >
                             {{ $category->name }}

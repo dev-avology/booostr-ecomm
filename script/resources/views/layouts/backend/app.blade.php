@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   {{-- <title>{{ config('app.name') }} | {{ Request::segment(2) }}</title> --}}
-  <title>{{ Auth::user()->name ? Auth::user()->name : config('app.name') }} | {{ __('Booostr Store Management Tool') }}</title>
+  <title>{{ isset(Auth::user()->name) ? ucwords(str_replace("-"," ", Auth::user()->name)) : config('app.name')}} | {{ __('Booostr Store Management Tool')}}</title>
 
   <!-- Favicon icon -->
   <meta name="csrf-token" content="{{ csrf_token() }}">
