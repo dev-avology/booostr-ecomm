@@ -2,74 +2,64 @@
 @section('content')
 <!-- Topbar Area -->
 <div class="topbar-area">
-         <div class="container">
-            <div class="row">
-               <div class="col-lg-12 col-md-12 col-12">
-                  <!-- Topbar Right -->
-                  <div class="topbar-right">
-                     
-                     <ul class="topbar-right-inner">
-                        <!-- Topbar Language -->
-                        @if(tenant('customer_modules') == 'on')
-                        <li class="accounts-top-btn"><a href="{{ !Auth::check() ? '#' : url('/customer/dashboard') }}"><i class="icofont-user-male"></i><span>{{ !Auth::check() ? __('My Account') : Auth::user()->name }}</span></a>
-                           @if(!Auth::check())
-                           <!-- Topbar Accounts Form -->
-                           <div class="accounts-signin-top-form">
-                              <form action="{{ route('login') }}" method="post" class="accounts-signin-inner">
-                                 @csrf
-                                 <div class="row">
-                                    <div class="col-12">
-                                       <div class="form-group">
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-12 col-md-12 col-12">
+				<!-- Topbar Right -->
+				<div class="topbar-right">
+					<ul class="topbar-right-inner">
+						<!-- Topbar Language -->
+						@if(tenant('customer_modules') == 'on')
+						<li class="accounts-top-btn"><a href="{{ !Auth::check() ? '#' : url('/customer/dashboard') }}"><i class="icofont-user-male"></i><span>{{ !Auth::check() ? __('My Account') : Auth::user()->name }}</span></a>
+							@if(!Auth::check())
+							<!-- Topbar Accounts Form -->
+							<div class="accounts-signin-top-form">
+								<form action="{{ route('login') }}" method="post" class="accounts-signin-inner">
+									@csrf
+									<div class="row">
+										<div class="col-12">
+											<div class="form-group">
 
-                                          <label><i class="icofont-ui-user"></i> {{ __('Email') }}</label>
-                                          <input type="email" name="email"  required="required" placeholder="Enter Email">
-                                          
-                                       </div>
-                                    </div>
-                                    <div class="col-12">
-                                       <div class="form-group">
-                                          <label><i class="icofont-ssl-security"></i> {{ __('Password') }}</label>
-                                          <input type="password" name="password" required="">
-                                          <!-- <a href="{{ url('/password/reset') }}">{{ __('Forgot password?') }}</a> -->
-                                       </div>
-                                    </div>
-                                    <div class="col-12">
-                                       <div class="accounts-signin-btn">
-                                          <button type="submit" class="theme-btn">{{ __('Sign in') }}</button>
-                                       </div>   
-                                    </div>   
-                                    <!-- <div class="col-12">
-                                       <div class="accounts-signin-bottom">
-                                          <p>{{ __('Dont have any account?') }}</p>
-                                          <a href="{{ url('customer/register') }}" class="theme-btn">Sign up</a>
-                                       </div>
-                                    </div> -->
-                                 </div>   
-                              </form>  
-                           </div>
-                           <!-- End Topbar Accounts Form -->
-                           @endif
-                        </li>
-                        @endif
-                     </ul>
-                     
-                  </div>
-               </div>
-            </div>
-         </div>
-      </div>
+												<label><i class="icofont-ui-user"></i> {{ __('Email') }}</label>
+												<input type="email" name="email" required="required" placeholder="Enter Email">
+
+											</div>
+										</div>
+										<div class="col-12">
+											<div class="form-group">
+												<label><i class="icofont-ssl-security"></i> {{ __('Password') }}</label>
+												<input type="password" name="password" required="">
+											</div>
+										</div>
+										<div class="col-12">
+											<div class="accounts-signin-btn">
+												<button type="submit" class="theme-btn">{{ __('Sign in') }}</button>
+											</div>
+										</div>
+									</div>
+								</form>
+							</div>
+							<!-- End Topbar Accounts Form -->
+							@endif
+						</li>
+						@endif
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 <!-- Start Checkout -->
 <section class="shop checkout section checkout-main">
 	<div class="checkout-container">
 		<h1 class="page-title">{{ $page_data->cart_page_title ?? 'Checkout' }}</h1>
 		@if(Cart::instance('default')->count() != 0)
-		<form class="form orderform" method="post" action="{{ route('checkout.makeorder') }}">
+		<form class="form orderform" id="payment-form" method="post" action="{{ route('checkout.makeorder') }}">
 			@csrf
 			<div class="row">
-				<div class="col-lg-8 col-12 col-65">
-					<div class="checkout-form container pb-3">
-						<!-- <h2>{{ $page_data->checkout_form_title ?? 'Billing Address' }}</h2> -->
-						<h3 class="mt-3 mb-1">Billing Address</h2>
+				<div class="col-lg-8 col-12 col-65 container">
+					<div class="checkout-form  pb-3">
+						<h3 class="mt-3 mb-1">Billing Address</h3>
 						<em>Please create your account to check your order status quickly</em>
 						<!-- Form -->
 
@@ -118,8 +108,6 @@
 									<input type="number" name="phone" value="{{ Auth::check() ? Auth::user()->phone : '' }}" placeholder="" required="required" maxlength="20">
 								</div>
 							</div>
-
-							
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_area">
 								<div class="form-group">
 									<label><i class="fa fa-address-card-o"></i> {{ __('Address') }} <span>*</span></label>
@@ -138,14 +126,14 @@
 									<input type="text" class="location_input" id="location_state" name="state" placeholder="" required="required" value="{{ $meta->state ?? '' }}">
 								</div>
 							</div>
-							
+
 							<div class="col-lg-6 col-md-6 col-12 post_code_area">
 								<div class="form-group">
 									<label>{{ __('Postal Code') }}<span>*</span></label>
 									<input type="text" name="post_code" placeholder="" value="{{ $meta->post_code ?? '' }}" required="required">
 								</div>
 							</div>
-							
+
 							@if($order_settings->shipping_amount_type == 'distance')
 							<div class="col-lg-12 col-md-12 col-12 map_area">
 								<div class="form-group">
@@ -157,19 +145,12 @@
 								</div>
 							</div>
 							@endif
-							<div class="col-lg-12 col-md-12 col-12">
-								<div class="form-group">
-									<label>{{ __('Comment') }}</label>
-									<textarea class="form-control h-150" name="comment" maxlength="300"></textarea>
-								</div>
-							</div>
 
 							@if(Auth::check() == false)
 							<div class="col-lg-6 col-md-6 col-12">
 								<div class="form-group create-account">
 									<input id="create_account" type="checkbox" value="1">
 									<label for="create_account">{{ __('Create an account?') }}</label>
-
 								</div>
 								<div class="form-group  password_area none">
 									<input type="password" name="password" placeholder="Password">
@@ -177,58 +158,51 @@
 							</div>
 							@endif
 						</div>
-
-						<!--/ End Form -->
 					</div>
 
-						<!-- Shopping Cart -->
-						<div class="shopping-cart section">
-							<div class="container">
-
-								<div class="row">
-									<div class="col-12">
-										<!-- Total Amount -->
-										<div class="card">
-											<div class="card-body">
-												<div class="px-4">
-													
-														<div class="form-row">
-															<label for="card-element">
-																{{ __('Credit or debit card') }}
-															</label>
-															<div id="card-element">
-																<!-- A Stripe Element will be inserted here. -->
-															</div>
-															<!-- Used to display form errors. -->
-															<div id="card-errors" role="alert"></div>
-															<button type="submit" class="btn btn-primary btn-lg w-100 mt-4" id="submit_btn">{{ __('Submit Payment') }}</button>
-														</div>
-													
+					<!-- Shopping Cart -->
+					<div class="shopping-cart section">
+						<div class="">
+							<div class="row">
+								<div class="col-12">
+									<!-- Total Amount -->
+									<div class="card">
+										<div class="card-body">
+											<div class="px-4">
+												<div class="form-row">
+													<label for="card-element">
+														{{ __('Credit or debit card') }}
+													</label>
+													<div id="card-element">
+														<!-- A Stripe Element will be inserted here. -->
+													</div>
+													<!-- Used to display form errors. -->
+													<div id="card-errors" role="alert"></div>
+													<button type="submit" class="btn btn-primary btn-lg w-100 mt-4" id="submit_btn">{{ __('Submit Payment') }}</button>
 												</div>
+
 											</div>
 										</div>
-										<!--/ End Total Amount -->
 									</div>
+									<!--/ End Total Amount -->
 								</div>
 							</div>
-							<input type="hidden" id="publishable_key" value="{{ $payment_data['publishable_key'] }}">
 						</div>
-						<!--/ End Shopping Cart -->
-
-
-
-
+						<input type="hidden" id="publishable_key" value="{{ $payment_data['publishable_key'] }}">
+						<input type="hidden" id="stripesecret_key" value="{{ $payment_data['secret_key'] }}">
+					</div>
+					<!--/ End Shopping Cart -->
 
 				</div>
 				<div class="col-lg-4 col-12 col-35">
 					<div class="order-details container carts-right">
 						<!-- Order Widget -->
 						<div class="single-widget">
-							
+
 							<div class="">
 								<h2>{{ __('CART  SUMMARY') }}<span class="price" style="color:black"><i class="fa fa-shopping-cart"></i> <b>{{Cart::instance('default')->countItems()}}</b></span></h2>
 								@foreach(Cart::instance('default')->content() as $item)
-									<p><a href="#"> <img src="{{$item->options->preview}}" alt="img">{{$item->name}}</a> <span class="price">{{ get_option('currency_data',true)->currency_icon }}{{$item->price}}</span></p>
+								<p><a href="#"> <img src="{{$item->options->preview}}" alt="img">{{$item->name}}</a> <span class="price">{{ get_option('currency_data',true)->currency_icon }}{{$item->price}}</span></p>
 								@endforeach
 								<hr>
 							</div>
@@ -264,13 +238,13 @@
 							</div>
 						</div>
 						@if($order_settings->shipping_amount_type != 'distance')
-						<div class="single-widget shipping_method_area none">
+						<div class="single-widget shipping_method_area">
 							<h2>{{ __('Shipping Method') }}</h2>
 							<div class="content">
 								<div class="checkbox shipping_render_area">
 									@foreach($shipping_methods as $shipping_method)
-									<label class="checkbox-inline shipping_method" for="shipping{{$shipping_method->id}.}">
-										<input name="shipping_method" class="shipping_item" value="{{$shipping_method->id}}" data-price="{{$shipping_method->slug}}"  id="shipping{{$shipping_method->id}}" type="radio" > {{$shipping_method->name}}
+									<label class="checkbox-inline shipping_method" for="shipping{{$shipping_method->id}}">
+										<input name="shipping_method" class="shipping_item" value="{{$shipping_method->id}}" data-price="{{$shipping_method->slug}}" id="shipping{{$shipping_method->id}}" type="radio"> {{$shipping_method->name}}
 									</label>
 									@endforeach
 								</div>
@@ -278,35 +252,6 @@
 						</div>
 						@endif
 						<!--/ End Order Widget -->
-						<!-- Order Widget -->
-						<div class="single-widget">
-							<h2>Payments</h2>
-							<div class="content">
-								<div class="checkbox">
-
-									
-									<label class="checkbox-inline" for="getway{{ $getways->id }}"><input name="payment_method" class="getway" id="getway{{ $getways->id }}" type="radio" data-logo="/{{ $getways->logo }}" data-rate="{{ $getways->rate }}" data-charge="{{ $getways->charge }}" data-currency="{{ $getways->currency_name }}" data-instruction="{{ $getways->instruction }}" value="{{ $getways->id }}"> {{ $getways->name }}</label>
-									
-								</div>
-								<ul class="none payement_inst">
-									<li><img src="" class="getway_logo" height="50"></li>
-									<li class="currency_area none">
-										{{ __('Currency : ') }} <span class="currency"></span>
-									</li>
-									<li class="rate_area none">
-										{{ __('Currency Rate : ') }} <span class="rate"></span>
-									</li>
-									<li class="charge_area none">
-										{{ __('Payment Charge : ') }} <span class="charge"></span>
-									</li>
-									<li class="instruction_area last none">
-										{{ __('Payment instruction : ') }} <span class="instruction"></span>
-									</li>
-
-								</ul>
-							</div>
-						</div>
-
 						
 						<!--/ End Order Widget -->
 
@@ -364,17 +309,13 @@
 	"use strict";
 	if ($('#my_lat').val() != null) {
 		localStorage.setItem('lat', $('#my_lat').val());
-
 	}
 	if ($('#my_long').val() != null) {
 		localStorage.setItem('long', $('#my_long').val());
-
 	}
-
 	if ($('#location_input').val() != null) {
 		localStorage.setItem('location', $('#location_input').val());
 	}
-
 	if (localStorage.getItem('location') != null) {
 		var locs = localStorage.getItem('location');
 	} else {
@@ -385,19 +326,18 @@
 		var lati = localStorage.getItem('lat');
 		$('#my_lat').val(lati)
 	} else {
-		var lati = {{tenant('lat')}};
+		var lati = "{{tenant('lat')}}";
 	}
 	if (localStorage.getItem('long') !== null) {
 		var longlat = localStorage.getItem('long');
 		$('#my_long').val(longlat)
 	} else {
-		var longlat = {{tenant('long')}};
+		var longlat = "{{tenant('long')}}";
 	}
 
-	const maxRange = {{$order_settings->google_api_range ?? 0}};
+	const maxRange = "{{$order_settings->google_api_range ?? 0}}";
 	const resturentlocation = "{{ $invoice_data->store_legal_address ?? '' }}";
-	const feePerkilo = {{$order_settings->delivery_fee ?? 0}};
-
+	const feePerkilo = "{{$order_settings->delivery_fee ?? 0}}";
 	var mapOptions;
 	var map;
 	var marker;

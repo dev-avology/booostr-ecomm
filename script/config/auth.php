@@ -46,6 +46,11 @@ return [
             'provider' => 'users',
             'hash' => false,
         ],
+        'boostr' => [
+            'driver' => 'token',
+            'provider' => 'boostr',
+            'hash' => false,
+        ],
     ],
 
     /*
@@ -70,7 +75,10 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
-
+        "boostr" => [
+            'driver' => 'eloquent',
+            'model' => App\Models\EcomUser::class,
+        ],
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',

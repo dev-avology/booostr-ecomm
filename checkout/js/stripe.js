@@ -1,12 +1,13 @@
 "use strict";
 
-var stripe_key = $('#publishable_key').val();    
+var stripe_key = $('#publishable_key').val();
+var secret_key = $('#stripesecret_key').val(); 
 var publishable_key = stripe_key;
 // Create a Stripe client.
 var stripe = Stripe(publishable_key);
 
 // Create an instance of Elements.
-var elements = stripe.elements();
+ var elements = stripe.elements();
 
 // Custom styling can be passed to options when creating an Element.
 // (Note that this demo uses a wider set of styles than the guide below.)
@@ -25,9 +26,8 @@ var style = {
         iconColor: '#fa755a'
     }
 };
-
 // Create an instance of the card Element.
-var card = elements.create('card', {style: style});
+ var card = elements.create('card', {style: style});
 
 // Add an instance of the card Element into the `card-element` <div>.
 card.mount('#card-element');
@@ -68,7 +68,6 @@ function stripeTokenHandler(token) {
     hiddenInput.setAttribute('name', 'stripeToken');
     hiddenInput.setAttribute('value', token.id);
     form.appendChild(hiddenInput);
-
     // Submit the form
     form.submit();
 }

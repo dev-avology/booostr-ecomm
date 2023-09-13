@@ -249,9 +249,6 @@ class CheckoutController extends Controller
             else{
                 $shipping_price=$request->shipping_fee ?? 0;
             }
-
-           
-
            $order_method=$request->order_method;
        }
        else{

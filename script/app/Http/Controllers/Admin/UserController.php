@@ -23,28 +23,19 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . Auth::id(),
             'name' => 'required',
         ]);
-
         $info=User::find(Auth::id());
-        
-
         $user=User::find(Auth::id());
 
         $user->name=$request->name;
         $user->email=$request->email;
-        
         $user->save();
-
-        
-
         return response()->json(['Update Success']);
-
     }
 
     public function updatePassword(Request $request)
     {
         $validatedData = $request->validate([
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-
         ]);
         $info=User::where('id',Auth::id())->first();
 

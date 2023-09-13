@@ -153,6 +153,7 @@ body{
     .shop.checkout .form .form-group label i{
       margin-right: 8px;
     }
+    .shop.checkout .order-details,.shop.checkout .checkout-form{margin-top: 0;}
     /* Responsive layout */
     @media (max-width: 800px) {
       .checkout-main .row {
