@@ -89,6 +89,22 @@ $(function(){
 	//trigger media list
 	$(".modal.media-single").find("#profile-tab3").trigger('click');
   });
+  // Listen for the 'error' event
+	uploader.on("error", function(file, errorMessage, xhr) {
+		// Handle the error here
+		console.error("Upload error:", errorMessage);
+		if(errorMessage.error){
+			$('.dz-image-preview').empty();		
+			$('#dropzoneinsidemodel').removeClass('dz-started');
+			$('.dz-default').empty();
+			$('.dz-default').html("<span class='text-danger'>"+errorMessage.error+"</span>");
+		}else{
+			$('.dz-file-preview').empty();	
+			$('#dropzoneinsidemodel').removeClass('dz-started');		
+			$('.dz-default').empty();
+			$('.dz-default').html("<span class='text-danger'>"+errorMessage+"</span>");
+		}		
+	});
 });
 
 // $(function(){

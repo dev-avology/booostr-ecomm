@@ -33,7 +33,7 @@
          <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Product Price') }} : </label>
             <div class="col-lg-12">
-               <input type="number" step="any" class="form-control" name="price" value="{{ $info->price->price ?? '' }}" placeholder="0.00">
+               <input type="text" step="any" class="form-control" name="price" value="{{ $info->price->price ? '$'.number_format($info->price->price, 2) : '' }}" placeholder="0.00">
             </div>
          </div>
          <div class="from-group row mb-2">
@@ -220,5 +220,19 @@
 @push('script')
 <script src="{{ asset('admin/js/select2.min.js') }}"></script>
 <script src="{{ asset('admin/js/product-price.js?v=1') }}"></script>
+
+<script>
+    $(".product_price_input").change(function() {
+       // This function will be executed when the input value changes.
+       var inputValue = $(this).val();
+       inputValue = inputValue.match(/[0-9.]+/g);
+       // alert(inputValue);
+       if(inputValue === null || inputValue === ''){
+          // $(this).val("");
+          return;
+       }
+       $(this).val("$" + parseFloat(inputValue).toFixed(2));
+    });
+</script>
 
 @endpush

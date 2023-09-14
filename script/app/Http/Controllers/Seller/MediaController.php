@@ -70,17 +70,23 @@ class MediaController extends Controller
 
        // now validate the uploaded image in supported format
        $validator  = Validator::make($request->all(),[
-        'media' => 'required|image|mimes:jpeg,png,gif,svg|max:1024',
-        ]);
+        'media' => 'required|image|mimes:jpeg,png,gif,svg|max:1024'],
+            [
+                'media.required' => 'The media field is required.',
+                'media.image' => 'The media must be an image.',
+                'media.mimes' => 'The media must be a valid image format (jpeg, png, gif, svg).',
+                'media.max' => 'File is too big. Maximum file size is 1 MB. Please click here to select a new file OR drag and drop a new file.',
+            ]
+        );
 
         // if validation fails return errorresponse with error
         if ($validator->fails()) {
             $response = $validator->errors()->all();
-            return response()->json(['error' => $response, 'message' => $response], 500);
+            return response()->json(['error' => $response], 500);
         }
 
        $is_onwer=0;
-       $total_file_size=$request->file('media')->getSize();;
+       $total_file_size=$request->file('media')->getSize();
        $driver=env('STORAGE_TYPE');
 
        $auth_id=tenant('uid');
