@@ -48,6 +48,16 @@
             </div>
         </div>
         <div class="from-group row mb-2">
+            <label for="" class="col-lg-12">{{ __('Select Product Type') }} : </label>
+            <div class="col-lg-12">
+                <select name="categories[]" class="selectric form-control">
+                    @foreach($product_type as $row)
+                    <option value="{{ $row->id }}" @if(in_array($row->id,$selected_categories)) selected @endif>{{ $row->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Select Product Brand') }} : </label>
             <div class="col-lg-12">
                 <select name="categories[]" class="selectric form-control">
