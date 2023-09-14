@@ -154,6 +154,14 @@ body{
       margin-right: 8px;
     }
     .shop.checkout .order-details,.shop.checkout .checkout-form{margin-top: 0;}
+    .payment-input{
+      width: 100%;
+      margin-bottom: 20px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      background:#F6F7FB;
+    }
     /* Responsive layout */
     @media (max-width: 800px) {
       .checkout-main .row {

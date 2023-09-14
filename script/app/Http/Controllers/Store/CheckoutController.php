@@ -192,7 +192,7 @@ class CheckoutController extends Controller
 
     public function makeOrder(Request $request)
     {
-       
+       dd($request->all());
         if (count(Cart::content()) == 0) {
             return redirect('/checkout');
         } 

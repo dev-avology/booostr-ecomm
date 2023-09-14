@@ -29,10 +29,6 @@
 			$('.accounts-signin-top-form').toggleClass('active');
 		});		
 	
-			
-		
-		$('select').niceSelect();
-		
 		
 		$(document).on("click",".plus",function() {
 		  var $button = $(this);

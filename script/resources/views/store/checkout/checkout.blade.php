@@ -19,10 +19,8 @@
 									<div class="row">
 										<div class="col-12">
 											<div class="form-group">
-
 												<label><i class="icofont-ui-user"></i> {{ __('Email') }}</label>
 												<input type="email" name="email" required="required" placeholder="Enter Email">
-
 											</div>
 										</div>
 										<div class="col-12">
@@ -62,7 +60,6 @@
 						<h3 class="mt-3 mb-1">Billing Address</h3>
 						<em>Please create your account to check your order status quickly</em>
 						<!-- Form -->
-
 						<div class="row mt-3">
 							<div class="col-lg-12 col-md-12 col-12">
 								@if ($errors->any())
@@ -108,29 +105,36 @@
 									<input type="number" name="phone" value="{{ Auth::check() ? Auth::user()->phone : '' }}" placeholder="" required="required" maxlength="20">
 								</div>
 							</div>
-							<div class="col-lg-6 col-md-6 col-12 delivery_address_area">
+							<div class="col-lg-12 col-md-12 col-12 delivery_address_area">
 								<div class="form-group">
 									<label><i class="fa fa-address-card-o"></i> {{ __('Address') }} <span>*</span></label>
-									<input type="text" class="location_input" id="location_input" name="address" placeholder="" required="required" value="{{ $meta->address ?? '' }}">
+									<input type="text" class="location_input" id="location_input" name="billing[address]" placeholder="" required="required" value="{{ $meta->address ?? '' }}">
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_city">
 								<div class="form-group">
 									<label><i class="fa fa-institution"></i> {{ __('City') }} <span>*</span></label>
-									<input type="text" class="location_input" id="location_city" name="city" placeholder="" required="required" value="{{ $meta->city ?? '' }}">
+									<input type="text" class="location_input" id="location_city" name="billing[city]" placeholder="" required="required" value="{{ $meta->city ?? '' }}">
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_state">
 								<div class="form-group">
 									<label> {{ __('State') }} <span>*</span></label>
-									<input type="text" class="location_input" id="location_state" name="state" placeholder="" required="required" value="{{ $meta->state ?? '' }}">
+									<input type="text" class="location_input" id="location_state" name="billing[state]" placeholder="" required="required" value="{{ $meta->state ?? '' }}">
 								</div>
 							</div>
-
+							<div class="col-lg-6 col-md-6 col-12 delivery_address_country">
+								<div class="form-group">
+									<label> {{ __('Country') }} <span>*</span></label>
+									<select name="billing[country]" class="nice-select">
+										<option value="USA">United State</option>
+									</select>
+								</div>
+							</div>
 							<div class="col-lg-6 col-md-6 col-12 post_code_area">
 								<div class="form-group">
 									<label>{{ __('Postal Code') }}<span>*</span></label>
-									<input type="text" name="post_code" placeholder="" value="{{ $meta->post_code ?? '' }}" required="required">
+									<input type="text" id="post_code" name="billing[post_code]" placeholder="" value="{{ $meta->post_code ?? '' }}" required="required">
 								</div>
 							</div>
 
@@ -159,37 +163,40 @@
 							@endif
 						</div>
 					</div>
-
 					<!-- Shopping Cart -->
-					<div class="shopping-cart section">
-						<div class="">
-							<div class="row">
-								<div class="col-12">
-									<!-- Total Amount -->
-									<div class="card">
-										<div class="card-body">
-											<div class="px-4">
-												<div class="form-row">
-													<label for="card-element">
-														{{ __('Credit or debit card') }}
-													</label>
-													<div id="card-element">
-														<!-- A Stripe Element will be inserted here. -->
-													</div>
-													<!-- Used to display form errors. -->
-													<div id="card-errors" role="alert"></div>
-													<button type="submit" class="btn btn-primary btn-lg w-100 mt-4" id="submit_btn">{{ __('Submit Payment') }}</button>
-												</div>
+					<div class="checkout-form  pb-3">
+						<div class="form-row">
+							<h3>{{ __('Payment') }}</h3>
+							<div id="card-element">
 
-											</div>
-										</div>
-									</div>
-									<!--/ End Total Amount -->
+								<label for="fname">Accepted Cards</label>
+								<div class="icon-container">
+									<i class="fa fa-cc-visa" style="color:navy;"></i>
+									<i class="fa fa-cc-amex" style="color:blue;"></i>
+									<i class="fa fa-cc-mastercard" style="color:red;"></i>
+									<i class="fa fa-cc-discover" style="color:orange;"></i>
 								</div>
+								<label for="cardnumber">Credit card number</label>
+								<div id="cardnumber"></div>
+								<label for="cardexpiry">Exp Month</label>
+								<div id="cardexpiry"></div>
+								<div class="row">
+									<div class="col-50">
+										<label for="cardcvv">CVV</label>
+										<div id="cardcvv"></div>
+									</div>
+									<div class="col-50">
+										<label for="cardpostal">ZIP</label>
+										<div id="cardpostal"></div>
+									</div>
+								</div>
+
 							</div>
+							<!-- Used to display form errors. -->
+							<div id="card-errors" role="alert"></div>
+							<button type="submit" class="btn btn-primary btn-lg w-100 mt-4" id="submit_btn">{{ __('Submit Payment') }}</button>
 						</div>
 						<input type="hidden" id="publishable_key" value="{{ $payment_data['publishable_key'] }}">
-						<input type="hidden" id="stripesecret_key" value="{{ $payment_data['secret_key'] }}">
 					</div>
 					<!--/ End Shopping Cart -->
 
@@ -252,7 +259,7 @@
 						</div>
 						@endif
 						<!--/ End Order Widget -->
-						
+
 						<!--/ End Order Widget -->
 
 						<!-- Button Widget -->
@@ -301,10 +308,9 @@
 @if($source_code == 'off')
 <script type="text/javascript" src="{{ asset('theme/disable-source-code.js') }}"></script>
 @endif
-@if($order_settings->shipping_amount_type == 'distance')
+@if(1)
 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmimJcxCmMIgBR0G0UKmQAgfr7RSS8pDg&libraries=places&radius=5&location={{ tenant('lat') }}%2C{{ tenant('long') }}&callback=initialize"></script>
-<!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ $order_settings->google_api ?? '' }}&libraries=places&radius=5&location={{ tenant('lat') }}%2C{{ tenant('long') }}&callback=initialize"></script> -->
 <script type="text/javascript">
 	"use strict";
 	if ($('#my_lat').val() != null) {
@@ -344,8 +350,7 @@
 	var searchBox;
 	var city;
 </script>
-
-<script type="text/javascript" src="{{ asset('theme/resto/js/google-api.js') }}"></script>
+<script type="text/javascript" src="{{ asset('checkout/js/google-api.js') }}"></script>
 @endif
 
 <script type="text/javascript" src="{{ asset('checkout/js/checkout.js') }}"></script>

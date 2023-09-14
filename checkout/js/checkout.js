@@ -166,3 +166,7 @@ $(document).on('change','#time',function(){
 
 $('.time').val(hours + ':' + minutes + ' ' + meridian)
 });
+
+$(document).ready(function(){
+	$(".shipping_method_area .shipping_method").find(".shipping_item").eq(0).trigger('click');
+});
