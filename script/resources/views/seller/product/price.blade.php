@@ -226,9 +226,7 @@
        // This function will be executed when the input value changes.
        var inputValue = $(this).val();
        inputValue = inputValue.match(/[0-9.]+/g);
-       // alert(inputValue);
        if(inputValue === null || inputValue === ''){
-          // $(this).val("");
           return;
        }
        $(this).val("$" + parseFloat(inputValue).toFixed(2));

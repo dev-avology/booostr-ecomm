@@ -37,10 +37,9 @@
 
 
         <div class="dropdown-divider"></div>
-        <a href="{{ route('logout') }}" onclick="event.preventDefault();
-        document.getElementById('logout-form').submit();" class="dropdown-item has-icon text-danger">
+        <a href="javascript:" class="dropdown-item has-icon text-danger" onclick="window.top.close();">
         <i class="fas fa-sign-out-alt"></i> {{ __('Close Store Manager') }}
-      </a>
+        </a>
       <form id="logout-form" action="{{ url('/logout') }}" method="POST" class="d-none">
         @csrf
       </form>
