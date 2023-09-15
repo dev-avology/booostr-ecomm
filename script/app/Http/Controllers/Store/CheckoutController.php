@@ -21,6 +21,9 @@ use Mail;
 use App\Mail\ContactMail;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use DB;
+use App\Models\Order;
+use App\Models\Orderstock;
 class CheckoutController extends Controller
 {
     
@@ -70,29 +73,64 @@ class CheckoutController extends Controller
             return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Opps something went wrong']);
         }
         $domain=tenant('domain');
-        return redirect()->to("//".$domain->domain.'/direct_checkout/'.$cartid.'/'.$redirect_url);
+        $customer=[
+            "name"=>($request->name??""),
+            "email"=>($request->email),
+            "phone"=>($request->phone??""),
+            "address"=>($request->address??""),
+            "city"=>($request->city??""),
+            "state"=>($request->state??""),
+            "country"=>($request->country??""),
+            "zip"=>($request->zip??"")
+        ];
+        return redirect()->to("//".$domain->domain.'/direct_checkout/'.$cartid.'/'.$redirect_url.'/?'.http_build_query($customer));
         
     }
 
-    public function direct_checkout(Request $request,$cartid,$redirect_url='/')
+    public function direct_checkout(Request $request,$cartid='',$redirect_url='/')
     {
-        $redirect_url=!empty(base64_decode($redirect_url))?base64_decode($redirect_url):"/";
-        $validated = $request->validate([
-            
-         ]);
-         $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-        ]);
-         if ($validator->fails()) {    
-            return redirect()->away($redirect_url.'/?type=error&message='.$validator->errors()->first());
+        if(Session::has('redirect_url')){
+            $redirect_url=Session::get('redirect_url');
+        }else{
+            $redirect_url=!empty(base64_decode($redirect_url))?base64_decode($redirect_url):"/";
+            Session::put('redirect_url',$redirect_url);
         }
+        if(Session::has('cartid')){
+            $cartid=Session::get('cartid');
+        }else{
+            Session::put('cartid',$cartid);
+        }
+        
+        
+        if(Session::has('customer_data')){
+            $customer=Session::get('customer_data');
+        }else{
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|string|email',
+            ]);
+             if ($validator->fails()) {    
+                return redirect()->away($redirect_url.'/?type=error&message='.$validator->errors()->first());
+            }
+            $customer=[
+                "name"=>($request->name??""),
+                "email"=>($request->email),
+                "phone"=>($request->phone??""),
+                "address"=>($request->address??""),
+                "city"=>($request->city??""),
+                "state"=>($request->state??""),
+                "country"=>($request->country??""),
+                "zip"=>($request->zip??"")
+            ];
+            Session::put('customer_data',$customer);
+        }
+         
         Cart::instance($cartid);
         //load cart in session
         Cart::checkout_restore($cartid);
         if(Cart::content()->isEmpty()){
             return redirect()->away($redirect_url.'/?type=error&message=Opps Your cart is empty');
         }
-        Session::put('redirect_url',$redirect_url);
+       
 
         $tax=optionfromcache('tax');
         if ($tax == null) {
@@ -111,17 +149,8 @@ class CheckoutController extends Controller
         $order_method=$request->t ?? 'delivery';
         
         $invoice_data=optionfromcache('invoice_data');
-        $customer=[
-            "name"=>($request->name??""),
-            "email"=>($request->email),
-            "phone"=>($request->phone??""),
-            "address"=>($request->address??""),
-            "city"=>($request->city??""),
-            "state"=>($request->state??""),
-            "country"=>($request->country??""),
-            "zip"=>($request->zip??"")
-        ];
         
+
         $home_data=optionfromcache('checkout_page');
 
         $seo=$home_data->seo ?? '';
@@ -167,254 +196,174 @@ class CheckoutController extends Controller
             };
         }
         $shipping_methods=Category::where('status',1)->where('type','shipping')->select('name','id','slug','status')->get();
-        // if(Session::has('stripe_credentials')){
-        //     $Info=Session::get('stripe_credentials');
-        //     if (tenant() != null) {
-        //       return view(baseview('payments/stripe'),compact('Info'));
-        //     }
-        //    return view('merchant.plan.payment.stripe',compact('Info'));
-        // }
-
-        // $publishable_key=$array['publishable_key'];
-        // $secret_key=$array['secret_key'];
-        // $currency=$array['currency'];
-        // $email=$array['email'];
-        // $amount=$array['amount'];
-        // $totalAmount=$array['pay_amount'];
-        // $name=$array['name'];
-        // $billName=$array['billName'];
-        // $test_mode=$array['test_mode'];
-        // $data['publishable_key']=$publishable_key;
-        // $data['secret_key']=$secret_key;
-        // $data['payment_mode']='stripe';
-        // $data['amount']=$totalAmount;
-        // $data['test_mode']=$test_mode;
-       
-        // $data['charge']=$array['charge'];
-        // $data['main_amount']=$array['amount'];
-        // $data['getway_id']=$array['getway_id'];
-        // $data['is_fallback']=$array['is_fallback'] ?? 0;
-        // $data['payment_type']=$array['payment_type'] ?? '';
-        // $data['currency']=$array['currency'];
-        // Session::put('stripe_credentials',$data);
-
-        return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','meta','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','customer'));
+        $shipping_methods=$shipping_methods->sortBy([
+            ['slug', 'desc']
+          ]);
+        return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','customer'));
     }
 
 
     public function makeOrder(Request $request)
     {
-       dd($request->all());
-        if (count(Cart::content()) == 0) {
-            return redirect('/checkout');
-        } 
+        $redirect_url=Session::has('redirect_url')?Session::get('redirect_url'):'https://www.boostr.co';
+        if(Cart::content()->isEmpty()){
+            return redirect()->away($redirect_url.'/?type=error&message=Opps Your cart is empty');
+        }
 
        $request->validate([
             'name' => 'required|max:50',
             'email' => 'required|email|max:50',
             'phone' => 'required|max:20',
-            'payment_method' => 'required|max:50',
+            'shipping_method' => 'required',
+            'stripeToken' => 'required',
        ]);
        $order_method='delivery';
        $notify_driver='mail';
        $order_settings=get_option('order_settings',true);
-        if ($request->order_method == 'table') {
-            $validated = $request->validate([
-              'table' => 'required|max:100',
-            ]);
-            $order_method=$request->order_method;
+
+        $shipping_price = 0;
+        if ($request->order_method == 'delivery' && !empty($request->shipping_method)) {
+            $shipping_method = Category::where('status', 1)->where('type', 'shipping')->findorFail($request->shipping_method);
+            $shipping_price = $shipping_method->slug;
+        } else {
+            $order_method = 'pickup';
         }
-
-        if ($request->pre_order == 1) {
-            $validated = $request->validate([
-              'date' => 'required|max:100',
-              'time' => 'required|max:100',
-              
-            ]);
-        }
-
-       $shipping_price=0;
-       if ($request->order_method == 'delivery') {
-            $validated = $request->validate([
-              'address' => 'required|max:250',
-              'post_code' => 'max:20',
-            ]);
-
-            if ($order_settings->shipping_amount_type != 'distance') {
-               $validated = $request->validate([
-                  'shipping_method' => 'required|max:100',
-                  
-               ]);
-
-               $shipping_method=Category::where('status',1)->where('type','shipping')->findorFail($request->shipping_method);
-               $shipping_price=$shipping_method->slug;
-               
-            }
-            else{
-                $shipping_price=$request->shipping_fee ?? 0;
-            }
-           $order_method=$request->order_method;
-       }
-       else{
-        $order_method='pickup';
-       }
-
-       if (tenant('customer_modules') == 'on' && Auth::check() == false) {
-            $user=User::firstOrNew(['email' => $request->email]);
-            if(!$user->id){
-                $user->name=$request->name;
-                $user->email=$request->email;
-                $user->phone=$request->phone;
-                $user->role_id=4;
-                $user->password=\Hash::make($request->email);
-                $user->save();
-            }
-            Auth::loginUsingId($user->id);
-       } 
 
        $total_amount=str_replace(',','',Cart::total());
        $total_discount=str_replace(',','',Cart::discount());
        $total_amount=$total_amount+$shipping_price;
 
-       $gateway=Getway::where('status',1)->findOrFail($request->payment_method);
-
-        DB::beginTransaction();
-        try { 
-
-        $order=new Order;
-
-        if (Auth::check() == true) {
-              
-              $order->user_id=Auth::id();
-        }
-
-        $notify_driver=$order_settings->order_method ?? 'mail';
-        if ($notify_driver == 'fmc') {
-          if (tenant('push_notification') != 'on') {
-            $notify_driver='mail';
-          }
-        }
-
-        $order->getway_id=$request->payment_method;
-        $order->status_id=3;
-        $order->tax=str_replace(',','',Cart::tax());
-        $order->discount=$total_discount;
-        $order->total=$total_amount;
-        $order->order_method=$order_method ?? 'delivery';
-        $order->notify_driver=$notify_driver;
-        $order->save();
-
-        $oder_items=[];
-        $total_weight=0;
-        $priceids=[];
-
-        foreach(Cart::content() as $row){
-            $data['order_id']=$order->id;
-            $data['term_id']=$row->id;
-            $data['info']=json_encode([
-                'sku'=>$row->options->sku ?? '',
-                'options'=>$row->options->options ?? []
-            ]);
-
-            foreach ($row->options->price_id ?? [] as $key => $r) {
-
-                array_push($priceids,['order_id'=>$order->id,'price_id'=>$r,'qty'=>$row->qty]);
-            }
-
-            $data['qty']=$row->qty;
-            $data['amount']=$row->price;
-            $total_weight=$total_weight+$row->weight;
-            array_push($oder_items,$data);
-        }
-
-        $order->orderitems()->insert($oder_items);
-        if ($request->pre_order == 1) {
-            $order->schedule()->create(['date'=>$request->date,'time'=>$request->time]);
-        }
-        if ($request->order_method == 'table') {
-            $order->ordertable()->attach($request->table);
-        }
-        if ($request->order_method == 'delivery') {
-            $delivery_info['address']=$request->address;
-            $delivery_info['post_code']=$request->post_code;
-            $order->shipping()->create([
-                'location_id'=>$request->location,
-                'shipping_id'=>$request->shipping_method,
-                'shipping_price'=>$shipping_price,
-                'lat'=>$request->my_lat ?? null,
-                'long'=>$request->my_long ?? null,
-                'weight'=>$total_weight,
-                'info'=>json_encode($delivery_info)
-            ]);
-        }
-
-        if (!empty($request->name) || !empty($request->email) || !empty($request->phone) || !empty($request->comment)) {
-           $customer_info['name']=$request->name;
-           $customer_info['email']=$request->email;
-           $customer_info['phone']=$request->phone;
-           $customer_info['note']=$request->comment??"";
-
-           $order->ordermeta()->create([
-            'key'=>'orderinfo',
-            'value'=>json_encode($customer_info)
-           ]);
-        }
-
-        if (count($priceids) != 0) {
-            $order->orderstockitems()->insert($priceids);
-        }
-            DB::commit();
-        } catch (\Throwable $th) {
-            DB::rollback();
-            
-            $errors['errors']['error']='Opps something wrong';
-            return response()->json($errors,401);
-        }  
-
-        Session::forget('fund_callback');
-        Session::put('fund_callback',[
-            'success_url' => '/order-success',
-            'cancel_url' => '/order-fail'
-        ]);
-
-        Session::put('order_id',$order->id);
-
+       $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+       //Process Payment
         $payment_data['currency']   = $gateway->currency_name ?? 'USD';
         $payment_data['email']      = $request->email;
         $payment_data['name']       = $request->name;
         $payment_data['phone']      = $request->phone;
-        $payment_data['billName']   = 'Order No: '.$order->invoice_no;
+        $payment_data['billName']   = 'Boostr Sale';
         $payment_data['amount']     = $total_amount;
         $payment_data['test_mode']  = $gateway->test_mode;
         $payment_data['charge']     = $gateway->charge ?? 0;
         $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount*$gateway->rate+$gateway->charge ?? 0,2));
         $payment_data['getway_id']  = $gateway->id;
-
+        $payment_data['stripeToken']=$request->stripeToken;
         if (!empty($gateway->data)) {
             foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
                 $payment_data[$key] = $info;
             };
         }
-        return $gateway->namespace::make_payment($payment_data);
+        
+        $paymentresult= $gateway->namespace::charge_payment($payment_data); 
+        
+        if($paymentresult['payment_status']!=1){
+            return redirect()->back()->with(["error"=>"Sorry, we couldnt charge your card, please try another card"]);
+        }
+
+        DB::beginTransaction();
+        try {
+
+            if (Auth::check() == false) {
+                $user = User::firstOrNew(['email' => $request->email]);
+                if (!$user->id) {
+                    $user->name = $request->name;
+                    $user->email = $request->email;
+                    $user->phone = $request->phone;
+                    $user->role_id = 4;
+                    $user->password = \Hash::make($request->email);
+                    $user->save();
+                }
+                Auth::loginUsingId($user->id);
+            }
+            $order = new Order;
+
+            if (Auth::check() == true) {
+                $order->user_id = Auth::id();
+            }
+
+            $notify_driver = 'mail';
+
+            $order->getway_id = $gateway->id;
+            $order->status_id = 3;
+            $order->tax = str_replace(',', '', Cart::tax());
+            $order->discount = $total_discount;
+            $order->total = $total_amount;
+            $order->order_method = $order_method ?? 'delivery';
+            $order->notify_driver = $notify_driver;
+            $order->transaction_id = $paymentresult['payment_id'];
+            $order->payment_status = 1;
+            $order->save();
+
+            $oder_items = [];
+            $total_weight = 0;
+            $priceids = [];
+
+            foreach (Cart::content() as $row) {
+                $data['order_id'] = $order->id;
+                $data['term_id'] = $row->id;
+                $data['info'] = json_encode([
+                    'sku' => $row->options->sku ?? '',
+                    'options' => $row->options->options ?? []
+                ]);
+
+                foreach ($row->options->price_id ?? [] as $key => $r) {
+
+                    array_push($priceids, ['order_id' => $order->id, 'price_id' => $r, 'qty' => $row->qty]);
+                }
+
+                $data['qty'] = $row->qty;
+                $data['amount'] = $row->price;
+                $total_weight = $total_weight + $row->weight;
+                array_push($oder_items, $data);
+            }
+
+            $order->orderitems()->insert($oder_items);
+
+            if ($request->order_method == 'table') {
+                $order->ordertable()->attach($request->table);
+            }
+            if ($request->order_method == 'delivery') {
+                $delivery_info['address'] = $request->address;
+                $delivery_info['post_code'] = $request->post_code;
+                $order->shipping()->create([
+                    'location_id' => $request->location,
+                    'shipping_id' => $request->shipping_method,
+                    'shipping_price' => $shipping_price,
+                    'lat' => $request->my_lat ?? null,
+                    'long' => $request->my_long ?? null,
+                    'weight' => $total_weight,
+                    'info' => json_encode($delivery_info)
+                ]);
+            }
+
+            if (!empty($request->name) || !empty($request->email) || !empty($request->phone) || !empty($request->comment)) {
+                $customer_info['name'] = $request->name;
+                $customer_info['email'] = $request->email;
+                $customer_info['phone'] = $request->phone;
+                $customer_info['note'] = $request->comment ?? "";
+
+                $order->ordermeta()->create([
+                    'key' => 'orderinfo',
+                    'value' => json_encode($customer_info)
+                ]);
+            }
+
+            if (count($priceids) != 0) {
+                $order->orderstockitems()->insert($priceids);
+            }
+
+            DB::commit();
+            Cart::instance('default')->destroy();
+            return redirect()->away($redirect_url . '/?type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return redirect()->away($redirect_url . '/?type=error&message=Opps something wrong while saving order data');
+        }
+        return redirect()->away($redirect_url);
 
     }
 
     public function success()
     {
-        abort_if(!Session::has('payment_info') || !Session::has('order_id'),404);
-
-        $payment_info=Session::get('payment_info');
-
-        $order=Order::with('ordermeta')->findorFail(Session::get('order_id'));
-        $order->transaction_id = $payment_info['payment_id'];
-        
-        $order->payment_status = $payment_info['payment_status'];
-        $order->save();
-
-        Session::forget('payment_info');
-        Session::forget('order_id');
-        Session::forget('fund_callback');
-        Session::put('invoice_no',$order->invoice_no);
+       
         Cart::instance('default')->destroy();
         return \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
 

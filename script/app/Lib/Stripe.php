@@ -138,6 +138,46 @@ class Stripe {
          
     }
 
+    public static function charge_payment($array)
+    {
+        $publishable_key=$array['publishable_key'];
+        $secret_key=$array['secret_key'];
+        $currency=$array['currency'];
+        $amount=$array['amount'];
+        $totalAmount=$array['pay_amount'];
+        $test_mode=$array['test_mode'];
+        $data['publishable_key']=$publishable_key;
+        $data['secret_key']=$secret_key;
+        $data['payment_mode']='stripe';
+        $data['amount']=$totalAmount;
+        $data['test_mode']=$test_mode;
+        
+        $stripe = Omnipay::create('Stripe');
+        $token = $array['stripeToken'];
+        $stripe->setApiKey($secret_key);
+        if($token){
+            $response = $stripe->purchase([
+                'amount' => $totalAmount,
+                'currency' => $currency,
+                'token' => $token,
+            ])->send();
+        }
+        if ($response->isSuccessful()) {
+            $arr_body = $response->getData();
+            $data['payment_id'] = $arr_body['id'];
+            $data['payment_method'] = "stripe";
+            $data['getway_id'] = $array['getway_id'];
+            $data['payment_type'] = $array['payment_type']??'';
+            $data['charge'] = $array['charge'];
+            $data['status'] = 1;          
+            $data['payment_status'] = 1;
+        }
+        else{
+            $data['payment_status'] = 0;  
+        }
+        return $data;
+    }
+
 }
 
 

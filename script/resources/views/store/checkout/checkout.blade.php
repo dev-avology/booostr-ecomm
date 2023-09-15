@@ -138,58 +138,56 @@
 								</div>
 							</div>
 
-
 							<div class="col-lg-12 col-md-12 col-12">
-								<div class="form-group shipping-address">
-									<input id="shipping_address" type="checkbox" value="1">
+								<div class="form-group create-account">
+									<input id="shipping_address" name="shipping_same_as_billing" type="checkbox" value="1" checked>
 									<label for="shipping_address">{{ __('Shipping address same as billing') }}</label>
 								</div>
 							</div>
-							<div class="shipping_address_area none">
-								<div class="col-lg-6 col-md-6 col-12">
-									<div class="form-group">
-										<label><i class="fa fa-user"></i>{{ __('Full Name') }}<span>*</span></label>
-										<input type="text" name="shipping[name]" value="{{ $customer['name'] }}" placeholder="" required="required">
-									</div>
+						</div>
+						<div class="row mt-3 shipping_address_area none" style="display:none">
+							<div class="col-lg-6 col-md-6 col-12">
+								<div class="form-group">
+									<label><i class="fa fa-user"></i>{{ __('Full Name') }}<span>*</span></label>
+									<input type="text" name="shipping[name]" value="{{ $customer['name'] }}" placeholder="" required="required">
 								</div>
-					
-								<div class="col-lg-6 col-md-6 col-12">
-									<div class="form-group">
-										<label><i class="fa fa-address-card-o"></i>{{ __('Phone Number') }}<span>*</span></label>
-										<input type="number" name="shipping[phone]" value="{{ $customer['phone'] }}" placeholder="" required="required" maxlength="20">
-									</div>
+							</div>
+							<div class="col-lg-6 col-md-6 col-12">
+								<div class="form-group">
+									<label><i class="fa fa-address-card-o"></i>{{ __('Phone Number') }}<span>*</span></label>
+									<input type="number" name="shipping[phone]" value="{{ $customer['phone'] }}" placeholder="" required="required" maxlength="20">
 								</div>
-								<div class="col-lg-12 col-md-12 col-12 delivery_address_area">
-									<div class="form-group">
-										<label><i class="fa fa-address-card-o"></i> {{ __('Address') }} <span>*</span></label>
-										<input type="text" class="location_input" id="location_input" name="shipping[address]" placeholder="" required="required" value="{{ $customer['address'] }}">
-									</div>
+							</div>
+							<div class="col-lg-12 col-md-12 col-12 delivery_address_area">
+								<div class="form-group">
+									<label><i class="fa fa-address-card-o"></i> {{ __('Address') }} <span>*</span></label>
+									<input type="text" class="location_input" id="location_input" name="shipping[address]" placeholder="" required="required" value="{{ $customer['address'] }}">
 								</div>
-								<div class="col-lg-6 col-md-6 col-12 delivery_address_city">
-									<div class="form-group">
-										<label><i class="fa fa-institution"></i> {{ __('City') }} <span>*</span></label>
-										<input type="text" class="location_input" id="location_city" name="shipping[city]" placeholder="" required="required" value="{{ $customer['city'] }}">
-									</div>
+							</div>
+							<div class="col-lg-6 col-md-6 col-12 delivery_address_city">
+								<div class="form-group">
+									<label><i class="fa fa-institution"></i> {{ __('City') }} <span>*</span></label>
+									<input type="text" class="location_input" id="location_city" name="shipping[city]" placeholder="" required="required" value="{{ $customer['city'] }}">
 								</div>
-								<div class="col-lg-6 col-md-6 col-12 delivery_address_state">
-									<div class="form-group">
-										<label> {{ __('State') }} <span>*</span></label>
-										<input type="text" class="location_input" id="location_state" name="shipping[state]" placeholder="" required="required" value="{{ $customer['state'] }}">
-									</div>
+							</div>
+							<div class="col-lg-6 col-md-6 col-12 delivery_address_state">
+								<div class="form-group">
+									<label> {{ __('State') }} <span>*</span></label>
+									<input type="text" class="location_input" id="location_state" name="shipping[state]" placeholder="" required="required" value="{{ $customer['state'] }}">
 								</div>
-								<div class="col-lg-6 col-md-6 col-12 delivery_address_country">
-									<div class="form-group">
-										<label> {{ __('Country') }} <span>*</span></label>
-										<select name="shipping[country]" class="nice-select">
-											<option value="USA">United State</option>
-										</select>
-									</div>
+							</div>
+							<div class="col-lg-6 col-md-6 col-12 delivery_address_country">
+								<div class="form-group">
+									<label> {{ __('Country') }} <span>*</span></label>
+									<select name="shipping[country]" class="nice-select">
+										<option value="USA">United State</option>
+									</select>
 								</div>
-								<div class="col-lg-6 col-md-6 col-12 post_code_area">
-									<div class="form-group">
-										<label>{{ __('Postal Code') }}<span>*</span></label>
-										<input type="text" id="post_code" name="shipping[post_code]" placeholder="" value="{{ $customer['zip'] }}" required="required">
-									</div>
+							</div>
+							<div class="col-lg-6 col-md-6 col-12 post_code_area">
+								<div class="form-group">
+									<label>{{ __('Postal Code') }}<span>*</span></label>
+									<input type="text" id="post_code" name="shipping[post_code]" placeholder="" value="{{ $customer['zip'] }}" required="required">
 								</div>
 							</div>
 						</div>
@@ -209,14 +207,16 @@
 								</div>
 								<label for="cardnumber">Credit card number</label>
 								<div id="cardnumber"></div>
-								<label for="cardexpiry">Exp Month</label>
-								<div id="cardexpiry"></div>
 								<div class="row">
 									<div class="col-50">
+										<label for="cardexpiry">Exp Month</label>
+										<div id="cardexpiry"></div>
+									</div>
+									<div class="col-25">
 										<label for="cardcvv">CVV</label>
 										<div id="cardcvv"></div>
 									</div>
-									<div class="col-50">
+									<div class="col-25">
 										<label for="cardpostal">ZIP</label>
 										<div id="cardpostal"></div>
 									</div>

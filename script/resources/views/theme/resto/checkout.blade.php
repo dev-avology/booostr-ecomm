@@ -177,7 +177,7 @@
 												0.00
 											</span>
 										</li>
-										<li>(+) {{ __('Delivery fee') }}<span class="shipping_fee">0.00</span></li>
+										<li>(+) {{ __('Shipping fee') }}<span class="shipping_fee">0.00</span></li>
 										
 										<li class="last">{{ __('Total') }}<span class="cart_total">0.00</span></li>
 									</ul>
