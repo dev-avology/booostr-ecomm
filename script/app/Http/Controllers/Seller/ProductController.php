@@ -301,10 +301,11 @@ class ProductController extends Controller
                     $term->is_variation = $request->product_type;
                     $term->save();
                     //single price
+                    $valid_price = preg_replace("/[^0-9.]/", "", $request->price);
                     if (empty($term->price)) {
-                        $term->price()->create(['price' => $request->price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => $request->weight, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status]);
+                        $term->price()->create(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => $request->weight, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status]);
                     } else {
-                        $term->price()->update(['price' => $request->price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => $request->weight, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status]);
+                        $term->price()->update(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => $request->weight, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status]);
                     }
                     //end single price
                 } else {
