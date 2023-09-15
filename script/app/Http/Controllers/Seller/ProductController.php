@@ -46,8 +46,9 @@ class ProductController extends Controller
         abort_if(!getpermission('products'), 401);
         $attributes = Category::query()->where('type', 'parent_attribute')->with('categories')->latest()->get();
         $features = Category::query()->where('type', 'product_feature')->orderBy('menu_status', 'ASC')->get();
+        $product_type = Category::query()->where('type', 'product_type')->orderBy('id', 'ASC')->get();
 
-        return view("seller.product.create", compact('attributes', 'features'));
+        return view("seller.product.create", compact('attributes', 'features', 'product_type'));
     }
 
     /**
@@ -184,9 +185,22 @@ class ProductController extends Controller
         }
 
         if ($type == 'price') {
-            $info = Term::query()->where('type', 'product')->with('price', 'productoptionwithcategories')->findorFail($id);
+            $info = Term::query()->where('type', 'product')->with('price', 'productoptionwithcategories', 'termcategories')->findorFail($id);
             $attributes = Category::query()->where('type', 'parent_attribute')->with('categories')->latest()->get();
-            return view("seller.product.price", compact('info', 'id', 'attributes'));
+            $product_type = Category::query()->where('type', 'product_type')->select('id', 'name')->orderBy('id', 'ASC')->get();
+
+            $selected_categories = [];
+            foreach ($info->termcategories as $key => $value) {
+                array_push($selected_categories, $value->category_id);
+            }
+            $selected_product_type = '';
+            foreach($product_type as $val){
+                if(in_array($val->id, $selected_categories)){
+                    $selected_product_type = $val->name;
+                }
+            }
+
+            return view("seller.product.price", compact('info', 'id', 'attributes', 'selected_product_type'));
         }
 
         if ($type == 'image') {

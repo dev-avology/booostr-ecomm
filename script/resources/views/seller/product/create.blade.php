@@ -110,11 +110,22 @@
                            <label for="" class="col-lg-12">{{ __('Select Product Category') }} : </label>
                            <div class="col-lg-12">
                               <select name="categories[]" multiple="" class="select2 form-control">
-                              
+
                               {{NastedCategoryList('category')}}
                               </select>
                            </div>
                         </div>
+                        <div class="from-group row mb-2">
+                            <label for="" class="col-lg-12">{{ __('Select Product Type') }} : </label>
+                            <div class="col-lg-12">
+                                <select name="categories[]" class="selectric form-control drop_product_type">
+                                   <option disabled="" value="" selected="">{{ __('Select Type') }}</option>
+                                    @foreach($product_type as $row)
+                                    <option value="{{ $row->id }}">{{ $row->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                         </div>
                         <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Select Product Brand') }} : </label>
                            <div class="col-lg-12">
@@ -191,7 +202,7 @@
                               <input type="text" class="form-control" name="sku">
                            </div>
                         </div>
-                        <div class="from-group row mb-2">
+                        <div class="from-group row mb-2 product_weight_sec">
                            <label for="" class="col-lg-12">{{ __('Weight') }} : </label>
                            <div class="col-lg-12">
                               <input type="number" step="any" class="form-control" name="weight" placeholder="0.00">
@@ -242,7 +253,7 @@
       </div>
    </div>
 </section>
-{{ mediasingle() }} 
+{{ mediasingle() }}
 <input type="hidden" id="parentattributes" value="{{ $attributes }}" />
 @endsection
 
@@ -254,5 +265,16 @@
 <script src="{{ asset('admin/js/media.js') }}"></script>
 <script src="{{ asset('admin/js/select2.min.js') }}"></script>
 <script src="{{ asset('admin/js/product-create.js') }}"></script>
+<script>
+$(".drop_product_type").change(function() {
+    // This function will be executed when the input value changes.
+    var inputValue = $('.drop_product_type option:selected').text();
+    if(inputValue === 'Digital Product'){
+        $('.product_weight_sec').hide();
+        return;
+    }
+    $('.product_weight_sec').show();
+});
+</script>
 @endpush
 

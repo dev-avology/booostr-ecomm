@@ -48,12 +48,14 @@
                <input type="text" class="form-control" name="sku" value="{{ $info->price->sku ?? '' }}">
             </div>
          </div>
+         @if($selected_product_type == "Physical Product")
          <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Weight') }} : </label>
             <div class="col-lg-12">
                <input type="number" step="any" class="form-control" name="weight" value="{{ $info->price->weight ?? '' }}" placeholder="0.00">
             </div>
          </div>
+         @endif
          @php
          $stock_manage=$info->price->stock_manage ?? '';
          $stock_status=$info->price->stock_status ?? '';
