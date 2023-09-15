@@ -100,13 +100,13 @@ $(document).on('change','.shipping_item',function(){
 /*-------------------------
        Create New Account
     --------------------------*/
-$('#create_account').on('change',function(){
+$('#shipping_address').on('change',function(){
 	
 	if ($(this).is(':checked')){
-		$('.password_area').show();
+		$('.shipping_address_area').show();
 	}
 	else{
-		$('.password_area').hide();
+		$('.shipping_address_area').hide();
 	}
 })
 

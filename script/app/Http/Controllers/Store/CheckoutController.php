@@ -19,7 +19,8 @@ use Artesaos\SEOTools\Facades\JsonLdMulti;
 use Artesaos\SEOTools\Facades\SEOTools;
 use Mail;
 use App\Mail\ContactMail;
-
+use Illuminate\Support\Facades\Validator;
+use App\Models\User;
 class CheckoutController extends Controller
 {
     
@@ -58,9 +59,7 @@ class CheckoutController extends Controller
         SEOTools::twitter()->setSite($seo->twitter_title ?? '');
         SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
         SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
-
         $page_data=$home_data->meta ?? '';
-
         return view(baseview('cart'),compact('page_data'));
     }
 
@@ -77,14 +76,22 @@ class CheckoutController extends Controller
 
     public function direct_checkout(Request $request,$cartid,$redirect_url='/')
     {
-        
+        $redirect_url=!empty(base64_decode($redirect_url))?base64_decode($redirect_url):"/";
+        $validated = $request->validate([
+            
+         ]);
+         $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email',
+        ]);
+         if ($validator->fails()) {    
+            return redirect()->away($redirect_url.'/?type=error&message='.$validator->errors()->first());
+        }
         Cart::instance($cartid);
         //load cart in session
         Cart::checkout_restore($cartid);
         if(Cart::content()->isEmpty()){
-            return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Opps Your cart is empty']);
+            return redirect()->away($redirect_url.'/?type=error&message=Opps Your cart is empty');
         }
-        // echo "<pre>";print_r(Cart::content());echo"</pre>";
         Session::put('redirect_url',$redirect_url);
 
         $tax=optionfromcache('tax');
@@ -99,15 +106,22 @@ class CheckoutController extends Controller
         else{
             $locations=[];
         }
-        //dd($locations->shippings);
         $getways=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
 
         $order_method=$request->t ?? 'delivery';
         
         $invoice_data=optionfromcache('invoice_data');
+        $customer=[
+            "name"=>($request->name??""),
+            "email"=>($request->email),
+            "phone"=>($request->phone??""),
+            "address"=>($request->address??""),
+            "city"=>($request->city??""),
+            "state"=>($request->state??""),
+            "country"=>($request->country??""),
+            "zip"=>($request->zip??"")
+        ];
         
-        $meta= !Auth::check() ? [] : json_decode(Auth::user()->meta ?? '');
-
         $home_data=optionfromcache('checkout_page');
 
         $seo=$home_data->seo ?? '';
@@ -182,11 +196,9 @@ class CheckoutController extends Controller
         // $data['is_fallback']=$array['is_fallback'] ?? 0;
         // $data['payment_type']=$array['payment_type'] ?? '';
         // $data['currency']=$array['currency'];
-        
-
         // Session::put('stripe_credentials',$data);
 
-        return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','meta','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods'));
+        return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','meta','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','customer'));
     }
 
 
@@ -201,18 +213,11 @@ class CheckoutController extends Controller
             'name' => 'required|max:50',
             'email' => 'required|email|max:50',
             'phone' => 'required|max:20',
-            'comment' => 'max:200',
             'payment_method' => 'required|max:50',
-            
        ]);
-
        $order_method='delivery';
-
        $notify_driver='mail';
-
        $order_settings=get_option('order_settings',true);
-
-
         if ($request->order_method == 'table') {
             $validated = $request->validate([
               'table' => 'required|max:100',
@@ -233,7 +238,6 @@ class CheckoutController extends Controller
             $validated = $request->validate([
               'address' => 'required|max:250',
               'post_code' => 'max:20',
-              'address' => 'required|max:250',
             ]);
 
             if ($order_settings->shipping_amount_type != 'distance') {
@@ -255,21 +259,17 @@ class CheckoutController extends Controller
         $order_method='pickup';
        }
 
-       if ($request->password && tenant('customer_modules') == 'on' && Auth::check() == false) {
-            $validated = $request->validate([
-               'password' => 'min:8|max:50',
-               'email' => 'required|string|email|max:50|unique:users',
-            ]);
-
-            $user=new User;
-            $user->name=$request->name;
-            $user->email=$request->email;
-            $user->role_id=4;
-            $user->password=\Hash::make($request->password);
-            $user->save();
-            
+       if (tenant('customer_modules') == 'on' && Auth::check() == false) {
+            $user=User::firstOrNew(['email' => $request->email]);
+            if(!$user->id){
+                $user->name=$request->name;
+                $user->email=$request->email;
+                $user->phone=$request->phone;
+                $user->role_id=4;
+                $user->password=\Hash::make($request->email);
+                $user->save();
+            }
             Auth::loginUsingId($user->id);
-
        } 
 
        $total_amount=str_replace(',','',Cart::total());
@@ -327,21 +327,16 @@ class CheckoutController extends Controller
             array_push($oder_items,$data);
         }
 
-
-
         $order->orderitems()->insert($oder_items);
         if ($request->pre_order == 1) {
             $order->schedule()->create(['date'=>$request->date,'time'=>$request->time]);
         }
-
         if ($request->order_method == 'table') {
             $order->ordertable()->attach($request->table);
         }
         if ($request->order_method == 'delivery') {
             $delivery_info['address']=$request->address;
             $delivery_info['post_code']=$request->post_code;
-
-
             $order->shipping()->create([
                 'location_id'=>$request->location,
                 'shipping_id'=>$request->shipping_method,
@@ -357,7 +352,7 @@ class CheckoutController extends Controller
            $customer_info['name']=$request->name;
            $customer_info['email']=$request->email;
            $customer_info['phone']=$request->phone;
-           $customer_info['note']=$request->comment;
+           $customer_info['note']=$request->comment??"";
 
            $order->ordermeta()->create([
             'key'=>'orderinfo',
@@ -365,11 +360,9 @@ class CheckoutController extends Controller
            ]);
         }
 
-        
         if (count($priceids) != 0) {
             $order->orderstockitems()->insert($priceids);
         }
-
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollback();
@@ -396,25 +389,19 @@ class CheckoutController extends Controller
         $payment_data['charge']     = $gateway->charge ?? 0;
         $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount*$gateway->rate+$gateway->charge ?? 0,2));
         $payment_data['getway_id']  = $gateway->id;
-       
-       
 
         if (!empty($gateway->data)) {
             foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
                 $payment_data[$key] = $info;
             };
         }
-       
         return $gateway->namespace::make_payment($payment_data);
-        
 
     }
 
     public function success()
     {
         abort_if(!Session::has('payment_info') || !Session::has('order_id'),404);
-
-        
 
         $payment_info=Session::get('payment_info');
 

@@ -89,38 +89,38 @@
 							<div class="col-lg-6 col-md-6 col-12">
 								<div class="form-group">
 									<label><i class="fa fa-user"></i>{{ __('Full Name') }}<span>*</span></label>
-									<input type="text" name="name" value="{{ Auth::check() ? Auth::user()->name : '' }}" placeholder="" required="required">
+									<input type="text" name="name" value="{{ $customer['name'] }}" placeholder="" required="required">
 								</div>
 							</div>
 
 							<div class="col-lg-6 col-md-6 col-12">
 								<div class="form-group">
 									<label><i class="fa fa-envelope"></i>{{ __('Email Address') }}<span>*</span></label>
-									<input value="{{ Auth::check() ? Auth::user()->email : '' }}" type="email" name="email" placeholder="" required="required">
+									<input value="{{ $customer['email'] }}" type="email" name="email" placeholder="" required="required">
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12">
 								<div class="form-group">
 									<label><i class="fa fa-address-card-o"></i>{{ __('Phone Number') }}<span>*</span></label>
-									<input type="number" name="phone" value="{{ Auth::check() ? Auth::user()->phone : '' }}" placeholder="" required="required" maxlength="20">
+									<input type="number" name="phone" value="{{ $customer['phone'] }}" placeholder="" required="required" maxlength="20">
 								</div>
 							</div>
 							<div class="col-lg-12 col-md-12 col-12 delivery_address_area">
 								<div class="form-group">
 									<label><i class="fa fa-address-card-o"></i> {{ __('Address') }} <span>*</span></label>
-									<input type="text" class="location_input" id="location_input" name="billing[address]" placeholder="" required="required" value="{{ $meta->address ?? '' }}">
+									<input type="text" class="location_input" id="location_input" name="billing[address]" placeholder="" required="required" value="{{ $customer['address'] }}">
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_city">
 								<div class="form-group">
 									<label><i class="fa fa-institution"></i> {{ __('City') }} <span>*</span></label>
-									<input type="text" class="location_input" id="location_city" name="billing[city]" placeholder="" required="required" value="{{ $meta->city ?? '' }}">
+									<input type="text" class="location_input" id="location_city" name="billing[city]" placeholder="" required="required" value="{{ $customer['city'] }}">
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_state">
 								<div class="form-group">
 									<label> {{ __('State') }} <span>*</span></label>
-									<input type="text" class="location_input" id="location_state" name="billing[state]" placeholder="" required="required" value="{{ $meta->state ?? '' }}">
+									<input type="text" class="location_input" id="location_state" name="billing[state]" placeholder="" required="required" value="{{ $customer['state'] }}">
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_country">
@@ -134,33 +134,64 @@
 							<div class="col-lg-6 col-md-6 col-12 post_code_area">
 								<div class="form-group">
 									<label>{{ __('Postal Code') }}<span>*</span></label>
-									<input type="text" id="post_code" name="billing[post_code]" placeholder="" value="{{ $meta->post_code ?? '' }}" required="required">
+									<input type="text" id="post_code" name="billing[post_code]" placeholder="" value="{{ $customer['zip'] }}" required="required">
 								</div>
 							</div>
 
-							@if($order_settings->shipping_amount_type == 'distance')
-							<div class="col-lg-12 col-md-12 col-12 map_area">
-								<div class="form-group">
-									<p class="text-danger alert_area"></p>
-									<div class="map-canvas h-300" id="map-canvas">
 
+							<div class="col-lg-12 col-md-12 col-12">
+								<div class="form-group shipping-address">
+									<input id="shipping_address" type="checkbox" value="1">
+									<label for="shipping_address">{{ __('Shipping address same as billing') }}</label>
+								</div>
+							</div>
+							<div class="shipping_address_area none">
+								<div class="col-lg-6 col-md-6 col-12">
+									<div class="form-group">
+										<label><i class="fa fa-user"></i>{{ __('Full Name') }}<span>*</span></label>
+										<input type="text" name="shipping[name]" value="{{ $customer['name'] }}" placeholder="" required="required">
 									</div>
-
+								</div>
+					
+								<div class="col-lg-6 col-md-6 col-12">
+									<div class="form-group">
+										<label><i class="fa fa-address-card-o"></i>{{ __('Phone Number') }}<span>*</span></label>
+										<input type="number" name="shipping[phone]" value="{{ $customer['phone'] }}" placeholder="" required="required" maxlength="20">
+									</div>
+								</div>
+								<div class="col-lg-12 col-md-12 col-12 delivery_address_area">
+									<div class="form-group">
+										<label><i class="fa fa-address-card-o"></i> {{ __('Address') }} <span>*</span></label>
+										<input type="text" class="location_input" id="location_input" name="shipping[address]" placeholder="" required="required" value="{{ $customer['address'] }}">
+									</div>
+								</div>
+								<div class="col-lg-6 col-md-6 col-12 delivery_address_city">
+									<div class="form-group">
+										<label><i class="fa fa-institution"></i> {{ __('City') }} <span>*</span></label>
+										<input type="text" class="location_input" id="location_city" name="shipping[city]" placeholder="" required="required" value="{{ $customer['city'] }}">
+									</div>
+								</div>
+								<div class="col-lg-6 col-md-6 col-12 delivery_address_state">
+									<div class="form-group">
+										<label> {{ __('State') }} <span>*</span></label>
+										<input type="text" class="location_input" id="location_state" name="shipping[state]" placeholder="" required="required" value="{{ $customer['state'] }}">
+									</div>
+								</div>
+								<div class="col-lg-6 col-md-6 col-12 delivery_address_country">
+									<div class="form-group">
+										<label> {{ __('Country') }} <span>*</span></label>
+										<select name="shipping[country]" class="nice-select">
+											<option value="USA">United State</option>
+										</select>
+									</div>
+								</div>
+								<div class="col-lg-6 col-md-6 col-12 post_code_area">
+									<div class="form-group">
+										<label>{{ __('Postal Code') }}<span>*</span></label>
+										<input type="text" id="post_code" name="shipping[post_code]" placeholder="" value="{{ $customer['zip'] }}" required="required">
+									</div>
 								</div>
 							</div>
-							@endif
-
-							@if(Auth::check() == false)
-							<div class="col-lg-6 col-md-6 col-12">
-								<div class="form-group create-account">
-									<input id="create_account" type="checkbox" value="1">
-									<label for="create_account">{{ __('Create an account?') }}</label>
-								</div>
-								<div class="form-group  password_area none">
-									<input type="password" name="password" placeholder="Password">
-								</div>
-							</div>
-							@endif
 						</div>
 					</div>
 					<!-- Shopping Cart -->
@@ -194,7 +225,7 @@
 							</div>
 							<!-- Used to display form errors. -->
 							<div id="card-errors" role="alert"></div>
-							<button type="submit" class="btn btn-primary btn-lg w-100 mt-4" id="submit_btn">{{ __('Submit Payment') }}</button>
+							<button type="submit" class="btn btn-primary btn-lg w-100 mt-4" id="submit_btn">{{ __('Place Order') }}</button>
 						</div>
 						<input type="hidden" id="publishable_key" value="{{ $payment_data['publishable_key'] }}">
 					</div>
@@ -268,9 +299,7 @@
 								<div class="button">
 									<input type="hidden" id="shipping_fee" name="shipping_fee">
 									<input type="hidden" id="total_price" name="total_price">
-									<input type="hidden" id="my_lat" name="my_lat" value="{{ $meta->lat ?? '' }}">
-									<input type="hidden" id="my_long" name="my_long" value="{{ $meta->long ?? '' }}">
-									<button type="submit" class="btn submit_btn submitbtn">{{ __('Proceed to checkout') }}</a>
+									<button type="submit" class="btn submit_btn submitbtn" id="submit_btn">{{ __('Place Order') }}</button>
 								</div>
 							</div>
 						</div>
