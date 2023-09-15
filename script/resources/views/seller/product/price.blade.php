@@ -33,7 +33,7 @@
          <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Product Price') }} : </label>
             <div class="col-lg-12">
-               <input type="text" step="any" class="form-control" name="price" value="{{ $info->price->price ? '$'.number_format($info->price->price, 2) : '' }}" placeholder="0.00">
+               <input type="text" step="any" class="form-control product_price_input" name="price" value="{{ $info->price->price ? '$'.number_format($info->price->price, 2) : '' }}" placeholder="$0.00">
             </div>
          </div>
          <div class="from-group row mb-2">
@@ -48,12 +48,14 @@
                <input type="text" class="form-control" name="sku" value="{{ $info->price->sku ?? '' }}">
             </div>
          </div>
+         @if($selected_product_type == "Physical Product")
          <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Weight') }} : </label>
             <div class="col-lg-12">
                <input type="number" step="any" class="form-control" name="weight" value="{{ $info->price->weight ?? '' }}" placeholder="0.00">
             </div>
          </div>
+         @endif
          @php
          $stock_manage=$info->price->stock_manage ?? '';
          $stock_status=$info->price->stock_status ?? '';
@@ -226,9 +228,7 @@
        // This function will be executed when the input value changes.
        var inputValue = $(this).val();
        inputValue = inputValue.match(/[0-9.]+/g);
-       // alert(inputValue);
        if(inputValue === null || inputValue === ''){
-          // $(this).val("");
           return;
        }
        $(this).val("$" + parseFloat(inputValue).toFixed(2));
