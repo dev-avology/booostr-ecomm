@@ -403,7 +403,7 @@ class CheckoutController extends Controller
             }
 
             DB::commit();
-            Cart::instance('default')->erase();
+            Cart::erase();
             return redirect()->away($redirect_url . '/?type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
         } catch (\Throwable $th) {
             DB::rollback();
