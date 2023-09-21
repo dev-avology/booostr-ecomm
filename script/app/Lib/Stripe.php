@@ -168,7 +168,6 @@ class Stripe {
             $transaction = $stripe->transfer(array(
                        'amount'        => $totalAmount,
                        'currency'      => $currency,
-                       'transferGroup' => '{ORDER10}',
                        'sourceTransaction' => $arr_body['id'],
                        'destination'   => $array['stripe_account_id'],
                    ));
