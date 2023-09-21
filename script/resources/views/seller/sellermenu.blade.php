@@ -47,7 +47,7 @@
         <!-- <li>
             <a class="nav-link" href="{{ url('/seller/features') }}">{{ __('Product Features') }}</a>
         </li> -->
-        
+
         <!-- <li>
             <a class="nav-link" href="{{ url('/seller/barcode') }}">{{ __('Barcode Print') }}</a>
         </li> -->
@@ -74,7 +74,7 @@
         <i class="fas fa-star-half-alt"></i>
         <span>{{ __('Reviews') }}</span>
     </a>
-</li> 
+</li>
  <li class="menu-header">{{ __('User Management') }}</li>
 <li class="{{ Request::is('seller/user*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/user') }}">
@@ -151,6 +151,12 @@
    </ul>
 </li>
 */?>
+<li class="{{ Request::is('seller/order*') ? 'active' : '' }} {{ Request::is('seller/order*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/order') }}">
+     <i class="fas fa-box"></i>
+     <span>{{ __('Orders') }}</span>
+ </a>
+</li>
 <li class="{{ Request::is('seller/payment/gateway') ? 'active' : '' }}">
     <a class="nav-link" href="{{ route('seller.payment.gateway') }}">
         <i class="fas fa-money-bill-alt"></i>
@@ -167,5 +173,11 @@
     <a class="nav-link" href="{{ route('seller.location.index') }}">
         <i class="fas fa-truck"></i>
         <span>{{ __('Shipping Locations') }}</span>
+    </a>
+</li>
+<li class="{{ Request::is('seller/page*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/page') }}">
+        <i class="fas fa-file"></i>
+        <span>{{ __('Pages') }}</span>
     </a>
 </li>
