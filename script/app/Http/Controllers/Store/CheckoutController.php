@@ -189,7 +189,7 @@ class CheckoutController extends Controller
         $payment_data['currency']   = $getways->currency_name ?? 'USD';
         $payment_data['test_mode']  = $getways->test_mode ?? 0;
         $payment_data['charge']     = $getways->charge ?? 0;
-        $payment_data['getway_id']  = $getways->id;
+        $payment_data['getway_id']  = $getways->id ?? '';
         if (!empty($getways->data)) {
             foreach (json_decode($getways->data ?? '') ?? [] as $key => $info) {
                 $payment_data[$key] = $info;
