@@ -403,16 +403,10 @@ class CheckoutController extends Controller
             }
 
             DB::commit();
-
-            if(Session::has('cartid')){
-                $cartid=Session::get('cartid');
-                Cart::erase($cartid);
-            }
-
+            Cart::instance('default')->destroy();
             return redirect()->away($redirect_url . '/?type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
         } catch (\Throwable $th) {
             DB::rollback();
-            dd($th->getMessage());
             return redirect()->away($redirect_url . '/?type=error&message=Opps something wrong while saving order data');
         }
         return redirect()->away($redirect_url);
