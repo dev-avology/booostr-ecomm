@@ -169,8 +169,9 @@ class Stripe {
                        'amount'        => $totalAmount,
                        'currency'      => $currency,
                        'transferGroup' => '{ORDER10}',
+                       'source_transaction' => $arr_body['id'],
                        'destination'   => $array['stripe_account_id'],
-                   ))->setSourceTransaction($arr_body['id']);
+                   ));
             $response1 = $transaction->send();
             dd($response, $response1);
         }
