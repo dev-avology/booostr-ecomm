@@ -47,7 +47,7 @@
                                 @foreach ($data as $key => $item)
                                 <div class="form-group">
                                     <label for="{{ $key }}">{{ ucwords(str_replace('_',' ',$key)) }}</label>
-                                    <input type="text" name="data[{{ $key }}]" id="{{ $key }}" @if($key =='stripe_account_id' || $key =='test_secret_key' || $key =='test_publishable_key' || $key =='publishable_key' || $key =='secret_key') readonly @endif class="form-control" value="{{ $item }}" required="">
+                                    <input @if($key =='stripe_account_id' || $key =='test_secret_key' || $key =='test_publishable_key' || $key =='publishable_key' || $key =='secret_key') type="password" @else type="text" @endif  name="data[{{ $key }}]" id="{{ $key }}" @if($key =='stripe_account_id' || $key =='test_secret_key' || $key =='test_publishable_key' || $key =='publishable_key' || $key =='secret_key') readonly @endif class="form-control" value="{{ $item }}" required="">
                                 </div>
                                 @endforeach
                                 @endif
