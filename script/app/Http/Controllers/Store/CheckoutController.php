@@ -374,7 +374,7 @@ class CheckoutController extends Controller
                 $order->ordertable()->attach($request->table);
             }
             if ($request->order_method == 'delivery') {
-                $delivery_info['address'] = $request->shipping;
+                $delivery_info['address'] = $request->shipping['address'].' '. $request->shipping['city'].' '.$request->shipping['state'].' '.$request->shipping['country'];
                 $delivery_info['post_code'] = $request->shipping['post_code'];
                 $order->shipping()->create([
                     'location_id' => $request->location,
