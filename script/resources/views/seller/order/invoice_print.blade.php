@@ -106,7 +106,7 @@
                                 <div class="col-lg-6">
                                     <div class="note-section">
                                         <h4>NOTES/MEMO</h4>
-                                        <p>{{ json_decode($order->ordermeta->value)?->note }}</p>
+                                        <p>{{ json_decode($order->ordermeta->value)->note ?? '' }}</p>
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
