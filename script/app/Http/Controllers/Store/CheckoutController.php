@@ -194,8 +194,8 @@ class CheckoutController extends Controller
             foreach (json_decode($getways->data ?? '') ?? [] as $key => $info) {
                 $payment_data[$key] = $info;
             };
-            $payment_data['publishable_key'] = ($getways->test_mode == 1) ? $payment_data['test_publishable_key'] : $payment_data['publishable_key'];
-            $payment_data['secret_key'] = ($getways->test_mode == 1) ? $payment_data['test_secret_key'] : $payment_data['secret_key'];
+            $payment_data['publishable_key'] = 'dddddddddd';
+            $payment_data['secret_key'] = 'sdsssssssdsdssdsd';
         }
        // $shipping_methods=Category::where('status',1)->where('type','shipping')->select('name','id','slug','status')->with('')->get();
 
