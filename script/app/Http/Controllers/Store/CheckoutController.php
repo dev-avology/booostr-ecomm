@@ -323,6 +323,7 @@ class CheckoutController extends Controller
                     $user->password = \Hash::make($request->email);
                     $user->save();
                 }
+
                 Auth::loginUsingId($user->id);
             }
             $order = new Order;
@@ -373,8 +374,8 @@ class CheckoutController extends Controller
                 $order->ordertable()->attach($request->table);
             }
             if ($request->order_method == 'delivery') {
-                $delivery_info['address'] = $request->address;
-                $delivery_info['post_code'] = $request->post_code;
+                $delivery_info['address'] = $request->shipping['address'].' '. $request->shipping['city'].', '.$request->shipping['state'].', '.$request->shipping['country'];
+                $delivery_info['post_code'] = $request->shipping['post_code'];
                 $order->shipping()->create([
                     'location_id' => $request->location,
                     'shipping_id' => $request->shipping_method,
@@ -390,7 +391,8 @@ class CheckoutController extends Controller
                 $customer_info['name'] = $request->name;
                 $customer_info['email'] = $request->email;
                 $customer_info['phone'] = $request->phone;
-                $customer_info['note'] = $request->comment ?? "";
+                $customer_info['billing'] = $request->billing ?? "";
+                $customer_info['shipping'] = $request->shipping ?? "";
 
                 $order->ordermeta()->create([
                     'key' => 'orderinfo',
