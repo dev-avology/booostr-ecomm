@@ -323,7 +323,7 @@ class CheckoutController extends Controller
                     $user->password = \Hash::make($request->email);
                     $user->save();
                 }
-                dd($user, $request->all());
+
                 Auth::loginUsingId($user->id);
             }
             $order = new Order;
