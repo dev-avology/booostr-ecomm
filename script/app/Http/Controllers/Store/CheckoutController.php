@@ -197,10 +197,40 @@ class CheckoutController extends Controller
             $payment_data['publishable_key'] = ($getways->test_mode == 1) ? $payment_data['test_publishable_key'] : $payment_data['publishable_key'];
             $payment_data['secret_key'] = ($getways->test_mode == 1) ? $payment_data['test_secret_key'] : $payment_data['secret_key'];
         }
-        $shipping_methods=Category::where('status',1)->where('type','shipping')->select('name','id','slug','status')->get();
-        $shipping_methods=$shipping_methods->sortBy([
+       // $shipping_methods=Category::where('status',1)->where('type','shipping')->select('name','id','slug','status')->with('')->get();
+
+       $shipping = 0;
+       $shipping_methods = Category::where('type', 'shipping')
+       ->where('status', 1)
+       ->whereHas('shippingMethod' ,function ($q) {
+           $q->where('content', 'like', '%free_shipping%');
+       })
+       ->with('shippingMethod')
+       ->get();
+
+       if($shipping_methods->count()){
+        $subtotal = Cart::subtotal();
+          $free_shipping_min_cart = json_decode($shipping_methods->first()->shippingMethod->content,true);
+          if((int)$subtotal >= (int)$free_shipping_min_cart['pricing']['cart_min']){
+              $shipping = 1;
+           }
+       }
+
+       if(!$shipping){
+        $free_shipping = $shipping_methods->pluck('id');
+
+        $shipping_methods = Category::where('type', 'shipping')
+        ->where('status', 1)
+        ->whereNotIn('id', $free_shipping)
+        ->whereHas('shippingMethod')
+        ->with('shippingMethod')
+        ->get();
+
+      $shipping_methods=$shipping_methods->sortBy([
             ['slug', 'desc']
           ]);
+        }
+
         return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','customer'));
     }
 
@@ -223,10 +253,29 @@ class CheckoutController extends Controller
        $notify_driver='mail';
        $order_settings=get_option('order_settings',true);
 
+       $subtotal = Cart::subtotal();
         $shipping_price = 0;
         if ($request->order_method == 'delivery' && !empty($request->shipping_method)) {
-            $shipping_method = Category::where('status', 1)->where('type', 'shipping')->findorFail($request->shipping_method);
-            $shipping_price = $shipping_method->slug;
+            $shipping_method = Category::where('status', 1)->where('type', 'shipping')->with('shippingMethod')->findorFail($request->shipping_method);
+            
+            $shippingDetails  = json_decode($shipping_method->shippingMethod->content,true);
+
+            if($shippingDetails['method_type'] == 'per_item'){
+                $shipping_price = $shipping_method->slug + Cart::count() * $shippingDetails['pricing'];
+            }else if($shippingDetails['method_type'] == 'weight_based'){
+                $shipping_price = $shipping_method->slug + Cart::weight() * $shippingDetails['pricing'];
+            }else if($shippingDetails['method_type'] == 'flat'){
+                      
+                $pricing = array_filter($shippingDetails['pricing'], function($i){
+                    return ($subtotal > (int)$i['from'] && $subtotal <= (int) $i['to']);
+                });
+
+                $shipping_price =  (count($pricing))?(int)$pricing[0]['price'] : 0;
+            }elseif($shippingDetails['method_type'] == 'free_shipping'){
+                $shipping_price = 0;
+            }
+
+           
         } else {
             $order_method = 'pickup';
         }

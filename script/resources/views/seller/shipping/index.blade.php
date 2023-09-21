@@ -28,7 +28,7 @@
                                     <th>{{ __('Name') }}</th>
                                     <th>{{ __('Price') }}</th>
                                     <th>{{ __('Status') }}</th>
-                                    <th>{{ __('Locations') }}</th>
+                                    {{-- <th>{{ __('Locations') }}</th> --}}
                                     <th>{{ __('Action') }}</th>
                                 </tr>
                             </thead>
@@ -39,11 +39,11 @@
                                   <td>{{ $row->name }}</td>
                                   <td>{{ $row->slug }}</td>
                                   <td><span class="badge badge-{{ $row->status == 1 ? 'success' : 'danger' }}">{{ $row->status == 1 ? 'Active' : 'Disable' }}</span></td>
-                                  <td>
+                                  {{-- <td>
                                     @foreach($row->locations ?? [] as $r)
                                     <div class="badge badge-success ">{{ $r->name }}</div>
                                    @endforeach
-                                  </td>
+                                  </td> --}}
                                   <td class="">
                                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         {{ __('Action') }}

@@ -60,7 +60,7 @@ class OptionSeeder extends Seeder
                 "is_default" => 0,
                 "is_featured" => 0,
                 "is_trial" => 1,
-                "data" => "{\"pos\": \"on\", \"pwa\": \"off\", \"barcode\": \"off\", \"qr_code\": \"off\", \"post_limit\": \"3\", \"sub_domain\": \"on\", \"custom_css_js\": \"on\", \"custom_domain\": \"off\", \"storage_limit\": \"500\", \"staff_limit\": \"2\", \"customer_modules\": \"on\", \"push_notification\": \"on\", \"image_optimization\": \"off\"}",
+                "data" => "{\"pos\": \"on\", \"pwa\": \"off\", \"barcode\": \"off\", \"qr_code\": \"off\", \"post_limit\": \"-1\", \"sub_domain\": \"on\", \"custom_css_js\": \"on\", \"custom_domain\": \"off\", \"storage_limit\": \"500\", \"staff_limit\": \"2\", \"customer_modules\": \"on\", \"push_notification\": \"on\", \"image_optimization\": \"off\"}",
                 "created_at" => "2021-05-03 09:54:28",
                 "updated_at" => "2021-12-24 07:25:35"
               ],

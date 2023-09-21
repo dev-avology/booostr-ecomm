@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Shippingcategory;
 use App\Models\Category;
+use App\Models\Tenant;
 use App\Models\Location;
 use DB;
 use Auth;
@@ -35,8 +36,9 @@ class ShippingController extends Controller
     public function create()
     {
          abort_if(!getpermission('website_settings'),401);
-        $posts=Location::where('status',1)->latest()->get();
-        return view("seller.shipping.create",compact('posts'));
+      //  $posts=Location::where('status',1)->latest()->get();
+      //return view("seller.shipping.create",compact('posts'));
+      return view("seller.shipping.create");
     }
 
     /**
@@ -51,13 +53,22 @@ class ShippingController extends Controller
          $validatedData = $request->validate([
             'name' => 'required|max:50',
             'price' => 'required|max:50',
-            'locations' => 'required',
+            'shipping_type'=> 'required',
+          //  'locations' => 'required',
        
          ]);
          if (postlimitcheck() == false) {
             $errors['errors']['error']='Maximum post limit exceeded';
             return response()->json($errors,401);
         }
+
+        $shipping_price = array(
+            'weight_based'=> 'perlb',
+            'per_item'=> 'per_item',
+            'flat_rate'=> 'flatrate_range',
+            'free_shipping' => 'free_shipping'
+        );
+
 
         DB::beginTransaction();
         try {  
@@ -67,11 +78,21 @@ class ShippingController extends Controller
         $shipping->type="shipping";
         $shipping->save();
 
+
         if ($request->preview) {
                $shipping->meta()->create(['type'=>'preview','content'=>$request->preview]);
         }
 
-        $shipping->locations()->attach($request->locations);
+         if ($request->shipping_type) {
+               $shipping_details = array(
+                                       'method_type' => $request->shipping_type,
+                                       'pricing'=> $request->type_price["'".$shipping_price[$request->shipping_type]."'"]
+                                    );
+                $shipping->meta()->create(['type'=>'shipping_method','content'=>json_encode($shipping_details)]);     
+         }
+
+
+        //$shipping->locations()->attach($request->locations);
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollback();
@@ -94,15 +115,16 @@ class ShippingController extends Controller
     public function edit($id)
     {
          abort_if(!getpermission('website_settings'),401);
-        $info= Category::where('type','shipping')->with('shippingcategoryrelations')->findorFail($id);
-        $posts=Location::where('status',1)->latest()->get();
+        $info= Category::where('type','shipping')->with(['shippingcategoryrelations','shippingMethod'])->findorFail($id);
+       // $posts=Location::where('status',1)->latest()->get();
         $location_array=[];
 
         foreach ($info->shippingcategoryrelations as $key => $value) {
            array_push($location_array, $value->location_id);
         }
 
-        return view("seller.shipping.edit",compact('info','posts','location_array'));
+        //return view("seller.shipping.edit",compact('info','posts','location_array'));
+        return view("seller.shipping.edit",compact('info','location_array'));
     }
 
     /**
@@ -118,9 +140,17 @@ class ShippingController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|max:50',
             'price' => 'required|max:50',
-            'locations' => 'required',
-       
+            'shipping_type'=> 'required',
+          //  'locations' => 'required',
          ]);
+
+
+         $shipping_price = array(
+            'weight_based'=> 'perlb',
+            'per_item'=> 'per_item',
+            'flat_rate'=> 'flatrate_range',
+            'free_shipping' => 'free_shipping'
+        );
 
         DB::beginTransaction();
         try {  
@@ -145,7 +175,31 @@ class ShippingController extends Controller
                } 
             }
 
-        $shipping->locations()->sync($request->locations);
+     //   $shipping->locations()->sync($request->locations);
+
+
+
+        if ($request->shipping_type) {
+
+            $shipping_details = array(
+                'method_type' => $request->shipping_type,
+                'pricing'=> $request->type_price["'".$shipping_price[$request->shipping_type]."'"]
+            );
+    
+            if (empty($shipping->shippingMethod)) {
+
+                $shipping->shippingMethod()->create(['type'=>'shipping_method','content'=>json_encode($shipping_details)]);     
+            }else{
+                $shipping->shippingMethod()->update(['content'=>json_encode($shipping_details)]);
+            }
+
+        }else{
+            if (!empty($shipping->shippingMethod)) {
+                $shipping->shippingMethod()->delete();
+             } 
+        }
+
+
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollback();
