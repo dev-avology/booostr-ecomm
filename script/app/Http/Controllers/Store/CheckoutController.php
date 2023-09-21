@@ -391,7 +391,8 @@ class CheckoutController extends Controller
                 $customer_info['name'] = $request->name;
                 $customer_info['email'] = $request->email;
                 $customer_info['phone'] = $request->phone;
-                $customer_info['note'] = $request->comment ?? "";
+                $customer_info['billing'] = $request->billing ?? "";
+                $customer_info['shipping'] = $request->shipping ?? "";
 
                 $order->ordermeta()->create([
                     'key' => 'orderinfo',
