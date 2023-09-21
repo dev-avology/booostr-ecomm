@@ -257,7 +257,7 @@ class CheckoutController extends Controller
         $shipping_price = 0;
         if ($request->order_method == 'delivery' && !empty($request->shipping_method)) {
             $shipping_method = Category::where('status', 1)->where('type', 'shipping')->with('shippingMethod')->findorFail($request->shipping_method);
-            
+
             $shippingDetails  = json_decode($shipping_method->shippingMethod->content,true);
 
             if($shippingDetails['method_type'] == 'per_item'){
@@ -265,7 +265,7 @@ class CheckoutController extends Controller
             }else if($shippingDetails['method_type'] == 'weight_based'){
                 $shipping_price = $shipping_method->slug + Cart::weight() * $shippingDetails['pricing'];
             }else if($shippingDetails['method_type'] == 'flat'){
-                      
+
                 $pricing = array_filter($shippingDetails['pricing'], function($i){
                     return ($subtotal > (int)$i['from'] && $subtotal <= (int) $i['to']);
                 });
@@ -275,7 +275,7 @@ class CheckoutController extends Controller
                 $shipping_price = 0;
             }
 
-           
+
         } else {
             $order_method = 'pickup';
         }
