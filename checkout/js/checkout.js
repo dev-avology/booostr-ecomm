@@ -111,17 +111,26 @@ $(document).on('change','.shipping_item',function(){
 	}else if(mt == 'flat_rate'){
 
 		var pricing = shippingD.pricing;
-		console.log(pricing);
-		pricing = pricing?.filter(function(i){
-        return (subtotal > parseInt(i.from) && subtotal <= parseInt(i.to));
-		});
-
-		price = parseInt(pricing[0]?.price??0);
+    
+		if (Array.isArray(pricing)) {
+			pricing.forEach(item => {
+			  if (subtotal > parseInt(item.from) && subtotal <= parseInt(item.to)) {
+				price = parseInt(item.price);
+			  }
+			});
+		  } else if (typeof pricing === 'object' && pricing !== null) {
+			Object.values(pricing).forEach(item => {
+			  if (subtotal > parseInt(item.from) && subtotal <= parseInt(item.to)) {
+				price = parseInt(item.price);
+			  }
+			});
+		  }
+	     //	price = parseInt(pricing[0]?.price??0);
 	}
 
 	$('.shipping_fee').text(amount_format(price));
-	new_total=total+price;
 
+	new_total=total+price;
 
 	$('.cart_total').text(amount_format(new_total));
 

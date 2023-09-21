@@ -380,19 +380,6 @@ class TenantCategorySeeder extends Seeder
           'created_at' => '2021-11-23 18:25:18',
           'updated_at' => '2021-11-23 18:25:18',
         ),
-        28 => 
-        array (
-          'id' => 30,
-          'name' => 'Free delivery',
-          'slug' => '0',
-          'type' => 'shipping',
-          'category_id' => NULL,
-          'featured' => 0,
-          'menu_status' => 0,
-          'status' => 1,
-          'created_at' => '2021-11-23 18:34:05',
-          'updated_at' => '2021-11-23 18:34:30',
-        ),
         29 => 
         array (
           'id' => 31,
@@ -561,19 +548,6 @@ class TenantCategorySeeder extends Seeder
           'status' => 1,
           'created_at' => '2021-12-13 19:16:27',
           'updated_at' => '2021-12-13 19:16:27',
-        ),
-        42 => 
-        array (
-          'id' => 51,
-          'name' => 'SA Paribahan',
-          'slug' => '100',
-          'type' => 'shipping',
-          'category_id' => NULL,
-          'featured' => 0,
-          'menu_status' => 0,
-          'status' => 1,
-          'created_at' => '2021-12-16 08:40:57',
-          'updated_at' => '2021-12-16 08:40:57',
         ),
         43 => 
         array (
