@@ -96,8 +96,8 @@ class CheckoutController extends Controller
             Session::put('redirect_url',$redirect_url);
         }
         if(Session::has('cartid')){
-            $cartid=Session::get('cartid');
-        }else{
+            //$cartid=Session::get('cartid');
+        //}else{
             Session::put('cartid',$cartid);
         }
 
