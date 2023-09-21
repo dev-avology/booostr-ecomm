@@ -225,7 +225,6 @@
 							</div>
 							<!-- Used to display form errors. -->
 							<div id="card-errors" role="alert"></div>
-							<button type="submit" class="btn btn-primary btn-lg w-100 mt-4" id="submit_btn">{{ __('Place Order') }}</button>
 						</div>
 						<input type="hidden" id="publishable_key" value="{{ $payment_data['publishable_key'] }}">
 					</div>
@@ -281,7 +280,7 @@
 							<div class="content">
 								<div class="checkbox shipping_render_area">
 									@foreach($shipping_methods as $shipping_method)
-									@php 
+									@php
 									// $shippingDetails  = json_decode($shipping_method->shippingMethod->content,true)
 									@endphp
 									<label class="checkbox-inline shipping_method" for="shipping{{$shipping_method->id}}">
