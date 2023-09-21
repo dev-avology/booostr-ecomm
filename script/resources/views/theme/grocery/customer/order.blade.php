@@ -32,7 +32,7 @@ $ordermeta=json_decode($info->ordermeta->value ?? '');
 				<!-- Start Dashboard Sidebar -->
 				<div class="dashboard-sidebar">
 					<div class="user-image">
-						
+
 						<h3>{{ Auth::user()->name }}</h3>
 					</div>
 					<div class="dashboard-menu">
@@ -41,7 +41,7 @@ $ordermeta=json_decode($info->ordermeta->value ?? '');
 							<li><a href="{{ url('/customer/orders') }}" href="{{ url()->current() == url('/customer/orders') ? 'active' : '' }}"><i class="lni lni-bolt-alt"></i> {{ __('My Orders') }}</a></li>
 							<li><a href="{{ url('/customer/reviews') }}"><i class="lni lni-pencil-alt"></i>{{ __('Reviews') }}</a></li>
 							<li><a href="{{ url('/customer/settings') }}"><i class="lni lni-pencil-alt"></i> Edit Profile</a></li>
-							
+
 						</ul>
 						<div class="button">
 							<a class="btn alt-btn" href="javascript:void(0)" onclick="event.preventDefault();
@@ -116,11 +116,11 @@ $ordermeta=json_decode($info->ordermeta->value ?? '');
 													@endphp
 													<a href="javascript:void(0)" data-star="{{ $stars }}" data-comment="{{ $comment }}" data-action="{{ url('/customer/order-make-rating/'.$info->id.'/'.$row->term_id.'/'.$row->id) }}" class="text-secondary make_review" data-bs-toggle="modal" data-bs-target="#exampleModal">
 														<ul class="rating">
-															@for($i=1; $i <= 5; $i++)  
+															@for($i=1; $i <= 5; $i++)
 																<li><i class="icofont-star {{ $i <= $stars ? 'star' : '' }} "></i></li>
 															@endfor
-															
-															
+
+
 														</ul>
 													</a>
 												</div>
@@ -156,21 +156,21 @@ $ordermeta=json_decode($info->ordermeta->value ?? '');
 							if($info->payment_status == 1){
 								$payment_status='Paid';
 								$payment_badge='badge-success';
-							} 
+							}
 
 							elseif($info->payment_status == 2){
 								$payment_status='Pending';
 								$payment_badge='badge-warning';
-							} 
+							}
 
 							else{
 								$payment_status='Payment Fail';
 								$payment_badge='badge-warning';
-							} 
+							}
 
 
-							@endphp 
-							<li><b>{{ __('Payment Status') }}</b> <span class="badge {{ $payment_badge }}"> 
+							@endphp
+							<li><b>{{ __('Payment Status') }}</b> <span class="badge {{ $payment_badge }}">
 								{{ $payment_status }}
 							</span></li>
 							<li><b>{{ __('Total') }}</b> <span class="render_currency">{{ number_format($info->total ?? 0,2) }}</span></li>

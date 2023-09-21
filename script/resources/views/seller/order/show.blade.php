@@ -23,7 +23,7 @@
 							<div class="col-3 text-right">
 								<strong>{{ __('Total') }}</strong>
 							</div>
-						</div> 
+						</div>
 					</li>
 					@foreach($info->orderitems ?? [] as $row)
 					<li class="list-group-item">
@@ -33,12 +33,12 @@
 								$variations=json_decode($row->info ?? '');
 								$options=$variations->options ?? [];
 								@endphp
-								<a href="{{ url('/seller/product/'.$row->term->id.'/edit') }}">{{ $row->term->title ?? '' }} 
+								<a href="{{ url('/seller/product/'.$row->term->id.'/edit') }}">{{ $row->term->title ?? '' }}
 									@if($options ==  '' && !empty($variations->sku))
-									 ({{$row->term->full_id}}) 
-									@elseif($options ==  '' && !empty($variations->sku))     
-									 ({{$variations->sku}}) 
-									@elseif($options ==  '') 
+									 ({{$row->term->full_id}})
+									@elseif($options ==  '' && !empty($variations->sku))
+									 ({{$variations->sku}})
+									@elseif($options ==  '')
 									 ({{$row->term->full_id}})
 									@endif<br>
 									</a>
@@ -59,7 +59,7 @@
 								<div class="col-3 text-right">
 									{{  number_format($row->amount*$row->qty,2) }}
 								</div>
-							</div> 
+							</div>
 						</li>
 						@endforeach
 						@if($info->order_method == 'delivery')
@@ -77,20 +77,20 @@
 								<div class="col-3 text-right">
 									{{ number_format($shipping_price,2) }}
 								</div>
-							</div> 
+							</div>
 						</li>
 						@endif
 						<li class="list-group-item">
 							<div class="row align-items-center">
 								<div class="col-9 text-right">{{ __('Tax') }}</div>
 								<div class="col-3 text-right"> {{ number_format($info->tax,2) }} </div>
-							</div> 
+							</div>
 						</li>
 						<li class="list-group-item">
 							<div class="row align-items-center">
 								<div class="col-9 text-right">{{ __('Discount') }}</div>
 								<div class="col-3 text-right"> - {{ number_format($info->discount,2) }} </div>
-							</div> 
+							</div>
 						</li>
 						<li class="list-group-item">
 							<div class="row align-items-center">
@@ -99,14 +99,14 @@
 								$shipping_price=$shipping_price ?? 0;
 								@endphp
 								<div class="col-3 text-right">{{ number_format($info->total-$shipping_price,2) }}</div>
-							</div> 
+							</div>
 						</li>
 						<li class="list-group-item">
 							<div class="row align-items-center">
 								<div class="col-9 text-right">{{ __('Total') }}</div>
-								
+
 								<div class="col-3 text-right">{{ number_format($info->total,2) }}</div>
-							</div> 
+							</div>
 						</li>
 					</ul>
 				</div>
@@ -128,13 +128,13 @@
 									@foreach($riders as $row)
 									<option value="{{ $row->id }}" @if($rider == $row->id) selected="" @endif>{{ $row->name }} (#{{ $row->id }})</option>
 									@endforeach
-									
+
 								</select>
 								</div>
 								</div>
-								
+
 								@endif
-							
+
 							<div class="col-sm-4">
 							<div class="form-group text-left">
 								<label>Select Payment Status</label>
@@ -195,10 +195,10 @@
 						@if($info->order_method == 'delivery')
 						@php
 						$shipping_info=json_decode($info->shippingwithinfo->info ?? '');
-						$location=$info->shippingwithinfo->location->name ?? '';
+						//$location=$info->shippingwithinfo->location->name ?? '';
 						$address=$shipping_info->address ?? '';
 						@endphp
-						<p class="mb-0">{{ __('Location') }}: {{ $location }}</p>
+						{{--<p class="mb-0">{{ __('Location') }}: {{ $location }}</p>--}}
 						<p class="mb-0">{{ __('Zip Code') }}: {{ $shipping_info->post_code ?? '' }}</p>
 						<p class="mb-0">{{ __('Address') }}: {{ $address }}</p>
 						<p class="mb-0">{{ __('Shipping Method') }}: {{ $info->shippingwithinfo->shipping->name ?? '' }}</p>
@@ -217,15 +217,15 @@
 						<h4>{{ __('Status') }}</h4>
 					</div>
 					<div class="card-body">
-						<p>{{ __('Payment Status') }} 
+						<p>{{ __('Payment Status') }}
 							@if($info->payment_status==2)
 							<span class="badge badge-warning float-right">{{ __('Pending') }}</span>
 							@elseif($info->payment_status==1)
 							<span class="badge badge-success float-right">{{ __('Paid') }}</span>
 							@elseif($info->payment_status==0)
-							<span class="badge badge-danger float-right">{{ __('Cancel') }}</span> 
+							<span class="badge badge-danger float-right">{{ __('Cancel') }}</span>
 							@elseif($info->payment_status==3)
-							<span class="badge badge-danger float-right">{{ __('Incomplete') }}</span> 
+							<span class="badge badge-danger float-right">{{ __('Incomplete') }}</span>
 							@endif</p>
 							<p>{{ __('Order Status') }}
 						 	@if($info->status_id != null)
@@ -332,7 +332,7 @@
 	var customer = new google.maps.LatLng(customer_lat,customer_long);
 	var option ={
 		zoom : 10,
-		center : resturent, 
+		center : resturent,
 	};
 	map = new google.maps.Map(document.getElementById('map'),option);
 	var display = new google.maps.DirectionsRenderer({polylineOptions: {

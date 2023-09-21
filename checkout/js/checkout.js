@@ -111,8 +111,8 @@ $(document).on('change','.shipping_item',function(){
 	}else if(mt == 'flat_rate'){
 
 		var pricing = shippingD.pricing;
-
-		pricing = pricing.filter(function(i){
+		console.log(pricing);
+		pricing = pricing?.filter(function(i){
         return (subtotal > parseInt(i.from) && subtotal <= parseInt(i.to));
 		});
 
