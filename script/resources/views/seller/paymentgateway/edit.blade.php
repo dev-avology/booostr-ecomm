@@ -19,7 +19,7 @@
                     </div>
                     <form action="{{ route('seller.payment.gateway.store',$gateway->id) }}" method="POST" class="ajaxform">
                         @csrf
-                 
+
                         <div class="card-body">
                             <div class="card-body pb-0">
                                  {{mediasection(['preview'=>$gateway->logo ?? '','value'=>$gateway->logo ?? ''])}}
@@ -38,7 +38,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="currency_name">{{ __('Currency Name') }}</label>
-                                    <input type="text" class="form-control" id="currency_name" name="currency_name" value="{{ $gateway->currency_name ?? '' }}"> 
+                                    <input type="text" class="form-control" id="currency_name" name="currency_name" value="{{ $gateway->currency_name ?? '' }}">
                                 </div>
                                 @php
                                     $data = json_decode($gateway->data);
@@ -47,7 +47,7 @@
                                 @foreach ($data as $key => $item)
                                 <div class="form-group">
                                     <label for="{{ $key }}">{{ ucwords(str_replace('_',' ',$key)) }}</label>
-                                    <input type="text" name="data[{{ $key }}]" id="{{ $key }}" class="form-control" value="{{ $item }}" required="">
+                                    <input type="text" name="data[{{ $key }}]" id="{{ $key }}" @if($key =='stripe_account_id' || $key =='test_secret_key' || $key =='test_publishable_key' || $key =='publishable_key' || $key =='secret_key') readonly @endif class="form-control" value="{{ $item }}" required="">
                                 </div>
                                 @endforeach
                                 @endif
@@ -85,7 +85,7 @@
         </div>
     </div>
 </section>
-{{ mediasingle() }} 
+{{ mediasingle() }}
 @endsection
 
 @push('script')
