@@ -575,6 +575,32 @@ class TenantCategorySeeder extends Seeder
           'created_at' => '2021-12-16 08:40:57',
           'updated_at' => '2021-12-16 08:40:57',
         ),
+        43 => 
+        array (
+          'id' => 52,
+          'name' => 'Physical Product',
+          'slug' => 'physical_product',
+          'type' => 'product_type',
+          'category_id' => NULL,
+          'featured' => 0,
+          'menu_status' => 0,
+          'status' => 1,
+          'created_at' => '2021-12-16 08:40:57',
+          'updated_at' => '2021-12-16 08:40:57',
+        ),
+        44 => 
+        array (
+          'id' => 54,
+          'name' => 'Digital Product',
+          'slug' => 'digital_product',
+          'type' => 'product_type',
+          'category_id' => NULL,
+          'featured' => 0,
+          'menu_status' => 0,
+          'status' => 1,
+          'created_at' => '2021-12-16 08:40:57',
+          'updated_at' => '2021-12-16 08:40:57',
+        ),
       );
 
     Category::insert($categories);
