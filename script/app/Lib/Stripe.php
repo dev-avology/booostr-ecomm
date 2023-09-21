@@ -153,7 +153,7 @@ class Stripe {
         $data['test_mode']=$test_mode;
 
         $stripe = Omnipay::create('Stripe');
-        $stripe1 = StripeLib\StripeClient($secret_key);
+        $stripe1 = StripeLib\Stripe($secret_key);
 
         $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
