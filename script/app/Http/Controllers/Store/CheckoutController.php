@@ -408,6 +408,7 @@ class CheckoutController extends Controller
             if(Session::has('cartid')){
                 $cartid=Session::get('cartid');
                 Cart::instance('default')->destroy($cartid);
+                Session::forget('cartid');
                 Session::flush();
             }
 
