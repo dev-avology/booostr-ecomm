@@ -163,12 +163,14 @@ class Stripe {
                 'token' => $token,
             ])->send();
 
+            $arr_body = $response->getData();
+
             $transaction = $stripe->transfer(array(
                        'amount'        => $totalAmount,
                        'currency'      => $currency,
                        'transferGroup' => '{ORDER10}',
                        'destination'   => $array['stripe_account_id'],
-                   ));
+                   ))->setSourceTransaction($arr_body['id']);
             $response1 = $transaction->send();
             dd($response, $response1);
         }
