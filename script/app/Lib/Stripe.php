@@ -3,7 +3,7 @@ namespace App\Lib;
 use Omnipay\Omnipay;
 use Session;
 use Illuminate\Http\Request;
-use Stripe as StripeLib;
+
 class Stripe {
     public static function redirect_if_payment_success()
     {
@@ -125,7 +125,7 @@ class Stripe {
         $secret_key = $creds['secret_key'];
 
         try {
-        $stripe = StripeLib\StripeClient($secret_key);
+        $stripe = new \Stripe\StripeClient($secret_key);
 
         $response = $stripe->charges->retrieve(
             $payment_id,
@@ -153,11 +153,8 @@ class Stripe {
         $data['test_mode']=$test_mode;
 
         $stripe = Omnipay::create('Stripe');
-        $stripe1 = StripeLib\Stripe($secret_key);
-
         $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
-
         if($token){
             $response = $stripe->purchase([
                 'amount' => $totalAmount,
@@ -165,20 +162,16 @@ class Stripe {
                 'token' => $token,
             ])->send();
 
-            $response = $stripe1->paymentIntents->create([
-                'amount' =>  $amount,
-                'currency' => $currency,
-                'payment_method_types' => ['card'],
-                'off_session' => true,
-                'confirm' => true,
-                'on_behalf_of' => $array['destination'],
-                'transfer_data' => [
-                'destination' => $array['destination'],
-                ],
-            ]);
-            dd($response);
+            $transaction = $gateway->transfer(array(
+                       'amount'        => $totalAmount,
+                       'currency'      => $currency,
+                       'transferGroup' => '{ORDER10}',
+                       'destination'   => $currency,
+                   ));
+            $response1 = $transaction->send();
+            dd($response, $response1);
         }
-        dd(1111);
+        dd($response);
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
             $data['payment_id'] = $arr_body['id'];
