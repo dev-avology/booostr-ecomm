@@ -3,7 +3,7 @@ namespace App\Lib;
 use Omnipay\Omnipay;
 use Session;
 use Illuminate\Http\Request;
-
+use Stripe as StripeLib;
 class Stripe {
     public static function redirect_if_payment_success()
     {
@@ -125,7 +125,7 @@ class Stripe {
         $secret_key = $creds['secret_key'];
 
         try {
-        $stripe = new \Stripe\StripeClient($secret_key);
+        $stripe = StripeLib\StripeClient($secret_key);
 
         $response = $stripe->charges->retrieve(
             $payment_id,
@@ -153,7 +153,7 @@ class Stripe {
         $data['test_mode']=$test_mode;
 
         $stripe = Omnipay::create('Stripe');
-        $stripe1 = new \Stripe\StripeClient($secret_key);
+        $stripe1 = StripeLib\StripeClient($secret_key);
 
         $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
