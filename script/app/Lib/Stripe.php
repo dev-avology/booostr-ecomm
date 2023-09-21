@@ -162,21 +162,20 @@ class Stripe {
                 'currency' => $currency,
                 'token' => $token,
             ])->send();
-
+        }
+        if ($response->isSuccessful()) {
             $arr_body = $response->getData();
 
             $transaction = $stripe->transfer(array(
-                       'amount'        => $totalAmount,
-                       'currency'      => $currency,
-                       'sourceTransaction' => $arr_body['id'],
-                       'destination'   => $array['stripe_account_id'],
-                   ));
+                'amount'        => $totalAmount,
+                'currency'      => $currency,
+                'sourceTransaction' => $arr_body['id'],
+                'onBehalfOf' => $array['stripe_account_id'],
+                'destination'   => $array['stripe_account_id'],
+            ));
             $response1 = $transaction->send();
-            dd($response, $response1);
-        }
-        dd($response);
-        if ($response->isSuccessful()) {
-            $arr_body = $response->getData();
+
+
             $data['payment_id'] = $arr_body['id'];
             $data['payment_method'] = "stripe";
             $data['getway_id'] = $array['getway_id'];
