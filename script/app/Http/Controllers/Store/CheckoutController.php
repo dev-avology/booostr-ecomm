@@ -194,8 +194,8 @@ class CheckoutController extends Controller
             foreach (json_decode($getways->data ?? '') ?? [] as $key => $info) {
                 $payment_data[$key] = $info;
             };
-            $payment_data['publishable_key'] = 'dddddddddd';
-            $payment_data['secret_key'] = 'sdsssssssdsdssdsd';
+            $payment_data['publishable_key'] = ($getways->test_mode == 1) ? $payment_data['test_publishable_key'] : $payment_data['publishable_key'];
+            $payment_data['secret_key'] = ($getways->test_mode == 1) ? $payment_data['test_secret_key'] : $payment_data['secret_key'];
         }
        // $shipping_methods=Category::where('status',1)->where('type','shipping')->select('name','id','slug','status')->with('')->get();
 
@@ -323,7 +323,6 @@ class CheckoutController extends Controller
                     $user->password = \Hash::make($request->email);
                     $user->save();
                 }
-
                 Auth::loginUsingId($user->id);
             }
             $order = new Order;
@@ -391,6 +390,7 @@ class CheckoutController extends Controller
                 $customer_info['name'] = $request->name;
                 $customer_info['email'] = $request->email;
                 $customer_info['phone'] = $request->phone;
+                $customer_info['note'] = $request->comment ?? "";
                 $customer_info['billing'] = $request->billing ?? "";
                 $customer_info['shipping'] = $request->shipping ?? "";
 
