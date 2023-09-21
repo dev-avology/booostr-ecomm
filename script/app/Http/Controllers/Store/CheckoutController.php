@@ -408,6 +408,7 @@ class CheckoutController extends Controller
             if(Session::has('cartid')){
                 $cartid=Session::get('cartid');
                 Cart::instance('default')->destroy($cartid);
+                Session::flush();
             }
 
             return redirect()->away($redirect_url . '/?type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
