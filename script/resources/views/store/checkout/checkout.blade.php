@@ -281,8 +281,11 @@
 							<div class="content">
 								<div class="checkbox shipping_render_area">
 									@foreach($shipping_methods as $shipping_method)
+									@php 
+									// $shippingDetails  = json_decode($shipping_method->shippingMethod->content,true)
+									@endphp
 									<label class="checkbox-inline shipping_method" for="shipping{{$shipping_method->id}}">
-										<input name="shipping_method" class="shipping_item" value="{{$shipping_method->id}}" data-price="{{$shipping_method->slug}}" id="shipping{{$shipping_method->id}}" type="radio"> {{$shipping_method->name}}
+										<input name="shipping_method" class="shipping_item" value="{{$shipping_method->id}}" data-price="{{$shipping_method->slug}}"  data-shippingInfo='{!! $shipping_method->shippingMethod->content !!}' id="shipping{{$shipping_method->id}}" type="radio"> {{$shipping_method->name}}
 									</label>
 									@endforeach
 								</div>
@@ -319,6 +322,10 @@
 <input type="hidden" id="subtotal" value="{{ Cart::instance('default')->subtotal() }}">
 <input type="hidden" id="tax" value="{{ Cart::instance('default')->tax() }}">
 <input type="hidden" id="total" value="{{ Cart::instance('default')->total() }}">
+
+<input type="hidden" id="totalWeight" value="{{ Cart::instance('default')->weight() }}">
+<input type="hidden" id="totalItem" value="{{ Cart::instance('default')->count() }}">
+
 
 <input type="hidden" id="latitude" value="{{ tenant('lat') }}">
 <input type="hidden" id="longitude" value="{{ tenant('long') }}">

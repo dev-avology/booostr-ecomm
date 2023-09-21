@@ -42,6 +42,12 @@ class Category extends Model
     	return $this->hasOne(Categorymeta::class)->where('type','description');
     }
 
+    public function shippingMethod()
+    {
+    	return $this->hasOne(Categorymeta::class)->where('type','shipping_method');
+    }
+
+
     public function preview()
     {
     	return $this->hasOne(Categorymeta::class)->where('type','preview');
