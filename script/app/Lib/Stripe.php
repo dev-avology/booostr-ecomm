@@ -1,6 +1,7 @@
 <?php
 namespace App\Lib;
 use Omnipay\Omnipay;
+use Omnipay\Stripe\Message\Transfers;
 use Session;
 use Illuminate\Http\Request;
 
@@ -162,11 +163,11 @@ class Stripe {
                 'token' => $token,
             ])->send();
 
-            $transaction = $gateway->transfer(array(
+            $transaction = $stripe->transfer(array(
                        'amount'        => $totalAmount,
                        'currency'      => $currency,
                        'transferGroup' => '{ORDER10}',
-                       'destination'   => $currency,
+                       'destination'   => $array['stripe_account_id'],
                    ));
             $response1 = $transaction->send();
             dd($response, $response1);
