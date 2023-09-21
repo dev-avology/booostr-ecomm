@@ -89,6 +89,36 @@ $('#locations').on('change',function(){
     --------------------------*/
 $(document).on('change','.shipping_item',function(){
 	var price=$(this).data('price');
+
+	var shippingD = $(this).data('shippinginfo');
+	var mt = shippingD.method_type;
+	var cartweight = parseInt($('#totalWeight').val());
+
+    var subtotal = $('#subtotal').val();
+
+	var cartItems = $('#totalItem').val();
+	if(mt == 'free_shipping'){
+	price = 0;
+
+	}else if(mt == 'per_item'){
+      var per_item_charge = parseInt(shippingD.pricing);
+       price = price + cartItems * per_item_charge;
+	   
+	}else if(mt == 'weight_based'){
+		var per_lb_charge = parseInt(shippingD.pricing);
+		price = price + cartweight * per_lb_charge;
+
+	}else if(mt == 'flat_rate'){
+
+		var pricing = shippingD.pricing;
+
+		pricing = pricing.filter(function(i){
+        return (subtotal > parseInt(i.from) && subtotal <= parseInt(i.to));
+		});
+
+		price = parseInt(pricing[0]?.price??0);
+	}
+
 	$('.shipping_fee').text(amount_format(price));
 	new_total=total+price;
 
