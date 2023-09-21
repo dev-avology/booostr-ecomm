@@ -26,7 +26,7 @@ use App\Models\Order;
 use App\Models\Orderstock;
 class CheckoutController extends Controller
 {
-    
+
     public function cart()
     {
         $tax=optionfromcache('tax');
@@ -40,7 +40,7 @@ class CheckoutController extends Controller
         $seo=$home_data->seo ?? '';
         SEOMeta::setTitle($seo->site_title ?? '');
         SEOMeta::setDescription($seo->description ?? '');
-       
+
 
         OpenGraph::setDescription($seo->description ?? '');
         OpenGraph::setTitle($seo->site_title ?? '');
@@ -57,8 +57,8 @@ class CheckoutController extends Controller
         SEOTools::setTitle($seo->site_title ?? '');
         SEOTools::setDescription($seo->description ?? '');
         SEOTools::opengraph()->setUrl(url('/'));
-      
-        
+
+
         SEOTools::twitter()->setSite($seo->twitter_title ?? '');
         SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
         SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
@@ -84,7 +84,7 @@ class CheckoutController extends Controller
             "zip"=>($request->zip??"")
         ];
         return redirect()->to("//".$domain->domain.'/direct_checkout/'.$cartid.'/'.$redirect_url.'/?'.http_build_query($customer));
-        
+
     }
 
     public function direct_checkout(Request $request,$cartid='',$redirect_url='/')
@@ -100,15 +100,15 @@ class CheckoutController extends Controller
         }else{
             Session::put('cartid',$cartid);
         }
-        
-        
+
+
         if(Session::has('customer_data')){
             $customer=Session::get('customer_data');
         }else{
             $validator = Validator::make($request->all(), [
                 'email' => 'required|string|email',
             ]);
-             if ($validator->fails()) {    
+             if ($validator->fails()) {
                 return redirect()->away($redirect_url.'/?type=error&message='.$validator->errors()->first());
             }
             $customer=[
@@ -123,14 +123,14 @@ class CheckoutController extends Controller
             ];
             Session::put('customer_data',$customer);
         }
-         
+
         Cart::instance($cartid);
         //load cart in session
         Cart::checkout_restore($cartid);
         if(Cart::content()->isEmpty()){
             return redirect()->away($redirect_url.'/?type=error&message=Opps Your cart is empty');
         }
-       
+
 
         $tax=optionfromcache('tax');
         if ($tax == null) {
@@ -147,16 +147,16 @@ class CheckoutController extends Controller
         $getways=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
 
         $order_method=$request->t ?? 'delivery';
-        
+
         $invoice_data=optionfromcache('invoice_data');
-        
+
 
         $home_data=optionfromcache('checkout_page');
 
         $seo=$home_data->seo ?? '';
         SEOMeta::setTitle($seo->site_title ?? '');
         SEOMeta::setDescription($seo->description ?? '');
-       
+
 
         OpenGraph::setDescription($seo->description ?? '');
         OpenGraph::setTitle($seo->site_title ?? '');
@@ -173,8 +173,8 @@ class CheckoutController extends Controller
         SEOTools::setTitle($seo->site_title ?? '');
         SEOTools::setDescription($seo->description ?? '');
         SEOTools::opengraph()->setUrl(url('/'));
-    
-        
+
+
         SEOTools::twitter()->setSite($seo->twitter_title ?? '');
         SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
         SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
@@ -185,7 +185,7 @@ class CheckoutController extends Controller
         $pre_order=$order_settings->pre_order ?? 'off';
         $source_code=$order_settings->source_code ?? 'on';
 
-        
+
         $payment_data['currency']   = $getways->currency_name ?? 'USD';
         $payment_data['test_mode']  = $getways->test_mode;
         $payment_data['charge']     = $getways->charge ?? 0;
@@ -194,6 +194,8 @@ class CheckoutController extends Controller
             foreach (json_decode($getways->data ?? '') ?? [] as $key => $info) {
                 $payment_data[$key] = $info;
             };
+            $payment_data['publishable_key'] = ($getways->test_mode == 1) ? $payment_data['test_publishable_key'] : $payment_data['publishable_key'];
+            $payment_data['secret_key'] = ($getways->test_mode == 1) ? $payment_data['test_secret_key'] : $payment_data['secret_key'];
         }
         $shipping_methods=Category::where('status',1)->where('type','shipping')->select('name','id','slug','status')->get();
         $shipping_methods=$shipping_methods->sortBy([
@@ -235,6 +237,7 @@ class CheckoutController extends Controller
 
        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
        //Process Payment
+        $gateway_data_info = json_decode($gateway->data);
         $payment_data['currency']   = $gateway->currency_name ?? 'USD';
         $payment_data['email']      = $request->email;
         $payment_data['name']       = $request->name;
@@ -251,9 +254,9 @@ class CheckoutController extends Controller
                 $payment_data[$key] = $info;
             };
         }
-        
-        $paymentresult= $gateway->namespace::charge_payment($payment_data); 
-        
+
+        $paymentresult= $gateway->namespace::charge_payment($payment_data);
+
         if($paymentresult['payment_status']!=1){
             return redirect()->back()->with(["error"=>"Sorry, we couldnt charge your card, please try another card"]);
         }
@@ -363,11 +366,11 @@ class CheckoutController extends Controller
 
     public function success()
     {
-       
+
         Cart::instance('default')->destroy();
         return \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
 
-       
+
     }
 
     public function fail()
@@ -388,13 +391,13 @@ class CheckoutController extends Controller
     {
         abort_if(!Session::has('stripe_credentials'), 404);
         $credentials=Session::get('stripe_credentials');
-        
+
         $stripe = Omnipay::create('Stripe');
         $token = $request->stripeToken;
         $gateway = $credentials['publishable_key'];
         $secret_key = $credentials['secret_key'];
-        $main_amount = $credentials['amount']; 
-        
+        $main_amount = $credentials['amount'];
+
         $stripe->setApiKey($secret_key);
 
         if($token){
@@ -404,7 +407,7 @@ class CheckoutController extends Controller
                 'token' => $token,
             ])->send();
         }
-       
+
 
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
@@ -412,24 +415,24 @@ class CheckoutController extends Controller
             $data['payment_method'] = "stripe";
             $data['getway_id'] = $credentials['getway_id'];
             $data['payment_type'] = $credentials['payment_type'];
-           
+
             $data['amount'] = $credentials['main_amount'];
             $data['charge'] = $credentials['charge'];
-            $data['status'] = 1;          
-            $data['payment_status'] = 1;   
+            $data['status'] = 1;
+            $data['payment_status'] = 1;
             $data['is_fallback'] = $credentials['is_fallback'];
             Session::put('payment_info',$data);
             Session::forget('stripe_credentials');
             return redirect(Stripe::redirect_if_payment_success());
         }
         else{
-            $data['payment_status'] = 0;  
-            Session::put('payment_info',$data); 
+            $data['payment_status'] = 0;
+            Session::put('payment_info',$data);
            Session::forget('stripe_credentials');
            return redirect(Stripe::redirect_if_payment_faild());
         }
     }
-   
+
 
     public function thanks()
     {
@@ -439,6 +442,6 @@ class CheckoutController extends Controller
         return view(baseview('thanks'),compact('orderno'));
     }
 
-    
+
 
 }

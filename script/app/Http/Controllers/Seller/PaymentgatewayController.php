@@ -7,6 +7,7 @@ use App\Models\Getway;
 use Illuminate\Http\Request;
 use Paymentgateway;
 use Auth;
+use Illuminate\Support\Facades\Http;
 class PaymentgatewayController extends Controller
 {
     public function index()
@@ -45,8 +46,27 @@ class PaymentgatewayController extends Controller
                 $gateway = $value;
             }
         }
-        
-        
+        if($payment == 'stripe'){
+            $club_id = '36615';//tenant('club_id');
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->get(env('WP_API_URL').'/get_stripe_account_number', [
+                'club_id' => $club_id
+            ]);
+
+            if ($response->successful()) {
+                $stripe_info = $response->json();
+            } else {
+                $stripe_info = [];
+            }
+
+            $gateway->data->test_publishable_key = $stripe_info['test_publishable_key'];
+            $gateway->data->test_secret_key = $stripe_info['test_secret_key'];
+            $gateway->data->publishable_key = $stripe_info['publishable_key'];
+            $gateway->data->secret_key = $stripe_info['secret_key'];
+            $gateway->data->stripe_account_id = $stripe_info['stripe_account_id'];
+        }
+
         $getway = new Getway();
         $getway->name = $gateway->name;
         $getway->logo = $gateway->logo;
@@ -59,7 +79,7 @@ class PaymentgatewayController extends Controller
         $getway->data = json_encode($gateway->data ?? '');
         $getway->save();
 
-        
+
 
         return redirect()->route('seller.payment.edit',$getway->id);
 
@@ -87,7 +107,7 @@ class PaymentgatewayController extends Controller
         $gateway->test_mode = $request->test_mode ?? 0;
         $gateway->data = json_encode($request->data);
 
-      
+
         $gateway->save();
 
         return response()->json('Successfully Updated');

@@ -39,13 +39,13 @@ class Stripe {
 
     public static function fallback()
     {
-       return url('partner/payment/stripe'); 
+       return url('partner/payment/stripe');
     }
 
     public static function make_payment($array)
     {
-        $publishable_key=$array['publishable_key'];
-        $secret_key=$array['secret_key'];
+        $publishable_key=($array['test_mode'] == 1) ? $array['test_publishable_key'] : $array['publishable_key'];//$array['publishable_key'];
+        $secret_key=($array['test_mode'] == 1) ? $array['test_secret_key'] : $array['secret_key']; //$array['secret_key'];
         $currency=$array['currency'];
         $email=$array['email'];
         $amount=$array['amount'];
@@ -58,14 +58,14 @@ class Stripe {
         $data['payment_mode']='stripe';
         $data['amount']=$totalAmount;
         $data['test_mode']=$test_mode;
-       
+
         $data['charge']=$array['charge'];
         $data['main_amount']=$array['amount'];
         $data['getway_id']=$array['getway_id'];
         $data['is_fallback']=$array['is_fallback'] ?? 0;
         $data['payment_type']=$array['payment_type'] ?? '';
         $data['currency']=$array['currency'];
-        
+
 
         Session::put('stripe_credentials',$data);
 
@@ -79,13 +79,13 @@ class Stripe {
     {
         abort_if(!Session::has('stripe_credentials'), 404);
         $credentials=Session::get('stripe_credentials');
-        
+
         $stripe = Omnipay::create('Stripe');
         $token = $request->stripeToken;
         $gateway = $credentials['publishable_key'];
         $secret_key = $credentials['secret_key'];
-        $main_amount = $credentials['amount']; 
-        
+        $main_amount = $credentials['amount'];
+
         $stripe->setApiKey($secret_key);
 
         if($token){
@@ -95,7 +95,7 @@ class Stripe {
                 'token' => $token,
             ])->send();
         }
-       
+
 
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
@@ -103,19 +103,19 @@ class Stripe {
             $data['payment_method'] = "stripe";
             $data['getway_id'] = $credentials['getway_id'];
             $data['payment_type'] = $credentials['payment_type'];
-           
+
             $data['amount'] = $credentials['main_amount'];
             $data['charge'] = $credentials['charge'];
-            $data['status'] = 1;          
-            $data['payment_status'] = 1;   
+            $data['status'] = 1;
+            $data['payment_status'] = 1;
             $data['is_fallback'] = $credentials['is_fallback'];
             Session::put('payment_info',$data);
             Session::forget('stripe_credentials');
             return redirect(Stripe::redirect_if_payment_success());
         }
         else{
-            $data['payment_status'] = 0;  
-            Session::put('payment_info',$data); 
+            $data['payment_status'] = 0;
+            Session::put('payment_info',$data);
            Session::forget('stripe_credentials');
            return redirect(Stripe::redirect_if_payment_faild());
         }
@@ -135,13 +135,13 @@ class Stripe {
         } catch (\Throwable $th) {
             return 0;
         }
-         
+
     }
 
     public static function charge_payment($array)
     {
-        $publishable_key=$array['publishable_key'];
-        $secret_key=$array['secret_key'];
+        $publishable_key= ($array['test_mode'] == 1) ? $array['test_publishable_key'] : $array['publishable_key'];
+        $secret_key=($array['test_mode'] == 1) ? $array['test_secret_key'] : $array['secret_key'];
         $currency=$array['currency'];
         $amount=$array['amount'];
         $totalAmount=$array['pay_amount'];
@@ -151,17 +151,34 @@ class Stripe {
         $data['payment_mode']='stripe';
         $data['amount']=$totalAmount;
         $data['test_mode']=$test_mode;
-        
+
         $stripe = Omnipay::create('Stripe');
+        $stripe1 = new \Stripe\StripeClient($secret_key);
+
         $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
+
         if($token){
             $response = $stripe->purchase([
                 'amount' => $totalAmount,
                 'currency' => $currency,
                 'token' => $token,
             ])->send();
+
+            $response = $stripe1->paymentIntents->create([
+                'amount' =>  $amount,
+                'currency' => $currency,
+                'payment_method_types' => ['card'],
+                'off_session' => true,
+                'confirm' => true,
+                'on_behalf_of' => $array['destination'],
+                'transfer_data' => [
+                'destination' => $array['destination'],
+                ],
+            ]);
+            dd($response);
         }
+        dd(1111);
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
             $data['payment_id'] = $arr_body['id'];
@@ -169,11 +186,11 @@ class Stripe {
             $data['getway_id'] = $array['getway_id'];
             $data['payment_type'] = $array['payment_type']??'';
             $data['charge'] = $array['charge'];
-            $data['status'] = 1;          
+            $data['status'] = 1;
             $data['payment_status'] = 1;
         }
         else{
-            $data['payment_status'] = 0;  
+            $data['payment_status'] = 0;
         }
         return $data;
     }
