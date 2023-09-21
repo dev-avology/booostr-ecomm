@@ -55,7 +55,7 @@
             padding: 10px 0;
         }
 
-        
+
 
         .invoice-box table tr.details td {
             padding-bottom: 20px;
@@ -119,9 +119,9 @@
                         <tr>
                             <td class="title">
                                 <img height="80" width="160" src="{{ asset('uploads/'.tenant('uid').'/logo.png') }}">
-                                
+
                             </td>
-                            
+
                             <td>
                                 <strong>Invoice No: </strong>{{ $order->invoice_no }}
                             </td>
@@ -129,7 +129,7 @@
                     </table>
                 </td>
             </tr>
-           
+
             <tr class="information">
                 <td colspan="2">
                     <table>
@@ -138,23 +138,23 @@
                             @php
                             $shipping_price=$order->shippingwithinfo->shipping_price ?? 0;
                             $shipping_info=json_decode($order->shippingwithinfo->info ?? '');
-                            $location=$order->shippingwithinfo->location->name ?? '';
+                            //$location=$order->shippingwithinfo->location->name ?? '';
                             $address=$shipping_info->address ?? '';
                             @endphp
                             @endif
                             <td>
                              @if($order->order_method == 'delivery' && !empty($ordermeta))
                                Bill To<br>
-                              
+
                                Name: {{ $ordermeta->name ?? '' }}<br>
                                Email: {{ $ordermeta->email ?? '' }}<br>
                                Phone: {{ $ordermeta->phone ?? '' }}<br>
                                Shipping Method: {{ $order->shippingwithinfo->shipping->name ?? '' }}<br>
-                               Area: {{ $location ?? '' }}<br>
+                               {{--Area: {{ $location ?? '' }}<br>--}}
                                Postal Code: {{ $shipping_info->post_code ?? '' }}
                                <br>
                                Address: {{ $address ?? '' }}
-                                
+
 
                                <br>
                                @endif
@@ -162,24 +162,24 @@
                                Name: {{ $ordermeta->name ?? '' }}<br>
                                Email: {{ $ordermeta->email ?? '' }}<br>
 
-                               @endif 
+                               @endif
                            </td>
-                           
 
-                           
-                           
+
+
+
                            <td>
                              Bill from<br>
-                           
+
                             @if(!empty($invoice_info))
                             <strong>{{ $invoice_info->store_legal_name ?? '' }}</strong><br>
                             {{ $invoice_info->post_code ?? '' }}, {{ $invoice_info->store_legal_address ?? '' }}, <br>{{ $invoice_info->store_legal_city ?? '' }}, {{ $invoice_info->country ?? '' }}<br>
-                            
+
                             Email: {{ $invoice_info->email ?? '' }}<br>
                             Phone: {{ $invoice_info->store_legal_phone ?? '' }}<br>
                             @endif
 
-                           
+
                         </td>
                     </tr>
 
@@ -203,10 +203,10 @@
 
                             <div class="badge text-white" style="background-color: {{ $order->orderstatus->slug ?? '' }}">{{ $order->orderstatus->name ?? 'Waiting for fulfillment' }}</div>
                         </td>
-                        
+
                         <td>
                             Order Date: <br>
-                            {{ $order->created_at->format('d-F-Y') }} 
+                            {{ $order->created_at->format('d-F-Y') }}
                         </td>
                     </tr>
                 </table>
@@ -217,7 +217,7 @@
             <tbody>
                 <tr class="heading">
                     <td class="text-left">Product</td>
-                                 
+
                     <td class="text-center">Product Price</td>
                     <td class="text-right">Totals</td>
                 </tr>
@@ -235,9 +235,9 @@
                         <span>{{ $key }}:</span><br>
 
                         @foreach($item ?? [] as $r)
-                        <span>{{ __('Name:') }} {{ $r->name ?? '' }},</span>                   
+                        <span>{{ __('Name:') }} {{ $r->name ?? '' }},</span>
                         <span>{{ __('Price:') }} {{ number_format($r->price ?? 0,2) }},</span>
-                       
+
                         @endforeach
                         <hr>
                         @endforeach
@@ -247,36 +247,36 @@
                 </tr>
                 @endforeach
                 <tr class="subtotal">
-                    
+
                     <td></td>
                     <td></td>
                     <td><hr></td>
                 </tr>
-               
-               
+
+
                 <tr class="subtotal">
-                    
+
                     <td></td>
                     <td class="text-right"><strong>Discount:</strong></td>
                     <td class="text-right">- {{ number_format($order->discount,2) }}</td>
                 </tr>
-                
+
                 <tr>
-                   
+
                     <td></td>
                     <td class="text-right"><strong>Tax:</strong></td>
                     <td class="text-right">{{ number_format($order->tax,2) }}</td>
                 </tr>
                 @if($order->order_method == 'delivery')
                 <tr>
-                   
+
                     <td></td>
                     <td class="text-right"><strong>Shippping:</strong></td>
                     <td class="text-right">{{ number_format($shipping_price,2) }}</td>
                 </tr>
                 @endif
                  <tr class="subtotal">
-                   
+
                     <td></td>
                     <td class="text-right"><strong>Subtotal:</strong></td>
                     @php
@@ -285,10 +285,10 @@
                     <td class="text-right">{{ number_format($order->total-$shipping_price,2) }}</td>
                 </tr>
                 <tr>
-                   
-                    
+
+
                     <td></td>
-                    
+
                     <td class="text-right"><strong>Total:</strong></td>
                     <td class="text-right">{{ number_format($order->total,2) }}</td>
                 </tr>

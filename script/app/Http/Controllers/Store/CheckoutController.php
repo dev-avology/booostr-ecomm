@@ -257,7 +257,7 @@ class CheckoutController extends Controller
         $shipping_price = 0;
         if ($request->order_method == 'delivery' && !empty($request->shipping_method)) {
             $shipping_method = Category::where('status', 1)->where('type', 'shipping')->with('shippingMethod')->findorFail($request->shipping_method);
-            
+
             $shippingDetails  = json_decode($shipping_method->shippingMethod->content,true);
 
             if($shippingDetails['method_type'] == 'per_item'){
@@ -265,7 +265,7 @@ class CheckoutController extends Controller
             }else if($shippingDetails['method_type'] == 'weight_based'){
                 $shipping_price = $shipping_method->slug + Cart::weight() * $shippingDetails['pricing'];
             }else if($shippingDetails['method_type'] == 'flat'){
-                      
+
                 $pricing = array_filter($shippingDetails['pricing'], function($i){
                     return ($subtotal > (int)$i['from'] && $subtotal <= (int) $i['to']);
                 });
@@ -275,7 +275,7 @@ class CheckoutController extends Controller
                 $shipping_price = 0;
             }
 
-           
+
         } else {
             $order_method = 'pickup';
         }
@@ -323,6 +323,7 @@ class CheckoutController extends Controller
                     $user->password = \Hash::make($request->email);
                     $user->save();
                 }
+
                 Auth::loginUsingId($user->id);
             }
             $order = new Order;
@@ -373,8 +374,8 @@ class CheckoutController extends Controller
                 $order->ordertable()->attach($request->table);
             }
             if ($request->order_method == 'delivery') {
-                $delivery_info['address'] = $request->address;
-                $delivery_info['post_code'] = $request->post_code;
+                $delivery_info['address'] = $request->shipping['address'].' '. $request->shipping['city'].', '.$request->shipping['state'].', '.$request->shipping['country'];
+                $delivery_info['post_code'] = $request->shipping['post_code'];
                 $order->shipping()->create([
                     'location_id' => $request->location,
                     'shipping_id' => $request->shipping_method,
@@ -390,7 +391,8 @@ class CheckoutController extends Controller
                 $customer_info['name'] = $request->name;
                 $customer_info['email'] = $request->email;
                 $customer_info['phone'] = $request->phone;
-                $customer_info['note'] = $request->comment ?? "";
+                $customer_info['billing'] = $request->billing ?? "";
+                $customer_info['shipping'] = $request->shipping ?? "";
 
                 $order->ordermeta()->create([
                     'key' => 'orderinfo',
@@ -403,7 +405,11 @@ class CheckoutController extends Controller
             }
 
             DB::commit();
-            Cart::instance('default')->destroy();
+            if(Session::has('cartid')){
+                $cartid=Session::get('cartid');
+                Cart::instance('default')->destroy($cartid);
+            }
+
             return redirect()->away($redirect_url . '/?type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
         } catch (\Throwable $th) {
             DB::rollback();

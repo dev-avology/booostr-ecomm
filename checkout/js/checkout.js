@@ -111,10 +111,7 @@ $(document).on('change','.shipping_item',function(){
 	}else if(mt == 'flat_rate'){
 
 		var pricing = shippingD.pricing;
-
-
-
-
+    
 		if (Array.isArray(pricing)) {
 			pricing.forEach(item => {
 			  if (subtotal > parseInt(item.from) && subtotal <= parseInt(item.to)) {

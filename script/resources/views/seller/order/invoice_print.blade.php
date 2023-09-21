@@ -10,7 +10,7 @@
 </head>
 <body>
 
-    
+
 {{-- invoice area start --}}
 <section>
     <div class="invoice-area" id="print_area">
@@ -51,7 +51,7 @@
                                         <h5><strong>BILL TO:</strong></h5>
                                         <div class="store-name">
                                             <h2>{{ $order->user->name ?? '' }}</h2>
-                                            <p>{{ json_decode($order->shippingwithinfo->info)->address }}, {{ $order->shippingwithinfo->location->name }}</p>
+                                            <p>{{ json_decode($order->shippingwithinfo->info)->address }}, {{-- $order->shippingwithinfo->location->name --}}</p>
                                             <p>Postal Code: {{ json_decode($order->shippingwithinfo->info)->post_code }}</p>
                                         </div>
                                         <div class="store-email">
@@ -106,7 +106,7 @@
                                 <div class="col-lg-6">
                                     <div class="note-section">
                                         <h4>NOTES/MEMO</h4>
-                                        <p>{{ json_decode($order->ordermeta->value)->note }}</p>
+                                        <p>{{ json_decode($order->ordermeta->value)->note ?? '' }}</p>
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
