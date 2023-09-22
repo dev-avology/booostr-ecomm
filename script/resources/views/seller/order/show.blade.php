@@ -197,11 +197,12 @@
 						$shipping_info=json_decode($info->shippingwithinfo->info ?? '');
 						//$location=$info->shippingwithinfo->location->name ?? '';
 						$address=$shipping_info->address ?? '';
+						$shipping_method=$shipping_info->shipping_label ?? '';
 						@endphp
 						{{--<p class="mb-0">{{ __('Location') }}: {{ $location }}</p>--}}
 						<p class="mb-0">{{ __('Zip Code') }}: {{ $shipping_info->post_code ?? '' }}</p>
 						<p class="mb-0">{{ __('Address') }}: {{ $address }}</p>
-						<p class="mb-0">{{ __('Shipping Method') }}: {{ $info->shippingwithinfo->shipping->name ?? '' }}</p>
+						<p class="mb-0">{{ __('Shipping Method') }}: {{ $shipping_method ?? '' }}</p>
 						@endif
 						@if($info->order_method == 'delivery' && !empty($info->shippingwithinfo))
 						<div id="map" class="map-canvas"></div>
