@@ -93,6 +93,7 @@ class CheckoutController extends Controller
         if(Session::has('redirect_url')){
             $redirect_url=Session::get('redirect_url');
         }else{
+            $redirect_url = str_replace('{slash}','/',$redirect_url);
             $redirect_url=!empty(base64_decode($redirect_url))?base64_decode($redirect_url):"/";
             Session::put('redirect_url',$redirect_url);
         }
@@ -249,11 +250,12 @@ class CheckoutController extends Controller
        $subtotal = Cart::subtotal();
 
         $shipping_price = 0;
+        $shipping_method_label = '';
         if ($request->order_method == 'delivery' && !empty($request->shipping_method)) {
            
            if($request->shipping_method == 'free_shipping'){
              $shipping_price = 0;
-           
+             $shipping_method_label = 'Free Shipping';
             }else{
 
             $shippingDetails= json_decode(Option::where('key','shipping_method')->first()->value,true);
@@ -262,9 +264,12 @@ class CheckoutController extends Controller
 
                 $shipping_price = $shippingDetails['base_pricing'] + Cart::count() * $shippingDetails['pricing'];
 
+                $shipping_method_label = $shippingDetails['label'];
+
             }else if($shippingDetails['method_type'] == 'weight_based'){
 
                 $shipping_price = $shippingDetails['base_pricing'] + Cart::weight() * $shippingDetails['pricing'];
+                $shipping_method_label = $shippingDetails['label'];
 
             }else if($shippingDetails['method_type'] == 'flat_rate'){
 
@@ -273,6 +278,7 @@ class CheckoutController extends Controller
                  foreach($shippingDetails['pricing'] as $index){
                     if($subtotal > (int)$index['from'] && $subtotal <= (int) $index['to']){
                         $shipping_price = (int)$index['price'];
+                        $shipping_method_label = $shippingDetails['label'];
                     }
                  }
              }
@@ -383,9 +389,11 @@ class CheckoutController extends Controller
             if ($request->order_method == 'delivery') {
                 $delivery_info['address'] = $request->shipping['address'].' '. $request->shipping['city'].', '.$request->shipping['state'].', '.$request->shipping['country'];
                 $delivery_info['post_code'] = $request->shipping['post_code'];
+                $delivery_info['shipping_method'] = $request->shipping_method;
+                $delivery_info['shipping_label'] = $shipping_method_label;
+
                 $order->shipping()->create([
                     'location_id' => $request->location,
-                    'shipping_id' => $request->shipping_method,
                     'shipping_price' => $shipping_price,
                     'lat' => $request->my_lat ?? null,
                     'long' => $request->my_long ?? null,
