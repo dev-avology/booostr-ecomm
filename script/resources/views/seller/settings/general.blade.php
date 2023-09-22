@@ -810,9 +810,9 @@
                                     style="{{ $display }}">
                                     <input type="hidden" value="0" name="base_price['flat_rate']">
                                     <label for=""
-                                        class="col-lg-10">{{ __('flatrate for Cart Total :') }} </label>
+                                        class="col-lg-10">{{ __('flat Rate Shipping Price for Cart Totals :') }} </label>
 
-                                    <div class="col-lg-12">
+                                    <div class="col-lg-12" id="flat_rate">
                                         @php
                                             
                                             $countp = 0;
@@ -826,9 +826,13 @@
 
 
                                         @foreach ($p as $k => $v)
-                                            <div class="row">
+                                            <div class="row mt-2">
                                                 <div class="col-md-2">
-                                                    <input type="number" required=""
+                                                        @if(!$countp)
+                                                         <small>{{ __('Cart total in store currency.') }}</small>
+                                                        @endif 
+
+                                                        <input type="number" required=""
                                                         value="{{ $v['from'] }}" step="any"
                                                         name="type_price['flatrate_range'][{{ $countp }}][from]"
                                                         class="form-control" placeholder="Min Cart Total">
@@ -837,20 +841,32 @@
                                                     <label for="">{{ __('-') }} </label>
                                                 </div>
                                                 <div class="col-md-2">
+
+                                                    @if(!$countp)
+                                                         <small>{{ __('Cart total in store currency.') }}</small>
+                                                        @endif 
+
                                                     <input type="number" required=""
                                                         value="{{ $v['to'] }}" step="any"
                                                         name="type_price['flatrate_range'][{{ $countp }}][to]"
                                                         class="form-control" placeholder="Min Cart Total">
                                                 </div>
                                                 <div class="col-lg-6">
+
+                                                    @if(!$countp)
+                                                        <small>{{ __('Shipping Price in store currency.') }}</small>
+                                                    @endif 
+                                                    
                                                     <input type="number" required=""
                                                         value="{{ $v['price'] }}" step="any"
                                                         name="type_price['flatrate_range'][{{ $countp }}][price]"
                                                         class="form-control" placeholder="Enter Price">
                                                 </div>
                                                 <div class="col-md-1">
+                                                    @if(!$countp)
                                                     <a href="javascript:void(0)" class="flatraterow"><i
                                                             class="fas fa-plus"></i></a>
+                                                    @endif        
                                                 </div>
                                             </div>
                                             @php
@@ -1100,7 +1116,7 @@
 
             $('.flatraterow').on('click', function() {
 
-                $(this).closest('.row').after('<div class="row mt-2">' +
+                $('#flat_rate').append('<div class="row mt-2">' +
                     '<div class="col-md-2"><input type="number" required="" value="0" step="any" name="type_price[\'flatrate_range\'][' +
                     rowtotal + '][from]" class="form-control" placeholder="Min Cart Total"></div>' +
                     '<div class="col-md-1"><label for="">-</label></div>' +

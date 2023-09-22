@@ -140,12 +140,21 @@ $(document).on('change','.shipping_item',function(){
        Create New Account
     --------------------------*/
 $('#shipping_address').on('change',function(){
-	
 	if ($(this).is(':checked')){
-		$('.shipping_address_area').show();
+
+        $('#shipping-name').val($('#billing-name').val())
+        $('#shipping-email').val($('#billing-email').val())
+        $('#shipping-phone').val($('#billing-phone').val())
+        $('#location_input1').val($('#location_input').val())
+        $('#location_city1').val($('#location_city').val())
+        $('#location_state1').val($('#location_state').val())
+        $('#shipping-country').val($('#billing-country').val())
+        $('#post_code1').val($('#post_code').val())
+
+		$('.shipping_address_area').hide();		
 	}
 	else{
-		$('.shipping_address_area').hide();
+		$('.shipping_address_area').show();
 	}
 })
 
