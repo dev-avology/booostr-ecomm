@@ -4,7 +4,22 @@
 <div class="topbar-area">
 	<div class="container">
 		<div class="row">
-			<div class="col-lg-12 col-md-12 col-12">
+			<div class="row align-items-center">
+
+                <div class="col-lg-6 col-md-7 col-12">
+                    <!-- Topbar Left -->
+                    <div class="topbar-left">
+                       <ul class="topbar-left-inner">
+                        @if(!empty(tenant()->logo))
+                            <li><a href="#"><img src="{{env('WP_URL')}}{{tenant()->logo}}" style="max-width: 80px;"/></a></li>
+                        @else
+                        <li><a href="{{ url('/') }}">{{ ucfirst(str_replace(array( '-', '_',), ' ', tenant()->id)) }}</a></li>
+                        @endif
+                       </ul>
+                    </div>
+                 </div>
+
+                <div class="col-lg-6 col-md-5 col-12">
 				<!-- Topbar Right -->
 				<div class="topbar-right">
 					<ul class="topbar-right-inner">
@@ -279,11 +294,11 @@
 							<h2>{{ __('Shipping Method') }}</h2>
 							<div class="content">
 								<div class="checkbox shipping_render_area">
-									
+
 									<label class="checkbox-inline shipping_method" for="shipping{{$shipping_methods['method_type']}}">
 										<input name="shipping_method" class="shipping_item" value="{{$shipping_methods['method_type']}}" data-price="{{$shipping_methods['base_pricing']}}"  data-shippingInfo='{!! json_encode($shipping_methods) !!}' id="shipping{{$shipping_methods['method_type']}}" type="radio"> {{$shipping_methods['label']}}
 									</label>
-									
+
 								</div>
 							</div>
 						</div>

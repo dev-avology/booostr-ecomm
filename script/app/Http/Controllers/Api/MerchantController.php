@@ -36,7 +36,7 @@ class MerchantController extends Controller
 
   public function createmerchant(Request $request)
   {
-    
+
     $validator = Validator::make($request->all(),[
       'name' => 'required|max:50',
       'email' => 'required|max:100|email|unique:users',
@@ -101,7 +101,7 @@ class MerchantController extends Controller
       $error = 'Store is already creeated';
       return response()->json(["status"=>0,"message"=>$error], 422);
     }
- 
+
     //domain check
     $domain_name = $name . '.' . env('APP_PROTOCOLESS_URL');
     $domain=Domain::where('domain', $domain_name)->first();
@@ -109,12 +109,13 @@ class MerchantController extends Controller
       $error = 'Store URL is unavailable';
       return response()->json(["status"=>0,"message"=>$error], 422);
     }
-   
+
     $store_data = [
       'store_name' => $name,
       'email' => $request->email,
       'password' => $request->email, //$request->password,
-      'club_id'=>$club_id
+      'club_id'=>$club_id,
+      'club_info'=>json_encode($request->club_info),
     ];
     if (isset($request->logo) && !empty($request->logo)) {
       // $filename = 'store_' .$club_id.'.png';
@@ -133,7 +134,7 @@ class MerchantController extends Controller
     $plan = Plan::findOrFail($planid);
     $tax = Option::where('key', 'tax')->first();
     $plan_data = json_decode($plan->data);
-    
+
     if ($plan->is_trial == 1) {
       $domain['name'] = Session::get('store_data')['store_name'];
       Session::put('domain_data', $domain);
@@ -153,7 +154,7 @@ class MerchantController extends Controller
       Session::put('order_id', $order->id);
       Session::put('plan', $plan->id);
       return $this->storePlan();
-    } 
+    }
     return response()->json(["status"=>0,"message"=>'error']);
   }
 
@@ -167,7 +168,7 @@ class MerchantController extends Controller
     $name = Str::slug(Session::get('store_data')['store_name']);
     $store_data=Session::get('store_data');
     $club_id = isset($store_data['club_id'])?$store_data['club_id']:0;
-    
+
     $order_id = Session::get('order_id');
     abort_if(empty($order_id), 404);
     ini_set('max_execution_time', '0');
@@ -202,6 +203,7 @@ class MerchantController extends Controller
     $tenant->will_expire = $expiry_date;
     $tenant->club_id=$club_id;
     $tenant->logo=isset($store_data['logo'])?$store_data['logo']:'';
+    $tenant->club_info=isset($store_data['club_info'])?$store_data['club_info']:'';
     $tenant->save();
     DB::beginTransaction();
     try {
@@ -277,6 +279,6 @@ class MerchantController extends Controller
 
 
 
-  
+
 
 }
