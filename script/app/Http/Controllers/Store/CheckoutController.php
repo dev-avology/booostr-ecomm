@@ -105,8 +105,8 @@ class CheckoutController extends Controller
 
 
         if(Session::has('customer_data')){
-            $customer=Session::get('customer_data');
-        }else{
+         //   $customer=Session::get('customer_data');
+        //}else{
             $validator = Validator::make($request->all(), [
                 'email' => 'required|string|email',
             ]);
@@ -123,6 +123,7 @@ class CheckoutController extends Controller
                 "country"=>($request->country??""),
                 "zip"=>($request->zip??"")
             ];
+
             Session::put('customer_data',$customer);
         }
 
