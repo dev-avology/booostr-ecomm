@@ -163,7 +163,7 @@
         <span>{{ __('Payments') }}</span>
     </a>
 </li>
-<li class="{{ Request::is('seller/shipping') ? 'active' : '' }}">
+{{-- <li class="{{ Request::is('seller/shipping') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/shipping') }}">
         <i class="fas fa-truck"></i>
         <span>{{ __('Shipping Rates') }}</span>
@@ -174,10 +174,16 @@
         <i class="fas fa-truck"></i>
         <span>{{ __('Shipping Locations') }}</span>
     </a>
-</li>
+</li> --}}
 <li class="{{ Request::is('seller/page*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/page') }}">
         <i class="fas fa-file"></i>
         <span>{{ __('Pages') }}</span>
+    </a>
+</li>
+<li class="{{ Request::is('seller/site-settings/general') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ route('seller.site-settings.show','general') }}">
+        <i class="fas fa-cog"></i>
+        <span>{{ __('Store Setting') }}</span>
     </a>
 </li>

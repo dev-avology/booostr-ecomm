@@ -669,7 +669,213 @@
             </div>
             {{-- /right side --}}
          </div>
-          <div class="row">
+
+
+         <div class="row">
+            {{-- left side --}}
+            <div class="col-lg-4">
+                <h6>{{ __('Store Shipping Setting') }}</h6>
+            </div>
+            {{-- /left side --}}
+            {{-- right side --}}
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+
+                        <div class="from-group row mb-2">
+                            <label for="" class="col-lg-12">{{ __('Is Free Shipping') }} : </label>
+                            <div class="col-lg-12">
+                                <select name="free_shipping" class="form-control">
+                                    <option value="1" @if ($free_shipping == 1) selected @endif>
+                                        {{ __('Enable') }}</option>
+                                    <option value="0" @if ($free_shipping != 1) selected @endif>
+                                        {{ __('Disable') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="from-group row mb-2">
+                            <label for=""
+                                class="col-lg-12">{{ __('Min Cart Total for free shipping') }} : </label>
+                            <div class="col-lg-12">
+                                <input type="text" value="{{ $min_cart_total ?? 100 }}"
+                                    name="min_cart_total" class="form-control" max="50">
+                                <small>{{ __('Your Minimum Cart total in store currency.') }}</small>
+                            </div>
+                        </div>
+
+
+
+                        <div class="from-group row mb-2">
+                            <label for="" class="col-lg-12">{{ __('Regular Shipping Method:') }}
+                            </label>
+                            @php
+                                $shipping_types = ['weight_based' => 'Weight Based', 'per_item' => 'Per Item', 'flat_rate' => 'Flat Rate'];
+                                
+                                $shipping_info = json_decode($shipping_method->value, true);
+                                $method = $shipping_info['method_type'];
+                                $shipping_label = $shipping_info['label'];
+                                $shipping_price = $shipping_info['pricing'];
+                                $shipping_base_price = $shipping_info['base_pricing'];
+                                
+                                $countp = 1;
+                            @endphp
+
+                            <div class="col-lg-12">
+                                <select name="shipping_method" id="shipping_type" class="select2 form-control">
+                                    <option value=""> Choose Shipping Type</option>
+                                    @foreach ($shipping_types as $stype => $label)
+                                        <option @if ($method == $stype) selected @endif
+                                            value="{{ $stype }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="from-group row mb-2">
+                            <label for="" class="col-lg-12">{{ __('Shipping Method Label:') }} </label>
+
+                            <div class="col-lg-12">
+                                <input type="text" value="{{ $shipping_label ?? '' }}" required
+                                    name="shipping_method_label" class="form-control" max="50">
+                                <small>{{ __('Your Shipping Method Label.') }}</small>
+                            </div>
+                        </div>
+
+
+                        @foreach ($shipping_types as $stype => $label)
+                            @php
+                                $p = 0;
+                                $display = 'display:none;';
+                                if ($method == $stype) {
+                                    $p = $shipping_price;
+                                    $display = 'display:block;';
+                                }
+                            @endphp
+
+                            @if ($stype == 'weight_based')
+                                <div class="from-group row mb-2 type_price weight_based"
+                                    style="{{ $display }}">
+                                    <label for="" class="col-lg-12">{{ __('Price per LB :') }} </label>
+                                    <div class="col-lg-12">
+                                        <input type="number" required="" value="{{ $p }}"
+                                            step="any" name="type_price['perlb']" class="form-control"
+                                            placeholder="Enter Price per lb">
+                                        <small>{{ __('Your Shipping per item Price in store currency.') }}</small>
+                                    </div>
+                                </div>
+                                <div class="from-group row mb-2 type_price weight_based"
+                                    style="{{ $display }}">
+                                    <label for="" class="col-lg-12">{{ __('Shipping Base Price:') }}
+                                    </label>
+
+                                    <div class="col-lg-12">
+                                        <input type="number" step="any"
+                                            value="{{ $shipping_base_price ?? 0 }}" required
+                                            name="base_price['perlb']" class="form-control">
+                                        <small>{{ __('Your Shipping Base Price.') }}</small>
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if ($stype == 'per_item')
+                                <div class="from-group row mb-2 type_price per_item"
+                                    style="{{ $display }}">
+                                    <label for="" class="col-lg-12">{{ __('Price per item :') }}
+                                    </label>
+                                    <div class="col-lg-12">
+                                        <input type="number" required="" value="{{ $p }}"
+                                            step="any" name="type_price['per_item']" class="form-control"
+                                            placeholder="Enter Price per Item">
+                                        <small>{{ __('Your Shipping per item Price in store currency.') }}</small>
+                                    </div>
+                                </div>
+
+                                <div class="from-group row mb-2 type_price per_item"
+                                    style="{{ $display }}">
+                                    <label for="" class="col-lg-12">{{ __('Shipping Base Price:') }}
+                                    </label>
+
+                                    <div class="col-lg-12">
+                                        <input type="number" step="any"
+                                            value="{{ $shipping_base_price ?? 0 }}" required
+                                            name="base_price['per_item']" class="form-control">
+                                        <small>{{ __('Your Shipping Base Price in store currency.') }}</small>
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if ($stype == 'flat_rate')
+                                <div class="from-group row mb-2 type_price flat_rate"
+                                    style="{{ $display }}">
+                                    <input type="hidden" value="0" name="base_price['flat_rate']">
+                                    <label for=""
+                                        class="col-lg-10">{{ __('flatrate for Cart Total :') }} </label>
+
+                                    <div class="col-lg-12">
+                                        @php
+                                            
+                                            $countp = 0;
+                                            if (!is_array($p)) {
+                                                $p = [];
+                                                $p[] = ['from' => 0, 'to' => 25, 'price' => 10];
+                                            }
+                                            
+                                        @endphp
+
+
+
+                                        @foreach ($p as $k => $v)
+                                            <div class="row">
+                                                <div class="col-md-2">
+                                                    <input type="number" required=""
+                                                        value="{{ $v['from'] }}" step="any"
+                                                        name="type_price['flatrate_range'][{{ $countp }}][from]"
+                                                        class="form-control" placeholder="Min Cart Total">
+                                                </div>
+                                                <div class="col-md-1">
+                                                    <label for="">{{ __('-') }} </label>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <input type="number" required=""
+                                                        value="{{ $v['to'] }}" step="any"
+                                                        name="type_price['flatrate_range'][{{ $countp }}][to]"
+                                                        class="form-control" placeholder="Min Cart Total">
+                                                </div>
+                                                <div class="col-lg-6">
+                                                    <input type="number" required=""
+                                                        value="{{ $v['price'] }}" step="any"
+                                                        name="type_price['flatrate_range'][{{ $countp }}][price]"
+                                                        class="form-control" placeholder="Enter Price">
+                                                </div>
+                                                <div class="col-md-1">
+                                                    <a href="javascript:void(0)" class="flatraterow"><i
+                                                            class="fas fa-plus"></i></a>
+                                                </div>
+                                            </div>
+                                            @php
+                                                $countp++;
+                                            @endphp
+                                        @endforeach
+
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
+
+
+                       
+
+                    </div>
+                </div>
+
+            </div>
+            {{-- /right side --}}
+        </div>
+
+
+
+          <div class="row" >
             {{-- left side --}}
             <div class="col-lg-4">
                 <h6>{{ __('Order Settings') }}</h6>
@@ -788,7 +994,7 @@
             </div>
             {{-- /right side --}}
          </div>
-           <div class="row">
+           <div class="row" >
             {{-- left side --}}
             <div class="col-lg-4">
                 <h6>{{ __('Whatsapp Settings') }}</h6>
@@ -883,6 +1089,33 @@
             $('.google_api_range').hide();
         }
     
+
+
+        var rowtotal = {{ $countp }};
+        //$(document).ready(function() {
+            $('#shipping_type').change(function() {
+                $('.type_price').hide();
+                $('.' + $(this).val()).show();
+            });
+
+            $('.flatraterow').on('click', function() {
+
+                $(this).closest('.row').after('<div class="row mt-2">' +
+                    '<div class="col-md-2"><input type="number" required="" value="0" step="any" name="type_price[\'flatrate_range\'][' +
+                    rowtotal + '][from]" class="form-control" placeholder="Min Cart Total"></div>' +
+                    '<div class="col-md-1"><label for="">-</label></div>' +
+                    '<div class="col-md-2"><input type="number" required="" value="25" step="any" name="type_price[\'flatrate_range\'][' +
+                    rowtotal + '][to]" class="form-control" placeholder="Min Cart Total"></div>' +
+                    '<div class="col-lg-6"><input type="number" required="" value="0" step="any" name="type_price[\'flatrate_range\'][' +
+                    rowtotal + '][price]" class="form-control" placeholder="Enter Price"></div>' +
+                    '' +
+                    '</div>');
+
+                rowtotal++;
+            });
+
+        //});
+
 </script>
 @endpush
 

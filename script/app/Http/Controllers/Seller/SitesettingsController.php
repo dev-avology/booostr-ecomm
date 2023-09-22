@@ -60,8 +60,16 @@ class SitesettingsController extends Controller
            $whatsapp_settings=Option::where('key','whatsapp_settings')->first();
            $whatsapp_settings=json_decode($whatsapp_settings->value ?? '');
 
+           $shipping_method=Option::where('key','shipping_method')->first();
+          // $shipping_method=$shipping_method ?? '';
+           
+          $free_shipping=Option::where('key','free_shipping')->first() ;
+          $free_shipping = $free_shipping ? $free_shipping->value : 0;
 
-           return view('seller.settings.general',compact('languages','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings'));
+          $min_cart_total=Option::where('key','min_cart_total')->first();
+          $min_cart_total = $min_cart_total ? $min_cart_total->value : 100;
+
+           return view('seller.settings.general',compact('languages','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings'));
        }
       
     }
@@ -273,9 +281,55 @@ class SitesettingsController extends Controller
            ));
            $whatsapp_settings->save();
 
+
+
+           $shipping_price = array(
+            'weight_based'=> 'perlb',
+            'per_item'=> 'per_item',
+            'flat_rate'=> 'flatrate_range',
+           );
+
+           $shipping_method=Option::where('key','shipping_method')->first();
+           // $shipping_method=$shipping_method ?? '';
+            if (empty($shipping_method)) {
+                  $shipping_method=new Option;
+                  $shipping_method->key='shipping_method';
+               }
+         
+
+               $shipping_method->value=json_encode(array(
+               'method_type'=>$request->shipping_method,
+               'label'=>$request->shipping_method_label??'Shipping Method Label',
+               'pricing'=>$request->type_price["'".$shipping_price[$request->shipping_method]."'"],
+               'base_pricing'=>$request->base_price["'".$shipping_price[$request->shipping_method]."'"]??0,
+
+            ));
+            $shipping_method->save();
+
+
+            
+           $free_shipping=Option::where('key','free_shipping')->first() ;
+           if (empty($free_shipping)) {
+               $free_shipping=new Option;
+               $free_shipping->key='free_shipping';
+            }
+            $free_shipping->value = $request->free_shipping;
+            $free_shipping->save();
+ 
+           $min_cart_total=Option::where('key','min_cart_total')->first();
+           if (empty($min_cart_total)) {
+            $min_cart_total=new Option;
+            $min_cart_total->key='min_cart_total';
+         }
+         $min_cart_total->value = $request->min_cart_total;
+         $min_cart_total->save();
+
           
-           TenantCacheClear('whatsapp_settings');
-           TenantCacheClear('average_times');
+         TenantCacheClear('shipping_method');
+         TenantCacheClear('free_shipping');
+         TenantCacheClear('min_cart_total');
+         TenantCacheClear('whatsapp_settings');
+         TenantCacheClear('average_times');
            TenantCacheClear('invoice_data');
            TenantCacheClear('autoload');
            TenantCacheClear('order_settings');
