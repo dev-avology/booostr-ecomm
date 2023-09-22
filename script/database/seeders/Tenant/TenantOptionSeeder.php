@@ -157,6 +157,24 @@ class TenantOptionSeeder extends Seeder
             "key"=>'site_settings',
             "value"=>'{"meta":{"footer_column1":"<h3>Our Mobile App<\/h3><ul class=\"app-btn\"><li class=\"single-ap-btn\"> <a href=\"#\"> <i class=\"icofont-brand-apple\"><\/i> <span class=\"small-title\">Download on the<\/span> <span class=\"big-title\">App Store<\/span> <\/a> <\/li><li class=\"single-ap-btn\"> <a href=\"#\"> <i class=\"icofont-ui-play\"><\/i> <span class=\"small-title\">Download on the<\/span> <span class=\"big-title\">Google Play<\/span> <\/a> <\/li><\/ul>","footer_column2":"<h3>Get In Touch With Us<\/h3> <p class=\"phone\">Phone: +1 (900) 33 169 7720<\/p><ul> <li><span>Monday-Friday: <\/span> 9.00 am - 8.00 pm<\/li><li><span>Saturday: <\/span> 10.00 am - 6.00 pm<\/li><\/ul> <p class=\"mail\"><a href=\"#\"><span>contact@yourmail.com<\/span><\/a> <\/p>","footer_column3":"<h3>Information<\/h3> <ul> <li><a href=\"#\">About Us<\/a><\/li><li><a href=\"#\">Contact Us<\/a><\/li><li><a href=\"#\">Downloads<\/a><\/li><li><a href=\"#\">Sitemap<\/a><\/li><li><a href=\"#\">FAQs Page<\/a><\/li><\/ul>","footer_column4":"<h3>Shop Departments<\/h3> <ul> <li><a href=\"#\">Computers & Accessories<\/a><\/li><li><a href=\"#\">Smartphones & Tablets<\/a><\/li><li><a href=\"#\">TV, Video & Audio<\/a><\/li><li><a href=\"#\">Cameras, Photo & Video<\/a><\/li><li><a href=\"#\">Headphones<\/a><\/li><\/ul>","bottom_left_column":"<span>We Accept:<\/span><img src=\"uploads\/1\/22\/01\/61d3411c8fc8e0301221641234716.png\" alt=\"#\"\/>","bottom_center_column":"<p>\u00a9 Copyright 2021 -2022. <a href=\"#\" >AMCoders<\/a> All right reserved<\/p>","bottom_right_column":"<ul class=\"socila\"> <li><span>Follow Us On:<\/span><\/li><li><a href=\"#\"><i class=\"icofont-facebook\"><\/i><\/a><\/li><li><a href=\"#\"><i class=\"icofont-twitter\"><\/i><\/a><\/li><li><a href=\"#\" ><i class=\"icofont-instagram\"><\/i><\/a><\/li><li><a href=\"#\"><i class=\"icofont-linkedin\"><\/i><\/a><\/li><\/ul>","preloader":"yes","scroll_to_top":"yes","cart_sidebar":"yes","bottom_bar":"yes"}}',
             "autoload" => 1
+        ),
+        array(
+            "id"=>49,
+            "key"=>'free_shipping',
+            "value"=>'1',
+            "autoload" => 0
+        ),
+        array(
+            "id"=>50,
+            "key"=>'min_cart_total',
+            "value"=>'100',
+            "autoload" => 0
+        ),
+        array(
+            "id"=>51,
+            "key"=>'shipping_method',
+            "value"=>'{"method_type":"flat_rate","label":"Flat Rate","pricing":{"0":{"from":"0","to":"25","price":"10"},"3":{"from":"125","to":"999999999","price":"30"},"2":{"from":"25","to":"75","price":"15"},"1":{"from":"75","to":"125","price":"20"}},"base_pricing":0}',
+            "autoload" => 0
         )
       );
 

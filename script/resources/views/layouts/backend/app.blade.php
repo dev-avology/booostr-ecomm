@@ -71,6 +71,7 @@
 
 <!-- General JS Scripts -->
 <script src="{{ asset('admin/assets/js/jquery-3.5.1.min.js') }}"></script>
+<script src="{{ asset('admin/js/general/general.js') }}"></script>
 
 <script src="{{ asset('admin/assets/js/popper.min.js') }}"></script>
 <script src="{{ asset('admin/assets/js/bootstrap.min.js') }}"></script>
