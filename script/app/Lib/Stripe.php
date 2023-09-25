@@ -207,7 +207,6 @@ class Stripe {
         $data['test_mode']=$test_mode;
 
         $stripe = Omnipay::create('Stripe');
-        $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
             $transaction = $gateway->capture(array(
                     'amount'        => $amount,
