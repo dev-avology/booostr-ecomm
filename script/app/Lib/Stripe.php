@@ -230,8 +230,6 @@ class Stripe {
             $data['payment_id'] = $arr_body['id'];
             $data['payment_method'] = "stripe";
             $data['getway_id'] = $array['getway_id'];
-            $data['payment_type'] = $array['payment_type']??'';
-            $data['charge'] = $array['charge'];
             $data['status'] = 1;
             $data['payment_status'] = 1;
         }
