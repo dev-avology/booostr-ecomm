@@ -211,11 +211,9 @@ class Stripe {
             $transaction = $stripe->capture(array(
                     'amount'        => $totalAmount,
                     'currency'      => $currency,
-                    //'transactionReference'      => 'AUD',
                 ));
                 $transaction->setTransactionReference($array['transaction_id']);
                 $response = $transaction->send();
-            dd($response);
 
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
@@ -229,15 +227,13 @@ class Stripe {
             ));
             $response1 = $transaction->send();
 
-           dd($response1);
-
             $data['payment_id'] = $arr_body['id'];
             $data['payment_method'] = "stripe";
             $data['getway_id'] = $array['getway_id'];
             $data['payment_type'] = $array['payment_type']??'';
             $data['charge'] = $array['charge'];
             $data['status'] = 1;
-            $data['payment_status'] = 4;
+            $data['payment_status'] = 1;
         }
         else{
             $data['payment_status'] = 0;

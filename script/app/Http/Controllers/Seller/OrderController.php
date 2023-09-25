@@ -224,13 +224,11 @@ class OrderController extends Controller
 
         $paymentresult= $gateway->namespace::capture_payment($payment_data);
 
-        if ($order->order_method == 'delivery') {
-           $riders=User::where('role_id',5)->latest()->get();
+        if ($paymentresult['payment_status'] == '1') {
+            $order->payment_status = 1;
+            $order->save();
         }
-        else{
-            $riders=[];
-        }
-        return view('seller.order.invoice_print',compact('order','ordermeta','order_status','riders'));
+        return redirect()->back();
     }
 
 
