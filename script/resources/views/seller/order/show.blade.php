@@ -219,7 +219,7 @@
 						@if($info->payment_status==4)
 							<div class="capture-btn">
 								<form method="POST" action="{{ route('seller.order.capture',$info->id) }}">
-									<input type="hidden" type="{{ $info->transaction_id ?? '' }}" name="transaction_id">
+									@csrf
 									<button type="submit" name="capture_payment" class="btn btn-primary float-right mt-2 text-right">Capture Payment</button>
 								</form>
 							</div>
