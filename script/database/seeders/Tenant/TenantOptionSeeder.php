@@ -59,7 +59,7 @@ class TenantOptionSeeder extends Seeder
         array(
             "id" => 8,
             "key" => "weight_type",
-            "value" => "KG",
+            "value" => "LB",
             "autoload" => 1
         ),
         array(
@@ -174,6 +174,12 @@ class TenantOptionSeeder extends Seeder
             "id"=>51,
             "key"=>'shipping_method',
             "value"=>'{"method_type":"flat_rate","label":"Flat Rate","pricing":{"0":{"from":"0","to":"25","price":"10"},"3":{"from":"125","to":"999999999","price":"30"},"2":{"from":"25","to":"75","price":"15"},"1":{"from":"75","to":"125","price":"20"}},"base_pricing":0}',
+            "autoload" => 0
+        ),
+        array(
+            "id"=>52,
+            "key"=>'tax_data',
+            "value"=>'{"status":"1","type":"percentage","label":"GST","tax":"5"}',
             "autoload" => 0
         )
       );

@@ -13,28 +13,7 @@ class TenantShippingcategoriesSeeder extends Seeder
      */
     public function run()
     {
-        $data=array(
-            array(
-                "category_id" => 30,
-                "location_id" => 5
-            ),
-            array(
-                "category_id" => 30,
-                "location_id" => 4
-            ),
-            array(
-                "category_id" => 30,
-                "location_id" => 3
-            ),
-            array(
-                "category_id" => 51,
-                "location_id" => 6
-            ),
-            array(
-                "category_id" => 51,
-                "location_id" => 5
-            )
-        );
+        $data=array();
         Shippingcategory::insert($data);
     }
 }
