@@ -208,7 +208,7 @@ class Stripe {
 
         $stripe = Omnipay::create('Stripe');
         $stripe->setApiKey($secret_key);
-            $transaction = $gateway->capture(array(
+            $transaction = $stripe->capture(array(
                     'amount'        => $amount,
                     'currency'      => $currency,
                     //'transactionReference'      => 'AUD',
