@@ -157,11 +157,12 @@ class Stripe {
         $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
         if($token){
-            $response = $stripe->purchase([
+            $response = $stripe->authorize([
                 'amount' => $totalAmount,
                 'currency' => $currency,
                 'token' => $token,
             ])->send();
+        dd($response);
         }
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
