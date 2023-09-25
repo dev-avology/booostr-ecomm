@@ -113,9 +113,10 @@ class CheckoutController extends Controller
         }
 
 
-        if(Session::has('customer_data')){
+       // if(Session::has('customer_data')){
          //   $customer=Session::get('customer_data');
-        //}else{
+
+      //  }else{
             $validator = Validator::make($request->all(), [
                 'email' => 'required|string|email',
             ]);
@@ -134,7 +135,7 @@ class CheckoutController extends Controller
             ];
 
             Session::put('customer_data',$customer);
-        }
+       // }
 
         Cart::instance($cartid);
         //load cart in session
