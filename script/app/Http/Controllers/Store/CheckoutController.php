@@ -341,7 +341,7 @@ class CheckoutController extends Controller
         $paymentresult= $gateway->namespace::charge_payment($payment_data);
         //$paymentresult= ['payment_status'=>1,'transaction_id'=>'sffsdf43534'];
 
-        if($paymentresult['payment_status']!=1){
+        if($paymentresult['payment_status'] != 4){
             return redirect()->back()->with(["error"=>"Sorry, we couldnt charge your card, please try another card"]);
         }
 
@@ -376,7 +376,7 @@ class CheckoutController extends Controller
             $order->order_method = $order_method ?? 'delivery';
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $paymentresult['payment_id'];
-            $order->payment_status = 1;
+            $order->payment_status =$paymentresult['payment_status'];
             $order->save();
 
             $oder_items = [];

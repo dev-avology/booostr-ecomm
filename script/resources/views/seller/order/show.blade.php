@@ -216,6 +216,14 @@
 				<div class="card card-primary">
 					<div class="card-header">
 						<h4>{{ __('Status') }}</h4>
+						@if($info->payment_status==4)
+							<div class="capture-btn">
+								<form method="POST" action="">
+									<input type="hidden" type="{{$info->payment_id}}" name="payment_id">
+									<button type="submit" name="capture_payment">Capture Payment</button>
+								</form>
+							</div>
+						@endif
 					</div>
 					<div class="card-body">
 						<p>{{ __('Payment Status') }}
@@ -227,6 +235,8 @@
 							<span class="badge badge-danger float-right">{{ __('Cancel') }}</span>
 							@elseif($info->payment_status==3)
 							<span class="badge badge-danger float-right">{{ __('Incomplete') }}</span>
+							@elseif($info->payment_status==4)
+							<span class="badge badge-danger float-right">{{ __('Authorized') }}</span>
 							@endif</p>
 							<p>{{ __('Order Status') }}
 						 	@if($info->status_id != null)

@@ -167,16 +167,16 @@ class Stripe {
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
 
-            $transaction = $stripe->transfer(array(
-                'amount'        => $totalAmount,
-                'currency'      => $currency,
-                'sourceTransaction' => $arr_body['id'],
-                'onBehalfOf' => $array['stripe_account_id'],
-                'destination'   => $array['stripe_account_id'],
-            ));
-            $response1 = $transaction->send();
+            // $transaction = $stripe->transfer(array(
+            //     'amount'        => $totalAmount,
+            //     'currency'      => $currency,
+            //     'sourceTransaction' => $arr_body['id'],
+            //     'onBehalfOf' => $array['stripe_account_id'],
+            //     'destination'   => $array['stripe_account_id'],
+            // ));
+            // $response1 = $transaction->send();
 
-            dd($response,$response1);
+          //  dd($response,$response1);
 
             $data['payment_id'] = $arr_body['id'];
             $data['payment_method'] = "stripe";
@@ -184,7 +184,7 @@ class Stripe {
             $data['payment_type'] = $array['payment_type']??'';
             $data['charge'] = $array['charge'];
             $data['status'] = 1;
-            $data['payment_status'] = 1;
+            $data['payment_status'] = 4;
         }
         else{
             $data['payment_status'] = 0;
