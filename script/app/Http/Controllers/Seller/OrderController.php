@@ -222,7 +222,7 @@ class OrderController extends Controller
             };
         }
 
-        $paymentresult= $gateway->namespace::charge_payment($payment_data);
+        $paymentresult= $gateway->namespace::capture_payment($payment_data);
 
         if ($order->order_method == 'delivery') {
            $riders=User::where('role_id',5)->latest()->get();
