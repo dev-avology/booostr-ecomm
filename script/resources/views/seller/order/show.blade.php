@@ -214,13 +214,13 @@
 		<div class="col-12 col-lg-4">
 			<div class="card-grouping">
 				<div class="card card-primary">
-					<div class="card-header">
+					<div class="card-header" style="justify-content: space-between;">
 						<h4>{{ __('Status') }}</h4>
 						@if($info->payment_status==4)
 							<div class="capture-btn">
-								<form method="POST" action="">
-									<input type="hidden" type="{{$info->payment_id}}" name="payment_id">
-									<button type="submit" name="capture_payment">Capture Payment</button>
+								<form method="POST" action="{{ route('seller.order.capture',$info->id) }}">
+									<input type="hidden" type="{{ $info->transaction_id ?? '' }}" name="transaction_id">
+									<button type="submit" name="capture_payment" class="btn btn-primary float-right mt-2 text-right">Capture Payment</button>
 								</form>
 							</div>
 						@endif

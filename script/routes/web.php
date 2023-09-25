@@ -355,7 +355,10 @@ Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 
     Route::post('make-customer','PosController@makeCustomer')->name('pos.customer.store');
     Route::get('apply-tax','PosController@applyTax');
     Route::resource('order', 'OrderController');
+
     Route::post('orders/destroy','OrderController@destroy')->name('order.multipledelete');
+
+    Route::post('order/capture/{id}','OrderController@capture')->name('order.capture');
 
     Route::get('order/print/{id}','OrderController@print')->name('order.print');
 
