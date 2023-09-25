@@ -12,6 +12,8 @@ use App\Models\Orderstock;
 use App\Models\Price;
 use Auth;
 use DB;
+use App\Models\Getway;
+
 class OrderController extends Controller
 {
     /**
@@ -199,6 +201,38 @@ class OrderController extends Controller
         }
         return view('seller.order.invoice_print',compact('order','ordermeta','order_status','riders'));
     }
+
+    public function capture($id)
+    {
+        abort_if(!getpermission('order'),401);
+        $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+
+        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        
+        $gateway_data_info = json_decode($gateway->data);
+        $payment_data['test_mode']  = $gateway->test_mode;
+        $payment_data['currency']   = $gateway->currency_name ?? 'USD';
+        $payment_data['getway_id']  = $gateway->id;
+        $payment_data['amount']  = $order->total;
+        $payment_data['transaction_id']  = $order->transaction_id;
+
+        if (!empty($gateway->data)) {
+            foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
+                $payment_data[$key] = $info;
+            };
+        }
+
+        $paymentresult= $gateway->namespace::capture_payment($payment_data);
+
+        if ($paymentresult['payment_status'] == '1') {
+            $order->payment_status = 1;
+            $order->save();
+        }
+        return redirect()->back();
+    }
+
+
+
 
     /**
      * Remove the specified resource from storage.

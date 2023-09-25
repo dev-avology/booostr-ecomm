@@ -157,12 +157,64 @@ class Stripe {
         $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
         if($token){
-            $response = $stripe->purchase([
+            $response = $stripe->authorize([
                 'amount' => $totalAmount,
                 'currency' => $currency,
                 'token' => $token,
             ])->send();
+       
         }
+        if ($response->isSuccessful()) {
+            $arr_body = $response->getData();
+
+            // $transaction = $stripe->transfer(array(
+            //     'amount'        => $totalAmount,
+            //     'currency'      => $currency,
+            //     'sourceTransaction' => $arr_body['id'],
+            //     'onBehalfOf' => $array['stripe_account_id'],
+            //     'destination'   => $array['stripe_account_id'],
+            // ));
+            // $response1 = $transaction->send();
+
+          //  dd($response,$response1);
+
+            $data['payment_id'] = $arr_body['id'];
+            $data['payment_method'] = "stripe";
+            $data['getway_id'] = $array['getway_id'];
+            $data['payment_type'] = $array['payment_type']??'';
+            $data['charge'] = $array['charge'];
+            $data['status'] = 1;
+            $data['payment_status'] = 4;
+        }
+        else{
+            $data['payment_status'] = 0;
+        }
+        return $data;
+    }
+
+
+    public static function capture_payment($array)
+    {
+        $publishable_key= ($array['test_mode'] == 1) ? $array['test_publishable_key'] : $array['publishable_key'];
+        $secret_key=($array['test_mode'] == 1) ? $array['test_secret_key'] : $array['secret_key'];
+        $currency=$array['currency'];
+        $totalAmount=$array['amount'];
+        $test_mode=$array['test_mode'];
+        $data['publishable_key']=$publishable_key;
+        $data['secret_key']=$secret_key;
+        $data['payment_mode']='stripe';
+        $data['amount']=$totalAmount;
+        $data['test_mode']=$test_mode;
+
+        $stripe = Omnipay::create('Stripe');
+        $stripe->setApiKey($secret_key);
+            $transaction = $stripe->capture(array(
+                    'amount'        => $totalAmount,
+                    'currency'      => $currency,
+                ));
+                $transaction->setTransactionReference($array['transaction_id']);
+                $response = $transaction->send();
+
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
 
@@ -175,12 +227,8 @@ class Stripe {
             ));
             $response1 = $transaction->send();
 
-
             $data['payment_id'] = $arr_body['id'];
             $data['payment_method'] = "stripe";
-            $data['getway_id'] = $array['getway_id'];
-            $data['payment_type'] = $array['payment_type']??'';
-            $data['charge'] = $array['charge'];
             $data['status'] = 1;
             $data['payment_status'] = 1;
         }

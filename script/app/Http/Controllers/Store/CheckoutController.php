@@ -30,10 +30,19 @@ class CheckoutController extends Controller
 
     public function cart()
     {
-        $tax=optionfromcache('tax');
-        if ($tax == null) {
+        $tax_data=optionfromcache('tax_data');
+        if ($tax_data == null) {
             $tax=0;
+        }else{
+            $tax_type = $tax_data->type;
+            if($tax_type == 'fixed'){
+                $tax = $tax_data->tax;
+            }else if($tax_type == 'percentage'){
+                $subtotal = Cart::subtotal();
+                $tax = ($subtotal * $tax_data->tax) / 100;
+            }
         }
+
         Cart::setGlobalTax($tax);
 
         $home_data=optionfromcache('cart_page');
@@ -104,9 +113,10 @@ class CheckoutController extends Controller
         }
 
 
-        if(Session::has('customer_data')){
+       // if(Session::has('customer_data')){
          //   $customer=Session::get('customer_data');
-        //}else{
+
+      //  }else{
             $validator = Validator::make($request->all(), [
                 'email' => 'required|string|email',
             ]);
@@ -125,7 +135,7 @@ class CheckoutController extends Controller
             ];
 
             Session::put('customer_data',$customer);
-        }
+       // }
 
         Cart::instance($cartid);
         //load cart in session
@@ -135,11 +145,20 @@ class CheckoutController extends Controller
         }
 
 
-        $tax=optionfromcache('tax');
-        if ($tax == null) {
+        $tax_data=optionfromcache('tax_data');
+        if ($tax_data == null) {
             $tax=0;
+        }else{
+            $tax_type = $tax_data->type;
+            if($tax_type == 'fixed'){
+                $tax = $tax_data->tax;
+            }else if($tax_type == 'percentage'){
+                $subtotal = Cart::subtotal();
+                $tax = ($subtotal * $tax_data->tax) / 100;
+            }
         }
         Cart::setGlobalTax($tax);
+
         $order_settings=get_option('order_settings',true);
         if ($order_settings->shipping_amount_type != 'distance') {
             $locations=Location::where([['status',1]])->whereHas('shippings')->with('shippings')->get();
@@ -320,8 +339,9 @@ class CheckoutController extends Controller
         }
 
         $paymentresult= $gateway->namespace::charge_payment($payment_data);
+        //$paymentresult= ['payment_status'=>1,'transaction_id'=>'sffsdf43534'];
 
-        if($paymentresult['payment_status']!=1){
+        if($paymentresult['payment_status'] != 4){
             return redirect()->back()->with(["error"=>"Sorry, we couldnt charge your card, please try another card"]);
         }
 
@@ -356,7 +376,7 @@ class CheckoutController extends Controller
             $order->order_method = $order_method ?? 'delivery';
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $paymentresult['payment_id'];
-            $order->payment_status = 1;
+            $order->payment_status =$paymentresult['payment_status'];
             $order->save();
 
             $oder_items = [];
