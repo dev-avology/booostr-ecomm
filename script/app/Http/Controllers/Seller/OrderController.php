@@ -12,6 +12,8 @@ use App\Models\Orderstock;
 use App\Models\Price;
 use Auth;
 use DB;
+use App\Models\Getway;
+
 class OrderController extends Controller
 {
     /**
@@ -213,7 +215,7 @@ class OrderController extends Controller
         $payment_data['getway_id']  = $gateway->id;
         $payment_data['amount']  = $order->total;
         $payment_data['transaction_id']  = $order->transaction_id;
-        
+
         if (!empty($gateway->data)) {
             foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
                 $payment_data[$key] = $info;
