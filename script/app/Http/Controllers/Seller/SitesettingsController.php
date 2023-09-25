@@ -62,14 +62,17 @@ class SitesettingsController extends Controller
 
            $shipping_method=Option::where('key','shipping_method')->first();
           // $shipping_method=$shipping_method ?? '';
-           
+
+          $tax=Option::where('key','tax_data')->first();
+          $tax = json_decode($tax->value ?? ''); 
+
           $free_shipping=Option::where('key','free_shipping')->first() ;
           $free_shipping = $free_shipping ? $free_shipping->value : 0;
 
           $min_cart_total=Option::where('key','min_cart_total')->first();
           $min_cart_total = $min_cart_total ? $min_cart_total->value : 100;
 
-           return view('seller.settings.general',compact('languages','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings'));
+           return view('seller.settings.general',compact('languages','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings'));
        }
       
     }
@@ -283,6 +286,18 @@ class SitesettingsController extends Controller
 
 
 
+           $tax_data=Option::where('key','tax_data')->first();
+           // $shipping_method=$shipping_method ?? '';
+            if (empty($tax_data)) {
+                  $tax_data=new Option;
+                  $tax_data->key='tax_data';
+               }
+         
+
+               $tax_data->value=json_encode($request->tax);
+            $tax_data->save();
+
+
            $shipping_price = array(
             'weight_based'=> 'perlb',
             'per_item'=> 'per_item',
@@ -325,6 +340,7 @@ class SitesettingsController extends Controller
          $min_cart_total->save();
 
           
+         TenantCacheClear('tax_data');
          TenantCacheClear('shipping_method');
          TenantCacheClear('free_shipping');
          TenantCacheClear('min_cart_total');

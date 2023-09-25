@@ -674,6 +674,56 @@
          <div class="row">
             {{-- left side --}}
             <div class="col-lg-4">
+                <h6>{{ __('Store Sale Tax Setting') }}</h6>
+                <strong>{{ __('This is tax setting will be applied to All in state order') }}</strong>
+            </div>
+            {{-- /left side --}}
+            {{-- right side --}}
+            <div class="col-lg-8">
+               <div class="card">
+                  <div class="card-body">
+                    <div class="from-group row mb-2">
+                        <label for="" class="col-lg-12">{{ __('Tax Status') }} : </label>
+                        <div class="col-lg-12">
+                            <select class="form-control selectric" name="tax[status]">
+                                <option value="left" @if($tax->status == 1) selected="" @endif>{{ __('Enable') }}</option>
+                                <option value="right" @if($tax->status != 1) selected="" @endif>{{ __('Disable') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="from-group row mb-2">
+                        <label for="" class="col-lg-12">{{ __('Tax Type') }} : </label>
+                        <div class="col-lg-12">
+                            <select class="form-control selectric" name="tax[type]">
+                                <option value="left" @if($tax->type == "fixed") selected="" @endif>{{ __('Fixed') }}</option>
+                                <option value="right" @if($tax->type == "percentage") selected="" @endif>{{ __('Percentage') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="from-group row mb-2">
+                        <label for="" class="col-lg-12">{{ __('Tax Label') }} : </label>
+                        <div class="col-lg-12">
+                            <input type="text" value="{{ $tax->label ?? 'VAT' }}" name="tax[label]" class="form-control" placeholder=" VAT ">
+                        </div>
+                    </div>
+                    <div class="from-group row mb-2">
+                        <label for="" class="col-lg-12">{{ __('Tax Amount') }} : </label>
+                        <div class="col-lg-12">
+                            <input type="text" value="{{ $tax->tax ?? 5 }}"
+                            name="tax[tax]" class="form-control" max="50">
+                        </div>
+                    </div>
+
+                  </div>
+               </div>
+            </div>
+            {{-- /right side --}}
+         </div>
+
+
+         <div class="row">
+            {{-- left side --}}
+            <div class="col-lg-4">
                 <h6>{{ __('Store Shipping Setting') }}</h6>
             </div>
             {{-- /left side --}}
