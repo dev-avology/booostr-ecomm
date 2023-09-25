@@ -162,7 +162,7 @@ class Stripe {
                 'currency' => $currency,
                 'token' => $token,
             ])->send();
-        dd($response);
+       
         }
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
@@ -176,6 +176,7 @@ class Stripe {
             ));
             $response1 = $transaction->send();
 
+            dd($response,$response1);
 
             $data['payment_id'] = $arr_body['id'];
             $data['payment_method'] = "stripe";
