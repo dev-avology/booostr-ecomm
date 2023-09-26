@@ -99,7 +99,8 @@ class MerchantController extends Controller
       })->first();
     if ($tenant) {
       $error = 'Store is already creeated';
-      return response()->json(["status"=>0,"message"=>$error], 422);
+      $redirect_url = $name . '.' . env('APP_PROTOCOLESS_URL') . '/redirect/login?email=' . $request->email . '&&password=' . $request->email;
+      return response()->json(["status"=>0,"message"=>$error,'redirect_url'=>$redirect_url], 422);
     }
 
     //domain check
