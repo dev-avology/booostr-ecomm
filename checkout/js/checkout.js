@@ -111,16 +111,28 @@ $(document).on('change','.shipping_item',function(){
 	}else if(mt == 'flat_rate'){
 
 		var pricing = shippingD.pricing;
-    
+       
+		console.log(pricing);
+
 		if (Array.isArray(pricing)) {
+			console.log('Array');
 			pricing.forEach(item => {
-			  if (subtotal > parseInt(item.from) && subtotal <= parseInt(item.to)) {
+				var from = parseInt(item.from)??0;
+				var to = parseInt(item.to)>0? parseInt(item.to):Number.MAX_VALUE;
+				console.log(from,to);
+
+				if (subtotal > from && subtotal <= to) {
 				price = parseInt(item.price);
 			  }
 			});
+
 		  } else if (typeof pricing === 'object' && pricing !== null) {
+			console.log('Object');
 			Object.values(pricing).forEach(item => {
-			  if (subtotal > parseInt(item.from) && subtotal <= parseInt(item.to)) {
+				var from = parseInt(item.from)??0;
+				var to = parseInt(item.to)>0? parseInt(item.to):Number.MAX_VALUE;
+
+				if (subtotal > from && subtotal <= to) {
 				price = parseInt(item.price);
 			  }
 			});

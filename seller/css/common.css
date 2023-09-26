@@ -12,4 +12,10 @@ label.custom-label i {
     font-size: 40px;
 }
 
+
+.input-with-icon i {
+    position: absolute;
+    padding: 14px 8px 5px;
+    color:#495057;
+}
 /*  */

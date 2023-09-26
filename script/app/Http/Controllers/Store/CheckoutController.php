@@ -30,20 +30,12 @@ class CheckoutController extends Controller
 
     public function cart()
     {
-        $tax_data=optionfromcache('tax_data');
-        if ($tax_data == null) {
-            $tax=0;
-        }else{
-            $tax_type = $tax_data->type;
-            if($tax_type == 'fixed'){
-                $tax = $tax_data->tax;
-            }else if($tax_type == 'percentage'){
-                $subtotal = Cart::subtotal();
-                $tax = ($subtotal * $tax_data->tax) / 100;
-            }
-        }
+        // $tax=optionfromcache('tax');
+        // if ($tax == null) {
+        //     $tax=0;
+        // }
 
-        Cart::setGlobalTax($tax);
+        // Cart::setGlobalTax($tax);
 
         $home_data=optionfromcache('cart_page');
 
@@ -145,19 +137,12 @@ class CheckoutController extends Controller
         }
 
 
-        $tax_data=optionfromcache('tax_data');
-        if ($tax_data == null) {
-            $tax=0;
-        }else{
-            $tax_type = $tax_data->type;
-            if($tax_type == 'fixed'){
-                $tax = $tax_data->tax;
-            }else if($tax_type == 'percentage'){
-                $subtotal = Cart::subtotal();
-                $tax = ($subtotal * $tax_data->tax) / 100;
-            }
-        }
-        Cart::setGlobalTax($tax);
+        // $tax=optionfromcache('tax');
+        // if ($tax == null) {
+        //     $tax=0;
+        // }
+
+        // Cart::setGlobalTax($tax);
 
         $order_settings=get_option('order_settings',true);
         if ($order_settings->shipping_amount_type != 'distance') {
@@ -296,7 +281,12 @@ class CheckoutController extends Controller
 
              if(is_array($shippingDetails['pricing'])){
                  foreach($shippingDetails['pricing'] as $index){
-                    if($subtotal > (int)$index['from'] && $subtotal <= (int) $index['to']){
+    
+
+                  $from = (int)$index['from']??0;
+                  $to = (int) $index['to'] > 0 ?(int) $index['to']: PHP_INT_MAX;
+
+                    if($subtotal > $from && $subtotal <= $to){
                         $shipping_price = (int)$index['price'];
                         $shipping_method_label = $shippingDetails['label'];
                     }
@@ -306,9 +296,6 @@ class CheckoutController extends Controller
             }
 
            }
-
-         
-
 
         } else {
             $order_method = 'pickup';
@@ -339,7 +326,7 @@ class CheckoutController extends Controller
         }
 
         $paymentresult= $gateway->namespace::charge_payment($payment_data);
-        //$paymentresult= ['payment_status'=>1,'transaction_id'=>'sffsdf43534'];
+        //$paymentresult= ['payment_status'=>4,'payment_id'=>'sffsdf43534'];
 
         if($paymentresult['payment_status'] != 4){
             return redirect()->back()->with(["error"=>"Sorry, we couldnt charge your card, please try another card"]);
@@ -347,7 +334,6 @@ class CheckoutController extends Controller
 
         DB::beginTransaction();
         try {
-
             if (Auth::check() == false) {
                 $user = User::firstOrNew(['email' => $request->email]);
                 if (!$user->id) {
