@@ -227,6 +227,35 @@ $(document).on('change','#time',function(){
 $('.time').val(hours + ':' + minutes + ' ' + meridian)
 });
 
+$(document).on('focusout','#location_state1',function(){
+	shipping_state_change();
+})
+
 $(document).ready(function(){
 	$(".shipping_method_area .shipping_method").find(".shipping_item").eq(0).trigger('click');
 });
+function shipping_state_change()
+{
+	var shipping_state = $('#location_state1').val();
+	
+	var store_state = store_info.address.split(",");
+if(shipping_state != ''){
+		$.ajaxSetup({
+			headers: {
+				'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+			}
+		});
+
+		$.ajax({
+			type: 'POST',
+			url: apply_tax_url,
+			data: {shipping_state: $('#location_state1').val()},
+			dataType: 'json',
+			success: function(response){ 			
+				$('.cart_subtotal').text(amount_format(response.cart_subtotal));
+				$('.cart_tax').text(amount_format(response.cart_tax));
+				$('.cart_total').text(amount_format(response.cart_total));
+			}
+		});
+}
+}

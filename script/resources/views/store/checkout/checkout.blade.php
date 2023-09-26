@@ -351,6 +351,9 @@
 	var tax = parseFloat($('#tax').val());
 	var total = parseFloat($('#total').val());
 	var new_total = subtotal;
+	var apply_tax_url = "{{route('checkout.applyTax')}}";
+	var store_info = {!! Tenant('club_info') !!};
+	var currency_icon = "{{ get_option('currency_data',true)->currency_icon }}";
 </script>
 @if($source_code == 'off')
 <script type="text/javascript" src="{{ asset('theme/disable-source-code.js') }}"></script>

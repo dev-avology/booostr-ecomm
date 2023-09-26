@@ -119,6 +119,7 @@ class ProductController extends Controller
            $cart_item = Cart::add(
                 ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $final_price, 'weight' => $final_weight, 
                 'options' => [
+                    'tax' =>$tax,
                     'options' => $price_option, 'sku' => null, 'stock' => null, 'price_id' => $priceids,'short_description'=>($info->excerpt->value ?? ''),
                     'preview'=>asset($info->preview->value ?? 'uploads/default.png')
                     ]
@@ -134,6 +135,7 @@ class ProductController extends Controller
             $options = [
                 'sku' => $price->sku,
                 'stock' => $price->qty,
+                'tax'=>$price->tax,
                 'options' => [],
                 'short_description'=>($info->excerpt->value ?? ''),
                 'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
