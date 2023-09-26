@@ -111,7 +111,8 @@ class ProductController extends Controller
                     'sku' => $request->sku,
                     'weight' => $request->weight,
                     'stock_manage' => $request->stock_manage,
-                    'stock_status' => $request->stock_status
+                    'stock_status' => $request->stock_status,
+                    'tax' => $request->tax
                 ]);
             } else {
                 $productoptions = [];
@@ -126,6 +127,7 @@ class ProductController extends Controller
                             $data['qty'] = $row['qty'] ?? 0;
                             $data['sku'] = $row['sku'] ?? 0;
                             $data['weight'] = $row['weight'] ?? 0;
+                            $data['tax'] = $row['tax'] ?? 1;
                             $data['productoption_id'] = $group->id;
                             $data['stock_manage'] = $row['stock_manage'] ?? 0;
                             $data['stock_status'] = $row['stock_status'] ?? 0;
@@ -174,6 +176,7 @@ class ProductController extends Controller
         if ($type == 'general') {
             $info = Term::query()->where('type', 'product')->with('tags', 'excerpt', 'description', 'termcategories')->findorFail($id);
             $selected_categories = [];
+            $product_type = Category::query()->where('type', 'product_type')->select('id', 'name')->orderBy('id', 'ASC')->get();
 
             foreach ($info->termcategories as $key => $value) {
 
@@ -181,7 +184,7 @@ class ProductController extends Controller
             }
             $features = Category::query()->where('type', 'product_feature')->orderBy('menu_status', 'ASC')->get();
 
-            return view("seller.product.edit", compact('info', 'selected_categories', 'features', 'id'));
+            return view("seller.product.edit", compact('info','product_type', 'selected_categories', 'features', 'id'));
         }
 
         if ($type == 'price') {
@@ -317,9 +320,9 @@ class ProductController extends Controller
                     //single price
                     $valid_price = preg_replace("/[^0-9.]/", "", $request->price);
                     if (empty($term->price)) {
-                        $term->price()->create(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => $request->weight, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status]);
+                        $term->price()->create(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => $request->weight, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status,'tax' => $request->tax]);
                     } else {
-                        $term->price()->update(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => $request->weight, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status]);
+                        $term->price()->update(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => $request->weight, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status,'tax' => $request->tax]);
                     }
                     //end single price
                 } else {
@@ -346,7 +349,8 @@ class ProductController extends Controller
                             'sku' => $priceoption['sku'],
                             'weight' => $priceoption['weight'],
                             'stock_manage' => $priceoption['stock_manage'],
-                            'stock_status' => $priceoption['stock_status']
+                            'stock_status' => $priceoption['stock_status'],
+                            'tax' => $request->tax ?? 1
 
                         ]);
                     }
@@ -388,6 +392,7 @@ class ProductController extends Controller
                                 $data['productoption_id'] = $key;
                                 $data['stock_manage'] = $row['stock_manage'] ?? 0;
                                 $data['stock_status'] = $row['stock_status'] ?? 0;
+                                $data['tax'] = $request->tax ?? 1;
                                 $data['category_id'] = $k;
 
                                 array_push($productoptions, $data);
@@ -406,6 +411,7 @@ class ProductController extends Controller
                                 $data['productoption_id'] = $group->id;
                                 $data['stock_manage'] = $child_row['stock_manage'] ?? 0;
                                 $data['stock_status'] = $child_row['stock_status'] ?? 0;
+                                $data['tax'] = $request->tax ?? 1;
                                 $data['category_id'] = $key;
 
                                 array_push($productoptions, $data);

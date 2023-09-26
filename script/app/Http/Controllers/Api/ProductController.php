@@ -101,6 +101,7 @@ class ProductController extends Controller
             $final_weight = 0;
             $price_option = [];
             $priceids = [];
+            $tax = 1;
             foreach ($groups as $key => $row) {
                 foreach ($row->priceswithcategories as $key => $value) {
                     if ($value->stock_manage == 1) {
@@ -108,20 +109,25 @@ class ProductController extends Controller
                     }
                     $final_price = $final_price + $value->price;
                     $final_weight = $final_weight + $value->weight;
-
+                    $tax = $value->tax ?? 1;
                     $price_option[$row->category->name][$value->id]['price'] = $value->price;
                     $price_option[$row->category->name][$value->id]['sku'] = $value->sku;
                     $price_option[$row->category->name][$value->id]['weight'] = $value->weight;
                     $price_option[$row->category->name][$value->id]['name'] = $value->category->name;
                 }
             }
-            Cart::add(
+           $cart_item = Cart::add(
                 ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $final_price, 'weight' => $final_weight, 
                 'options' => [
                     'options' => $price_option, 'sku' => null, 'stock' => null, 'price_id' => $priceids,'short_description'=>($info->excerpt->value ?? ''),
                     'preview'=>asset($info->preview->value ?? 'uploads/default.png')
                     ]
                 ]);
+
+         if($tax == 1){
+            $cart_item->setTaxRate(getTaxRate());
+         }
+
         } else {
             $price = $info->firstprice;
             $weight = $price->weight ?? 0;
@@ -138,7 +144,13 @@ class ProductController extends Controller
             } else {
                 $options['stock'] = null;
             }
-            Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);
+      
+          $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);
+          
+          if($price->tax == 1){
+            $cart_item->setTaxRate(getTaxRate());
+          }
+
         }
         try {
             Cart::store($cartid);

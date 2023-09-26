@@ -21,6 +21,7 @@ class Price extends Model
         'weight',
         'stock_manage',
         'stock_status',
+        'tax',
        
         
     ];

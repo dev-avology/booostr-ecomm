@@ -18,6 +18,11 @@ function ImageSize($url,$name){
 	return $newName;
 }
 
+function getTaxRate(){
+	$tax = get_option('tax');
+  return  $tax != '' ? (float)$tax : 0; 
+}
+
 function get_planinfo($key)
 {
 	$plan_info=json_decode(tenant('plan_info'));

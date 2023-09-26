@@ -63,8 +63,8 @@ class SitesettingsController extends Controller
            $shipping_method=Option::where('key','shipping_method')->first();
           // $shipping_method=$shipping_method ?? '';
 
-          $tax=Option::where('key','tax_data')->first();
-          $tax = json_decode($tax->value ?? ''); 
+          $tax=Option::where('key','tax')->first();
+          $tax = $tax->value ?? 0; 
 
           $free_shipping=Option::where('key','free_shipping')->first() ;
           $free_shipping = $free_shipping ? $free_shipping->value : 0;
@@ -106,9 +106,9 @@ class SitesettingsController extends Controller
                 'store_legal_city' => 'required|max:30',
                 'country' => 'required|max:100',
                 'post_code' => 'required|max:50',
-                'timezone' => 'required|max:50',
-                'default_language' => 'required|max:50',
-                'weight_type' => 'required|max:50', 
+              //  'timezone' => 'required|max:50',
+               // 'default_language' => 'required|max:50',
+               // 'weight_type' => 'required|max:50', 
            ]);
 
            $tenant=Tenant();
@@ -159,47 +159,47 @@ class SitesettingsController extends Controller
            $invoice_info['post_code']=$request->post_code;
            $invoice_info['store_legal_email']=$request->store_legal_email;
            
-           $invoice_data=Option::where('key','invoice_data')->first();
-           if (empty($invoice_data)) {
-              $invoice_data=new Option;
-              $invoice_data->key='invoice_data';
+         //   $invoice_data=Option::where('key','invoice_data')->first();
+         //   if (empty($invoice_data)) {
+         //      $invoice_data=new Option;
+         //      $invoice_data->key='invoice_data';
               
-           }
-           $invoice_data->value=json_encode($invoice_info);
-           $invoice_data->save();
-           TenantCacheClear('invoice_data');
+         //   }
+         //   $invoice_data->value=json_encode($invoice_info);
+         //   $invoice_data->save();
+         //   TenantCacheClear('invoice_data');
 
 
-           $timezone=Option::where('key','timezone')->first();
-           if (empty($timezone)) {
-              $timezone=new Option;
-              $timezone->key='timezone';
-              $timezone->autoload=1;
-           }
-           $timezone->value=$request->timezone;
-           $timezone->save();
+         //   $timezone=Option::where('key','timezone')->first();
+         //   if (empty($timezone)) {
+         //      $timezone=new Option;
+         //      $timezone->key='timezone';
+         //      $timezone->autoload=1;
+         //   }
+         //   $timezone->value=$request->timezone;
+         //   $timezone->save();
 
 
 
-           $default_language=Option::where('key','default_language')->first();
-           if (empty($default_language)) {
-              $default_language=new Option;
-              $default_language->key='default_language';
-              $default_language->autoload=1;
-           }
-           $default_language->value=$request->default_language ?? 'en';
-           $default_language->save();
+         //   $default_language=Option::where('key','default_language')->first();
+         //   if (empty($default_language)) {
+         //      $default_language=new Option;
+         //      $default_language->key='default_language';
+         //      $default_language->autoload=1;
+         //   }
+         //   $default_language->value=$request->default_language ?? 'en';
+         //   $default_language->save();
 
            
 
-           $weight_type=Option::where('key','weight_type')->first();
-           if (empty($weight_type)) {
-              $weight_type=new Option;
-              $weight_type->key='weight_type';
-              $weight_type->autoload=1;
-           }
-           $weight_type->value=$request->weight_type;
-           $weight_type->save();
+         //   $weight_type=Option::where('key','weight_type')->first();
+         //   if (empty($weight_type)) {
+         //      $weight_type=new Option;
+         //      $weight_type->key='weight_type';
+         //      $weight_type->autoload=1;
+         //   }
+         //   $weight_type->value=$request->weight_type;
+         //   $weight_type->save();
 
            $order_method=Option::where('key','order_method')->first();
            if (empty($order_method)) {
@@ -228,9 +228,9 @@ class SitesettingsController extends Controller
               $currency_info->autoload=1;
            }
            $currency_info->value=json_encode(array(
-                'currency_name'=>$request->currency_name,
-                'currency_position'=>$request->currency_position,
-                'currency_icon'=>$request->currency_icon
+                'currency_name'=>$request->currency_name??'USD',
+                'currency_position'=>$request->currency_position??'left',
+                'currency_icon'=>$request->currency_icon??'$'
            ));
 
            $currency_info->save();
@@ -286,15 +286,15 @@ class SitesettingsController extends Controller
 
 
 
-           $tax_data=Option::where('key','tax_data')->first();
+           $tax_data=Option::where('key','tax')->first();
            // $shipping_method=$shipping_method ?? '';
             if (empty($tax_data)) {
                   $tax_data=new Option;
-                  $tax_data->key='tax_data';
+                  $tax_data->key='tax';
                }
          
 
-               $tax_data->value=json_encode($request->tax);
+               $tax_data->value=$request->tax;
             $tax_data->save();
 
 

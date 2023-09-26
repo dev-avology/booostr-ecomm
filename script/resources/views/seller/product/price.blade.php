@@ -79,6 +79,20 @@
             </div>
          </div>
       </div>
+      <div class="from-group row mb-2">
+         <label for="" class="col-lg-12">{{ __('Tax') }} : </label>
+         @php 
+           $tax=$info->price->tax ?? 1;
+         @endphp
+         <div class="col-lg-12">
+            <select name="tax" class="form-control selectric">
+               <option value="1" @if($tax == 1) selected="" @endif>{{ __('Enable') }}</option>
+               <option value="0" @if($tax == 0) selected="" @endif>{{ __('Disable') }}</option>
+            </select>
+         </div>
+      </div>
+  
+
       <div class="variation_product_area {{ $info->is_variation == 0 ? 'none' : '' }}">
          <div id="accordion">
             @foreach($info->productoptionwithcategories ?? [] as $key => $row)
@@ -196,6 +210,16 @@
                                  <select class="form-control selectric" name="childattribute[priceoption][{{$priceswithcategory->id}}][stock_status]">
                                     <option value="1" @if($priceswithcategory->stock_status == 1) selected @endif>{{ __('In Stock') }}</option>
                                     <option value="0" @if($priceswithcategory->stock_status == 0) selected @endif>{{ __('Out Of Stock') }}</option>
+                                 </select>
+                              </div>
+                           </div>
+
+                           <div class="from-group col-lg-6  mb-2">
+                              <label for="" >{{ __('Tax:') }} </label>
+                              <div >
+                                 <select class="form-control selectric" name="childattribute[priceoption][{{$priceswithcategory->id}}][tax]">
+                                    <option value="1" @if($priceswithcategory->tax == 1) selected @endif>{{ __('Enable') }}</option>
+                                    <option value="0" @if($priceswithcategory->tax == 0) selected @endif>{{ __('Disable') }}</option>
                                  </select>
                               </div>
                            </div>
