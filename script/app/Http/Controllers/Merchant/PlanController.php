@@ -106,6 +106,7 @@ class PlanController extends Controller
         $plan_data = json_decode($plan->data);
         $domain_id=Tenant::find(Str::slug($request->name));
         if(!empty($domain_id)){
+            
             Session::flash('error','The store name has already been taken.');
             return back();
         }

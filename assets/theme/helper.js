@@ -22,17 +22,17 @@ function runpreloader() {
 /*-------------------------
         amount_format
     --------------------------*/
-function amount_format(amount,type='name') {
+function amount_format(amount,type='icon') {
 
 	var format= type == 'name' ?  ' '+currency_settings.currency_name+' ' : currency_settings.currency_icon;
  
     
     if (currency_settings.currency_position == 'left') {
-        var price=format+amount;
+        var price=format+amount.toFixed(2);
        
     }
     else{
-        var price=amount+' '+format;
+        var price=amount.toFixed(2)+' '+format;
     }
 
    

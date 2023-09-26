@@ -144,6 +144,31 @@ class CheckoutController extends Controller
 
         // Cart::setGlobalTax($tax);
 
+
+
+        $club_info = Tenant('club_info');
+        $club_info = json_decode($club_info,true);
+        $address = explode(',',$club_info['address']);
+        $store_state = trim($address[count($address)-2]);
+
+        if($customer['state'] == '' || $store_state != trim($customer['state'])){
+            $tax = 0;
+            Cart::setGlobalTax($tax);
+        }else{
+            Cart::setGlobalTax(0);
+           $content = Cart::content();
+            if ($content && $content->count()) {
+                $content->each(function ($item, $key) {
+                   // dump($item);
+                   if($item->options->tax == 1){
+                       $item->setTaxRate(getTaxRate());
+                   }
+                });
+            }
+
+        }
+
+
         $order_settings=get_option('order_settings',true);
         if ($order_settings->shipping_amount_type != 'distance') {
             $locations=Location::where([['status',1]])->whereHas('shippings')->with('shippings')->get();
@@ -520,6 +545,37 @@ class CheckoutController extends Controller
         return view(baseview('thanks'),compact('orderno'));
     }
 
+    public function applyTax(Request $request)
+    {
+        $club_info = Tenant('club_info');
+        $club_info = json_decode($club_info,true);
+        $address = explode(',',$club_info['address']);
+        $state = trim($address[count($address)-2]);
 
+        if($request->shipping_state == '' || $state != trim($request->shipping_state)){
+            $tax = 0;
+            Cart::setGlobalTax($tax);
+        }else{
+            Cart::setGlobalTax(0);
+           $content = Cart::content();
+            if ($content && $content->count()) {
+                $content->each(function ($item, $key) {
+                   // dump($item);
+                   if($item->options->tax == 1){
+                       $item->setTaxRate(getTaxRate());
+                   }
+                });
+            }
+
+        }
+
+       
+
+        $productcartdata['cart_subtotal'] = Cart::subtotal();
+        $productcartdata['cart_tax'] = Cart::tax();
+        $productcartdata['cart_total'] = Cart::total();
+
+        return response()->json($productcartdata);
+    }
 
 }
