@@ -33,15 +33,27 @@ class SitesettingsController extends Controller
        abort_if(!getpermission('website_settings'),401);
 
        if ($slug == 'general') {
+             
+         $club_info = tenant_club_info();
+
+         $lat_lang = explode(',',$club_info['lat_lang']);
+         $address = explode(',',$club_info['address']);
+         $store_state = trim($address[count($address)-2]);
+         $store_country = trim($address[count($address)-1]);
+         $phone_number = $club_info['phone_number'];
+
            $languages=Option::where('key','languages')->first();
            $languages=json_decode($languages->value ?? '');
 
-           $store_sender_email=Option::where('key','store_sender_email')->first();
+           $store_sender_email= $club_info['club_email'];
+           $store_name = $club_info['club_name'];
+           
            $invoice_data=Option::where('key','invoice_data')->first();
            $invoice_data=json_decode($invoice_data->value ?? '');
            $timezone=Option::where('key','timezone')->first();
            $default_language=Option::where('key','default_language')->first();
            $weight_type=Option::where('key','weight_type')->first();
+           $measurment_type=Option::where('key','measurment_type')->first();
 
            $currency_info=Option::where('key','currency_data')->first();
            $currency_info=json_decode($currency_info->value ?? '');
@@ -72,7 +84,7 @@ class SitesettingsController extends Controller
           $min_cart_total=Option::where('key','min_cart_total')->first();
           $min_cart_total = $min_cart_total ? $min_cart_total->value : 100;
 
-           return view('seller.settings.general',compact('languages','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings'));
+           return view('seller.settings.general',compact('languages','lat_lang','address','phone_number','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings'));
        }
       
     }
@@ -90,74 +102,74 @@ class SitesettingsController extends Controller
     {
         if ($id == 'general') {
            $validated = $request->validate([
-                'store_name' => 'required|max:100',
-                'store_sender_email' => 'required|email|max:50',
-                'latitude' => 'required|max:50',
-                'longitude' => 'required|max:50',
-                'logo' => 'mimes:png|max:200',
-                'favicon' => 'mimes:ico|max:50',
-                'notification_icon' => 'mimes:png|max:100',
-                'banner' => 'mimes:png|max:200',
-                'store_legal_name' => 'required|max:50',
-                'store_legal_phone' => 'required|max:20',
-                'store_legal_email' => 'required|email|max:50',
-                'store_legal_address' => 'required|max:50',
-                'store_legal_house' => 'required|max:50',
-                'store_legal_city' => 'required|max:30',
-                'country' => 'required|max:100',
-                'post_code' => 'required|max:50',
+             //   'store_name' => 'required|max:100',
+            //    'store_sender_email' => 'required|email|max:50',
+            //    'latitude' => 'required|max:50',
+            //    'longitude' => 'required|max:50',
+            //    'logo' => 'mimes:png|max:200',
+           //     'favicon' => 'mimes:ico|max:50',
+            ///    'notification_icon' => 'mimes:png|max:100',
+              //  'banner' => 'mimes:png|max:200',
+              //  'store_legal_name' => 'required|max:50',
+             //   'store_legal_phone' => 'required|max:20',
+               // 'store_legal_email' => 'required|email|max:50',
+              //  'store_legal_address' => 'required|max:50',
+              //  'store_legal_house' => 'required|max:50',
+              //  'store_legal_city' => 'required|max:30',
+              //  'country' => 'required|max:100',
+              //  'post_code' => 'required|max:50',
               //  'timezone' => 'required|max:50',
                // 'default_language' => 'required|max:50',
                // 'weight_type' => 'required|max:50', 
            ]);
 
-           $tenant=Tenant();
-           $tenant->store_name=$request->store_name;
-           $tenant->lat=$request->latitude;
-           $tenant->long=$request->longitude;
-           $tenant->save();
+         //   $tenant=Tenant();
+         //   $tenant->store_name=$request->store_name;
+         //   $tenant->lat=$request->latitude;
+         //   $tenant->long=$request->longitude;
+         //   $tenant->save();
 
            $path = 'uploads/'.tenant('uid');
 
-           $store_sender_email=Option::where('key','store_sender_email')->first();
-           if (empty($store_sender_email)) {
-              $store_sender_email=new Option;
-              $store_sender_email->key='store_sender_email';
-              $store_sender_email->autoload=1;
-           }
-           $store_sender_email->value=$request->store_sender_email;
-           $store_sender_email->save();
+         //   $store_sender_email=Option::where('key','store_sender_email')->first();
+         //   if (empty($store_sender_email)) {
+         //      $store_sender_email=new Option;
+         //      $store_sender_email->key='store_sender_email';
+         //      $store_sender_email->autoload=1;
+         //   }
+         //   $store_sender_email->value=$request->store_sender_email;
+         //   $store_sender_email->save();
 
-           TenantCacheClear('store_sender_email');
+         //   TenantCacheClear('store_sender_email');
 
-           if ($request->hasFile('logo')) {
-            $logo      = $request->file('logo');
-            $logo->move($path, 'logo.png');
-           }
+         //   if ($request->hasFile('logo')) {
+         //    $logo      = $request->file('logo');
+         //    $logo->move($path, 'logo.png');
+         //   }
 
-           if ($request->hasFile('favicon')) {
-            $favicon      = $request->file('favicon');
-            $favicon->move($path, 'favicon.ico');
-           }
+         //   if ($request->hasFile('favicon')) {
+         //    $favicon      = $request->file('favicon');
+         //    $favicon->move($path, 'favicon.ico');
+         //   }
 
-           if ($request->hasFile('notification_icon')) {
-            $notification_icon      = $request->file('notification_icon');
-            $notification_icon->move($path, 'notification_icon.png');
-           }
+         //   if ($request->hasFile('notification_icon')) {
+         //    $notification_icon      = $request->file('notification_icon');
+         //    $notification_icon->move($path, 'notification_icon.png');
+         //   }
 
-           if ($request->hasFile('banner')) {
-            $banner      = $request->file('banner');
-            $banner->move($path, 'banner.png');
-           }
+         //   if ($request->hasFile('banner')) {
+         //    $banner      = $request->file('banner');
+         //    $banner->move($path, 'banner.png');
+         //   }
 
-           $invoice_info['store_legal_name']=$request->store_legal_name;
-           $invoice_info['store_legal_phone']=$request->store_legal_phone;
-           $invoice_info['store_legal_address']=$request->store_legal_address;
-           $invoice_info['store_legal_house']=$request->store_legal_house;
-           $invoice_info['store_legal_city']=$request->store_legal_city;
-           $invoice_info['country']=$request->country;
-           $invoice_info['post_code']=$request->post_code;
-           $invoice_info['store_legal_email']=$request->store_legal_email;
+         //   $invoice_info['store_legal_name']=$request->store_legal_name;
+         //   $invoice_info['store_legal_phone']=$request->store_legal_phone;
+         //   $invoice_info['store_legal_address']=$request->store_legal_address;
+         //   $invoice_info['store_legal_house']=$request->store_legal_house;
+         //   $invoice_info['store_legal_city']=$request->store_legal_city;
+         //   $invoice_info['country']=$request->country;
+         //   $invoice_info['post_code']=$request->post_code;
+         //   $invoice_info['store_legal_email']=$request->store_legal_email;
            
          //   $invoice_data=Option::where('key','invoice_data')->first();
          //   if (empty($invoice_data)) {
@@ -200,6 +212,15 @@ class SitesettingsController extends Controller
          //   }
          //   $weight_type->value=$request->weight_type;
          //   $weight_type->save();
+
+            $measurment_type=Option::where('key','measurment_type')->first();
+           if (empty($measurment_type)) {
+              $measurment_type=new Option;
+              $measurment_type->key='weight_type';
+              $measurment_type->autoload=1;
+           }
+           $measurment_type->value=$request->measurment_type;
+           $measurment_type->save();
 
            $order_method=Option::where('key','order_method')->first();
            if (empty($order_method)) {
@@ -349,6 +370,7 @@ class SitesettingsController extends Controller
            TenantCacheClear('invoice_data');
            TenantCacheClear('autoload');
            TenantCacheClear('order_settings');
+           TenantCacheClear('measurment_type');
 
            
            return response()->json('General Settings');
