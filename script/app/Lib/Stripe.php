@@ -164,6 +164,8 @@ class Stripe {
                 'token' => $token,
                 'application_fee'=>$application_fee_amount
             ])->send();
+
+            dd($response);
         }
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
