@@ -158,12 +158,12 @@ class Stripe {
         $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
         if($token){
-            $response = $stripe->authorize([
+            $response = $stripe->capture([
                 'amount' => $totalAmount,
                 'currency' => $currency,
                 'token' => $token,
-                'onBehalfOf' => $array['stripe_account_id'],
-                'destination'   => $array['stripe_account_id'],
+   //             'onBehalfOf' => $array['stripe_account_id'],
+   //             'destination'   => $array['stripe_account_id'],
                 'applicationFee'=>$application_fee_amount
             ])->send();
 
