@@ -463,6 +463,8 @@ function currency()
 	
 }
 
+
+
 function currency_formate($price){
 	
 	$currency=get_option('currency_data',true);
@@ -473,7 +475,23 @@ function currency_formate($price){
 
 }
 
+function tenant_club_info(){
+	$club_info = Tenant('club_info');
+	$club_info = json_decode($club_info,true);
+  return $club_info;
+}
 
+function credit_card_fee($total){
+  return number_format($total * 0.029 + 0.30,2);
+}
+
+
+function booster_club_chagre($total){
+    
+	$club_info = tenant_club_info();
+
+  return number_format(((int)$club_info['is_pro'] == 1) ? $total *0.025 : $total *0.05,2);
+}
 
 
 function postlimitcheck($type = true){

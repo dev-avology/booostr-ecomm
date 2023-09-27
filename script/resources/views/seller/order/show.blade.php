@@ -92,13 +92,33 @@
 								<div class="col-3 text-right"> - {{ currency_formate($info->discount) }} </div>
 							</div>
 						</li>
+                      @php
+					  $credit_card_fee = 0;
+					  $booster_platform_fee = 0;
+					  $shipping_price=$shipping_price ?? 0;
+						if(!empty($ordermeta)){
+							$credit_card_fee = $ordermeta->credit_card_fee;
+                            $booster_platform_fee = $ordermeta->booster_platform_fee;
+						}
+
+                      @endphp
 						<li class="list-group-item">
 							<div class="row align-items-center">
 								<div class="col-9 text-right">{{ __('Subtotal') }}</div>
-								@php
-								$shipping_price=$shipping_price ?? 0;
-								@endphp
-								<div class="col-3 text-right">{{ currency_formate($info->total-$shipping_price) }}</div>
+								<div class="col-3 text-right">{{ currency_formate($info->total-$credit_card_fee-$booster_platform_fee) }}</div>
+							</div>
+						</li>
+						<li class="list-group-item">
+							<div class="row align-items-center">
+								<div class="col-9 text-right">{{ __('Credit Card fee') }}</div>
+								
+								<div class="col-3 text-right">{{ currency_formate($credit_card_fee) }}</div>
+							</div>
+						</li>
+						<li class="list-group-item">
+							<div class="row align-items-center">
+								<div class="col-9 text-right">{{ __('Booster Platform fee') }}</div>
+								<div class="col-3 text-right">{{ currency_formate($booster_platform_fee) }}</div>
 							</div>
 						</li>
 						<li class="list-group-item">

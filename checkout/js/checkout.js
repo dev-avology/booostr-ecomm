@@ -4,6 +4,9 @@ $('.cart_subtotal').text(amount_format(subtotal));
 $('.cart_tax').text(amount_format(tax));
 $('.cart_total').text(amount_format(total));
 
+$('.cart_credit_card_fee').text(amount_format(credit_card_fee));
+$('.cart_booster_platform_fee').text(amount_format(booster_platform_fee));
+$('.cart_grand_total').text(amount_format(total+credit_card_fee+booster_platform_fee+price));
 
  /*-------------------------
         Order Method Change
@@ -88,7 +91,7 @@ $('#locations').on('change',function(){
        shipping_item
     --------------------------*/
 $(document).on('change','.shipping_item',function(){
-	var price=$(this).data('price');
+	 price=$(this).data('price');
 
 	var shippingD = $(this).data('shippinginfo');
 	var mt = shippingD.method_type;
@@ -139,7 +142,7 @@ $(document).on('change','.shipping_item',function(){
 
 	$('.shipping_fee').text(amount_format(price));
 
-	new_total=total+price+parseFloat(tax);
+	new_total=total+price;
 
 	$('.cart_total').text(amount_format(new_total));
 
@@ -235,8 +238,7 @@ function shipping_state_change()
 {
 	var shipping_state = $('#location_state1').val();
 	
-	var store_state = store_info.address.split(",");
-if(shipping_state != ''){
+    if(shipping_state != ''){
 		$.ajaxSetup({
 			headers: {
 				'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -246,7 +248,7 @@ if(shipping_state != ''){
 		$.ajax({
 			type: 'POST',
 			url: apply_tax_url,
-			data: {shipping_state: $('#location_state1').val()},
+			data: {shipping_state: $('#location_state1').val(),shipping_price:price},
 			dataType: 'json',
 			success: function(response){ 			
 				$('#tax').val(response.cart_tax);
