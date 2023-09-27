@@ -245,7 +245,7 @@ class CheckoutController extends Controller
        if($free_shipping){
          $subtotal = Cart::subtotal();
        
-         if((int)$subtotal >= (int)$min_cart_total){
+         if((float)$subtotal >= (float)$min_cart_total){
                 $shipping_methods = ['method_type'=>'free_shipping','label'=>'Free Shipping','pricing'=>0,'base_pricing'=>0];
             }
        }
@@ -308,11 +308,11 @@ class CheckoutController extends Controller
                  foreach($shippingDetails['pricing'] as $index){
     
 
-                  $from = (int)$index['from']??0;
-                  $to = (int) $index['to'] > 0 ?(int) $index['to']: PHP_INT_MAX;
+                  $from = (float)$index['from']??0;
+                  $to = (float) $index['to'] > 0 ?(float) $index['to']: PHP_INT_MAX;
 
                     if($subtotal > $from && $subtotal <= $to){
-                        $shipping_price = (int)$index['price'];
+                        $shipping_price = (float)$index['price'];
                         $shipping_method_label = $shippingDetails['label'];
                     }
                  }
@@ -350,8 +350,8 @@ class CheckoutController extends Controller
             };
         }
 
-        $paymentresult= $gateway->namespace::charge_payment($payment_data);
-        //$paymentresult= ['payment_status'=>4,'payment_id'=>'sffsdf43534'];
+       // $paymentresult= $gateway->namespace::charge_payment($payment_data);
+        $paymentresult= ['payment_status'=>4,'payment_id'=>'sffsdf43534'];
 
         if($paymentresult['payment_status'] != 4){
             return redirect()->back()->with(["error"=>"Sorry, we couldnt charge your card, please try another card"]);

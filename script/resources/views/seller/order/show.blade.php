@@ -47,17 +47,17 @@
 									@foreach($item ?? [] as $r)
 								    <span>{{ __('Name:') }} {{ $r->name ?? '' }}</span><br>
 								    <span>{{ __('Sku:') }} {{ $r->sku ?? '' }}</span><br>
-								    <span>{{ __('Price:') }} {{ number_format($r->price ?? 0,2) }}</span><br>
+								    <span>{{ __('Price:') }} {{currency_formate($r->price ?? 0)}}</span><br>
 								    <span>{{ __('Weight:') }} {{ $r->weight ?? '' }}</span><br>
 								    @endforeach
 								    <hr>
 									@endforeach
 								</div>
 								<div class="col-3 text-right">
-									{{ $row->amount }} × {{ $row->qty }}
+									{{ currency_formate($row->amount) }} × {{ $row->qty }}
 								</div>
 								<div class="col-3 text-right">
-									{{  number_format($row->amount*$row->qty,2) }}
+									{{ currency_formate( $row->amount*$row->qty) }}
 								</div>
 							</div>
 						</li>
@@ -75,7 +75,7 @@
 									{{ __('Shipping Fee') }}
 								</div>
 								<div class="col-3 text-right">
-									{{ number_format($shipping_price,2) }}
+									{{ currency_formate($shipping_price) }}
 								</div>
 							</div>
 						</li>
@@ -83,13 +83,13 @@
 						<li class="list-group-item">
 							<div class="row align-items-center">
 								<div class="col-9 text-right">{{ __('Tax') }}</div>
-								<div class="col-3 text-right"> {{ number_format($info->tax,2) }} </div>
+								<div class="col-3 text-right"> {{ currency_formate($info->tax) }} </div>
 							</div>
 						</li>
 						<li class="list-group-item">
 							<div class="row align-items-center">
 								<div class="col-9 text-right">{{ __('Discount') }}</div>
-								<div class="col-3 text-right"> - {{ number_format($info->discount,2) }} </div>
+								<div class="col-3 text-right"> - {{ currency_formate($info->discount) }} </div>
 							</div>
 						</li>
 						<li class="list-group-item">
@@ -98,14 +98,14 @@
 								@php
 								$shipping_price=$shipping_price ?? 0;
 								@endphp
-								<div class="col-3 text-right">{{ number_format($info->total-$shipping_price,2) }}</div>
+								<div class="col-3 text-right">{{ currency_formate($info->total-$shipping_price) }}</div>
 							</div>
 						</li>
 						<li class="list-group-item">
 							<div class="row align-items-center">
 								<div class="col-9 text-right">{{ __('Total') }}</div>
 
-								<div class="col-3 text-right">{{ number_format($info->total,2) }}</div>
+								<div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
 							</div>
 						</li>
 					</ul>

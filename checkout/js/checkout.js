@@ -101,48 +101,45 @@ $(document).on('change','.shipping_item',function(){
 	price = 0;
 
 	}else if(mt == 'per_item'){
-      var per_item_charge = parseInt(shippingD.pricing);
+      var per_item_charge = parseFloat(shippingD.pricing);
        price = price + cartItems * per_item_charge;
 	   
 	}else if(mt == 'weight_based'){
-		var per_lb_charge = parseInt(shippingD.pricing);
+		var per_lb_charge = parseFloat(shippingD.pricing);
 		price = price + cartweight * per_lb_charge;
 
 	}else if(mt == 'flat_rate'){
 
 		var pricing = shippingD.pricing;
        
-		console.log(pricing);
 
 		if (Array.isArray(pricing)) {
-			console.log('Array');
 			pricing.forEach(item => {
-				var from = parseInt(item.from)??0;
-				var to = parseInt(item.to)>0? parseInt(item.to):Number.MAX_VALUE;
-				console.log(from,to);
+				var from = parseFloat(item.from)??0;
+				var to = parseFloat(item.to)>0? parseFloat(item.to):Number.MAX_VALUE;
 
 				if (subtotal > from && subtotal <= to) {
-				price = parseInt(item.price);
+				price = parseFloat(item.price);
 			  }
 			});
 
 		  } else if (typeof pricing === 'object' && pricing !== null) {
 			console.log('Object');
 			Object.values(pricing).forEach(item => {
-				var from = parseInt(item.from)??0;
-				var to = parseInt(item.to)>0? parseInt(item.to):Number.MAX_VALUE;
-
+				var from = parseFloat(item.from)??0;
+				var to = parseFloat(item.to)>0? parseFloat(item.to):Number.MAX_VALUE;
 				if (subtotal > from && subtotal <= to) {
-				price = parseInt(item.price);
+				  price = parseFloat(item.price);
 			  }
 			});
 		  }
 	     //	price = parseInt(pricing[0]?.price??0);
 	}
+    console.log(tax);
 
 	$('.shipping_fee').text(amount_format(price));
 
-	new_total=total+price;
+	new_total=total+price+parseFloat(tax);
 
 	$('.cart_total').text(amount_format(new_total));
 
@@ -252,10 +249,18 @@ if(shipping_state != ''){
 			data: {shipping_state: $('#location_state1').val()},
 			dataType: 'json',
 			success: function(response){ 			
-				$('.cart_subtotal').text(amount_format(response.cart_subtotal));
+				$('#tax').val(response.cart_tax);
+                 
+				tax = response.cart_tax;
+
+				//$('.cart_subtotal').text(amount_format(response.cart_subtotal));
 				$('.cart_tax').text(amount_format(response.cart_tax));
 				$('.cart_total').text(amount_format(response.cart_total));
+				
+				$(".shipping_method_area .shipping_method").find(".shipping_item").eq(0).trigger('change');
 			}
 		});
+ 
+
 }
 }
