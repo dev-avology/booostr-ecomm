@@ -162,8 +162,8 @@ class Stripe {
                 'amount' => $totalAmount,
                 'currency' => $currency,
                 'token' => $token,
-                'onBehalfOf' => $array['stripe_account_id'],
-                'destination'   => $array['stripe_account_id'],
+              //  'onBehalfOf' => $array['stripe_account_id'],
+              //  'destination'   => $array['stripe_account_id'],
                 'applicationFee'=>$application_fee_amount
             ])->send();
 
@@ -171,6 +171,14 @@ class Stripe {
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
 
+
+            $transaction = $stripe->capture(array(
+                'amount'        => $totalAmount,
+                'currency'      => $currency,
+            ));
+            $transaction->setTransactionReference($arr_body['id']);
+            $response = $transaction->send();
+dd( $response);
             // $transaction = $stripe->transfer(array(
             //     'amount'        => $totalAmount,
             //     'currency'      => $currency,
