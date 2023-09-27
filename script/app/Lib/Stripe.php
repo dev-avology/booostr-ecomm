@@ -162,6 +162,7 @@ class Stripe {
                 'amount' => $totalAmount,
                 'currency' => $currency,
                 'token' => $token,
+                'onBehalfOf' => $array['stripe_account_id'],
                 'application_fee'=>$application_fee_amount
             ])->send();
 
