@@ -161,10 +161,12 @@ class Stripe {
             $response = $stripe->authorize([
                 'amount' => $totalAmount,
                 'currency' => $currency,
-                'application_fee_amount'=>$application_fee_amount,
                 'token' => $token,
+                'onBehalfOf' => $array['stripe_account_id'],
+                'destination'   => $array['stripe_account_id'],
+                'applicationFee'=>$application_fee_amount
             ])->send();
-       
+
         }
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
@@ -214,7 +216,7 @@ class Stripe {
             $transaction = $stripe->capture(array(
                     'amount'        => $totalAmount,
                     'currency'      => $currency,
-                    'application_fee_amount'=>$application_fee_amount,
+                    'applicationFee'=>$application_fee_amount
                 ));
                 $transaction->setTransactionReference($array['transaction_id']);
                 $response = $transaction->send();
@@ -228,6 +230,7 @@ class Stripe {
                 'sourceTransaction' => $arr_body['id'],
                 'onBehalfOf' => $array['stripe_account_id'],
                 'destination'   => $array['stripe_account_id'],
+                'applicationFee'=>$application_fee_amount
             ));
             $response1 = $transaction->send();
 
