@@ -381,6 +381,7 @@ class CheckoutController extends Controller
         $payment_data['phone']      = $request->phone;
         $payment_data['billName']   = 'Boostr Sale';
         $payment_data['amount']     = $total_amount;
+        $payment_data['application_fee_amount']  = $booster_platform_fee;
         $payment_data['test_mode']  = $gateway->test_mode;
         $payment_data['charge']     = $gateway->charge ?? 0;
         $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount*$gateway->rate+$gateway->charge ?? 0,2));
@@ -594,8 +595,8 @@ class CheckoutController extends Controller
 
     public function applyTax(Request $request)
     {
-        $club_info = Tenant('club_info');
-        $club_info = json_decode($club_info,true);
+        $club_info = tenant_club_info();
+
         $address = explode(',',$club_info['address']);
         $state = trim($address[count($address)-2]);
 
@@ -616,11 +617,21 @@ class CheckoutController extends Controller
 
         }
 
-       
+        $total_amount =  Cart::total() + $request->shipping_price;
 
-        $productcartdata['cart_subtotal'] = Cart::subtotal();
-        $productcartdata['cart_tax'] = Cart::tax();
-        $productcartdata['cart_total'] = Cart::total();
+       $credit_card_fee = credit_card_fee($total_amount);
+
+       $booster_platform_fee = booster_club_chagre($total_amount);
+
+       $total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
+
+       $productcartdata['cart_shipping_price'] = $request->shipping_price;
+       $productcartdata['cart_subtotal'] = Cart::subtotal();
+       $productcartdata['cart_tax'] = Cart::tax();
+        $productcartdata['cart_total'] = Cart::total()+ $request->shipping_price;
+        $productcartdata['cart_credit_card_fee'] = $credit_card_fee;
+        $productcartdata['cart_booster_platform_fee'] = $booster_platform_fee;
+        $productcartdata['cart_grand_total'] = $total_amount;
 
         return response()->json($productcartdata);
     }
