@@ -217,6 +217,7 @@ class Stripe {
             $transaction = $stripe->capture(array(
                     'amount'        => $totalAmount,
                     'currency'      => $currency,
+                    'applicationFee'=>$application_fee_amount
                 ));
                 $transaction->setTransactionReference($array['transaction_id']);
                 $response = $transaction->send();
@@ -230,8 +231,9 @@ class Stripe {
                 'sourceTransaction' => $arr_body['id'],
                 'onBehalfOf' => $array['stripe_account_id'],
                 'destination'   => $array['stripe_account_id'],
+                'applicationFee'=>$application_fee_amount
             ));
-            $response1 = $transaction->setApplicationFee($application_fee_amount)->send();
+            $response1 = $transaction->send();
 
             $data['payment_id'] = $arr_body['id'];
             $data['payment_method'] = "stripe";
