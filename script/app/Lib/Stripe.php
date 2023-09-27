@@ -152,6 +152,7 @@ class Stripe {
         $data['payment_mode']='stripe';
         $data['amount']=$totalAmount;
         $data['test_mode']=$test_mode;
+        $application_fee_amount = $array['application_fee_amount'];
 
         $stripe = Omnipay::create('Stripe');
         $token = $array['stripeToken'];
@@ -160,6 +161,7 @@ class Stripe {
             $response = $stripe->authorize([
                 'amount' => $totalAmount,
                 'currency' => $currency,
+                'application_fee_amount'=>$application_fee_amount,
                 'token' => $token,
             ])->send();
        
@@ -205,12 +207,14 @@ class Stripe {
         $data['payment_mode']='stripe';
         $data['amount']=$totalAmount;
         $data['test_mode']=$test_mode;
+        $application_fee_amount = $array['application_fee_amount'];
 
         $stripe = Omnipay::create('Stripe');
         $stripe->setApiKey($secret_key);
             $transaction = $stripe->capture(array(
                     'amount'        => $totalAmount,
                     'currency'      => $currency,
+                    'application_fee_amount'=>$application_fee_amount,
                 ));
                 $transaction->setTransactionReference($array['transaction_id']);
                 $response = $transaction->send();
