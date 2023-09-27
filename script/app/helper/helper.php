@@ -463,6 +463,16 @@ function currency()
 	
 }
 
+function currency_formate($price){
+	
+	$currency=get_option('currency_data',true);
+
+    $price = number_format($price,2);
+  
+	return $currency->currency_icon.''.$price;
+
+}
+
 
 
 

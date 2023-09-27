@@ -95,7 +95,7 @@
                             </td>
                             <td><a href="{{ route('seller.order.show',$row->id) }}">{{ $row->created_at->format('d-F-Y') }}</a></td>
                             <td>@if($row->user_id !== null)<a href="{{ route('seller.user.show',$row->user_id) }}">{{ $row->user->name }}</a> @else {{ __('Guest User') }} @endif</td>
-                            <td >{{ number_format($row->total,2) }}</td>
+                            <td >{{ currency_formate($row->total) }}</td>
                             <td>
                                 @if($row->payment_status==2)
                                 <span class="badge badge-warning">{{ __('Pending') }}</span>

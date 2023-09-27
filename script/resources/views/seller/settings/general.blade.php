@@ -263,7 +263,7 @@
                         <label for="" class="col-lg-12">{{ __('Sales Tax Percentage Amount') }} : </label>
                         <div class="col-lg-12">
                             <input type="text" value="{{ $tax ?? 5 }}"
-                            name="tax" class="form-control" max="50" id="tax" data-inputmask="'mask': '9{0,2}.9{0,3}[%]'" data-mask>
+                            name="tax" class="form-control"  id="tax" data-inputmask="'mask': '9{0,2}.9{0,3}[%]'" data-mask>
                         </div>
                     </div>
 
@@ -303,8 +303,8 @@
                             <div class="col-lg-12">
                                 <div class="input-with-icon">
                                 <i class="fas fa-dollar-sign"></i>
-                                <input type="text" value="{{ $min_cart_total ?? 100 }}"
-                                    name="min_cart_total" class="form-control" max="50" placeholder="0.00">
+                                <input type="number" step="any" value="{{ $min_cart_total ?? 100 }}"
+                                    name="min_cart_total" class="form-control" placeholder="0.00">
                                 </div>  
                                 <small>{{ __('Your Minimum Cart total in store currency.') }}</small>
                             </div>
@@ -343,7 +343,7 @@
 
                             <div class="col-lg-12">
                                 <input type="text" value="{{ $shipping_label ?? '' }}" required
-                                    name="shipping_method_label" class="form-control" max="50">
+                                    name="shipping_method_label" class="form-control" >
                                 <small>{{ __('Your Shipping Method Label.') }}</small>
                             </div>
                         </div>
@@ -445,7 +445,7 @@
 
                                         @foreach ($p as $k => $v)
                                             <div class="row mt-2" id="f-{{$k}}" >
-                                                <div class="col-md-2">
+                                                <div class="col-lg-3">
                                                       
                                                          <small>{{ __('Cart Subtotal Range (low)') }}</small>
                                                       
@@ -457,10 +457,10 @@
                                                         class="form-control" placeholder="0.00">
                                                         </div>
                                                 </div>
-                                                <div class="col-md-1">
+                                                <div class="col-lg-1">
                                                     <label for="">{{ __('-') }} </label>
                                                 </div>
-                                                <div class="col-md-2">
+                                                <div class="col-lg-3">
 
                                                    
                                                          <small>{{ __('Cart Subtotal Range (high)') }}</small>
@@ -473,7 +473,7 @@
                                                         class="form-control" placeholder="0.00">
                                                         </div>
                                                 </div>
-                                                <div class="col-lg-6">
+                                                <div class="col-lg-3">
 
                                                   
                                                         <small>{{ __('Shipping Cost to Customer') }}</small>
@@ -486,7 +486,7 @@
                                                         class="form-control" placeholder="0.00">
                                                     </div>
                                                 </div>
-                                                <div class="col-md-1">
+                                                <div class="col-lg-2">
                                                    
                                                     <a href="javascript:void(0)" data-rowid="f-{{$k}}" class="flatrate-remove-row"><i
                                                         class="fas fa-minus pt-4"></i></a>      
@@ -717,6 +717,34 @@ $(document).ready(function () {
     $('#timezone').val('{{ $timezone->value ?? '' }}')
     $('#default_language').val('{{ $default_language->value ?? '' }}');
    
+
+    $(document).on('change','.input-with-icon input[type=number]',function() {
+       // This function will be executed when the input value changes.
+       var inputValue = $(this).val();
+       
+       inputValue = inputValue.match(/[0-9.]+/g);
+
+       if(inputValue === null || inputValue === ''){
+        return;
+       }
+       $(this).val(parseFloat(inputValue).toFixed(2));
+    });
+
+
+    $(document).on('change','#tax',function() {
+       // This function will be executed when the input value changes.
+       var inputValue = $(this).val();
+       inputValue = inputValue.match(/[0-9.]+/g);
+
+       if(inputValue === null || inputValue === ''){
+        return;
+       }
+       $(this).val(parseFloat(inputValue).toFixed(3));
+    });
+
+
+
+
     $('#shipping_amount_type').on('change',function(){
         var type=$(this).val();
         if (type == 'distance') {
@@ -756,14 +784,14 @@ $(document).ready(function () {
             $('.flatraterow').on('click', function() {
 
                 $('#flat_rate').append('<div class="row mt-2" id="f-'+rowtotal+'">' +
-                    '<div class="col-md-2"> <small> Cart Subtotal Range (low)</small><div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="0" step="any" name="type_price[\'flatrate_range\'][' +
+                    '<div class="col-lg-3"> <small> Cart Subtotal Range (low)</small><div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
                     rowtotal + '][from]" class="form-control" placeholder="0.00"></div></div>' +
-                    '<div class="col-md-1"><label for="">-</label></div>' +
-                    '<div class="col-md-2"><small> Cart Subtotal Range (high)</small><div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="25" step="any" name="type_price[\'flatrate_range\'][' +
+                    '<div class="col-lg-1"><label for="">-</label></div>' +
+                    '<div class="col-lg-3"><small> Cart Subtotal Range (high)</small><div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
                     rowtotal + '][to]" class="form-control" placeholder="0.00"></div></div>' +
-                    '<div class="col-lg-6"><small>Shipping Cost to Customer</small> <div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="0" step="any" name="type_price[\'flatrate_range\'][' +
+                    '<div class="col-lg-3"><small>Shipping Cost to Customer</small> <div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
                     rowtotal + '][price]" class="form-control" placeholder="0.00"></div></div>' +
-                    ' <div class="col-md-1"><a href="javascript:void(0)" data-rowid="f-'+rowtotal+'" class="flatrate-remove-row"><i class="fas fa-minus pt-4"></i></a></div> ' +
+                    ' <div class="col-lg-2"><a href="javascript:void(0)" data-rowid="f-'+rowtotal+'" class="flatrate-remove-row"><i class="fas fa-minus pt-4"></i></a></div> ' +
                     '</div>');
 
                 rowtotal++;
