@@ -146,8 +146,8 @@ class CheckoutController extends Controller
 
 
 
-        $club_info = Tenant('club_info');
-        $club_info = json_decode($club_info,true);
+       
+        $club_info = tenant_club_info();
         $address = explode(',',$club_info['address']);
         $store_state = trim($address[count($address)-2]);
 
@@ -159,13 +159,11 @@ class CheckoutController extends Controller
            $content = Cart::content();
             if ($content && $content->count()) {
                 $content->each(function ($item, $key) {
-                   // dump($item);
                    if($item->options->tax == 1){
                        $item->setTaxRate(getTaxRate());
                    }
                 });
             }
-
         }
 
 
@@ -241,21 +239,57 @@ class CheckoutController extends Controller
        $min_cart_total = $min_cart_total ? (int)$min_cart_total->value : 100;
 
        $shipping_methods = null;
+       $subtotal = Cart::subtotal();
 
        if($free_shipping){
-         $subtotal = Cart::subtotal();
        
          if((float)$subtotal >= (float)$min_cart_total){
                 $shipping_methods = ['method_type'=>'free_shipping','label'=>'Free Shipping','pricing'=>0,'base_pricing'=>0];
+                $shipping_price = 0;
             }
        }
        
        if(empty($shipping_methods)){
           $shipping_methods= json_decode(Option::where('key','shipping_method')->first()->value,true);
+
+          if($shipping_methods['method_type'] == 'per_item'){
+
+            $shipping_price = $shipping_methods['base_pricing'] + Cart::count() * $shipping_methods['pricing'];
+
+
+        }else if($shipping_methods['method_type'] == 'weight_based'){
+
+            $shipping_price = $shipping_methods['base_pricing'] + Cart::weight() * $shipping_methods['pricing'];
+
+        }else if($shipping_methods['method_type'] == 'flat_rate'){
+
+
+         if(is_array($shipping_methods['pricing'])){
+             foreach($shipping_methods['pricing'] as $index){
+
+
+              $from = (float)$index['from']??0;
+              $to = (float) $index['to'] > 0 ?(float) $index['to']: PHP_INT_MAX;
+
+                if($subtotal > $from && $subtotal <= $to){
+                    $shipping_price = (float)$index['price'];
+                }
+             }
+         }
+
+        }
        }
 
+        $total =  Cart::total() + $shipping_price;
 
-        return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','customer'));
+        $credit_card_fee = credit_card_fee($total);
+
+        $booster_platform_fee = booster_club_chagre($total);
+
+        $grand_total = $total+$credit_card_fee + $booster_platform_fee;
+
+
+        return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer'));
     }
 
 
@@ -328,7 +362,15 @@ class CheckoutController extends Controller
 
        $total_amount=str_replace(',','',Cart::total());
        $total_discount=str_replace(',','',Cart::discount());
-       $total_amount=$total_amount+$shipping_price;
+
+       $total_amount =  $total_amount + $shipping_price;
+
+       $credit_card_fee = credit_card_fee($total_amount);
+
+       $booster_platform_fee = booster_club_chagre($total_amount);
+
+       $total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
+
 
        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
        //Process Payment
@@ -350,8 +392,8 @@ class CheckoutController extends Controller
             };
         }
 
-       // $paymentresult= $gateway->namespace::charge_payment($payment_data);
-        $paymentresult= ['payment_status'=>4,'payment_id'=>'sffsdf43534'];
+        $paymentresult= $gateway->namespace::charge_payment($payment_data);
+        //$paymentresult= ['payment_status'=>4,'payment_id'=>'sffsdf43534'];
 
         if($paymentresult['payment_status'] != 4){
             return redirect()->back()->with(["error"=>"Sorry, we couldnt charge your card, please try another card"]);
@@ -423,6 +465,9 @@ class CheckoutController extends Controller
                 $delivery_info['post_code'] = $request->shipping['post_code'];
                 $delivery_info['shipping_method'] = $request->shipping_method;
                 $delivery_info['shipping_label'] = $shipping_method_label;
+                $delivery_info['shipping_label'] = $shipping_method_label;
+                $delivery_info['credit_card_fee'] = $credit_card_fee;
+                $delivery_info['booster_platform_fee'] = $booster_platform_fee;
 
                 $order->shipping()->create([
                     'location_id' => $request->location,
@@ -441,6 +486,8 @@ class CheckoutController extends Controller
                 $customer_info['note'] = $request->comment ?? "";
                 $customer_info['billing'] = $request->billing ?? "";
                 $customer_info['shipping'] = $request->shipping ?? "";
+                $customer_info['credit_card_fee'] = $credit_card_fee;
+                $customer_info['booster_platform_fee'] = $booster_platform_fee;
 
                 $order->ordermeta()->create([
                     'key' => 'orderinfo',

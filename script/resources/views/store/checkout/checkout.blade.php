@@ -286,6 +286,19 @@
 									<li>(+) {{ __('Delivery fee') }}<span class="shipping_fee">0.00</span></li>
 
 									<li class="last">{{ __('Total') }}<span class="cart_total">0.00</span></li>
+
+									<li>{{ __('Credit Card Fee') }}
+										<span class="cart_credit_card_fee">
+											0.00
+										</span>
+									</li>
+									<li> {{ __('Booostr Platform Fee') }}
+										<span class="cart_booster_platform_fee">
+											0.00
+										</span>
+									</li>
+									<li class="last">{{ __('Grand Total') }}<span class="cart_grand_total">0.00</span></li>
+
 								</ul>
 							</div>
 						</div>
@@ -332,6 +345,8 @@
 <!--/ End Checkout -->
 <input type="hidden" id="subtotal" value="{{ Cart::instance('default')->subtotal() }}">
 <input type="hidden" id="tax" value="{{ Cart::instance('default')->tax() }}">
+<input type="hidden" id="credit_card_fee" value="{{ credit_card_fee(Cart::instance('default')->total() + $shipping_price) }}">
+<input type="hidden" id="booster_platform_fee" value="{{ booster_club_chagre(Cart::instance('default')->total() + $shipping_price ) }}">
 <input type="hidden" id="total" value="{{ Cart::instance('default')->total() }}">
 
 <input type="hidden" id="totalWeight" value="{{ Cart::instance('default')->weight() }}">
@@ -350,6 +365,10 @@
 	var subtotal = parseFloat($('#subtotal').val());
 	var tax = parseFloat($('#tax').val());
 	var total = parseFloat($('#total').val());
+	var price = {{$shipping_price}};
+	var credit_card_fee = parseFloat($('#credit_card_fee').val());
+	var booster_platform_fee = parseFloat($('#booster_platform_fee').val());
+
 	var new_total = subtotal;
 	var apply_tax_url = "{{route('checkout.applyTax')}}";
 	var store_info = {!! Tenant('club_info') !!};
