@@ -162,6 +162,7 @@ class Stripe {
                 'amount' => $totalAmount,
                 'currency' => $currency,
                 'token' => $token,
+                'application_fee'=>$application_fee_amount
             ])->send();
         }
         if ($response->isSuccessful()) {
