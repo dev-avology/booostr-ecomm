@@ -158,15 +158,15 @@ class Stripe {
         $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
         if($token){
-            $response = $stripe->capture([
+            $response = $stripe->authorize([
                 'amount' => $totalAmount,
                 'currency' => $currency,
                 'token' => $token,
                 'onBehalfOf' => $array['stripe_account_id'],
-   //             'destination'   => $array['stripe_account_id'],
-    //            'applicationFee'=>$application_fee_amount
+                'destination'   => $array['stripe_account_id'],
+                'applicationFee'=>$application_fee_amount
             ])->send();
-dd($response);
+
         }
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
