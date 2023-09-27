@@ -222,12 +222,11 @@ class Stripe {
             $transaction = $stripe->transfer(array(
                 'amount'        => $totalAmount,
                 'currency'      => $currency,
-                'applicationFee'=>$application_fee_amount,
                 'sourceTransaction' => $arr_body['id'],
                 'onBehalfOf' => $array['stripe_account_id'],
                 'destination'   => $array['stripe_account_id'],
             ));
-            $response1 = $transaction->send();
+            $response1 = $transaction->setApplicationFee($application_fee_amount)->send();
 
             $data['payment_id'] = $arr_body['id'];
             $data['payment_method'] = "stripe";
