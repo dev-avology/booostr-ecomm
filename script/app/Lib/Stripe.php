@@ -167,7 +167,6 @@ class Stripe {
                 'applicationFee'=>$application_fee_amount
             ])->send();
 
-            dd($response);
         }
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
