@@ -154,7 +154,7 @@ class Stripe {
         $data['test_mode']=$test_mode;
         $application_fee_amount = $array['application_fee_amount'];
 
-        $stripe = Omnipay::create('Stripe\PaymentIntents');
+        $stripe = Omnipay::create('Stripe');
         $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
         if($token){
