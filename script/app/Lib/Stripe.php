@@ -164,7 +164,7 @@ class Stripe {
                 'token' => $token,
                 'onBehalfOf' => $array['stripe_account_id'],
                 'destination'   => $array['stripe_account_id'],
-                'application_fee_amount'=>$application_fee_amount
+                'applicationFee'=>$application_fee_amount
             ])->send();
 
             dd($response);
