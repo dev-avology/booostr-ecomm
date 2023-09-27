@@ -31,26 +31,26 @@
                     <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Store name :') }}  </label>
                         <div class="col-lg-12">
-                            <input type="text" value="{{ tenant('store_name') }}"  required="" name="store_name" class="form-control" max="30">
+                            <input type="text" disabled value="{{ $store_name }}"  required="" name="store_name" class="form-control" max="30">
                         </div>
                     </div>
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Sender email') }} : </label>
                         <div class="col-lg-12">
-                            <input type="email" value="{{ $store_sender_email->value ?? '' }}" required  name="store_sender_email" class="form-control"  max="50">
+                            <input type="email" disabled value="{{ $store_sender_email ?? '' }}" required  name="store_sender_email" class="form-control"  max="50">
                             <small>{{ __('Your customers will see this address if you email them.') }}</small>
                         </div>
                     </div>
                     <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Store Latitude:') }}  </label>
                         <div class="col-lg-12">
-                            <input type="number" value="{{ tenant('lat') }}"  step="any"  required="" name="latitude" class="form-control"  placeholder="31.9686">
+                            <input type="number" disabled value="{{ $lat_lang[0] }}"  step="any"  required="" name="latitude" class="form-control"  placeholder="31.9686">
                         </div>
                     </div>
                     <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Store Longitude:') }}  </label>
                         <div class="col-lg-12">
-                            <input type="number" value="{{ tenant('long') }}"  step="any"  required="" name="longitude" class="form-control"  placeholder="99.9018">
+                            <input type="number" disabled value="{{ $lat_lang[1] }}"  step="any"  required="" name="longitude" class="form-control"  placeholder="99.9018">
                         </div>
                     </div>
                   </div>
@@ -60,13 +60,13 @@
          </div>
          <div class="row">
             {{-- left side --}}
-            <div class="col-lg-4">
+            {{-- <div class="col-lg-4">
                 <h6>{{ __('Store Images') }}</h6>
                 <strong>{{ __('Your customers will see the images.') }}</strong>
-            </div>
+            </div> --}}
             {{-- /left side --}}
             {{-- right side --}}
-            <div class="col-lg-8">
+            {{-- <div class="col-lg-8">
                <div class="card">
                   <div class="card-body">
                     <div class="from-group row mb-2">
@@ -95,7 +95,7 @@
                     </div>
                   </div>
                </div>
-            </div>
+            </div> --}}
             {{-- /right side --}}
          </div>
          <div class="row">
@@ -112,48 +112,48 @@
                     <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Legal name of company :') }}  </label>
                         <div class="col-lg-12">
-                            <input type="text" value="{{ $invoice_data->store_legal_name ?? '' }}" name="store_legal_name" class="form-control" max="50">
+                            <input type="text" disabled value="{{ $store_name }}" name="store_legal_name" class="form-control" max="50">
                         </div>
                     </div>
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Phone') }} : </label>
                         <div class="col-lg-12">
-                            <input type="number" value="{{ $invoice_data->store_legal_phone ?? '' }}" name="store_legal_phone" class="form-control" required>
+                            <input type="number" disabled value="{{ str_replace('-','',$phone_number) ?? '' }}" name="store_legal_phone" class="form-control" required>
                         </div>
                     </div>
                      <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Email') }} : </label>
                         <div class="col-lg-12">
-                            <input type="email" value="{{ $invoice_data->store_legal_email ?? '' }}" name="store_legal_email" class="form-control" required>
+                            <input type="email" disabled value="{{ $store_sender_email ?? '' }}" name="store_legal_email" class="form-control" required>
                         </div>
                     </div>
                     
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Address') }} : </label>
                         <div class="col-lg-12">
-                            <input type="text" value="{{ $invoice_data->store_legal_address ?? '' }}"  name="store_legal_address" class="form-control" required>
+                            <input type="text" disabled value="{{ isset($address[0]) ? $address[0] : '' }}"  name="store_legal_address" class="form-control" required>
                         </div>
                     </div>
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Apartment, suite, etc.') }} : </label>
                         <div class="col-lg-12">
-                            <input type="text" value="{{ $invoice_data->store_legal_house ?? '' }}" name="store_legal_house" class="form-control" required>
+                            <input type="text" disabled value="{{ isset($address[1]) ? $address[1] : '' }}" name="store_legal_house" class="form-control" required>
                         </div>
                     </div>
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('City') }} : </label>
                         <div class="col-lg-12">
-                            <input type="text" value="{{ $invoice_data->store_legal_city ?? '' }}" name="store_legal_city" class="form-control" required>
+                            <input type="text" disabled value="{{ trim($address[count($address)-2]) ?? '' }}" name="store_legal_city" class="form-control" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="from-group col-lg-6  mb-2">
                          <label for="" >{{ __('Country/region') }} : </label>
-                          <input type="text" value="{{ $invoice_data->country ?? '' }}" name="country" class="form-control">
+                          <input type="text" disabled value="{{ trim($address[count($address)-1]) ?? '' }}" name="country" class="form-control">
                         </div>
                         <div class="from-group col-lg-6  mb-2">
                          <label for="" >{{ __('Postal code') }} : </label>
-                          <input type="text" value="{{ $invoice_data->post_code ?? '' }}" name="post_code" class="form-control">
+                          <input type="text" disabled value="" name="post_code" class="form-control">
                         </div>
                   </div>
                   </div>
@@ -195,7 +195,30 @@
                     <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Default weight unit') }} : </label>
                         <div class="col-lg-12">
-                           <input type="text" disabled value="{{ $weight_type->value ?? '' }}" name="weight_type" class="form-control" placeholder="Kilogram (kg)">
+                            @php 
+                              $weights = ['OZ','LB','TONS'];
+                              $weight_type = $weight_type->value??'';
+                            @endphp
+                           <select disabled class="form-control selectric" name="weight_type" id="weight_type">
+                            @foreach($weights ?? [] as $row)
+                            <option value="{{ $row }}" {{( $weight_type == $row) ? 'selected' : ''}}>{{ $row }}</option>
+                            @endforeach
+                          </select>
+                        </div>
+                    </div>
+
+                    <div class="from-group row mb-2">
+                        <label for="" class="col-lg-12">{{ __('Default Measurment  unit') }} : </label>
+                        <div class="col-lg-12">
+                            @php 
+                              $measurments = ['IN', 'FT', 'YDS'];
+                              $measurment_type = $measurment_type->value??'IN';
+                            @endphp
+                           <select disabled class="form-control selectric" name="measurment_type" id="measurment_type">
+                            @foreach($measurments ?? [] as $row)
+                            <option value="{{ $row }}" {{( $measurment_type == $row) ? 'selected' : ''}}>{{ $row }}</option>
+                            @endforeach
+                          </select>
                         </div>
                     </div>
 
@@ -507,7 +530,12 @@
                         @endforeach
 
 
+                        <div class="from-group row mt-2">
                        
+                            <div class="col-lg-4">
+                               <button type="submit" class="basicbtn btn btn-primary">{{ __('Save changes') }}</button>
+                            </div>
+                        </div>
 
                     </div>
                 </div>
@@ -520,13 +548,13 @@
 
           <div class="row" >
             {{-- left side --}}
-            <div class="col-lg-4">
+            {{-- <div class="col-lg-4">
                 <h6>{{ __('Order Settings') }}</h6>
                 <strong>{{ __('Configure your order methods and other settings') }}</strong>
-            </div>
+            </div> --}}
             {{-- /left side --}}
             {{-- right side --}}
-            <div class="col-lg-8">
+            {{-- <div class="col-lg-8">
                <div class="card">
                   <div class="card-body">
                     <div class="from-group row mb-2">
@@ -632,20 +660,28 @@
                         </div>
                     </div>
                    
+
+                    <div class="from-group row mt-2">
+                       
+                        <div class="col-lg-4">
+                           <button type="submit" class="basicbtn btn btn-primary">{{ __('Save changes') }}</button>
+                        </div>
+                    </div>
+
                   </div>
                </div>
-            </div>
+            </div> --}}
             {{-- /right side --}}
          </div>
            <div class="row" >
             {{-- left side --}}
-            <div class="col-lg-4">
+            {{-- <div class="col-lg-4">
                 <h6>{{ __('Whatsapp Settings') }}</h6>
                 <strong>{{ __('Whatsapp Modules For Site ') }}</strong>
-            </div>
+            </div> --}}
             {{-- /left side --}}
             {{-- right side --}}
-            <div class="col-lg-8">
+            {{-- <div class="col-lg-8">
                <div class="card">
                   <div class="card-body">
                    
@@ -691,9 +727,10 @@
                            <button type="submit" class="basicbtn btn btn-primary">{{ __('Save changes') }}</button>
                         </div>
                     </div>
+
                   </div>
                </div>
-            </div>
+            </div> --}}
             {{-- /right side --}}
          </div>
       </form>
