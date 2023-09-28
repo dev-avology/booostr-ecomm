@@ -369,7 +369,7 @@ class CheckoutController extends Controller
 
        $booster_platform_fee = booster_club_chagre($total_amount);
 
-       $total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
+      // $total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
 
 
        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
@@ -394,6 +394,7 @@ class CheckoutController extends Controller
         }
 
         $paymentresult= $gateway->namespace::charge_payment($payment_data);
+        
         //$paymentresult= ['payment_status'=>4,'payment_id'=>'sffsdf43534'];
 
         if($paymentresult['payment_status'] != 4){
