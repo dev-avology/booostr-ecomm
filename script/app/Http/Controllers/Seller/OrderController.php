@@ -218,7 +218,7 @@ class OrderController extends Controller
         $payment_data['transaction_id']  = $order->transaction_id;
 
         $payment_data['application_fee_amount']  = $ordermeta->booster_platform_fee??0;
-        $payment_data['credit_card_fee']  = $ordermeta->booster_platform_fee??0;
+        $payment_data['card_fee_amount']  = $ordermeta->credit_card_fee??0;
 
         if (!empty($gateway->data)) {
             foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
