@@ -135,7 +135,7 @@
 							<div class="row align-items-center">
 								<div class="col-9 text-right">{{ __('Net Total Received') }}</div>
 
-								<div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
+								<div class="col-3 text-right">{{ currency_formate($info->total-$credit_card_fee-$booster_platform_fee) }}</div>
 							</div>
 						</li>
 					</ul>
