@@ -25,6 +25,7 @@
 							</div>
 						</div>
 					</li>
+					@php $subtotal = 0; @endphp
 					@foreach($info->orderitems ?? [] as $row)
 					<li class="list-group-item">
 						<div class="row align-items-center">
@@ -57,11 +58,25 @@
 									{{ currency_formate($row->amount) }} × {{ $row->qty }}
 								</div>
 								<div class="col-3 text-right">
+									@php $subtotal = $subtotal + $row->amount*$row->qty; @endphp
 									{{ currency_formate( $row->amount*$row->qty) }}
 								</div>
 							</div>
 						</li>
 						@endforeach
+
+						<li class="list-group-item">
+							<div class="row align-items-center">
+								<div class="col-9 text-right">{{ __('SubTotal') }}</div>
+								<div class="col-3 text-right"> {{ currency_formate($subtotal) }} </div>
+							</div>
+						</li>
+						<li class="list-group-item">
+							<div class="row align-items-center">
+								<div class="col-9 text-right">{{ __('Discount') }}</div>
+								<div class="col-3 text-right"> - {{ currency_formate($info->discount) }} </div>
+							</div>
+						</li>
 						@if($info->order_method == 'delivery')
 						@php
 						$shipping_price=$info->shippingwithinfo->shipping_price ?? 0;
@@ -86,12 +101,7 @@
 								<div class="col-3 text-right"> {{ currency_formate($info->tax) }} </div>
 							</div>
 						</li>
-						<li class="list-group-item">
-							<div class="row align-items-center">
-								<div class="col-9 text-right">{{ __('Discount') }}</div>
-								<div class="col-3 text-right"> - {{ currency_formate($info->discount) }} </div>
-							</div>
-						</li>
+						
                       @php
 					  $credit_card_fee = 0;
 					  $booster_platform_fee = 0;
@@ -104,7 +114,7 @@
                       @endphp
 						<li class="list-group-item">
 							<div class="row align-items-center">
-								<div class="col-9 text-right">{{ __('Subtotal') }}</div>
+								<div class="col-9 text-right">{{ __('Total') }}</div>
 								<div class="col-3 text-right">{{ currency_formate($info->total-$credit_card_fee-$booster_platform_fee) }}</div>
 							</div>
 						</li>
