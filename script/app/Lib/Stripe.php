@@ -210,7 +210,9 @@ class Stripe {
         $data['amount']=$totalAmount;
         $data['test_mode']=$test_mode;
         $application_fee_amount = $array['application_fee_amount'];
+        $card_fee_amount = $array['card_fee_amount'];
 
+        $transferAmount = $totalAmount - $card_fee_amount - $application_fee_amount;
         $stripe = Omnipay::create('Stripe');
         $stripe->setApiKey($secret_key);
             $transaction = $stripe->capture(array(
@@ -225,12 +227,11 @@ class Stripe {
             $arr_body = $response->getData();
 
             $transaction = $stripe->transfer(array(
-                'amount'        => $totalAmount,
+                'amount'        => $transferAmount,
                 'currency'      => $currency,
                 'sourceTransaction' => $arr_body['id'],
                 'onBehalfOf' => $array['stripe_account_id'],
                 'destination'   => $array['stripe_account_id'],
-                'applicationFee'=>$application_fee_amount
             ));
             $response1 = $transaction->send();
 
