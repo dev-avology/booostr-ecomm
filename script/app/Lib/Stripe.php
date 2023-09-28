@@ -164,7 +164,7 @@ class Stripe {
                 'token' => $token,
                 'onBehalfOf' => $array['stripe_account_id'],
                 'destination'   => $array['stripe_account_id'],
-                'applicationFee'=> booster_club_chagre($totalAmount)
+                'applicationFee'=> booster_club_chagre($totalAmount)+credit_card_fee($totalAmount)
             ])->send();
 
         }
