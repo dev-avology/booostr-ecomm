@@ -6,7 +6,7 @@ $('.cart_total').text(amount_format(total));
 
 $('.cart_credit_card_fee').text(amount_format(credit_card_fee));
 $('.cart_booster_platform_fee').text(amount_format(booster_platform_fee));
-$('.cart_grand_total').text(amount_format(total+credit_card_fee+booster_platform_fee+price));
+$('.cart_grand_total').text(amount_format(total+price));
 
  /*-------------------------
         Order Method Change
