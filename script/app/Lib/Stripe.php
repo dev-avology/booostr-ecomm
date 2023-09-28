@@ -162,7 +162,6 @@ class Stripe {
                 'amount' => $totalAmount,
                 'currency' => $currency,
                 'token' => $token,
-                'onBehalfOf' => $array['stripe_account_id'],
                 'destination'   => $array['stripe_account_id'],
                 'applicationFee'=>$application_fee_amount
             ])->send();
@@ -212,7 +211,6 @@ class Stripe {
         $application_fee_amount = $array['application_fee_amount'];
         $card_fee_amount = $array['card_fee_amount'];
 
-        $transferAmount = $totalAmount - $card_fee_amount - $application_fee_amount;
         $stripe = Omnipay::create('Stripe');
         $stripe->setApiKey($secret_key);
             $transaction = $stripe->capture(array(
@@ -225,16 +223,18 @@ class Stripe {
 
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
+            $transferAmount = $totalAmount - $card_fee_amount - $application_fee_amount;
 
             $transaction = $stripe->transfer(array(
                 'amount'        => $transferAmount,
                 'currency'      => $currency,
                 'sourceTransaction' => $arr_body['id'],
-                'onBehalfOf' => $array['stripe_account_id'],
                 'destination'   => $array['stripe_account_id'],
             ));
             $response1 = $transaction->send();
 
+            dd($response1);
+            
             $data['payment_id'] = $arr_body['id'];
             $data['payment_method'] = "stripe";
             $data['status'] = 1;
