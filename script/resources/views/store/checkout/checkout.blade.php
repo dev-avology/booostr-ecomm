@@ -357,6 +357,19 @@
 <input type="hidden" id="longitude" value="{{ tenant('long') }}">
 <input type="hidden" id="city" value="{{ $invoice_data->store_legal_city ?? '' }}">
 
+<footer class="container">
+		<div class="row">
+			<div class="col-lg-12 container" style="text-align:center;">
+				
+							<a href="{{route('store.page',['slug'=>'terms-and-conditions'])}}" target="_blank"> Terms and conditions</a> |
+							<a href="{{route('store.page',['slug'=>'privacy-policy'])}}" target="_blank">Privacy Policy</a> |
+							<a href="{{route('store.page',['slug'=>'return-policy'])}}" target="_blank">Return Policy</a> 
+					
+				</div>
+			</div>
+</footer>
+
+
 @endsection
 @push('js')
 <script type="text/javascript">

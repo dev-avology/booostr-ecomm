@@ -36,7 +36,7 @@ class TenantGetwaySeeder extends Seeder
         $stripe_account_id = $stripe_info['stripe_account_id']??'kkkkkkk';
 
         $getways = array(
-            array('id' => '2','name' => 'stripe','logo' => 'uploads/21/04/1698367948712217.png','rate' => '10','charge' => '2','namespace' => 'App\\Lib\\Stripe','currency_name' => 'usd','is_auto' => '1','image_accept' => '0','test_mode' => '1','status' => '1','phone_required' => '0','data' => '{"test_publishable_key":"'.$test_publishable_key.'","test_secret_key":"'.$test_secret_key.'","publishable_key":"'.$publishable_key.'","secret_key":"'.$secret_key.'","stripe_account_id":"'.$stripe_account_id.'"}','created_at' => '2021-04-15 02:44:46','updated_at' => '2021-04-29 09:51:32')
+            array('id' => '2','name' => 'stripe','logo' => 'uploads/21/04/1698367948712217.png','rate' => '1','charge' => '0','namespace' => 'App\\Lib\\Stripe','currency_name' => 'usd','is_auto' => '1','image_accept' => '0','test_mode' => '1','status' => '1','phone_required' => '0','data' => '{"test_publishable_key":"'.$test_publishable_key.'","test_secret_key":"'.$test_secret_key.'","publishable_key":"'.$publishable_key.'","secret_key":"'.$secret_key.'","stripe_account_id":"'.$stripe_account_id.'"}','created_at' => '2021-04-15 02:44:46','updated_at' => '2021-04-29 09:51:32')
         );               
         Getway::insert($getways);    }
 }
