@@ -21,7 +21,7 @@
 
                 <div class="col-lg-6 col-md-5 col-12">
 				<!-- Topbar Right -->
-				<div class="topbar-right">
+				{{-- <div class="topbar-right">
 					<ul class="topbar-right-inner">
 						<!-- Topbar Language -->
 						@if(tenant('customer_modules') == 'on')
@@ -57,7 +57,7 @@
 						</li>
 						@endif
 					</ul>
-				</div>
+				</div> --}}
 			</div>
 		</div>
 	</div>

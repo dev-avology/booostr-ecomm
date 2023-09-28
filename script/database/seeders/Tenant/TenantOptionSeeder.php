@@ -167,19 +167,13 @@ class TenantOptionSeeder extends Seeder
         array(
             "id"=>50,
             "key"=>'min_cart_total',
-            "value"=>'100',
+            "value"=>'100.00',
             "autoload" => 0
         ),
         array(
             "id"=>51,
             "key"=>'shipping_method',
-            "value"=>'{"method_type":"flat_rate","label":"Flat Rate","pricing":{"0":{"from":"0","to":"25","price":"10"},"3":{"from":"125","to":"999999999","price":"30"},"2":{"from":"25","to":"75","price":"15"},"1":{"from":"75","to":"125","price":"20"}},"base_pricing":0}',
-            "autoload" => 0
-        ),
-        array(
-            "id"=>52,
-            "key"=>'tax_data',
-            "value"=>'{"status":"1","type":"percentage","label":"GST","tax":"5"}',
+            "value"=>'{"method_type":"flat_rate","label":"Flat Rate","pricing":{"0":{"from":"0.00","to":"25.00","price":"10.00"},"1":{"from":"25.00","to":"75.00","price":"15.00"},"2":{"from":"75.00","to":"125.00","price":"20.00"},"3":{"from":"125.00","to":"0.00","price":"30.00"}},"base_pricing":0}',
             "autoload" => 0
         )
       );

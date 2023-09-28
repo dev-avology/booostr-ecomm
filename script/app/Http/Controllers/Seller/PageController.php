@@ -96,6 +96,7 @@ class PageController extends Controller
     {
        abort_if(!getpermission('website_settings'),401);
         $info = Term::where('type','page')->with('meta')->findOrFail($id);
+        
         $meta=json_decode($info->meta->value ?? '');
         return view('seller.page.edit', compact('info','meta'));
     }

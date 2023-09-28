@@ -285,7 +285,7 @@
                     <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Sales Tax Percentage Amount') }} : </label>
                         <div class="col-lg-12">
-                            <input type="text" value="{{ $tax ?? 5 }}"
+                            <input type="text" value="{{ $tax ?? 0.00 }}"
                             name="tax" class="form-control"  id="tax" data-inputmask="'mask': '9{0,2}.9{0,3}[%]'" data-mask>
                         </div>
                     </div>

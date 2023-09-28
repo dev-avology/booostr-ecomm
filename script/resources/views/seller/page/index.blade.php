@@ -3,7 +3,8 @@
 @section('title','Page List')
 
 @section('head')
-@include('layouts.backend.partials.headersection',['title'=>'Pages','button_name'=> 'Add New','button_link'=> route('seller.page.create')])
+{{-- @include('layouts.backend.partials.headersection',['title'=>'Pages','button_name'=> 'Add New','button_link'=> route('seller.page.create')]) --}}
+@include('layouts.backend.partials.headersection',['title'=>'Pages'])
 @endsection
 
 @section('content')
@@ -41,12 +42,12 @@
                           </button>
                           <div class="dropdown-menu">
                             <a class="dropdown-item has-icon" href="{{ route('seller.page.edit', $row->id) }}"><i class="fa fa-edit"></i>{{ __('edit') }}</a>
-                            <a class="dropdown-item has-icon delete-confirm" href="javascript:void(0)" data-id={{ $row->id }}><i class="fa fa-trash"></i>{{ __('Delete') }}</a>
+                            {{-- <a class="dropdown-item has-icon delete-confirm" href="javascript:void(0)" data-id={{ $row->id }}><i class="fa fa-trash"></i>{{ __('Delete') }}</a>
                             <!-- Delete Form -->
                             <form class="d-none" id="delete_form_{{ $row->id }}" action="{{ route('seller.page.destroy', $row->id) }}" method="POST">
                             @csrf
                             @method('DELETE')
-                            </form>
+                            </form> --}}
                           </div>
                         </div>
                       </td>
