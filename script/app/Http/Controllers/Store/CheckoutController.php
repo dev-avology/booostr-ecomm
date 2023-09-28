@@ -286,7 +286,7 @@ class CheckoutController extends Controller
 
         $booster_platform_fee = booster_club_chagre($total);
 
-        $grand_total = $total;
+        $grand_total = $total+$credit_card_fee + $booster_platform_fee;
 
 
         return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer'));
@@ -307,7 +307,6 @@ class CheckoutController extends Controller
             'shipping_method' => 'required',
             'stripeToken' => 'required',
        ]);
-
        $order_method='delivery';
        $notify_driver='mail';
        $order_settings=get_option('order_settings',true);
@@ -370,7 +369,7 @@ class CheckoutController extends Controller
 
        $booster_platform_fee = booster_club_chagre($total_amount);
 
-      // $total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
+       $total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
 
 
        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
@@ -383,6 +382,7 @@ class CheckoutController extends Controller
         $payment_data['billName']   = 'Boostr Sale';
         $payment_data['amount']     = $total_amount;
         $payment_data['application_fee_amount']  = $booster_platform_fee;
+        $payment_data['credit_card_fee']  = $credit_card_fee;
         $payment_data['test_mode']  = $gateway->test_mode;
         $payment_data['charge']     = $gateway->charge ?? 0;
         $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount*$gateway->rate+$gateway->charge ?? 0,2));
@@ -395,7 +395,6 @@ class CheckoutController extends Controller
         }
 
         $paymentresult= $gateway->namespace::charge_payment($payment_data);
-
         //$paymentresult= ['payment_status'=>4,'payment_id'=>'sffsdf43534'];
 
         if($paymentresult['payment_status'] != 4){
@@ -625,7 +624,7 @@ class CheckoutController extends Controller
 
        $booster_platform_fee = booster_club_chagre($total_amount);
 
-       $total_amount = $total_amount;
+       $total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
 
        $productcartdata['cart_shipping_price'] = $request->shipping_price;
        $productcartdata['cart_subtotal'] = Cart::subtotal();

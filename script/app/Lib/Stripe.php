@@ -152,7 +152,8 @@ class Stripe {
         $data['payment_mode']='stripe';
         $data['amount']=$totalAmount;
         $data['test_mode']=$test_mode;
-     //   $application_fee_amount = $array['application_fee_amount'];
+        $application_fee_amount = $array['application_fee_amount'];
+        $credit_card_fee = $array['credit_card_fee'];
 
         $stripe = Omnipay::create('Stripe');
         $token = $array['stripeToken'];
@@ -164,7 +165,7 @@ class Stripe {
                 'token' => $token,
                 'onBehalfOf' => $array['stripe_account_id'],
                 'destination'   => $array['stripe_account_id'],
-                'applicationFee'=> booster_club_chagre($totalAmount)+credit_card_fee($totalAmount)
+                'applicationFee'=>$application_fee_amount + $credit_card_fee
             ])->send();
 
         }
@@ -213,10 +214,7 @@ class Stripe {
 
         $stripe = Omnipay::create('Stripe');
         $stripe->setApiKey($secret_key);
-            $transaction = $stripe->capture(array(
-                    'amount'        => $totalAmount,
-                    'currency'      => $currency,
-                ));
+            $transaction = $stripe->capture();
                 $transaction->setTransactionReference($array['transaction_id']);
                 $response = $transaction->send();
 
