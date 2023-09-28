@@ -42,7 +42,7 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::get('/featured/{slug}', 'Store\PageController@featured');
     Route::get('/tag/{slug}', 'Store\PageController@tag');
     Route::get('/product/{slug}', 'Store\PageController@productView');
-    Route::get('/page/{slug}', 'Store\PageController@page');
+    Route::get('/page/{slug}', 'Store\PageController@page')->name('store.page');
     Route::get('/menu', 'Store\PageController@menu');
     Route::get('/cart', 'Store\PageController@cart');
     Route::get('/wishlist', 'Store\PageController@wishlist');

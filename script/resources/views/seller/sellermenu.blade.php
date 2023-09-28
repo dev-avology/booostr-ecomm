@@ -157,12 +157,12 @@
      <span>{{ __('Orders') }}</span>
  </a>
 </li>
-<li class="{{ Request::is('seller/payment/gateway') ? 'active' : '' }}">
+{{-- <li class="{{ Request::is('seller/payment/gateway') ? 'active' : '' }}">
     <a class="nav-link" href="{{ route('seller.payment.gateway') }}">
         <i class="fas fa-money-bill-alt"></i>
         <span>{{ __('Payments') }}</span>
     </a>
-</li>
+</li> --}}
 {{-- <li class="{{ Request::is('seller/shipping') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/shipping') }}">
         <i class="fas fa-truck"></i>

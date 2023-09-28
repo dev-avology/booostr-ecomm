@@ -21,7 +21,7 @@
 
                 <div class="col-lg-6 col-md-5 col-12">
 				<!-- Topbar Right -->
-				<div class="topbar-right">
+				{{-- <div class="topbar-right">
 					<ul class="topbar-right-inner">
 						<!-- Topbar Language -->
 						@if(tenant('customer_modules') == 'on')
@@ -57,7 +57,7 @@
 						</li>
 						@endif
 					</ul>
-				</div>
+				</div> --}}
 			</div>
 		</div>
 	</div>
@@ -356,6 +356,19 @@
 <input type="hidden" id="latitude" value="{{ tenant('lat') }}">
 <input type="hidden" id="longitude" value="{{ tenant('long') }}">
 <input type="hidden" id="city" value="{{ $invoice_data->store_legal_city ?? '' }}">
+
+<footer class="container">
+		<div class="row">
+			<div class="col-lg-12 container" style="text-align:center;">
+				
+							<a href="{{route('store.page',['slug'=>'terms-and-conditions'])}}" target="_blank"> Terms and conditions</a> |
+							<a href="{{route('store.page',['slug'=>'privacy-policy'])}}" target="_blank">Privacy Policy</a> |
+							<a href="{{route('store.page',['slug'=>'return-policy'])}}" target="_blank">Return Policy</a> 
+					
+				</div>
+			</div>
+</footer>
+
 
 @endsection
 @push('js')

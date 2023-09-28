@@ -1,4 +1,4 @@
-@extends('theme.resto.layouts.app')
+@extends('layouts.checkout')
 @section('content')
 <!-- Start Breadcrumbs Area -->
 		<div class="breadcrumbs" >
@@ -9,10 +9,10 @@
 							<h1 class="page-title">{{ $info->title }}</h1>
 							<p>{{ $meta->page_excerpt ?? '' }}</p>
 						</div>
-						<ul class="breadcrumb-nav">
+						{{-- <ul class="breadcrumb-nav">
 							<li><a href="{{ url('/') }}"><i class="icofont-home"></i> {{ __('Home') }}</a></li>
 							<li>{{ $info->title }}</li>
-						</ul>
+						</ul> --}}
 					</div>
 				</div>
 			</div>

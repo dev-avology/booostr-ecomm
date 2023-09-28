@@ -382,8 +382,9 @@ class PageController extends Controller
         SEOTools::twitter()->setTitle($info->title ?? '');
         SEOTools::twitter()->setSite($info->title ?? '');
         SEOTools::jsonLd()->addImage(asset('uploads/'.tenant('uid').'/logo.png'));
-
-        return view(baseview('page'),compact('info','meta'));
+        
+        //return view(baseview('page'),compact('info','meta'));
+        return view('store.checkout.page',compact('info','meta'));
     }
 
     public function menu()

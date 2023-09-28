@@ -153,6 +153,7 @@ class Stripe {
         $data['amount']=$totalAmount;
         $data['test_mode']=$test_mode;
         $application_fee_amount = $array['application_fee_amount'];
+        $credit_card_fee = $array['credit_card_fee'];
 
         $stripe = Omnipay::create('Stripe');
         $token = $array['stripeToken'];
@@ -164,9 +165,9 @@ class Stripe {
                 'token' => $token,
                 'onBehalfOf' => $array['stripe_account_id'],
                 'destination'   => $array['stripe_account_id'],
-                'applicationFee'=>$application_fee_amount
+                'applicationFee'=>$application_fee_amount + $credit_card_fee
             ])->send();
-
+            
         }
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
@@ -209,31 +210,26 @@ class Stripe {
         $data['payment_mode']='stripe';
         $data['amount']=$totalAmount;
         $data['test_mode']=$test_mode;
-        $application_fee_amount = $array['application_fee_amount'];
-        $card_fee_amount = $array['card_fee_amount'];
+       // $application_fee_amount = $array['application_fee_amount'];
 
-        $transferAmount = $totalAmount - $card_fee_amount - $application_fee_amount;
         $stripe = Omnipay::create('Stripe');
         $stripe->setApiKey($secret_key);
-            $transaction = $stripe->capture(array(
-                    'amount'        => $totalAmount,
-                    'currency'      => $currency,
-                    'applicationFee'=>$application_fee_amount
-                ));
+            $transaction = $stripe->capture();
                 $transaction->setTransactionReference($array['transaction_id']);
                 $response = $transaction->send();
 
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
 
-            $transaction = $stripe->transfer(array(
-                'amount'        => $transferAmount,
-                'currency'      => $currency,
-                'sourceTransaction' => $arr_body['id'],
-                'onBehalfOf' => $array['stripe_account_id'],
-                'destination'   => $array['stripe_account_id'],
-            ));
-            $response1 = $transaction->send();
+            // $transaction = $stripe->transfer(array(
+            //     'amount'        => $totalAmount,
+            //     'currency'      => $currency,
+            //     'sourceTransaction' => $arr_body['id'],
+            //     'onBehalfOf' => $array['stripe_account_id'],
+            //     'destination'   => $array['stripe_account_id'],
+            //     'applicationFee'=>$application_fee_amount
+            // ));
+            // $response1 = $transaction->send();
 
             $data['payment_id'] = $arr_body['id'];
             $data['payment_method'] = "stripe";

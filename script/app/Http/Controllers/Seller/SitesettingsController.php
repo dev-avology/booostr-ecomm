@@ -76,7 +76,7 @@ class SitesettingsController extends Controller
           // $shipping_method=$shipping_method ?? '';
 
           $tax=Option::where('key','tax')->first();
-          $tax = $tax->value ?? 0; 
+          $tax = $tax->value ?? 0.00; 
 
           $free_shipping=Option::where('key','free_shipping')->first() ;
           $free_shipping = $free_shipping ? $free_shipping->value : 0;

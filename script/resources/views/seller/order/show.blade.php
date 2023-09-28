@@ -133,7 +133,7 @@
 						</li>
 						<li class="list-group-item">
 							<div class="row align-items-center">
-								<div class="col-9 text-right">{{ __('Total') }}</div>
+								<div class="col-9 text-right">{{ __('Net Total') }}</div>
 
 								<div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
 							</div>

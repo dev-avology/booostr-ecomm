@@ -12,7 +12,7 @@
             <div class="row">
                 <div class="col-lg-6 offset-lg-3">
                     <div class="breadcrumb-content text-center">
-                        <h2>{{ $page->title }}</h2>
+                        <h2>{{ $page->title }} 6666666666666</h2>
                         <p><a href="{{ url('/') }}">{{ __('Home') }}</a> > {{ $page->title }}</p>
                     </div>
                 </div>
@@ -33,7 +33,7 @@
                     @endphp
                     <div class="page-content">
                         <p>{{ $data->page_excerpt ?? '' }}</p>
-                       {{ content_format($data->page_content ?? '') }}
+                       {{ $data->page_content ?? '' }}
                     </div>
                 </div>
             </div>

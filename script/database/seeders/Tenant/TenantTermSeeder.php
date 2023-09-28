@@ -325,6 +325,32 @@ class TenantTermSeeder extends Seeder
             "created_at" => "2021-12-25 13:48:51",
             "updated_at" => "2022-01-09 14:14:18",
             "rating" => null
+        ),
+        array(
+            "id" => 26,
+            "full_id" => "0000026",
+            "title" => "Privacy Policy",
+            "slug" => "privacy-policy",
+            "type" => "page",
+            "is_variation" => 0,
+            "status" => 1,
+            "featured" => null,
+            "created_at" => "2021-12-25 13:48:51",
+            "updated_at" => "2022-01-09 14:14:18",
+            "rating" => null
+        ),
+        array(
+            "id" => 27,
+            "full_id" => "0000027",
+            "title" => "Return Policy",
+            "slug" => "return-policy",
+            "type" => "page",
+            "is_variation" => 0,
+            "status" => 1,
+            "featured" => null,
+            "created_at" => "2021-12-25 13:48:51",
+            "updated_at" => "2022-01-09 14:14:18",
+            "rating" => null
         )
     );
         

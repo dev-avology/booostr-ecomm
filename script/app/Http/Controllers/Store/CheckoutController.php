@@ -382,6 +382,7 @@ class CheckoutController extends Controller
         $payment_data['billName']   = 'Boostr Sale';
         $payment_data['amount']     = $total_amount;
         $payment_data['application_fee_amount']  = $booster_platform_fee;
+        $payment_data['credit_card_fee']  = $credit_card_fee;
         $payment_data['test_mode']  = $gateway->test_mode;
         $payment_data['charge']     = $gateway->charge ?? 0;
         $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount*$gateway->rate+$gateway->charge ?? 0,2));
