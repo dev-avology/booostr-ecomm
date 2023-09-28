@@ -115,25 +115,25 @@
 						<li class="list-group-item">
 							<div class="row align-items-center">
 								<div class="col-9 text-right">{{ __('Total') }}</div>
-								<div class="col-3 text-right">{{ currency_formate($info->total-$credit_card_fee-$booster_platform_fee) }}</div>
+								<div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
 							</div>
 						</li>
 						<li class="list-group-item">
 							<div class="row align-items-center">
 								<div class="col-9 text-right">{{ __('Credit Card fee') }}</div>
 								
-								<div class="col-3 text-right">{{ currency_formate($credit_card_fee) }}</div>
+								<div class="col-3 text-right">-{{ currency_formate($credit_card_fee) }}</div>
 							</div>
 						</li>
 						<li class="list-group-item">
 							<div class="row align-items-center">
 								<div class="col-9 text-right">{{ __('Booster Platform fee') }}</div>
-								<div class="col-3 text-right">{{ currency_formate($booster_platform_fee) }}</div>
+								<div class="col-3 text-right">-{{ currency_formate($booster_platform_fee) }}</div>
 							</div>
 						</li>
 						<li class="list-group-item">
 							<div class="row align-items-center">
-								<div class="col-9 text-right">{{ __('Total') }}</div>
+								<div class="col-9 text-right">{{ __('Net Total Received') }}</div>
 
 								<div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
 							</div>
