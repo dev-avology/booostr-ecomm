@@ -163,9 +163,9 @@ $('#shipping_address').on('change',function(){
         $('#location_state1').val($('#location_state').val())
         $('#shipping-country').val($('#billing-country').val())
         $('#post_code1').val($('#post_code').val())
+		shipping_state_change();
 
 		$('.shipping_address_area').hide();		
-		shipping_state_change();
 	}
 	else{
 		$('.shipping_address_area').show();
