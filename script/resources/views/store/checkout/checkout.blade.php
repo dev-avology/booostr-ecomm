@@ -104,44 +104,49 @@
 							<div class="col-lg-6 col-md-6 col-12">
 								<div class="form-group">
 									<label><i class="fa fa-user"></i>{{ __('Full Name') }}<span>*</span></label>
-									<input type="text" name="name" id="billing-name" value="{{ $customer['name'] }}" placeholder="" required="required">
+									<input type="text" name="name" id="billing-name" data-shippingf="shipping-name" value="{{ $customer['name'] }}" placeholder="" required="required">
 								</div>
 							</div>
 
 							<div class="col-lg-6 col-md-6 col-12">
 								<div class="form-group">
 									<label><i class="fa fa-envelope"></i>{{ __('Email Address') }}<span>*</span></label>
-									<input value="{{ $customer['email'] }}" id="billing-email" type="email" name="email" placeholder="" required="required">
+									<input value="{{ $customer['email'] }}" id="billing-email" data-shippingf="shipping-email" type="email" name="email" placeholder="" required="required">
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12">
 								<div class="form-group">
 									<label><i class="fa fa-address-card-o"></i>{{ __('Phone Number') }}<span>*</span></label>
-									<input type="number" id="billing-phone" name="phone" value="{{ str_replace('-','',$customer['phone']) }}" placeholder="" required="required" maxlength="20">
+									<input type="number" id="billing-phone" name="phone" data-shippingf="shipping-phone" value="{{ str_replace('-','',$customer['phone']) }}" placeholder="" required="required" maxlength="20">
 								</div>
 							</div>
 							<div class="col-lg-12 col-md-12 col-12 delivery_address_area">
 								<div class="form-group">
 									<label><i class="fa fa-address-card-o"></i> {{ __('Address') }} <span>*</span></label>
-									<input type="text" class="location_input" id="location_input" name="billing[address]" placeholder="" required="required" value="{{ $customer['address'] }}">
+									<input type="text" class="location_input" id="location_input" data-shippingf="location_input1" name="billing[address]" placeholder="" required="required" value="{{ $customer['address'] }}">
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_city">
 								<div class="form-group">
 									<label><i class="fa fa-institution"></i> {{ __('City') }} <span>*</span></label>
-									<input type="text" class="location_input" id="location_city" name="billing[city]" placeholder="" required="required" value="{{ $customer['city'] }}">
+									<input type="text" class="location_input" id="location_city" data-shippingf="location_city1" name="billing[city]" placeholder="" required="required" value="{{ $customer['city'] }}">
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_state">
 								<div class="form-group">
 									<label> {{ __('State') }} <span>*</span></label>
-									<input type="text" class="location_input" id="location_state" name="billing[state]" placeholder="" required="required" value="{{ $customer['state'] }}">
+									<select class="location_input nice-select" id="location_state" data-shippingf="location_state1" name="billing[state]" required="required">
+									@foreach($states_data as $key=>$val)
+								    	<option @if($key == $customer['state']) selected @endif value="{{$key}}">{{$val}}</option>
+									@endforeach
+									</select>
+									{{-- <input type="text" class="location_input" id="location_state" name="billing[state]" placeholder="" required="required" value="{{ $customer['state'] }}"> --}}
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_country">
 								<div class="form-group">
 									<label> {{ __('Country') }} <span>*</span></label>
-									<select id="billing-country" name="billing[country]" class="nice-select">
+									<select id="billing-country" name="billing[country]" data-shippingf="billing-country1" class="nice-select">
 										<option value="USA">United State</option>
 									</select>
 								</div>
@@ -149,7 +154,7 @@
 							<div class="col-lg-6 col-md-6 col-12 post_code_area">
 								<div class="form-group">
 									<label>{{ __('Postal Code') }}<span>*</span></label>
-									<input type="text" id="post_code" name="billing[post_code]" placeholder="" value="{{ $customer['zip'] }}" required="required">
+									<input type="text" id="post_code" name="billing[post_code]" data-shippingf="post_code1" placeholder="" value="{{ $customer['zip'] }}" required="required">
 								</div>
 							</div>
 
@@ -188,7 +193,12 @@
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_state">
 								<div class="form-group">
 									<label> {{ __('State') }} <span>*</span></label>
-									<input type="text" class="location_input" id="location_state1" name="shipping[state]" placeholder="" required="required" value="{{ $customer['state'] }}">
+									  <select class="location_input nice-select" id="location_state1" name="shipping[state]" required="required">
+											@foreach($states_data as $key=>$val)
+												<option @if($key == $customer['state']) selected @endif value="{{$key}}">{{$val}}</option>
+											@endforeach
+										</select>
+									{{-- <input type="text" class="location_input" id="location_state1" name="shipping[state]" placeholder="" required="required" value="{{ $customer['state'] }}"> --}}
 								</div>
 							</div>
 							<div class="col-lg-6 col-md-6 col-12 delivery_address_country">

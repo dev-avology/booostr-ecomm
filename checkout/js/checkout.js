@@ -149,6 +149,21 @@ $(document).on('change','.shipping_item',function(){
 
 });
 
+$(document).on('change','#billing-name,#billing-email,#billing-phone,#location_input,#location_city,#location_state,#billing-country,#post_code',function(){
+
+	var shipping_address = $('#shipping_address');
+
+	if(shipping_address.is(':checked')){
+		let shippingf = $(this).data('shippingf');
+		$('#'+shippingf).val($(this).val());
+		if(shippingf == 'location_state1'){
+			$('#'+shippingf).trigger('change');
+		}
+	}
+
+});
+
+
 /*-------------------------
        Create New Account
     --------------------------*/
@@ -160,10 +175,10 @@ $('#shipping_address').on('change',function(){
         $('#shipping-phone').val($('#billing-phone').val())
         $('#location_input1').val($('#location_input').val())
         $('#location_city1').val($('#location_city').val())
-        $('#location_state1').val($('#location_state').val())
+        $('#location_state1').val($('#location_state').val()).trigger('change')
         $('#shipping-country').val($('#billing-country').val())
         $('#post_code1').val($('#post_code').val())
-		shipping_state_change();
+		//shipping_state_change();
 
 		$('.shipping_address_area').hide();		
 	}
@@ -229,7 +244,7 @@ $(document).on('change','#time',function(){
 $('.time').val(hours + ':' + minutes + ' ' + meridian)
 });
 
-$(document).on('focusout','#location_state1',function(){
+$(document).on('change','#location_state1',function(){
 	shipping_state_change();
 })
 

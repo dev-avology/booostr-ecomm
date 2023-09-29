@@ -167,6 +167,8 @@ class CheckoutController extends Controller
         }
 
 
+        $states_data = json_decode(file_get_contents(resource_path('us_states.json')),true);
+
         $order_settings=get_option('order_settings',true);
         if ($order_settings->shipping_amount_type != 'distance') {
             $locations=Location::where([['status',1]])->whereHas('shippings')->with('shippings')->get();
@@ -290,7 +292,7 @@ class CheckoutController extends Controller
        // $grand_total = $total+$credit_card_fee + $booster_platform_fee;
 
 
-        return view('store.checkout.checkout',compact('locations','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer'));
+        return view('store.checkout.checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer'));
     }
 
 
