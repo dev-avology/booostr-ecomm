@@ -84,7 +84,10 @@ class ProductController extends Controller
         if (empty($info)) {
             return response()->json(["status" => 0, "message" => 'Opps product not available', "result" => []]);
         }
+        
         Cart::instance($cartid);
+        Cart::restore($cartid);
+        
         if ($info->is_variation == 1) {
             $groups = [];
             foreach ($request->option ?? [] as $key => $option) {
@@ -148,11 +151,12 @@ class ProductController extends Controller
                 $options['stock'] = null;
             }
       
-          $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);
+          $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);          
           
           if($price->tax == 1){
             $cart_item->setTaxRate(getTaxRate());
           }
+
 
         }
         try {
