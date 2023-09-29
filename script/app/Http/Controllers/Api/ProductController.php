@@ -136,6 +136,7 @@ class ProductController extends Controller
                 'sku' => $price->sku,
                 'stock' => $price->qty,
                 'tax'=>$price->tax,
+                'type'=>$price->tax,
                 'options' => [],
                 'short_description'=>($info->excerpt->value ?? ''),
                 'preview'=>asset($info->preview->value ?? 'uploads/default.png'),

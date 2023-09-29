@@ -73,7 +73,7 @@
 						</li>
 						<li class="list-group-item">
 							<div class="row align-items-center">
-								<div class="col-9 text-right">{{ __('Discount') }}</div>
+								<div class="col-9 text-right">{{ __('Order DIscount') }}</div>
 								<div class="col-3 text-right"> - {{ currency_formate($info->discount) }} </div>
 							</div>
 						</li>
@@ -114,27 +114,32 @@
                       @endphp
 						<li class="list-group-item">
 							<div class="row align-items-center">
-								<div class="col-9 text-right">{{ __('Total') }}</div>
+								<div class="col-9 text-right">{{ __('Order Total') }}</div>
 								{{-- <div class="col-3 text-right">{{ currency_formate($info->total-$credit_card_fee-$booster_platform_fee) }}</div> --}}
 								<div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
 							</div>
 						</li>
+						@php
+							$club_info = tenant_club_info();
+
+						@endphp
+
 						<li class="list-group-item">
-							<div class="row align-items-center">
-								<div class="col-9 text-right">{{ __('Credit Card fee') }}</div>
+							<div class="row align-items-center text-grey">
+								<div class="col-9 text-right">{{ __('Credit Card Processing ') }}</div>
 								
 								<div class="col-3 text-right">{{ currency_formate($credit_card_fee) }}</div>
 							</div>
 						</li>
 						<li class="list-group-item">
-							<div class="row align-items-center">
-								<div class="col-9 text-right">{{ __('Booster Platform fee') }}</div>
+							<div class="row align-items-center text-grey">
+								<div class="col-9 text-right">{{ __('Booostr Platform Fee') }} {{!empty($club_info['is_pro']) ? '(2.5%)' : '(5%)'}}</div>
 								<div class="col-3 text-right">{{ currency_formate($booster_platform_fee) }}</div>
 							</div>
 						</li>
 						<li class="list-group-item">
-							<div class="row align-items-center">
-								<div class="col-9 text-right">{{ __('Net Total') }}</div>
+							<div class="row align-items-center text-grey">
+								<div class="col-9 text-right">{{ __('Net Order Total (Order Total - Credit Card Processing and Booostr Platform Fee)') }}</div>
 
 								<div class="col-3 text-right">{{ currency_formate($info->total-$credit_card_fee-$booster_platform_fee) }}</div>
 							</div>
@@ -338,7 +343,7 @@
 					</div>
 					<div class="card-body">
 						@if($info->user != null)
-						<a href="{{ route('seller.user.show',$info->user->id) }}">{{ $info->user->name }} (#{{ $info->user->id }})</a>
+						<a href="{{ route('seller.user.show',$info->user->id) }}">{{ $ordermeta->name??$info->user->name }} (#{{ $info->user->id }})</a>
 						@else
 						{{ __('Guest Customer') }}
 						@endif

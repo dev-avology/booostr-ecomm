@@ -196,14 +196,17 @@
                         <label for="" class="col-lg-12">{{ __('Default weight unit') }} : </label>
                         <div class="col-lg-12">
                             @php 
-                              $weights = ['OZ','LBS','TONS'];
+                              $weights = ['OZ, LBS, TONS'];
                               $weight_type = $weight_type->value??'LBS';
                             @endphp
-                           <select  class="form-control selectric" name="weight_type" id="weight_type">
+                           {{-- <select disabled  class="form-control selectric" name="weight_type" id="weight_type">
                             @foreach($weights ?? [] as $row)
                             <option value="{{ $row }}" {{( $weight_type == $row) ? 'selected' : ''}}>{{ $row }}</option>
                             @endforeach
-                          </select>
+                          </select> --}}
+
+                          <input type="text" disabled name="weight_type" value="OZ, LBS, TONS" class="form-control">
+
                         </div>
                     </div>
 
@@ -211,14 +214,17 @@
                         <label for="" class="col-lg-12">{{ __('Default Measurment  unit') }} : </label>
                         <div class="col-lg-12">
                             @php 
-                              $measurments = ['IN', 'FT', 'YDS'];
+                              $measurments = ['IN, FT, YDS'];
                               $measurment_type = $measurment_type->value??'IN';
                             @endphp
-                           <select  class="form-control selectric" name="measurment_type" id="measurment_type">
+                           {{-- <select disabled  class="form-control selectric" name="measurment_type" id="measurment_type">
                             @foreach($measurments ?? [] as $row)
                             <option value="{{ $row }}" {{( $measurment_type == $row) ? 'selected' : ''}}>{{ $row }}</option>
                             @endforeach
-                          </select>
+                          </select> --}}
+
+                          <input type="text" disabled name="measurment_type" value="IN, FT, YDS" class="form-control">
+
                         </div>
                     </div>
 

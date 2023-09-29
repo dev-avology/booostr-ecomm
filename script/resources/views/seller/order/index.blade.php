@@ -83,6 +83,36 @@
                     </thead>
                     <tbody class="list font-size-base rowlink" data-link="row">
                         @foreach($orders ?? [] as $key => $row)
+                        @php 
+                               $p_types = $product_type->pluck('id')->flatten()->toArray();
+                            // $orderItems = $row->orderitems->map(function ($term) use ($product_typeIds) {
+                            //     dump($term->termcategories());
+                            //     return $term->termcategories()?->filter(function ($cat) use ($product_typeIds) {
+                            //         return in_array($cat->id, $product_typeIds);
+                            //     });
+                            // });
+
+                            $selected_product_type = [];
+
+                           foreach($row->orderitems ?? [] as $row1){
+                             foreach ($row1->term->termcategories as $key => $value) {
+                                   if(in_array($value->category_id,$p_types))
+                                     array_push($selected_product_type, $value->category_id);
+                             }
+                           }
+                           
+                         // dump($selected_product_type);
+                         $order_type = 'Goods'; 
+                          if(count($selected_product_type) == 1){
+                               if(!in_array(52,$selected_product_type)){
+                                $order_type = 'Digital '; 
+                               }
+                          }elseif(count($selected_product_type) > 1){
+                                $order_type = 'Mixed'; 
+                          }
+
+                        $ordermeta=json_decode($row->ordermeta->value ?? ''); 
+                    @endphp
                         <tr>
                             <td  class="text-left">
                                 <div class="custom-control custom-checkbox">
@@ -94,7 +124,7 @@
                                 <a href="{{ route('seller.order.show',$row->id) }}">{{ $row->invoice_no }}</a>
                             </td>
                             <td><a href="{{ route('seller.order.show',$row->id) }}">{{ $row->created_at->format('d-F-Y') }}</a></td>
-                            <td>@if($row->user_id !== null)<a href="{{ route('seller.user.show',$row->user_id) }}">{{ $row->user->name }}</a> @else {{ __('Guest User') }} @endif</td>
+                            <td>@if($row->user_id !== null)<a href="{{ route('seller.user.show',$row->user_id) }}">{{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}}</a> @else {{ __('Guest User') }} @endif</td>
                             <td >{{ currency_formate($row->total) }}</td>
                             <td>
                                 @if($row->payment_status==2)
@@ -113,8 +143,8 @@
                             <td>
                                 <span class="badge {{ $row->orderstatus == null ? 'badge-warning' :'' }} text-white" style="background-color: {{ $row->orderstatus->slug  }}">{{ $row->orderstatus->name ?? '' }}</span>
                             </td>
-                            <td>{{ $row->order_method }}</td>
-
+                            {{-- <td>{{ $row->order_method }}</td> --}}
+                            <td> {{$order_type}} </td>
                             <td>{{ $row->orderitems_count }}</td>
                             <td>
                                 <a target="_blank" href="{{ route('seller.order.print',$row->id) }}" class="btn btn-primary">Print</a>

@@ -25,7 +25,31 @@
 			<div class="container">
 				<div class="row">
 					<div class="col-sm-12">
-						{!! $meta->page_content ?? '' !!}
+						@php 
+						   $club_info = tenant_club_info();
+                           $content = $meta->page_content ?? '';
+						   $lastupdated = Carbon\Carbon::parse($info->updated_at)->format('d-m-Y');
+						   if(isset($club_info['club_url'])){
+							$club_url = $club_info['club_url'];
+							$club_url = '<a href="'.$club_url.'" target="_blank">'.$club_url.'</a>';
+						   }else{
+							$club_url = 'https://staging3.booostr.co/all-booster-clubs/';
+							$club_url = '<a href="'.$club_url.'" target="_blank">'.$club_url.'</a>';
+						   }
+						   $address = explode(',',$club_info['address']);
+                           $store_country = trim($address[count($address)-1]);
+
+                           $club_email = '<a href="mailto:'.$club_info['club_email'].'">'.$club_info['club_email'].'</a>';
+
+
+						   $content = str_replace('[Date]',$lastupdated,$content);
+						   $content = str_replace('[store_name]',$club_info['club_name'],$content);
+						   $content = str_replace('[store_url]',$club_url,$content);
+						   $content = str_replace('[store_email]',$club_email,$content);
+						   $content = str_replace('[store_jurisdiction]',$store_country,$content);
+						   
+                         @endphp
+						{!! $content !!}
 					</div>
 				</div>
 			</div>
