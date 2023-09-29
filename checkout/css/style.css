@@ -199,6 +199,9 @@ body .button .btn::before,
 body a.scroll-top.btn-hover:hover {
   background-color: #0fbaf3;
 }
+body .checkout-main .btn:hover {
+  background-color: #0baee3;
+}
     /* Responsive layout */
     @media (max-width: 800px) {
       .checkout-main .row {
