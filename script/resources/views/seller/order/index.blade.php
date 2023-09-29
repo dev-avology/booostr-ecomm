@@ -83,7 +83,36 @@
                     </thead>
                     <tbody class="list font-size-base rowlink" data-link="row">
                         @foreach($orders ?? [] as $key => $row)
-                        @php  $ordermeta=json_decode($row->ordermeta->value ?? ''); @endphp
+                        @php 
+                               $p_types = $product_type->pluck('id')->flatten()->toArray();
+                            // $orderItems = $row->orderitems->map(function ($term) use ($product_typeIds) {
+                            //     dump($term->termcategories());
+                            //     return $term->termcategories()?->filter(function ($cat) use ($product_typeIds) {
+                            //         return in_array($cat->id, $product_typeIds);
+                            //     });
+                            // });
+
+                            $selected_product_type = [];
+
+                           foreach($row->orderitems ?? [] as $row1){
+                             foreach ($row1->term->termcategories as $key => $value) {
+                                   if(in_array($value->category_id,$p_types))
+                                     array_push($selected_product_type, $value->category_id);
+                             }
+                           }
+                           
+                         // dump($selected_product_type);
+                         $order_type = 'Goods'; 
+                          if(count($selected_product_type) == 1){
+                               if(!in_array(52,$selected_product_type)){
+                                $order_type = 'Digital '; 
+                               }
+                          }elseif(count($selected_product_type) > 1){
+                                $order_type = 'Mixed'; 
+                          }
+
+                        $ordermeta=json_decode($row->ordermeta->value ?? ''); 
+                    @endphp
                         <tr>
                             <td  class="text-left">
                                 <div class="custom-control custom-checkbox">
@@ -114,8 +143,8 @@
                             <td>
                                 <span class="badge {{ $row->orderstatus == null ? 'badge-warning' :'' }} text-white" style="background-color: {{ $row->orderstatus->slug  }}">{{ $row->orderstatus->name ?? '' }}</span>
                             </td>
-                            <td>{{ $row->order_method }}</td>
-
+                            {{-- <td>{{ $row->order_method }}</td> --}}
+                            <td> {{$order_type}} </td>
                             <td>{{ $row->orderitems_count }}</td>
                             <td>
                                 <a target="_blank" href="{{ route('seller.order.print',$row->id) }}" class="btn btn-primary">Print</a>

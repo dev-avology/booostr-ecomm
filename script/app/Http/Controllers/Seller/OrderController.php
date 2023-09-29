@@ -26,7 +26,10 @@ class OrderController extends Controller
        abort_if(!getpermission('order'),401);
        $status=Category::where('type','status')->orderBy('featured','ASC')->withCount('orderstatus')->latest()->get();
        $request_status=$request->status ?? null;
-       $orders=Order::with('user','ordermeta','orderstatus')->withCount('orderitems');
+       $orders=Order::with('user','ordermeta','orderitems','orderstatus')->withCount('orderitems');
+
+       $product_type = Category::where('type', 'product_type')->select('id','slug', 'name')->orderBy('id', 'ASC')->get();
+
        if (!empty($request->status)) {
           $orders=$orders->where('status_id',$request->status);
        }
@@ -49,7 +52,7 @@ class OrderController extends Controller
            $orders=$orders->where('invoice_no',$request->src);
        }
        $orders=$orders->latest()->paginate(30);
-       return view('seller.order.index',compact('request','status','request_status','orders'));
+       return view('seller.order.index',compact('request','status','product_type','request_status','orders'));
     }
 
     

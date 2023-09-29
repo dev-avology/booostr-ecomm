@@ -76,6 +76,7 @@ class Order extends Model
        return $this->hasMany('App\Models\Orderitem')->with('term');
    }
 
+
    public function orderitemswithpreview()
    {
        return $this->hasMany('App\Models\Orderitem')->with('termwithpreview');
