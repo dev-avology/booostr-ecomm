@@ -4,10 +4,10 @@ $('.cart_subtotal').text(amount_format(subtotal));
 $('.cart_tax').text(amount_format(tax));
 $('.cart_total').text(amount_format(total));
 
-$('.cart_credit_card_fee').text(amount_format(credit_card_fee));
-$('.cart_booster_platform_fee').text(amount_format(booster_platform_fee));
+//$('.cart_credit_card_fee').text(amount_format(credit_card_fee));
+//$('.cart_booster_platform_fee').text(amount_format(booster_platform_fee));
 //$('.cart_grand_total').text(amount_format(total+credit_card_fee+booster_platform_fee+price));
-$('.cart_grand_total').text(amount_format(total+price));
+//$('.cart_grand_total').text(amount_format(total+price));
 
  /*-------------------------
         Order Method Change
@@ -260,10 +260,10 @@ function shipping_state_change()
 				$('.cart_tax').text(amount_format(response.cart_tax));
 				$('.cart_total').text(amount_format(response.cart_total));
 				
-				$('.cart_credit_card_fee').text(amount_format(response.cart_credit_card_fee));
+				//$('.cart_credit_card_fee').text(amount_format(response.cart_credit_card_fee));
 
-				$('.cart_booster_platform_fee').text(amount_format(response.cart_booster_platform_fee));
-				$('.cart_grand_total').text(amount_format(response.cart_grand_total));
+				//$('.cart_booster_platform_fee').text(amount_format(response.cart_booster_platform_fee));
+				//$('.cart_grand_total').text(amount_format(response.cart_grand_total));
 			//	$(".shipping_method_area .shipping_method").find(".shipping_item").eq(0).trigger('change');
 			}
 		});
