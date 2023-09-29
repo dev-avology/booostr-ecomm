@@ -165,6 +165,7 @@ $('#shipping_address').on('change',function(){
         $('#post_code1').val($('#post_code').val())
 
 		$('.shipping_address_area').hide();		
+		shipping_state_change();
 	}
 	else{
 		$('.shipping_address_area').show();
