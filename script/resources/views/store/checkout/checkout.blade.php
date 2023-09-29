@@ -287,7 +287,7 @@
 
 									<li class="last">{{ __('Total') }}<span class="cart_total">0.00</span></li>
 
-									<li>{{ __('Credit Card Fee') }}
+									{{-- <li>{{ __('Credit Card Fee') }}
 										<span class="cart_credit_card_fee">
 											0.00
 										</span>
@@ -297,7 +297,7 @@
 											0.00
 										</span>
 									</li>
-									<li class="last">{{ __('Grand Total') }}<span class="cart_grand_total">0.00</span></li>
+									<li class="last">{{ __('Grand Total') }}<span class="cart_grand_total">0.00</span></li> --}}
 
 								</ul>
 							</div>
