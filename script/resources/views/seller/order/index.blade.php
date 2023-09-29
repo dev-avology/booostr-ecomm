@@ -83,6 +83,7 @@
                     </thead>
                     <tbody class="list font-size-base rowlink" data-link="row">
                         @foreach($orders ?? [] as $key => $row)
+                        @php  $ordermeta=json_decode($row->ordermeta->value ?? ''); @endphp
                         <tr>
                             <td  class="text-left">
                                 <div class="custom-control custom-checkbox">
@@ -94,7 +95,7 @@
                                 <a href="{{ route('seller.order.show',$row->id) }}">{{ $row->invoice_no }}</a>
                             </td>
                             <td><a href="{{ route('seller.order.show',$row->id) }}">{{ $row->created_at->format('d-F-Y') }}</a></td>
-                            <td>@if($row->user_id !== null)<a href="{{ route('seller.user.show',$row->user_id) }}">{{ $row->user->name }}</a> @else {{ __('Guest User') }} @endif</td>
+                            <td>@if($row->user_id !== null)<a href="{{ route('seller.user.show',$row->user_id) }}">{{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}}</a> @else {{ __('Guest User') }} @endif</td>
                             <td >{{ currency_formate($row->total) }}</td>
                             <td>
                                 @if($row->payment_status==2)

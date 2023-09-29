@@ -490,7 +490,7 @@ function booster_club_chagre($total){
     
 	$club_info = tenant_club_info();
 
-  return number_format(((int)$club_info['is_pro'] == 1) ? $total *0.025 : $total *0.05,2);
+  return number_format( !empty($club_info['is_pro']) ? $total *0.025 : $total *0.05,2);
 }
 
 

@@ -26,7 +26,7 @@ class OrderController extends Controller
        abort_if(!getpermission('order'),401);
        $status=Category::where('type','status')->orderBy('featured','ASC')->withCount('orderstatus')->latest()->get();
        $request_status=$request->status ?? null;
-       $orders=Order::with('user','orderstatus')->withCount('orderitems');
+       $orders=Order::with('user','ordermeta','orderstatus')->withCount('orderitems');
        if (!empty($request->status)) {
           $orders=$orders->where('status_id',$request->status);
        }
