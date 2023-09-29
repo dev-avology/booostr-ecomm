@@ -195,6 +195,10 @@ body .scroll-top {
   background: #00c0ff;
  
 }
+body .button .btn::before,
+body a.scroll-top.btn-hover:hover {
+  background-color: #0fbaf3;
+}
     /* Responsive layout */
     @media (max-width: 800px) {
       .checkout-main .row {
