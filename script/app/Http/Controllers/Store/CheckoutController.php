@@ -510,6 +510,11 @@ class CheckoutController extends Controller
                 $cartid=Session::get('cartid');
                 Cart::instance('default')->destroy($cartid);
             }
+            $parts = parse_url($redirect_url);
+
+            if (isset($parts['scheme'], $parts['host'], $parts['path'])) {
+                $redirect_url = $parts['scheme'] . '://' . $parts['host'] . $parts['path'];
+            }
 
             return redirect()->away($redirect_url . '/?tab=thankyou&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
         } catch (\Throwable $th) {
