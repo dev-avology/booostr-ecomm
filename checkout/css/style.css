@@ -92,7 +92,7 @@ body{
     }
     
     .checkout-main .btn {
-      background-color: #4CAF50;
+      background-color: #00c0ff;
       color: white;
       padding: 12px;
       margin: 10px 0;
@@ -101,7 +101,8 @@ body{
       border-radius: 3px;
       cursor: pointer;
       font-size: 17px;
-    }
+      border-radius: 6px!important;
+  }
     
     .checkout-main .btn:hover {
       background-color: #45a049;
@@ -189,6 +190,10 @@ footer.container  a {
 }
 footer.container  a:hover {
   color: #00c0ff;
+}
+body .scroll-top {
+  background: #00c0ff;
+ 
 }
     /* Responsive layout */
     @media (max-width: 800px) {
