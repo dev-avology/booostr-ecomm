@@ -1,11 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
 body{
     margin:0;
-    padding:0;font-family: 'Montserrat', sans-serif;}
+    padding:0;font-family: 'Open Sans', sans-serif;}
     .checkout-main h1 {
-        text-align: center;
-        margin-bottom: 40px;
-    }
-    
+      text-align: center;
+      margin-bottom: 40px;
+      font-family: 'Arvo', serif;
+      font-weight: 700;
+      font-size: 40px;
+      color: #00c0ff;
+  }
+  .checkout-form h3 {
+    color: #00c0ff;
+    font-size: 26px;
+    font-weight: 600;
+    font-family: 'Arvo', serif;
+}
     * {
       box-sizing: border-box;
     }
@@ -55,7 +66,7 @@ body{
     
     .checkout-main .container {
       background-color: #f2f2f2 !important;
-      padding: 5px 20px 15px 20px;
+      padding: 15px 30px 20px 30px;
       border: 1px solid lightgrey !important;
       border-radius: 3px;
       box-shadow:unset !important;
@@ -130,7 +141,7 @@ body{
     }
     .carts-right p {
         margin: 0 0 1px 0;
-        padding: 10px;
+        padding: 10px 30px;
         background: #ffffff8c;
         display: flex;
         align-items: center;
@@ -162,6 +173,23 @@ body{
       border-radius: 3px;
       background:#F6F7FB;
     }
+    body .shop.checkout .single-widget h2:before {
+           background: #00c0ff;
+  }
+  .topbar-area .container {
+    padding-bottom: 15px;
+}
+footer.container {
+  padding-bottom: 0!important;
+  padding-top: 24px;
+}
+footer.container  a {
+  color: black;
+  transition: al .3s;
+}
+footer.container  a:hover {
+  color: #00c0ff;
+}
     /* Responsive layout */
     @media (max-width: 800px) {
       .checkout-main .row {
