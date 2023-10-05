@@ -5,7 +5,35 @@ use App\Models\Menu;
 use Amcoders\Lpress\Lphelper;
 use App\Models\Category;
 use App\Models\Term;
+use Illuminate\Support\Facades\Http;
 
+
+
+/**
+ * 
+ * Get Timezone from latitude & Longitude
+ * 
+ */
+
+ function getClubTimeZone(){
+	
+	$club_info = tenant_club_info();
+
+	$lat_lang = explode(',',$club_info['lat_lang']);
+
+	$response = Http::get('https://maps.googleapis.com/maps/api/timezone/json', [
+        'location' => $lat_lang[0].','.$lat_lang[1],
+        'timestamp' => time(),
+        'key' => 'AIzaSyCmimJcxCmMIgBR0G0UKmQAgfr7RSS8pDg',
+    ]);
+
+	if($response->successful()){
+		$info = $response->json();
+	}else{
+		$info = [];
+	}
+	return $info;
+ }
 
 
 /*
