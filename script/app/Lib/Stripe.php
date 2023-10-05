@@ -280,11 +280,10 @@ class Stripe {
             ));
 
          if($array['refund_application_fee'] == true || $array['refund_card_fee'] == true){
-            $transaction->setRefundApplicationFee(true);
+            $transaction->setRefundApplicationFee(true)->setReverseTransfer(true);
          }
 
            $response = $transaction->send();
-dd($response);
            if ($response->isSuccessful()) {
 
             $arr_body = $response->getData();
