@@ -37,8 +37,7 @@ class SitesettingsController extends Controller
          $club_info = tenant_club_info();
 
 
-         $timezone = getClubTimeZone();
-dd($timezone);
+      //   $timezone = getClubTimeZone();
 
          $lat_lang = explode(',',$club_info['lat_lang']);
          $address = explode(',',$club_info['address']);
