@@ -274,6 +274,8 @@ class Stripe {
         $stripe = Omnipay::create('Stripe');
         $stripe->setApiKey($secret_key);
 
+       dd($totalAmount);
+
          $transaction = $stripe->refund(array(
                 'amount'                   => $totalAmount,
                 'transactionReference'     => $array['transaction_id'],
