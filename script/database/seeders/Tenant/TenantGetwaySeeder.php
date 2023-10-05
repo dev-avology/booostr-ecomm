@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Getway;
 use Illuminate\Support\Facades\Http;
 
+
 class TenantGetwaySeeder extends Seeder
 {
     /**
