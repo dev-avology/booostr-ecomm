@@ -284,6 +284,8 @@
 							<span class="badge badge-danger float-right">{{ __('Incomplete') }}</span>
 							@elseif($info->payment_status==4)
 							<span class="badge badge-danger float-right">{{ __('Authorized') }}</span>
+							@elseif($info->payment_status==5)
+							<span class="badge badge-warning float-right">{{ __('Refunded') }}</span>
 							@endif</p>
 							<p>{{ __('Order Status') }}
 						 	@if($info->status_id != null)

@@ -129,15 +129,14 @@
                             <td>
                                 @if($row->payment_status==2)
                                 <span class="badge badge-warning">{{ __('Pending') }}</span>
-
                                 @elseif($row->payment_status==1)
                                 <span class="badge badge-success">{{ __('Complete') }}</span>
-
                                 @elseif($row->payment_status==0)
                                 <span class="badge badge-danger">{{ __('Cancel') }}</span> 
                                 @elseif($row->payment_status==3)
                                 <span class="badge badge-danger">{{ __('Incomplete') }}</span> 
-
+                                @elseif($row->payment_status==5)
+                                <span class="badge badge-warning">{{ __('Refunded') }}</span>
                                 @endif
                             </td>
                             <td>
