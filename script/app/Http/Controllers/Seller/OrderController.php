@@ -240,6 +240,44 @@ class OrderController extends Controller
 
 
 
+    public function refund($id)
+    {
+        abort_if(!getpermission('order'),401);
+        $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+
+        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        $ordermeta=json_decode($order->ordermeta->value ?? '');
+
+        $gateway_data_info = json_decode($gateway->data);
+        $payment_data['test_mode']  = $gateway->test_mode;
+        $payment_data['currency']   = $gateway->currency_name ?? 'USD';
+        $payment_data['getway_id']  = $gateway->id;
+        $payment_data['amount']  = $order->total;
+        $payment_data['transaction_id']  = $order->transaction_id;
+        $payment_data['application_fee_amount']  = (float) $ordermeta->booster_platform_fee??0;
+        $payment_data['card_fee_amount']  = (float) $ordermeta->credit_card_fee??0;
+        $payment_data['refund_application_fee']  = true;
+        $payment_data['refund_card_fee']  = true;
+
+
+
+        if (!empty($gateway->data)) {
+            foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
+                $payment_data[$key] = $info;
+            };
+        }
+
+        $paymentresult= $gateway->namespace::refund_payment($payment_data);
+
+        if ($paymentresult['payment_status'] == '1') {
+            $order->payment_status = 5;
+            $order->status_id = 2;
+            $order->save();
+        }
+        return redirect()->back();
+    }
+
+
 
     /**
      * Remove the specified resource from storage.

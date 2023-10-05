@@ -252,6 +252,7 @@
 				<div class="card card-primary">
 					<div class="card-header" style="justify-content: space-between;">
 						<h4>{{ __('Status') }}</h4>
+
 						@if($info->payment_status==4)
 							<div class="capture-btn">
 								<form method="POST" action="{{ route('seller.order.capture',$info->id) }}">
@@ -260,6 +261,16 @@
 								</form>
 							</div>
 						@endif
+
+						@if($info->payment_status==1)
+							<div class="capture-btn">
+								<form method="POST" action="{{ route('seller.order.refund',$info->id) }}">
+									@csrf
+									<button type="submit" name="refund_payment" class="btn btn-primary float-right mt-2 text-right">Cancel Order & Refund Payment</button>
+								</form>
+							</div>
+						@endif
+
 					</div>
 					<div class="card-body">
 						<p>{{ __('Payment Status') }}
@@ -273,6 +284,8 @@
 							<span class="badge badge-danger float-right">{{ __('Incomplete') }}</span>
 							@elseif($info->payment_status==4)
 							<span class="badge badge-danger float-right">{{ __('Authorized') }}</span>
+							@elseif($info->payment_status==5)
+							<span class="badge badge-warning float-right">{{ __('Refunded') }}</span>
 							@endif</p>
 							<p>{{ __('Order Status') }}
 						 	@if($info->status_id != null)
