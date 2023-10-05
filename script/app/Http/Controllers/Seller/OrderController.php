@@ -257,7 +257,7 @@ class OrderController extends Controller
         $payment_data['application_fee_amount']  = $ordermeta->booster_platform_fee??0;
         $payment_data['card_fee_amount']  = $ordermeta->credit_card_fee??0;
         $payment_data['refund_application_fee']  = true;
-        $payment_data['refund_card_fee']  = true;
+        $payment_data['refund_card_fee']  = false;
 
 
 
