@@ -271,7 +271,7 @@ class Stripe {
 
        dump('WA1',$totalAmount);
 
-       if($array['card_fee_amount']){
+       if($array['refund_card_fee']){
          $totalAmount = $totalAmount + $array['card_fee_amount'];
        }
 
