@@ -284,7 +284,7 @@ class Stripe {
          }
 
            $response = $transaction->send();
-
+dd($response);
            if ($response->isSuccessful()) {
 
             $arr_body = $response->getData();
