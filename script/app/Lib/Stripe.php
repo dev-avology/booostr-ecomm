@@ -259,16 +259,23 @@ class Stripe {
 
        // $application_fee_amount = $array['application_fee_amount'];
 
+       dump($array);
 
        $totalAmount = $totalAmount - $array['application_fee_amount'] -  $array['card_fee_amount'];
+
+       dump('WA',$totalAmount);
 
        if($array['refund_application_fee'] == true){
          $totalAmount = $totalAmount + $array['application_fee_amount'];
        }
 
+       dump('WA1',$totalAmount);
+
        if($array['card_fee_amount'] == true){
          $totalAmount = $totalAmount + $array['card_fee_amount'];
        }
+
+       dump('WC1',$totalAmount);
 
 
         $stripe = Omnipay::create('Stripe');
