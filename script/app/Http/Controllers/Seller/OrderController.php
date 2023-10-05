@@ -254,8 +254,8 @@ class OrderController extends Controller
         $payment_data['getway_id']  = $gateway->id;
         $payment_data['amount']  = $order->total;
         $payment_data['transaction_id']  = $order->transaction_id;
-        $payment_data['application_fee_amount']  = $ordermeta->booster_platform_fee??0;
-        $payment_data['card_fee_amount']  = $ordermeta->credit_card_fee??0;
+        $payment_data['application_fee_amount']  = (float) $ordermeta->booster_platform_fee??0;
+        $payment_data['card_fee_amount']  = (float) $ordermeta->credit_card_fee??0;
         $payment_data['refund_application_fee']  = true;
         $payment_data['refund_card_fee']  = false;
 
