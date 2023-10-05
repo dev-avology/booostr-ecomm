@@ -135,6 +135,8 @@
                                 <span class="badge badge-danger">{{ __('Cancel') }}</span> 
                                 @elseif($row->payment_status==3)
                                 <span class="badge badge-danger">{{ __('Incomplete') }}</span> 
+                                @elseif($info->payment_status==4)
+    							<span class="badge badge-danger">{{ __('Authorized') }}</span>
                                 @elseif($row->payment_status==5)
                                 <span class="badge badge-warning">{{ __('Refunded') }}</span>
                                 @endif
