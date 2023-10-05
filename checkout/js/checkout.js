@@ -4,6 +4,8 @@ $('.cart_subtotal').text(amount_format(subtotal));
 $('.cart_tax').text(amount_format(tax));
 $('.cart_total').text(amount_format(total));
 
+var loader = $('#page-loader');
+
 //$('.cart_credit_card_fee').text(amount_format(credit_card_fee));
 //$('.cart_booster_platform_fee').text(amount_format(booster_platform_fee));
 //$('.cart_grand_total').text(amount_format(total+credit_card_fee+booster_platform_fee+price));
@@ -153,9 +155,11 @@ $(document).on('change','#billing-name,#billing-email,#billing-phone,#location_i
 
 	var shipping_address = $('#shipping_address');
 
+	$(this).closest('.form-group').removeClass('error');
+
 	if(shipping_address.is(':checked')){
 		let shippingf = $(this).data('shippingf');
-		$('#'+shippingf).val($(this).val());
+		$('#'+shippingf).val($(this).val()).closest('.form-group').removeClass('error');
 		if(shippingf == 'location_state1'){
 			$('#'+shippingf).trigger('change');
 		}
@@ -190,10 +194,11 @@ $('#shipping_address').on('change',function(){
 /*-------------------------
        Order Form Submit
     --------------------------*/
-$('.orderform').on('submit', function(e) {
-	$('.submitbtn').attr("disabled", "disabled");
-	$('.submitbtn').text("Please wait...");
-});
+// $('.orderform').on('submit', function(e) {
+// 	$('.submitbtn').attr("disabled", "disabled");
+// 	$('.submitbtn').text("Please wait...");
+// });
+
 
 /*-------------------------
        Pre Order Change
@@ -256,6 +261,7 @@ function shipping_state_change()
 	var shipping_state = $('#location_state1').val();
 	
     if(shipping_state != ''){
+		loader.css('display','flex');
 		$.ajaxSetup({
 			headers: {
 				'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -275,7 +281,9 @@ function shipping_state_change()
 				//$('.cart_subtotal').text(amount_format(response.cart_subtotal));
 				$('.cart_tax').text(amount_format(response.cart_tax));
 				$('.cart_total').text(amount_format(response.cart_total));
-				
+
+				loader.css('display','none');
+
 				//$('.cart_credit_card_fee').text(amount_format(response.cart_credit_card_fee));
 
 				//$('.cart_booster_platform_fee').text(amount_format(response.cart_booster_platform_fee));
