@@ -267,8 +267,6 @@ class OrderController extends Controller
             };
         }
 
-        dd($payment_data);
-
         $paymentresult= $gateway->namespace::refund_payment($payment_data);
 
         if ($paymentresult['payment_status'] == '1') {
