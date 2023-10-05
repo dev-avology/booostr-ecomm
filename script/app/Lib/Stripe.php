@@ -242,6 +242,66 @@ class Stripe {
         return $data;
     }
 
+
+    public static function refund_payment($array)
+    {
+        $publishable_key= ($array['test_mode'] == 1) ? $array['test_publishable_key'] : $array['publishable_key'];
+        $secret_key=($array['test_mode'] == 1) ? $array['test_secret_key'] : $array['secret_key'];
+        $currency=$array['currency'];
+        $totalAmount=$array['amount'];
+        $test_mode=$array['test_mode'];
+
+        $data['publishable_key']=$publishable_key;
+        $data['secret_key']=$secret_key;
+        $data['payment_mode']='stripe';
+        $data['amount']=$totalAmount;
+        $data['test_mode']=$test_mode;
+
+       // $application_fee_amount = $array['application_fee_amount'];
+
+
+       $totalAmount = $totalAmount - $array['application_fee_amount'] -  $array['card_fee_amount'];
+
+       if($array['refund_application_fee'] == true){
+         $totalAmount = $totalAmount + $array['application_fee_amount'];
+       }
+
+       if($array['card_fee_amount'] == true){
+         $totalAmount = $totalAmount + $array['card_fee_amount'];
+       }
+
+
+        $stripe = Omnipay::create('Stripe');
+        $stripe->setApiKey($secret_key);
+
+         $transaction = $stripe->refund(array(
+                'amount'                   => $totalAmount,
+                'transactionReference'     => $array['transaction_id'],
+            ));
+
+         if($array['refund_application_fee'] == true || $array['refund_card_fee'] == true){
+            $transaction->setRefundApplicationFee(true);
+         }
+
+           $response = $transaction->send();
+
+           if ($response->isSuccessful()) {
+
+            $arr_body = $response->getData();
+            $data['payment_id'] = $arr_body['id'];
+            $data['payment_method'] = "stripe";
+            $data['status'] = 1;
+            $data['payment_status'] = 1;
+
+            }else{
+                $data['payment_status'] = 0;
+            }
+
+        return $data;
+    }
+
+
+
 }
 
 
