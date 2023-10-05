@@ -103,6 +103,24 @@ var savedErrors = {};
 //   });
 // });
 
+function fieldvalidation() {
+  var fieldError = false;
+  var requiredFields = document.getElementsByClassName('required');
+
+  Array.from(requiredFields).forEach(function (f) {
+    if (f.value === '') {
+      var formGroup = f.closest('.form-group');
+      if (formGroup) {
+        formGroup.classList.add('error');
+      }
+      fieldError = true;
+    }
+  });
+
+  return fieldError;
+}
+
+
 function triggerBrowserValidation() {
     // The only way to trigger HTML5 form validation UI is to fake a user submit
     // event.
@@ -119,6 +137,10 @@ form.addEventListener('submit', function(event) {
     event.preventDefault();
     // Trigger HTML5 validation UI on the form if any of the inputs fail
     // validation.
+
+
+
+
     var plainInputsValid = true;
     Array.prototype.forEach.call(form.querySelectorAll('input'), function(
       input
@@ -128,16 +150,33 @@ form.addEventListener('submit', function(event) {
         return;
       }
     });
+
     if (!plainInputsValid) {
       triggerBrowserValidation();
       return;
     }
+    var errorMsgContainer = document.getElementById('error-msg');
+
+    if(fieldvalidation()){
+      errorMsgContainer.innerHTML = `
+          <div class=" autoDismissAlert alert alert-danger alert-dismissible fade show" role="alert">
+              Please input all required fields!
+          </div>
+      `;
+      return;
+    }
+    errorMsgContainer.innerHTML = ``;
 
     stripe.createToken(cardNumberElement).then(function(result) {
         if (result.error) {
             // Inform the user if there was an error.
             var errorElement = document.getElementById('card-errors');
-            errorElement.textContent = result.error.message;
+          //  errorElement.textContent = result.error.message;
+            errorMsgContainer.innerHTML = `
+             <div class=" autoDismissAlert alert alert-danger alert-dismissible fade show" role="alert">`
+             +result.error.message+
+            `</div>
+        `;
             $('.submitbtn').removeAttr("disabled");
 	          $('.submitbtn').text("Place Order");
         } else {

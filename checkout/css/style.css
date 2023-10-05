@@ -202,6 +202,12 @@ body a.scroll-top.btn-hover:hover {
 body .checkout-main .btn:hover {
   background-color: #0baee3;
 }
+
+
+.shop.checkout .form .form-group.error input, .shop.checkout .form .form-group.error textarea, .shop.checkout .form .form-group.error .nice-select {
+  border: 1px solid red;
+}
+
     /* Responsive layout */
     @media (max-width: 800px) {
       .checkout-main .row {
