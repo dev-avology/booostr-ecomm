@@ -154,7 +154,6 @@ $(document).on('change','.shipping_item',function(){
 $(document).on('change','#billing-name,#billing-email,#billing-phone,#location_input,#location_city,#location_state,#billing-country,#post_code',function(){
 
 	var shipping_address = $('#shipping_address');
-
 	$(this).closest('.form-group').removeClass('error');
 
 	if(shipping_address.is(':checked')){

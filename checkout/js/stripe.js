@@ -73,38 +73,8 @@ cardCvcElement.mount("#cardcvv");
 postalCodeElement.mount("#cardpostal");
 // card.mount('#card-element');
 
-// Handle real-time validation errors from the card Element.
-// Listen for errors from each Element, and show error messages in the UI.
-var savedErrors = {};
-// [cardNumberElement, cardExpiryElement, cardCvcElement,postalCodeElement].forEach(function(element, idx) {
-//   element.on('change', function(event) {
-//     if (event.error) {
-//       error.classList.add('visible');
-//       savedErrors[idx] = event.error.message;
-//       errorMessage.innerText = event.error.message;
-//     } else {
-//       savedErrors[idx] = null;
-
-//       // Loop over the saved errors and find the first one, if any.
-//       var nextError = Object.keys(savedErrors)
-//         .sort()
-//         .reduce(function(maybeFoundError, key) {
-//           return maybeFoundError || savedErrors[key];
-//         }, null);
-
-//       if (nextError) {
-//         // Now that they've fixed the current error, show another one.
-//         errorMessage.innerText = nextError;
-//       } else {
-//         // The user fixed the last error; no more errors.
-//         error.classList.remove('visible');
-//       }
-//     }
-//   });
-// });
-
 function fieldvalidation() {
-  var fieldError = false;
+  var fieldError = [];
   var requiredFields = document.getElementsByClassName('required');
 
   Array.from(requiredFields).forEach(function (f) {
@@ -113,12 +83,14 @@ function fieldvalidation() {
       if (formGroup) {
         formGroup.classList.add('error');
       }
-      fieldError = true;
+      fieldError.push(f.getAttribute('data-msg'));
     }
   });
 
   return fieldError;
 }
+
+
 
 
 function triggerBrowserValidation() {
@@ -131,60 +103,50 @@ function triggerBrowserValidation() {
     submit.click();
     submit.remove();
   }
+
+
+
 // Handle form submission.
+// Handle form submission
 var form = document.getElementById('payment-form');
 form.addEventListener('submit', function(event) {
-    event.preventDefault();
-    // Trigger HTML5 validation UI on the form if any of the inputs fail
-    // validation.
+  event.preventDefault();
 
+  // Trigger HTML5 validation UI on the form if any of the inputs fail validation
+  if (!form.checkValidity()) {
+    triggerBrowserValidation();
+    return;
+  }
 
+  var errorMsgContainer = document.getElementById('error-msg');
+  var fieldErrors = fieldvalidation();
 
+  if (fieldErrors.length) {
+    displayErrors(errorMsgContainer, fieldErrors);
+    return;
+  }
 
-    var plainInputsValid = true;
-    Array.prototype.forEach.call(form.querySelectorAll('input'), function(
-      input
-    ) {
-      if (input.checkValidity && !input.checkValidity()) {
-        plainInputsValid = false;
-        return;
-      }
-    });
+  errorMsgContainer.innerHTML = '';
 
-    if (!plainInputsValid) {
-      triggerBrowserValidation();
-      return;
+  stripe.createToken(cardNumberElement).then(function(result) {
+    if (result.error) {
+      displayErrors(errorMsgContainer, [result.error.message]);
+    } else {
+      stripeTokenHandler(result.token);
     }
-    var errorMsgContainer = document.getElementById('error-msg');
-
-    if(fieldvalidation()){
-      errorMsgContainer.innerHTML = `
-          <div class=" autoDismissAlert alert alert-danger alert-dismissible fade show" role="alert">
-              Please input all required fields!
-          </div>
-      `;
-      return;
-    }
-    errorMsgContainer.innerHTML = ``;
-
-    stripe.createToken(cardNumberElement).then(function(result) {
-        if (result.error) {
-            // Inform the user if there was an error.
-            var errorElement = document.getElementById('card-errors');
-          //  errorElement.textContent = result.error.message;
-            errorMsgContainer.innerHTML = `
-             <div class=" autoDismissAlert alert alert-danger alert-dismissible fade show" role="alert">`
-             +result.error.message+
-            `</div>
-        `;
-            $('.submitbtn').removeAttr("disabled");
-	          $('.submitbtn').text("Place Order");
-        } else {
-            // Send the token to your server.
-            stripeTokenHandler(result.token);
-        }
-    });
+  });
 });
+
+// Function to display errors
+function displayErrors(container, errors) {
+  var msg = `<div class="autoDismissAlert alert alert-danger alert-dismissible fade show" role="alert">`;
+  msg += `Whoops, the following fields are required but not filled in correctly:<br>`;
+  msg += errors.map(function(error) {
+    return `${error}<br>`;
+  }).join('');
+  msg +=`</div>`;
+  container.innerHTML = msg;
+}
 
 // Submit the form with the token ID.
 function stripeTokenHandler(token) {
@@ -198,3 +160,7 @@ function stripeTokenHandler(token) {
     // Submit the form
     form.submit();
 }
+
+
+
+
