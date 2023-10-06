@@ -169,6 +169,7 @@ class ProductController extends Controller
         $productcartdata['cart_subtotal'] = Cart::subtotal();
         $productcartdata['cart_tax'] = Cart::tax();
         $productcartdata['cart_total'] = Cart::total();
+        $productcartdata['cart_count'] = Cart::count();
         return response()->json(["status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
     }
 
@@ -196,6 +197,7 @@ class ProductController extends Controller
         $productcartdata['cart_subtotal'] = Cart::subtotal();
         $productcartdata['cart_tax'] = Cart::tax();
         $productcartdata['cart_total'] = Cart::total();
+        $productcartdata['cart_count'] = Cart::count();
         return response()->json(["status" => true, "message" => 'Cart Data', "result" => $productcartdata]);
     }
 
@@ -228,6 +230,7 @@ class ProductController extends Controller
         $productcartdata['cart_subtotal'] = Cart::subtotal();
         $productcartdata['cart_tax'] = Cart::tax();
         $productcartdata['cart_total'] = Cart::total();
+        $productcartdata['cart_count'] = Cart::count();
         return response()->json(["status" => true, "message" => 'Removed From Cart Sucessfullly', "result" => $productcartdata]);
     }
 
@@ -262,6 +265,7 @@ class ProductController extends Controller
         $productcartdata['cart_subtotal'] = Cart::subtotal();
         $productcartdata['cart_tax'] = Cart::tax();
         $productcartdata['cart_total'] = Cart::total();
+        $productcartdata['cart_count'] = Cart::count();
         return response()->json(["status" => true, "message" => 'Cart Updated  Sucessfullly', "result" => $productcartdata]);
     }
 
