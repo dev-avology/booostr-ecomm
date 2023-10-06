@@ -28,7 +28,7 @@
 						@php 
 						   $club_info = tenant_club_info();
                            $content = $meta->page_content ?? '';
-						   $lastupdated = Carbon\Carbon::parse($info->updated_at)->format('d-m-Y');
+						   $lastupdated = Carbon\Carbon::parse(tenant('created_at'))->format('d-m-Y');
 						   if(isset($club_info['club_url'])){
 							$club_url = $club_info['club_url'];
 							$club_url = '<a href="'.$club_url.'" target="_blank">'.$club_url.'</a>';
@@ -43,10 +43,12 @@
 
 
 						   $content = str_replace('[Date]',$lastupdated,$content);
-						   $content = str_replace('[store_name]',$club_info['club_name'],$content);
-						   $content = str_replace('[store_url]',$club_url,$content);
-						   $content = str_replace('[store_email]',$club_email,$content);
+						   $content = str_replace(array('[store_name]','[club_name]'),$club_info['club_name'],$content);
+						   $content = str_replace(array('[store_url]','[club_profile_url]'),$club_url,$content);
+						   $content = str_replace(array('[store_email]','[club_email]'),$club_email,$content);
 						   $content = str_replace('[store_jurisdiction]',$store_country,$content);
+						   $content = str_replace('[club_manager_first_and_last_name]',$club_info['co_profile_manager']??'',$content);
+						   $content = str_replace('[club_address]',$club_info['address'],$content);
 						   
                          @endphp
 						{!! $content !!}
