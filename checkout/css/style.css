@@ -184,11 +184,11 @@ footer.container {
   padding-bottom: 0!important;
   padding-top: 24px;
 }
-footer.container  a {
+footer.container  a,.breadcrumb a {
   color: black;
   transition: al .3s;
 }
-footer.container  a:hover {
+footer.container  a:hover ,.breadcrumb a:hover{
   color: #00c0ff;
 }
 body .scroll-top {
