@@ -82,12 +82,12 @@
                 <h1 class="page-title">{{ $page_data->cart_page_title ?? 'Checkout' }}</h1>
 
 
-                    <div class="row pb-5">
+                    <div class="row pb-5 breadcrumb">
                         <div class="col-lg-12">
                             @php 
                             $club_info = tenant_club_info();
                             @endphp
-                          <a href="{{$club_info['club_url']}}"> {{$club_info['club_name']}} </a> >> <a href="{{$club_info['club_url']}}?tab=cart">Cart</a> >> Checkout
+                          <a href="{{$club_info['club_url']}}"> {{$club_info['club_name']}} </a>  &nbsp;&nbsp;>>&nbsp;&nbsp;  <a href="{{$club_info['club_url']}}?tab=cart">Cart</a>  &nbsp;&nbsp;>>&nbsp;&nbsp;  Checkout
         
                         </div>
                     </div>
