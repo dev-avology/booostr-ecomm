@@ -21,7 +21,7 @@
 		
 		
 		<!-- Shopping Cart -->
-		<div class="shopping-cart section">
+		<div class="shopping-cart section" id="cart-anchor-clr">
 			<div class="container">
 				<div class="row">
 					<div class="col-sm-12">
