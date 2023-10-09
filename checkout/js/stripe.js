@@ -73,6 +73,26 @@ cardCvcElement.mount("#cardcvv");
 postalCodeElement.mount("#cardpostal");
 // card.mount('#card-element');
 
+
+
+// Handle real-time validation errors from the card Element.
+// Listen for errors from each Element, and show error messages in the UI.
+var savedErrors = [];
+[cardNumberElement, cardExpiryElement, cardCvcElement,postalCodeElement].forEach(function(element, idx) {
+  element.on('change', function(event) {
+    if (event.error) {
+     // error.classList.add('visible');
+      savedErrors[idx] = event.error.message;
+    } else {
+      savedErrors[idx] = null;
+    }
+  });
+});
+
+
+
+
+
 function fieldvalidation() {
   var fieldError = [];
   var requiredFields = document.getElementsByClassName('required');
@@ -121,15 +141,22 @@ form.addEventListener('submit', function(event) {
   var errorMsgContainer = document.getElementById('error-msg');
   var fieldErrors = fieldvalidation();
 
-  if (fieldErrors.length) {
-    displayErrors(errorMsgContainer, fieldErrors);
-    return;
-  }
+  // if (fieldErrors.length) {
+  //   displayErrors(errorMsgContainer, fieldErrors);
+  //   return;
+  // }
 
   errorMsgContainer.innerHTML = '';
 
   stripe.createToken(cardNumberElement).then(function(result) {
+
+    if(fieldErrors.length || savedErrors.length){
+     displayErrors(errorMsgContainer, fieldErrors.concat(savedErrors));
+    return ;
+    }
+
     if (result.error) {
+      console.log(savedErrors);
       displayErrors(errorMsgContainer, [result.error.message]);
     } else {
       stripeTokenHandler(result.token);
