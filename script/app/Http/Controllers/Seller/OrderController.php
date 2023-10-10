@@ -231,12 +231,11 @@ class OrderController extends Controller
         }
 
         $paymentresult= $gateway->namespace::capture_payment($payment_data);
-       // $paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
+       //$paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
 
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 1;
             $order->save();
-            
             $this->post_order_data($order);
         }
         return redirect()->back();
@@ -274,7 +273,8 @@ class OrderController extends Controller
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);        
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
