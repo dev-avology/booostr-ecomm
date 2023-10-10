@@ -118,8 +118,10 @@
                     <table>
                         <tr>
                             <td class="title">
-                                <img height="80" width="160" src="{{ asset('uploads/'.tenant('uid').'/logo.png') }}">
-
+                            @if (!empty(tenant()->logo))
+                               <img src="{{ env('WP_URL') }}{{ tenant()->logo }}"
+                               height="80" width="160" />
+                            @endif
                             </td>
 
                             <td>
@@ -170,7 +172,6 @@
 
                            <td>
                              Bill from<br>
-
                             @if(!empty($invoice_info))
                             <strong>{{ $invoice_info->store_legal_name ?? '' }}</strong><br>
                             {{ $invoice_info->post_code ?? '' }}, {{ $invoice_info->store_legal_address ?? '' }}, <br>{{ $invoice_info->store_legal_city ?? '' }}, {{ $invoice_info->country ?? '' }}<br>
@@ -195,7 +196,9 @@
                             @elseif($order->payment_status==0)
                             <div class="badge">Cancel</div>
                             @elseif($order->payment_status==3)
-                            <div class="badge">Incomplete</div>
+                            <div class="badge">Incomplete</div> 
+                             @elseif($order->payment_status==4)
+                            <div class="badge">Authorized</div>
                             @endif
                             <br>
                             Order Status: <br>
@@ -221,6 +224,8 @@
                     <td class="text-center">Product Price</td>
                     <td class="text-right">Totals</td>
                 </tr>
+                @php $subtotal = 0; @endphp
+
                 @foreach($order->orderitems ?? [] as $row)
                 @php
                 $variations=json_decode($row->info);
@@ -236,15 +241,17 @@
 
                         @foreach($item ?? [] as $r)
                         <span>{{ __('Name:') }} {{ $r->name ?? '' }},</span>
-                        <span>{{ __('Price:') }} {{ number_format($r->price ?? 0,2) }},</span>
+                        <span>{{ __('Price:') }} {{ currency_formate($r->price ?? 0) }},</span>
 
                         @endforeach
                         <hr>
                         @endforeach
                     </td>
                     <td class="text-center">{{ $row->amount }} × {{ $row->qty }}</td>
-                    <td class="text-right">{{  number_format($row->amount*$row->qty,2) }}</td>
+                    <td class="text-right">{{  currency_formate($row->amount*$row->qty) }}</td>
                 </tr>
+                @php $subtotal = $subtotal + $row->amount*$row->qty; @endphp
+
                 @endforeach
                 <tr class="subtotal">
 
@@ -253,29 +260,37 @@
                     <td><hr></td>
                 </tr>
 
+              
 
                 <tr class="subtotal">
 
                     <td></td>
+                    <td class="text-right"><strong>Subtotal:</strong></td>
+                  
+                    <td class="text-right">{{ currency_formate($subtotal) }}</td>
+                </tr>
+                <tr class="subtotal">
+
+                    <td></td>
                     <td class="text-right"><strong>Discount:</strong></td>
-                    <td class="text-right">- {{ number_format($order->discount,2) }}</td>
+                    <td class="text-right">- {{ currency_formate($order->discount) }}</td>
                 </tr>
 
                 <tr>
 
                     <td></td>
                     <td class="text-right"><strong>Tax:</strong></td>
-                    <td class="text-right">{{ number_format($order->tax,2) }}</td>
+                    <td class="text-right">{{ currency_formate($order->tax) }}</td>
                 </tr>
                 @if($order->order_method == 'delivery')
                 <tr>
 
                     <td></td>
                     <td class="text-right"><strong>Shippping:</strong></td>
-                    <td class="text-right">{{ number_format($shipping_price,2) }}</td>
+                    <td class="text-right">{{ currency_formate($shipping_price) }}</td>
                 </tr>
                 @endif
-                 <tr class="subtotal">
+                 {{-- <tr class="subtotal">
 
                     <td></td>
                     <td class="text-right"><strong>Subtotal:</strong></td>
@@ -283,14 +298,14 @@
                     $shipping_price=$shipping_price ?? 0;
                     @endphp
                     <td class="text-right">{{ number_format($order->total-$shipping_price,2) }}</td>
-                </tr>
+                </tr> --}}
                 <tr>
 
 
                     <td></td>
 
                     <td class="text-right"><strong>Total:</strong></td>
-                    <td class="text-right">{{ number_format($order->total,2) }}</td>
+                    <td class="text-right">{{ currency_formate($order->total) }}</td>
                 </tr>
             </tbody>
         </table>
