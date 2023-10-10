@@ -13,6 +13,7 @@ use App\Models\Price;
 use Auth;
 use DB;
 use App\Models\Getway;
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -230,12 +231,64 @@ class OrderController extends Controller
         }
 
         $paymentresult= $gateway->namespace::capture_payment($payment_data);
+       // $paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
 
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 1;
             $order->save();
+            
+            $this->post_order_data($order);
         }
         return redirect()->back();
+    }
+
+
+
+    public function post_order_data($order){
+        $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
+        $qty = $order->orderitems[0]['qty'];
+        $product_amount = $order->orderitems[0]['amount'];
+        $sub_total = $product_amount*$qty;
+        $sales_tax = $order->tax;
+        $order_total = $order->total;
+
+        $jsonString = ($order->shippingwithinfo['info']);
+        // Decode the JSON string into a PHP array
+        $shipping_data = json_decode($jsonString, true);
+
+        $credit_card_fee = $shipping_data['credit_card_fee'];
+        $booster_platform_fee = $shipping_data['booster_platform_fee'];
+        $processing_fees = $credit_card_fee+$booster_platform_fee;
+
+        $customer_contact_data = $order->user;
+
+        $net_recieved_amount = $order_total-($sales_tax+$credit_card_fee);
+
+        $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
+
+        $postData = ['order_date' => $order_date, 'order_subtotal' => $sub_total, 'sales_tax' =>$sales_tax,'order_total' => $order_total,'processing_stripe_and_boostr_fees' => $processing_fees,'customer_contact_data' => $customer_contact_data, 'chart_of_accounts' => 'Booostr Ecommerce', 'under_net_recieved'=> $net_recieved_amount, 'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,'date_of_payment' => $shipped_and_fullfilldate];
+
+        $url = env("WP_fINITIAL_MANAGER_URL");
+        
+        $url = ($url != '') ? $url : "https://staging3.booostr.co/save-eccommerce-order.php";
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);        
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+
+        // Check for cURL errors
+        if (curl_errno($ch)) {
+            echo 'cURL error: ' . curl_error($ch);
+        }
+        curl_close($ch);
+        // \Log::info($response);
+        dd($response);
     }
 
 
