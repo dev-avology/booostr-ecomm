@@ -75,11 +75,11 @@ class NotifyToUser
 
 	
 
-	public static function customermail($info,$mail_to,$mail_from,$type='tenant_order_notification')
+	public static function customermail($info,$mail_to,$mail_from=null,$type='tenant_order_notification')
 	{
 		
 		$data['to']=$mail_to;
-		$data['from']=$mail_from;
+		$data['from']=$mail_from ?? env('MAIL_FROM_ADDRESS');
 		
 		$data['type']=$type;
 		
