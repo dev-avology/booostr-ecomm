@@ -441,6 +441,7 @@ class CheckoutController extends Controller
             $oder_items = [];
             $total_weight = 0;
             $priceids = [];
+            $cartid = null;
 
             foreach (Cart::content() as $row) {
                 $data['order_id'] = $order->id;
@@ -459,6 +460,7 @@ class CheckoutController extends Controller
                 $data['amount'] = $row->price;
                 $total_weight = $total_weight + $row->weight;
                 array_push($oder_items, $data);
+                $cartid = $row->instance;
             }
 
             $order->orderitems()->insert($oder_items);
@@ -506,19 +508,26 @@ class CheckoutController extends Controller
             }
 
             DB::commit();
-            if(Session::has('cartid')){
-                $cartid=Session::get('cartid');
-                Cart::instance('default')->destroy($cartid);
+
+            \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
+
+            if(Session::has('cart') && $cartid != null){
+                Cart::destroy($cartid);
             }
+
             $parts = parse_url($redirect_url);
 
             if (isset($parts['scheme'], $parts['host'], $parts['path'])) {
                 $redirect_url = $parts['scheme'] . '://' . $parts['host'] . $parts['path'];
             }
 
+
             return redirect()->away($redirect_url . '/?tab=thankyou&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
         } catch (\Throwable $th) {
             DB::rollback();
+            
+            dd($th);
+
             return redirect()->away($redirect_url . '/?type=error&message=Opps something wrong while saving order data');
         }
         return redirect()->away($redirect_url);
@@ -527,11 +536,8 @@ class CheckoutController extends Controller
 
     public function success()
     {
-
         Cart::instance('default')->destroy();
         return \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
-
-
     }
 
     public function fail()
