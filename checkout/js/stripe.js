@@ -83,14 +83,24 @@ var savedErrors = [];
     if (event.error) {
      // error.classList.add('visible');
       savedErrors[idx] = event.error.message;
-    } else {
-      savedErrors[idx] = null;
+    } else{
+      savedErrors = removeKey(savedErrors,idx);
     }
+
   });
 });
 
 
-
+function removeKey(arrayName,key)
+{
+ var x;
+ var tmpArray = new Array();
+ for(x in arrayName)
+ {
+  if(x!=key) { tmpArray[x] = arrayName[x]; }
+ }
+ return tmpArray;
+}
 
 
 function fieldvalidation() {
@@ -151,6 +161,7 @@ form.addEventListener('submit', function(event) {
   stripe.createToken(cardNumberElement).then(function(result) {
 
     if(fieldErrors.length || savedErrors.length){
+      console.log(fieldErrors,savedErrors);
      displayErrors(errorMsgContainer, fieldErrors.concat(savedErrors));
     return ;
     }
@@ -187,7 +198,3 @@ function stripeTokenHandler(token) {
     // Submit the form
     form.submit();
 }
-
-
-
-
