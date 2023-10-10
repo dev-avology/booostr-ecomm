@@ -26,7 +26,7 @@ class Ordernotification
 				$admin_mail=User::where('status',1)->where('role_id',3)->first();
 				\App\Lib\NotifyToUser::customermail($order,$admin_mail->email,$customermail->email,'order_recived');
 			}
-			return redirect('/thanks');
+			//return redirect('/thanks');
 		}
 
 		if ($order->notify_driver == 'whatsapp') {
