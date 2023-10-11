@@ -230,12 +230,12 @@ class OrderController extends Controller
             };
         }
 
-        $paymentresult= $gateway->namespace::capture_payment($payment_data);
-       //$paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
+       // $paymentresult= $gateway->namespace::capture_payment($payment_data);
+       $paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
 
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 1;
-            $order->save();
+            //$order->save();
             $this->post_order_data($order);
         }
         return redirect()->back();
@@ -244,6 +244,7 @@ class OrderController extends Controller
 
 
     public function post_order_data($order){
+
         $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
         $qty = $order->orderitems[0]['qty'];
         $product_amount = $order->orderitems[0]['amount'];
@@ -251,7 +252,25 @@ class OrderController extends Controller
         $sales_tax = $order->tax;
         $order_total = $order->total;
 
-        $jsonString = ($order->shippingwithinfo['info']);
+        $ordermeta=json_decode($order->ordermeta->value ?? '',true);
+        
+        $name = explode(' ',$ordermeta['name']);
+        $first_name = $name[0];
+        $last_name = $name[1]??'';
+        
+        $contact_manager_data = ['first_name'=>$name[0],
+                                 'last_name'=> $name[1]??'',
+                                 'email' => $ordermeta['email'],
+                                 'phone'=> $ordermeta['phone'],
+                                 'boorster_user'=>'No',
+                                 'booster_level_id'=> 4,
+                                 'booster_id'=>Tenant('club_id'),
+                                 'user_id'=>$ordermeta['wpuid']??0,
+                                 ];
+
+         //$jsonString = $order->shippingwithinfo['info'];
+
+        $jsonString = $order->shippingwithinfo['info'];
         // Decode the JSON string into a PHP array
         $shipping_data = json_decode($jsonString, true);
 
@@ -265,11 +284,23 @@ class OrderController extends Controller
 
         $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 
-        $postData = ['order_date' => $order_date, 'order_subtotal' => $sub_total, 'sales_tax' =>$sales_tax,'order_total' => $order_total,'processing_stripe_and_boostr_fees' => $processing_fees,'customer_contact_data' => $customer_contact_data, 'chart_of_accounts' => 'Booostr Ecommerce', 'under_net_recieved'=> $net_recieved_amount, 'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,'date_of_payment' => $shipped_and_fullfilldate];
+
+
+        $postData = json_encode(['contact_mgr_data'=>$contact_manager_data,
+                                 'order_date' => $order_date, 
+                                 'order_subtotal' => $sub_total,
+                                  'sales_tax' =>$sales_tax,
+                                  'order_total' => $order_total,
+                                  'processing_stripe_and_boostr_fees' => $processing_fees,
+                                  'customer_contact_data' => $customer_contact_data,
+                                  'chart_of_accounts' => 'Booostr Ecommerce',
+                                  'under_net_recieved'=> $net_recieved_amount,
+                                  'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,
+                                  'date_of_payment' => $shipped_and_fullfilldate]);
 
         $url = env("WP_fINITIAL_MANAGER_URL");
         
-        $url = ($url != '') ? $url : "https://staging3.booostr.co/save-eccommerce-order.php";
+        $url = ($url != '') ? $url : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -278,6 +309,7 @@ class OrderController extends Controller
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $response = curl_exec($ch);
@@ -288,6 +320,7 @@ class OrderController extends Controller
         }
         curl_close($ch);
         // \Log::info($response);
+        dd($response);
         return $response;
     }
 
@@ -301,17 +334,16 @@ class OrderController extends Controller
         $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
         $ordermeta=json_decode($order->ordermeta->value ?? '');
 
-        $gateway_data_info = json_decode($gateway->data);
-        $payment_data['test_mode']  = $gateway->test_mode;
-        $payment_data['currency']   = $gateway->currency_name ?? 'USD';
-        $payment_data['getway_id']  = $gateway->id;
-        $payment_data['amount']  = $order->total;
-        $payment_data['transaction_id']  = $order->transaction_id;
-        $payment_data['application_fee_amount']  = (float) $ordermeta->booster_platform_fee??0;
-        $payment_data['card_fee_amount']  = (float) $ordermeta->credit_card_fee??0;
-        $payment_data['refund_application_fee']  = true;
-        $payment_data['refund_card_fee']  = true;
-
+            $gateway_data_info = json_decode($gateway->data);
+            $payment_data['test_mode']  = $gateway->test_mode;
+            $payment_data['currency']   = $gateway->currency_name ?? 'USD';
+            $payment_data['getway_id']  = $gateway->id;
+            $payment_data['amount']  = $order->total;
+            $payment_data['transaction_id']  = $order->transaction_id;
+            $payment_data['application_fee_amount']  = (float) $ordermeta->booster_platform_fee??0;
+            $payment_data['card_fee_amount']  = (float) $ordermeta->credit_card_fee??0;
+            $payment_data['refund_application_fee']  = true;
+            $payment_data['refund_card_fee']  = true;
 
 
         if (!empty($gateway->data)) {
