@@ -431,6 +431,8 @@
                                 </div>
                             </div>
                         </div>
+                        <input type="hidden" name="wpuid" value="{{ $customer['wpuid'] }}">
+
                     </form>
                 @else
                     <div class="alert alert-danger" role="alert">
