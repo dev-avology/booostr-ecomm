@@ -308,9 +308,6 @@ class OrderController extends Controller
                                   'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,
                                   'date_of_payment' => $shipped_and_fullfilldate]);
 
-            dd($postData);
-
-
         $url = env("WP_fINITIAL_MANAGER_URL");
         
         $url = ($url != '') ? $url : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
