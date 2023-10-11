@@ -1,6 +1,7 @@
 <?php
 namespace App\Lib;
 use App\Models\Option;
+use App\Models\User;
 use App\Models\Devicetoken;
 use App\Jobs\Sellermailjob;
 use Auth;
@@ -55,22 +56,14 @@ class NotifyToUser
 		return true;
 	}
 
-	public static function makeNotifyToRider($info)
+	public static function makeNotifyToAdmin($info)
 	{
-		if (!empty($info->shippingwithinfo)) {
-
-			if (!empty($info->shippingwithinfo->user_id)) {
-				$token=Devicetoken::where('user_id',$info->shippingwithinfo->user_id)->where('type','firebase')->latest()->first();
-
-				if (!empty($token)) {
-					$seo=get_option('seo',true);
-
-					$notify=NotifyToUser::fmc(ucwords($seo->title).' ('.$info->invoice_no.')','You\'ve been assigned a new order for delivery.',url('/rider/order/'.$info->id),asset('uploads/'.tenant('uid').'/notification.png'),[$token->token]);
-					
-				}
-			}
+		if(!empty($info)){
+			$admin_details = User::where('role_id',3)->first();
+			NotifyToUser::customermail($info,$admin_details->email,$admin_details->email);
+			return true;
 		}
-		
+		return true;
 	}
 
 	

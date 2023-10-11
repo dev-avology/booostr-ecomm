@@ -148,11 +148,11 @@
 				</div>
 				<div class="card-footer">
 					<div class="text-right">
-						<form method="POST" action="{{ route('seller.order.update',$info->id) }}" accept-charset="UTF-8" class="d-inline ajaxform">
+					    <form method="POST" action="{{ route('seller.order.update', $info->id . '_' . $info->user_id) }}" accept-charset="UTF-8" class="d-inline ajaxform">
 							@csrf
 							@method('PUT')
 							<div class="form-row">
-								@if($info->order_method == 'delivery')
+								<!-- @if($info->order_method == 'delivery')
 								@php
 								$rider=$info->shippingwithinfo->user_id ?? '';
 								@endphp
@@ -169,9 +169,9 @@
 								</div>
 								</div>
 
-								@endif
+								@endif -->
 
-							<div class="col-sm-4">
+							<!-- <div class="col-sm-4">
 							<div class="form-group text-left">
 								<label>Select Payment Status</label>
 								<select class="form-control selectric" name="payment_status" required="">
@@ -182,7 +182,7 @@
 									<option value="3" @if($info->payment_status=='3') selected="" @endif>{{ __('Payment Incomplete') }}</option>
 								</select>
 							</div>
-						</div>
+						    </div> -->
 							<div class="col-sm-4">
 							<div class="form-group text-left">
 								<label >Select Order Status</label>
@@ -205,7 +205,7 @@
 							    <label class="custom-switch mt-2">
 									<input type="checkbox" name="rider_notify" value="1" class="custom-switch-input">
 									<span class="custom-switch-indicator"></span>
-									<span class="custom-switch-description">{{ __('Notify To Rider') }}</span>
+									<span class="custom-switch-description">{{ __('Notify To Admin') }}</span>
 							    </label>
 							    @endif
 							</div>

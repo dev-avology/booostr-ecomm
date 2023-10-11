@@ -112,9 +112,10 @@ class OrderController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $order_user_id)
     {
         abort_if(!getpermission('order'),401);
+        list($id, $user_id) = explode('_', $order_user_id);
 
         DB::beginTransaction();
         try { 
@@ -144,8 +145,9 @@ class OrderController extends Controller
         }
 
         if ($request->rider_notify) {
+
           
-            NotifyToUser::makeNotifyToRider($info);
+            NotifyToUser::makeNotifyToAdmin($info);
         }
 
         if ($request->status == 1) {
@@ -230,14 +232,22 @@ class OrderController extends Controller
             };
         }
 
-       // $paymentresult= $gateway->namespace::capture_payment($payment_data);
-       $paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
+        // $paymentresult= $gateway->namespace::capture_payment($payment_data);
+        $paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
+
 
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 1;
             //$order->save();
             $this->post_order_data($order);
         }
+
+        $admin_details = User::where('role_id',3)->first();
+
+        $order['orderstatus']['name'] = 'Order captured';
+        
+        NotifyToUser::customermail($order,$admin_details->email,$admin_details->email);
+
         return redirect()->back();
     }
 
@@ -359,6 +369,13 @@ class OrderController extends Controller
             $order->status_id = 2;
             $order->save();
         }
+
+        $admin_details = User::where('role_id',3)->first();
+
+        $order['orderstatus']['name'] = 'Order cancel & return payment';
+        
+        NotifyToUser::customermail($order,$admin_details->email,$admin_details->email);
+
         return redirect()->back();
     }
 

@@ -6,7 +6,11 @@
 				<div class="row">
 					<div class="col-lg-12 col-md-12 col-12">
 						<div class="breadcrumbs-content">
-							<h1 class="page-title">{{ $info->title }}</h1>
+						    @php
+							 $club_info = tenant_club_info();
+							@endphp
+							<h1 class="page-title">{{ $club_info['club_name'] }}</h1>    
+							<p>{{$info->title}}</p>
 							<p>{{ $meta->page_excerpt ?? '' }}</p>
 						</div>
 						{{-- <ul class="breadcrumb-nav">
