@@ -414,6 +414,7 @@ class CheckoutController extends Controller
                     $user->email = $request->email;
                     $user->phone = $request->phone;
                     $user->role_id = 4;
+                    $user->meta = json_encode(['wpuid'=>$request->wpuid]);
                     $user->password = \Hash::make($request->email);
                     $user->save();
                 }

@@ -111,11 +111,13 @@ class MerchantController extends Controller
       return response()->json(["status"=>0,"message"=>$error], 422);
     }
 
+
     $store_data = [
       'store_name' => $name,
       'email' => $request->email,
       'password' => $request->email, //$request->password,
       'club_id'=>$club_id,
+      'wpuid'=>$request->club_info['wpuid'],
       'club_info'=>json_encode($request->club_info),
     ];
     if (isset($request->logo) && !empty($request->logo)) {
@@ -197,6 +199,7 @@ class MerchantController extends Controller
       $tenant = new \App\Tenant;
       $tenant->status = 2;
     }
+
     $tenant->id = Str::slug($name);
     $tenant->uid = \App\Tenant::count() + 1;
     $tenant->order_id = $order->id;
