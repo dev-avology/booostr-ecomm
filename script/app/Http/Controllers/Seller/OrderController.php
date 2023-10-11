@@ -128,6 +128,10 @@ class OrderController extends Controller
         $info->payment_status=$request->payment_status;
         $info->save();
 
+        if($request->status == 1){
+          $this->post_order_data($info);
+        }
+
         if ($info->order_method == 'delivery') {
             if ($request->rider) {
                 $arr=['user_id'=>$request->rider ?? null];
@@ -232,14 +236,13 @@ class OrderController extends Controller
             };
         }
 
-        // $paymentresult= $gateway->namespace::capture_payment($payment_data);
-        $paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
+        $paymentresult= $gateway->namespace::capture_payment($payment_data);
+        //$paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
 
 
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 1;
-            //$order->save();
-            $this->post_order_data($order);
+            $order->save();
         }
 
         $admin_details = User::where('role_id',3)->first();
@@ -265,18 +268,24 @@ class OrderController extends Controller
         $ordermeta=json_decode($order->ordermeta->value ?? '',true);
         
         $name = explode(' ',$ordermeta['name']);
-        $first_name = $name[0];
-        $last_name = $name[1]??'';
-        
-        $contact_manager_data = ['first_name'=>$name[0],
-                                 'last_name'=> $name[1]??'',
-                                 'email' => $ordermeta['email'],
-                                 'phone'=> $ordermeta['phone'],
-                                 'boorster_user'=>'No',
-                                 'booster_level_id'=> 4,
-                                 'booster_id'=>Tenant('club_id'),
-                                 'user_id'=>$ordermeta['wpuid']??0,
-                                 ];
+
+         $contact_manager_data = array(
+									'first_name' => $name[0],
+									'last_name' => $name[1]??'',
+									'user_id' =>  $ordermeta['wpuid']??0,
+									'phone_number' => $ordermeta['phone'],					
+									'booster_name' => $name[0],
+									'country' =>   $ordermeta['billing']['country'],									
+									'address_1' => $ordermeta['billing']['address'],
+									'address_2' =>  '',
+									'city' => $ordermeta['billing']['city'],
+									'state' =>  $ordermeta['billing']['state'],
+									'zip' =>  $ordermeta['billing']['post_code'],													
+									'email' =>  $ordermeta['email'],                   
+									'booster_id' =>Tenant('club_id'),
+									'booster_level_id' => 4,
+									'contact_tags' => '',
+								);	  
 
          //$jsonString = $order->shippingwithinfo['info'];
 
@@ -307,7 +316,7 @@ class OrderController extends Controller
                                   'under_net_recieved'=> $net_recieved_amount,
                                   'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,
                                   'date_of_payment' => $shipped_and_fullfilldate]);
-
+                                         
         $url = env("WP_fINITIAL_MANAGER_URL");
         
         $url = ($url != '') ? $url : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
@@ -330,7 +339,7 @@ class OrderController extends Controller
         }
         curl_close($ch);
         // \Log::info($response);
-        dd($response);
+       // dd($response);
         return $response;
     }
 
