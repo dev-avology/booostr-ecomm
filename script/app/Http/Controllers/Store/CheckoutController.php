@@ -83,7 +83,8 @@ class CheckoutController extends Controller
             "city"=>($request->city??""),
             "state"=>($request->state??""),
             "country"=>($request->country??""),
-            "zip"=>($request->zip??"")
+            "zip"=>($request->zip??""),
+            "wpuid"=>($request->wpuid??"")
         ];
         return redirect()->to("//".$domain->domain.'/direct_checkout/'.$cartid.'/'.$redirect_url.'/?'.http_build_query($customer));
 
