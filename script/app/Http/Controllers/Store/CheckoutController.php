@@ -124,7 +124,8 @@ class CheckoutController extends Controller
                 "city"=>($request->city??""),
                 "state"=>($request->state??""),
                 "country"=>($request->country??""),
-                "zip"=>($request->zip??"")
+                "zip"=>($request->zip??""),
+                "wpuid"=>($request->wpuid??"")
             ];
 
             Session::put('customer_data',$customer);
@@ -493,6 +494,7 @@ class CheckoutController extends Controller
                 $customer_info['name'] = $request->name;
                 $customer_info['email'] = $request->email;
                 $customer_info['phone'] = $request->phone;
+                $customer_info['wpuid'] = $request->wpuid??0;
                 $customer_info['note'] = $request->comment ?? "";
                 $customer_info['billing'] = $request->billing ?? "";
                 $customer_info['shipping'] = $request->shipping ?? "";
