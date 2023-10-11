@@ -26,6 +26,7 @@ class TenantDBSeeder extends Seeder
             'name' => Session::get('store_data')['store_name'] ?? 'store owner',
             'email' => Session::get('store_data')['email'] ?? 'store@email.com',
             'password' => Hash::make(Session::get('store_data')['password'] ?? '12345678'),
+            'meta'=>json_encode(['wpuid'=>Session::get('store_data')['wpuid']]),
             'permissions'=>json_encode($roles)
          ]      
         );
