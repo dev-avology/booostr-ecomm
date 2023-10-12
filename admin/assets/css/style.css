@@ -1968,7 +1968,8 @@ body {
   font-size: 14px;
   font-weight: 400;
   font-family: "Nunito", "Segoe UI", arial;
-  color: rgb(0, 192, 255); }
+  /*color: rgb(0, 192, 255); }*/
+  color: #838181; }
 
 a.bb {
   text-decoration: none;
