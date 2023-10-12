@@ -128,6 +128,10 @@ class OrderController extends Controller
         $info->payment_status=$request->payment_status;
         $info->save();
 
+        if($request->status == 1){
+          $this->post_order_data($info);
+        }
+
         if ($info->order_method == 'delivery') {
             if ($request->rider) {
                 $arr=['user_id'=>$request->rider ?? null];
@@ -231,13 +235,13 @@ class OrderController extends Controller
             };
         }
 
-        // $paymentresult= $gateway->namespace::capture_payment($payment_data);
-        $paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
+        $paymentresult= $gateway->namespace::capture_payment($payment_data);
+        //$paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
+
 
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 1;
             $order->save();
-            $this->post_order_data($order);
         }
 
 
@@ -251,6 +255,7 @@ class OrderController extends Controller
 
 
     public function post_order_data($order){
+
         $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
         $qty = $order->orderitems[0]['qty'];
         $product_amount = $order->orderitems[0]['amount'];
@@ -258,7 +263,31 @@ class OrderController extends Controller
         $sales_tax = $order->tax;
         $order_total = $order->total;
 
-        $jsonString = ($order->shippingwithinfo['info']);
+        $ordermeta=json_decode($order->ordermeta->value ?? '',true);
+        
+        $name = explode(' ',$ordermeta['name']);
+
+         $contact_manager_data = array(
+									'first_name' => $name[0],
+									'last_name' => $name[1]??'',
+									'user_id' =>  $ordermeta['wpuid']??0,
+									'phone_number' => $ordermeta['phone'],					
+									'booster_name' => $name[0],
+									'country' =>   $ordermeta['billing']['country'],									
+									'address_1' => $ordermeta['billing']['address'],
+									'address_2' =>  '',
+									'city' => $ordermeta['billing']['city'],
+									'state' =>  $ordermeta['billing']['state'],
+									'zip' =>  $ordermeta['billing']['post_code'],													
+									'email' =>  $ordermeta['email'],                   
+									'booster_id' =>Tenant('club_id'),
+									'booster_level_id' => 4,
+									'contact_tags' => '',
+								);	  
+
+         //$jsonString = $order->shippingwithinfo['info'];
+
+        $jsonString = $order->shippingwithinfo['info'];
         // Decode the JSON string into a PHP array
         $shipping_data = json_decode($jsonString, true);
 
@@ -272,11 +301,23 @@ class OrderController extends Controller
 
         $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 
-        $postData = ['order_date' => $order_date, 'order_subtotal' => $sub_total, 'sales_tax' =>$sales_tax,'order_total' => $order_total,'processing_stripe_and_boostr_fees' => $processing_fees,'customer_contact_data' => $customer_contact_data, 'chart_of_accounts' => 'Booostr Ecommerce', 'under_net_recieved'=> $net_recieved_amount, 'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,'date_of_payment' => $shipped_and_fullfilldate];
 
+
+        $postData = json_encode(['contact_mgr_data'=>$contact_manager_data,
+                                 'order_date' => $order_date, 
+                                 'order_subtotal' => $sub_total,
+                                  'sales_tax' =>$sales_tax,
+                                  'order_total' => $order_total,
+                                  'processing_stripe_and_boostr_fees' => $processing_fees,
+                                  'customer_contact_data' => $customer_contact_data,
+                                  'chart_of_accounts' => 'Booostr Ecommerce',
+                                  'under_net_recieved'=> $net_recieved_amount,
+                                  'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,
+                                  'date_of_payment' => $shipped_and_fullfilldate]);
+                                         
         $url = env("WP_fINITIAL_MANAGER_URL");
         
-        $url = ($url != '') ? $url : "https://staging3.booostr.co/save-eccommerce-order.php";
+        $url = ($url != '') ? $url : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -285,6 +326,7 @@ class OrderController extends Controller
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $response = curl_exec($ch);
@@ -295,6 +337,7 @@ class OrderController extends Controller
         }
         curl_close($ch);
         // \Log::info($response);
+       // dd($response);
         return $response;
     }
 
