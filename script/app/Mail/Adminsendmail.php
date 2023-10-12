@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class Orderstatusmail extends Mailable
+class Adminsendmail extends Mailable
 {
     use Queueable, SerializesModels;
     public $data;
@@ -44,12 +44,10 @@ class Orderstatusmail extends Mailable
             \Config::set('app.name', ucfirst($data['data']['tenantid']));
             $newData = $this->data['data'];
             $new_array = json_decode($newData, true);
-            \Log::info($new_array);
+            // \Log::info($new_array);
 		    $orderno = $new_array['invoice_no'];
 
-            return $this->markdown('mail.orderrecived')->subject('['.ucfirst($data['data']['tenantid']).'] You have received a new order ('.$orderno.')')->with('data', $new_array);
+            return $this->markdown('mail.adminsendmail')->subject('['.ucfirst($this->data['tenantid']).'] '.$this->data['message'].' ('.$orderno.')')->with('data', $new_array);
         }
-        
-       
     }
 }

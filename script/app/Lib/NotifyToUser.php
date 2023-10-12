@@ -6,6 +6,7 @@ use App\Models\Devicetoken;
 use App\Jobs\Sellermailjob;
 use Auth;
 use App\Mail\Orderstatusmail;
+use App\Mail\Adminsendmail;
 use Mail;
 use Config;
 use App\Jobs\TenantMailJob;
@@ -56,25 +57,54 @@ class NotifyToUser
 		return true;
 	}
 
-	public static function makeNotifyToAdmin($info)
+	public static function makeNotifyToAdmin($info,$mail_to,$mail_from=null,$type='tenant_order_notification',$order_status='')
 	{
-		if(!empty($info)){
-			$admin_details = User::where('role_id',3)->first();
-			NotifyToUser::customermail($info,$admin_details->email,$admin_details->email);
-			return true;
+		$new_array = json_decode($info, true);
+
+		$invoiceNo = $new_array['invoice_no'];
+		$order_id = $new_array['id'];
+		
+		$data['type']='order_recived';
+		
+		if ($type == 'tenant_order_notification') {
+			$currency=get_option('currency_info');
+			$invoice_info=get_option('invoice_data',true);
+			$data['currency_info']=$currency;
+			$data['invoice_data']=$invoice_info;
+			$data['data']=$info;
 		}
-		return true;
+		
+		$data['orderno']=$invoiceNo;
+		$data['tenantid']=tenant('id');
+		if(!empty($order_status)){
+			$data['message']=$order_status;
+		}else{
+			$data['message']='Your order status';
+		}
+		$data['link']=url('/seller/order',$order_id);		
+		
+		if (env('QUEUE_MAIL') == 'on') {
+			\Config::set('queue.connections', 'central');
+			
+		    dispatch(new TenantMailJob($data));
+		}
+		else{
+			$mail = new Adminsendmail($data);
+		
+            Mail::to($mail_to)->send($mail);
+		}
 	}
 
 	
 
 	public static function customermail($info,$mail_to,$mail_from=null,$type='tenant_order_notification')
 	{
+		\Log::info($info->$invoice_no);
+		// dd($info->$invoice_info);
+		$data['to']='ashishyadav.avology@gmail.com';
+		$data['from']='ashishyadav.avology@gmail.com';
 		
-		$data['to']=$mail_to;
-		$data['from']=$mail_from ?? env('MAIL_FROM_ADDRESS');
-		
-		$data['type']=$type;
+		$data['type']='order_recived';
 		
 		if ($type == 'tenant_order_notification') {
 			$currency=get_option('currency_info');

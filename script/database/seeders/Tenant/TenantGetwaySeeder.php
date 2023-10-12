@@ -18,7 +18,6 @@ class TenantGetwaySeeder extends Seeder
     {
 
         $club_id = '36615';//tenant('club_id');
-        //$club_id = tenant('club_id');
         $response = Http::withOptions([
             'verify' => false,
         ])->get(env('WP_API_URL').'/get_stripe_account_number', [
