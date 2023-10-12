@@ -25,6 +25,11 @@ class TenantOptionSeeder extends Seeder
         $store_state = trim($address[count($address)-2]);
         $store_country = trim($address[count($address)-1]);
         $phone_number = $club_info['phone_number'];
+        $timezone = $club_info['timezone'];
+
+        if($timezone == ''){
+            $timezone = 'UTC';
+        }
 
         $options= array(
         array(
@@ -60,7 +65,7 @@ class TenantOptionSeeder extends Seeder
         array(
             "id" => 6,
             "key" => "timezone",
-            "value" => "UTC",
+            "value" => $timezone,
             "autoload" => 1
         ),
         array(
