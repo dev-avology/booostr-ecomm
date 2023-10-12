@@ -9,7 +9,7 @@
 						    @php
 							 $club_info = tenant_club_info();
 							@endphp
-							<h1 class="page-title">{{ $club_info['club_name'] }}</h1>    
+							<h1 class="page-title">{{ $club_info['club_name'] }} Store</h1>    
 							<p>{{$info->title}}</p>
 							<p>{{ $meta->page_excerpt ?? '' }}</p>
 						</div>
@@ -47,7 +47,7 @@
 
 
 						   $content = str_replace('[Date]',$lastupdated,$content);
-						   $content = str_replace(array('[store_name]','[club_name]'),$club_info['club_name'],$content);
+						   $content = str_replace(array('[store_name]','[club_name]'),$club_info['club_name'].' Store',$content);
 						   $content = str_replace(array('[store_url]','[club_profile_url]'),$club_url,$content);
 						   $content = str_replace(array('[store_email]','[club_email]'),$club_email,$content);
 						   $content = str_replace('[store_jurisdiction]',$store_country,$content);
