@@ -145,9 +145,8 @@ class OrderController extends Controller
         }
 
         if ($request->rider_notify) {
-
-          
-            NotifyToUser::makeNotifyToAdmin($info);
+            $admin_details = User::where('role_id',3)->first();
+            \App\Lib\NotifyToUser::makeNotifyToAdmin($info, $admin_details->email);
         }
 
         if ($request->status == 1) {
@@ -241,11 +240,10 @@ class OrderController extends Controller
             $this->post_order_data($order);
         }
 
-        $admin_details = User::where('role_id',3)->first();
 
-        $order['orderstatus']['name'] = 'Order captured';
-        
-        NotifyToUser::customermail($order,$admin_details->email,$admin_details->email);
+        $order_status = 'Order captured';
+        $admin_details = User::where('role_id',3)->first();
+        \App\Lib\NotifyToUser::makeNotifyToAdmin($order,$admin_details->email,$mail_from=null,$type='tenant_order_notification',$order_status);
 
         return redirect()->back();
     }
@@ -301,7 +299,6 @@ class OrderController extends Controller
     }
 
 
-
     public function refund($id)
     {
         abort_if(!getpermission('order'),401);
@@ -321,8 +318,6 @@ class OrderController extends Controller
         $payment_data['refund_application_fee']  = true;
         $payment_data['refund_card_fee']  = true;
 
-
-
         if (!empty($gateway->data)) {
             foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
                 $payment_data[$key] = $info;
@@ -337,11 +332,25 @@ class OrderController extends Controller
             $order->save();
         }
 
-        $admin_details = User::where('role_id',3)->first();
+        // send email to admin
 
-        $order['orderstatus']['name'] = 'Order cancel & return payment';
-        
-        NotifyToUser::customermail($order,$admin_details->email,$admin_details->email);
+        $order_status = 'Order Cancel & Refund';
+        $admin_details = User::where('role_id',3)->first();
+        \App\Lib\NotifyToUser::makeNotifyToAdmin($order,$admin_details->email,$mail_from=null,$type='tenant_order_notification',$order_status);
+
+        // send email to user
+
+        if ($order->notify_driver == 'mail') {
+            $ordermeta=json_decode($order->ordermeta->value ?? '');
+            if (!empty($ordermeta)) {
+                $mail_to=$ordermeta->email ?? '';
+            }
+            else{
+                $mail_to=$order->user->email ?? '';
+            }
+            $mail_from=Auth::user()->email;
+            NotifyToUser::customermail($order,$mail_to,$mail_from);
+        }
 
         return redirect()->back();
     }
