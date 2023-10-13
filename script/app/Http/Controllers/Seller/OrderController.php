@@ -360,7 +360,7 @@ class OrderController extends Controller
         }
         curl_close($ch);
         //Log::info($response);
-        //dd($response);
+        dd($response);
         return $response;
     }
 
