@@ -99,12 +99,11 @@ class NotifyToUser
 
 	public static function customermail($info,$mail_to,$mail_from=null,$type='tenant_order_notification')
 	{
-		\Log::info($info->$invoice_no);
-		// dd($info->$invoice_info);
-		$data['to']='ashishyadav.avology@gmail.com';
-		$data['from']='ashishyadav.avology@gmail.com';
 		
-		$data['type']='order_recived';
+		$data['to']=$mail_to;
+		$data['from']=$mail_from;
+		
+		$data['type']=$type;
 		
 		if ($type == 'tenant_order_notification') {
 			$currency=get_option('currency_info');
