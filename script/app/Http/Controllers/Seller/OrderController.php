@@ -357,7 +357,7 @@ class OrderController extends Controller
             echo 'cURL error: ' . curl_error($ch);
         }
         curl_close($ch);
-        // \Log::info($response);
+        \Log::info($response);
        // dd($response);
         return $response;
     }
