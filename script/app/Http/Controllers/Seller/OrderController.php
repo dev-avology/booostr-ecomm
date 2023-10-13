@@ -297,23 +297,44 @@ class OrderController extends Controller
 
         $customer_contact_data = $order->user;
 
-        $net_recieved_amount = $order_total-($sales_tax+$credit_card_fee);
+        $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
 
         $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 
 
 
         $postData = json_encode(['contact_mgr_data'=>$contact_manager_data,
-                                 'order_date' => $order_date, 
-                                 'order_subtotal' => $sub_total,
-                                  'sales_tax' =>$sales_tax,
-                                  'order_total' => $order_total,
-                                  'processing_stripe_and_boostr_fees' => $processing_fees,
-                                  'customer_contact_data' => $customer_contact_data,
-                                  'chart_of_accounts' => 'Booostr Ecommerce',
-                                  'under_net_recieved'=> $net_recieved_amount,
-                                  'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,
-                                  'date_of_payment' => $shipped_and_fullfilldate]);
+                                'category_type'=> 'Booostr Ecommerce',
+                                'booster_id' =>Tenant('club_id'),
+                                'coaid'=>95,
+                                'contactname'=>$ordermeta['name'],
+                                'memo'=>'Booostr Ecommerce',
+                                'user_id' =>  $ordermeta['wpuid']??0,
+                                'revenue_name'=>'4-850 Booostr Ecommerce',
+                                'transaction_type'=> 'I',
+                                'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
+                                'net_revenue'=>$net_recieved_amount,
+                                'transaction_amount'=>$order_total,
+                                'expense_category'=>'Revenue',
+                                'receipts_issued'=> 'Yes',
+                                'status'=>1,
+                                'created'=>$order->created_at,
+                                'modified'=>$order->updated_at,
+                                'invoicenumber'=>$order->invoice_no,
+                                'invoicreatedate'=>$shipped_and_fullfilldate,
+                                'invoiceprocessingfee'=>$processing_fees,
+                                'invoicesalestax'=> $sales_tax]);
+
+        // 'order_date' => $order_date, 
+        // 'order_subtotal' => $sub_total,
+        // 'sales_tax' =>$sales_tax,
+        // 'order_total' => $order_total,
+        // 'processing_stripe_and_boostr_fees' => $processing_fees,
+        // 'customer_contact_data' => $customer_contact_data,
+        // 'chart_of_accounts' => 'Booostr Ecommerce',
+        // 'under_net_recieved'=> $net_recieved_amount,
+        // 'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,
+        // 'date_of_payment' => $shipped_and_fullfilldate
                                          
         $url = env("WP_fINITIAL_MANAGER_URL");
         
