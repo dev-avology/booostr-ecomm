@@ -125,23 +125,23 @@ class OrderController extends Controller
             $info->with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule');
         }
         $info->status_id=$request->status;
-        $info->payment_status=$request->payment_status;
+       // $info->payment_status=$request->payment_status;
         $info->save();
 
         if($request->status == 1){
           $this->post_order_data($info);
         }
 
-        if ($info->order_method == 'delivery') {
-            if ($request->rider) {
-                $arr=['user_id'=>$request->rider ?? null];
-                if ($request->rider_notify) {
-                    $arr=['user_id'=>$request->rider ?? null,'status_id'=>3];
-                }
+        // if ($info->order_method == 'delivery') {
+        //     if ($request->rider) {
+        //         $arr=['user_id'=>$request->rider ?? null];
+        //         if ($request->rider_notify) {
+        //             $arr=['user_id'=>$request->rider ?? null,'status_id'=>3];
+        //         }
 
-                $info->shipping()->update($arr);
-            }
-        }
+        //         $info->shipping()->update($arr);
+        //     }
+        // }
 
         if ($request->mail_notify) {
             
