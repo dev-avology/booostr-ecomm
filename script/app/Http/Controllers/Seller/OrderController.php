@@ -145,7 +145,8 @@ class OrderController extends Controller
 
         if ($request->mail_notify) {
             
-            NotifyToUser::makeNotifyToUser($info);
+          $user_info =  NotifyToUser::makeNotifyToUser($info);
+        //   dd($user_info);
         }
 
         if ($request->rider_notify) {
@@ -394,12 +395,13 @@ class OrderController extends Controller
             $order->payment_status = 5;
             $order->status_id = 2;
             $order->save();
-        }
 
+    
         // send email to admin
 
         $order_status = 'Order Cancel & Refund';
         $admin_details = User::where('role_id',3)->first();
+
         \App\Lib\NotifyToUser::makeNotifyToAdmin($order,$admin_details->email,$mail_from=null,$type='tenant_order_notification',$order_status);
 
         // send email to user
@@ -413,9 +415,11 @@ class OrderController extends Controller
                 $mail_to=$order->user->email ?? '';
             }
             $mail_from=Auth::user()->email;
-            NotifyToUser::customermail($order,$mail_to,$mail_from);
+            $order['order_cancel_and_refund'] = 'Order cancel & refund';
+            \App\Lib\NotifyToUser::customermail($order,$mail_to);
         }
 
+     }
         return redirect()->back();
     }
 

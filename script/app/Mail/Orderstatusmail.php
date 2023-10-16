@@ -35,21 +35,16 @@ class Orderstatusmail extends Mailable
          
          $ordermeta=json_decode($data['data']->ordermeta->value ?? '');
          $invoice_info=$this->data['invoice_data'];
-
-         return $this->subject($invoice_info->invoice_subject ?? 'Order Mail')
+        // dd(array('from'=>$data['from'],'order'=>$data['data'],'currency'=>$currency,'ordermeta'=>$ordermeta,'invoice_info'=>$invoice_info));
+         return $this->from($data['from'])
+         ->subject($invoice_info->invoice_subject ?? 'Order Mail')
          ->view('mail.seller.customerorder')->with(['order'=>$data['data'],'currency'=>$currency,'ordermeta'=>$ordermeta,'invoice_info'=>$invoice_info]);
         }
         elseif ($this->data['type'] == 'order_recived'){
-           
             \Config::set('app.name', ucfirst($data['data']['tenantid']));
-            $newData = $this->data['data'];
-            $new_array = json_decode($newData, true);
-            \Log::info($new_array);
-		    $orderno = $new_array['invoice_no'];
-
-            return $this->markdown('mail.orderrecived')->subject('['.ucfirst($data['data']['tenantid']).'] You have received a new order ('.$orderno.')')->with('data', $new_array);
+            return $this->markdown('mail.orderrecived')->from($data['from'])->subject('['.ucfirst($data['data']['tenantid']).'] You have received a new order ('.$data['data']['orderno'].')')->with('data', $data);
         }
         
-       
+
     }
 }
