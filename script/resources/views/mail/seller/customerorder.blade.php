@@ -203,8 +203,16 @@
                             <br>
                             Order Status: <br>
 
+                            @if($order->order_cancel_and_refund == 'Order cancel & refund')
+
+
+                            <div class="badge text-white" style="background-color: {{ $order->orderstatus->slug ?? '' }}">{{ $order->order_cancel_and_refund }}</div>
+
+                            @else
 
                             <div class="badge text-white" style="background-color: {{ $order->orderstatus->slug ?? '' }}">{{ $order->orderstatus->name ?? 'Waiting for fulfillment' }}</div>
+
+                            @endif
                         </td>
 
                         <td>

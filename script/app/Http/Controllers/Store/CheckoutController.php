@@ -535,6 +535,7 @@ class CheckoutController extends Controller
             DB::rollback();
 
            // dd($th);
+          
             return redirect()->away($redirect_url . '/?type=error&message=Opps something wrong while saving order data');
         }
         return redirect()->away($redirect_url);
