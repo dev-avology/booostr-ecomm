@@ -39,6 +39,7 @@ Route::group([
     Route::post('/cart/remove_from_cart/{id}', 'Api\ProductController@removecart');
     Route::post('/cart/update_cart', 'Api\ProductController@CartQty');
     Route::post('/checkout/order', 'Api\ProductController@CartQty');
+    Route::post('/resend_invoice','Api\ProductController@resend_invoice');
 });
 
 

@@ -236,8 +236,8 @@ class OrderController extends Controller
             };
         }
 
-        $paymentresult= $gateway->namespace::capture_payment($payment_data);
-        //$paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
+        //$paymentresult= $gateway->namespace::capture_payment($payment_data);
+        $paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
 
 
         if ($paymentresult['payment_status'] == '1') {
