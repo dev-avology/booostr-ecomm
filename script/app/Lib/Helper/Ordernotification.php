@@ -23,10 +23,11 @@ class Ordernotification
 		if ($order->notify_driver == 'mail') {
 			$customermail=json_decode($order->ordermeta->value ?? '');
 			if (isset($customermail->email)) {
-				$admin_mail=User::where('status',1)->where('role_id',3)->first();
-				\App\Lib\NotifyToUser::customermail($order,$admin_mail->email,$customermail->email,'order_recived');
+				$order_status = 'You have received a new order';
+				$admin_details = User::where('role_id',3)->first();
+				\App\Lib\NotifyToUser::makeNotifyToAdmin($order,$admin_details->email,$mail_from=null,$type='tenant_order_notification',$order_status);
 			}
-			//return redirect('/thanks');
+			// return redirect('/thanks');
 		}
 
 		if ($order->notify_driver == 'whatsapp') {

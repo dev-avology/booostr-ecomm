@@ -21,13 +21,16 @@ class NotifyToUser
 			 $ordermeta=json_decode($info->ordermeta->value ?? '');
 			 if (!empty($ordermeta)) {
 			 	$mail_to=$ordermeta->email ?? '';
+			    // $mail_to='ashishyadav.avology@gmail.com';
 			 }
 			 else{
 			 	$mail_to=$info->user->email ?? '';
+			    // $mail_to='ashishyadav.avology@gmail.com';
 			 }
 
 			 $mail_from=Auth::user()->email;
-			 NotifyToUser::customermail($info,$mail_to,$mail_from);
+			//  NotifyToUser::customermail($info,$mail_to,$mail_from);
+			 NotifyToUser::customermail($info,$mail_to);
 			}
 			elseif($info->notify_driver == 'fmc'){
 				$seo=get_option('seo',true);
