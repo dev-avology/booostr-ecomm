@@ -90,8 +90,35 @@ class CheckoutController extends Controller
 
     }
 
+
+    public function direct_checkout_to(Request $request,$cartid='',$redirect_url='/'){
+       
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email',
+        ]);
+        //  if ($validator->fails()) {
+        //     return redirect()->away($redirect_url.'/?type=error&message='.$validator->errors()->first());
+        // }
+        $customer=[
+            "name"=>($request->name??""),
+            "email"=>($request->email),
+            "phone"=>($request->phone??""),
+            "address"=>($request->address??""),
+            "city"=>($request->city??""),
+            "state"=>($request->state??""),
+            "country"=>($request->country??""),
+            "zip"=>($request->zip??""),
+            "wpuid"=>($request->wpuid??"")
+        ];
+
+        Session::put('customer_data',$customer);
+
+       return redirect()->route('direct.checkout',['cartid'=>$cartid,'redirect_url'=>$redirect_url]);
+    }
+
     public function direct_checkout(Request $request,$cartid='',$redirect_url='/')
     {
+
         if(Session::has('redirect_url')){
             $redirect_url=Session::get('redirect_url');
         }else{
@@ -100,36 +127,12 @@ class CheckoutController extends Controller
             Session::put('redirect_url',$redirect_url);
         }
         if(Session::has('cartid')){
-            //$cartid=Session::get('cartid');
-        //}else{
             Session::put('cartid',$cartid);
         }
 
-
-       // if(Session::has('customer_data')){
-         //   $customer=Session::get('customer_data');
-
-      //  }else{
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|string|email',
-            ]);
-             if ($validator->fails()) {
-                return redirect()->away($redirect_url.'/?type=error&message='.$validator->errors()->first());
-            }
-            $customer=[
-                "name"=>($request->name??""),
-                "email"=>($request->email),
-                "phone"=>($request->phone??""),
-                "address"=>($request->address??""),
-                "city"=>($request->city??""),
-                "state"=>($request->state??""),
-                "country"=>($request->country??""),
-                "zip"=>($request->zip??""),
-                "wpuid"=>($request->wpuid??"")
-            ];
-
-            Session::put('customer_data',$customer);
-       // }
+       if(Session::has('customer_data')){
+        $customer = Session::get('customer_data');
+       }   
 
         Cart::instance($cartid);
         //load cart in session
@@ -137,17 +140,6 @@ class CheckoutController extends Controller
         if(Cart::content()->isEmpty()){
             return redirect()->away($redirect_url.'/?type=error&message=Opps Your cart is empty');
         }
-
-
-        // $tax=optionfromcache('tax');
-        // if ($tax == null) {
-        //     $tax=0;
-        // }
-
-        // Cart::setGlobalTax($tax);
-
-
-
        
         $club_info = tenant_club_info();
         $address = explode(',',$club_info['address']);
@@ -272,12 +264,12 @@ class CheckoutController extends Controller
              foreach($shipping_methods['pricing'] as $index){
 
 
-              $from = (float)$index['from']??0;
-              $to = (float) $index['to'] > 0 ?(float) $index['to']: PHP_INT_MAX;
+            $from = (float)$index['from']??0;
+            $to = (float) $index['to'] > 0 ?(float) $index['to']: PHP_INT_MAX;
 
-                if($subtotal > $from && $subtotal <= $to){
-                    $shipping_price = (float)$index['price'];
-                }
+            if($subtotal > $from && $subtotal <= $to){
+                $shipping_price = (float)$index['price'];
+            }
              }
          }
 
