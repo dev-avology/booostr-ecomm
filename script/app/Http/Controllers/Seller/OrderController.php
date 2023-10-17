@@ -132,27 +132,11 @@ class OrderController extends Controller
           $this->post_order_data($info);
         }
 
-        // if ($info->order_method == 'delivery') {
-        //     if ($request->rider) {
-        //         $arr=['user_id'=>$request->rider ?? null];
-        //         if ($request->rider_notify) {
-        //             $arr=['user_id'=>$request->rider ?? null,'status_id'=>3];
-        //         }
+        $user_info =  NotifyToUser::makeNotifyToUser($info);
+          
+        $admin_details = User::where('role_id',3)->first();
+        \App\Lib\NotifyToUser::makeNotifyToAdmin($info, $admin_details->email);
 
-        //         $info->shipping()->update($arr);
-        //     }
-        // }
-
-        if ($request->mail_notify) {
-            
-          $user_info =  NotifyToUser::makeNotifyToUser($info);
-        //   dd($user_info);
-        }
-
-        if ($request->rider_notify) {
-            $admin_details = User::where('role_id',3)->first();
-            \App\Lib\NotifyToUser::makeNotifyToAdmin($info, $admin_details->email);
-        }
 
         if ($request->status == 1) {
           $deletable_ids=[];

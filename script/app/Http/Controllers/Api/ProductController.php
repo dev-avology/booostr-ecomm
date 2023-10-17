@@ -469,4 +469,16 @@ class ProductController extends Controller
 
         return response()->json(["status" => true, "message" => 'Order Placed']);
     }
+
+    public function resend_invoice(Request $request){
+        $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($request->invoiceid);
+
+        if($order){
+            $email_to = $order->user->email;
+            \App\Lib\NotifyToUser::customermail($order,$email_to);
+            return response()->json(["status" => 'true', "message" => 'Order Placed']);
+        }else{
+            return response()->json(["status" => 'false', "message" => 'Order Placed failed']);
+        }
+    }
 }
