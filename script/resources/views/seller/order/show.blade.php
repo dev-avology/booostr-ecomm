@@ -197,15 +197,15 @@
 							</div>
 							<div class="form-group">
 								<label class="custom-switch mt-2">
-									<input type="checkbox" name="mail_notify" value="1" class="custom-switch-input">
-									<span class="custom-switch-indicator"></span>
-									<span class="custom-switch-description">{{ __('Notify To Customer') }}</span>
+									<input type="hidden" name="mail_notify" value="1" class="custom-switch-input">
+									<!-- <span class="custom-switch-indicator"></span> -->
+									<!-- <span class="custom-switch-description">{{ __('Notify To Customer') }}</span> -->
 							    </label>
 							    @if($info->order_method == 'delivery')
 							    <label class="custom-switch mt-2">
-									<input type="checkbox" name="rider_notify" value="1" class="custom-switch-input">
-									<span class="custom-switch-indicator"></span>
-									<span class="custom-switch-description">{{ __('Notify To Admin') }}</span>
+									<input type="hidden" name="rider_notify" value="1" class="custom-switch-input">
+									<!-- <span class="custom-switch-indicator"></span> -->
+									<!-- <span class="custom-switch-description">{{ __('Notify To Admin') }}</span> -->
 							    </label>
 							    @endif
 							</div>
