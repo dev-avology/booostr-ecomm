@@ -10,6 +10,7 @@ use App\Lib\NotifyToUser;
 use App\Models\User;
 use App\Models\Orderstock;
 use App\Models\Price;
+use App\Models\Ordershipping;
 use Auth;
 use DB;
 use App\Models\Getway;
@@ -77,6 +78,8 @@ class OrderController extends Controller
         else{
             $riders=[];
         }
+
+        // dd($info);
         
         return view('seller.order.show',compact('info','ordermeta','order_status','riders'));
     }
@@ -132,11 +135,19 @@ class OrderController extends Controller
           $this->post_order_data($info);
         }
 
+        // currently comment the user email because the reason of testing admin email
+
         $user_info =  NotifyToUser::makeNotifyToUser($info);
+
           
         $admin_details = User::where('role_id',3)->first();
         \App\Lib\NotifyToUser::makeNotifyToAdmin($info, $admin_details->email);
-
+        
+        $shippingArray = [
+            'shipping_driver' => $request->shipping_service ?? $request->chooseTracking,
+            'tracking_no' => $request->tacking_number
+        ];
+        $orderShipping = Ordershipping::where('order_id', $id)->update($shippingArray);
 
         if ($request->status == 1) {
           $deletable_ids=[];
@@ -166,9 +177,7 @@ class OrderController extends Controller
           if (count($deletable_ids) != 0) {
                Orderstock::whereIn('id',$deletable_ids)->delete();
           } 
-
         }
-
            DB::commit();
         } catch (\Throwable $th) {
             DB::rollback();
