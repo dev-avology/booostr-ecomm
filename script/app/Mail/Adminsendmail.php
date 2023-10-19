@@ -43,10 +43,9 @@ class Adminsendmail extends Mailable
            
             \Config::set('app.name', ucfirst($data['data']['tenantid']));
             $newData = $this->data['data'];
+            $newData['club_name'] = $data['invoice_data']->store_legal_name;
             $new_array = json_decode($newData, true);
-            // \Log::info($new_array);
 		    $orderno = $new_array['invoice_no'];
-            //   dd($new_array);
 
             return $this->markdown('mail.adminsendmail')->subject('['.ucfirst($this->data['tenantid']).'] '.$this->data['message'].' ('.$orderno.')')->with('data', $new_array);
         }
