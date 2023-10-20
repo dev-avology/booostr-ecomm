@@ -172,7 +172,7 @@ class Stripe {
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
 
-            dd($arr_body);
+           // dd($arr_body);
 
             // $transaction = $stripe->transfer(array(
             //     'amount'        => $totalAmount,
@@ -186,6 +186,7 @@ class Stripe {
           //  dd($response,$response1);
 
             $data['payment_id'] = $arr_body['id'];
+            $data['transaction_log'] = $arr_body;
             $data['payment_method'] = "stripe";
             $data['getway_id'] = $array['getway_id'];
             $data['payment_type'] = $array['payment_type']??'';
@@ -234,6 +235,7 @@ class Stripe {
             // $response1 = $transaction->send();
 
             $data['payment_id'] = $arr_body['id'];
+            $data['transaction_log'] = $arr_body;
             $data['payment_method'] = "stripe";
             $data['status'] = 1;
             $data['payment_status'] = 1;
@@ -294,6 +296,7 @@ class Stripe {
 
             $arr_body = $response->getData();
             $data['payment_id'] = $arr_body['id'];
+            $data['transaction_log'] = $arr_body;
             $data['payment_method'] = "stripe";
             $data['status'] = 1;
             $data['payment_status'] = 1;

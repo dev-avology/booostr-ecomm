@@ -236,6 +236,17 @@ class OrderController extends Controller
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 1;
             $order->save();
+
+            $order->ordermeta()->create([
+                'key' => 'transcation_log',
+                'value' => json_encode($paymentresult['transaction_log'])
+            ]);
+
+            $order->ordermeta()->update([
+                'key' => 'last_transcation_log',
+                'value' => json_encode($paymentresult['transaction_log'])
+            ]);
+
         }
 
 
@@ -389,7 +400,16 @@ class OrderController extends Controller
             $order->status_id = 2;
             $order->save();
 
-    
+            $order->ordermeta()->create([
+                'key' => 'transcation_log',
+                'value' => json_encode($paymentresult['transaction_log'])
+            ]);
+
+            $order->ordermeta()->update([
+                'key' => 'last_transcation_log',
+                'value' => json_encode($paymentresult['transaction_log'])
+            ]);
+            
         // send email to admin
 
         $order_status = 'Order Cancel & Refund';

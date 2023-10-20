@@ -497,6 +497,16 @@ class CheckoutController extends Controller
                     'key' => 'orderinfo',
                     'value' => json_encode($customer_info)
                 ]);
+
+                $order->ordermeta()->create([
+                    'key' => 'transcation_log',
+                    'value' => json_encode($paymentresult['transaction_log'])
+                ]);
+
+                $order->ordermeta()->create([
+                    'key' => 'last_transcation_log',
+                    'value' => json_encode($paymentresult['transaction_log'])
+                ]);
             }
 
             if (count($priceids) != 0) {
