@@ -371,7 +371,7 @@ class OrderController extends Controller
     public function refund($id)
     {
         abort_if(!getpermission('order'),401);
-        $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','orderlasttrans','getway','schedule')->findOrFail($id);
+        $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
 
         $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
         $ordermeta=json_decode($order->ordermeta->value ?? '');
