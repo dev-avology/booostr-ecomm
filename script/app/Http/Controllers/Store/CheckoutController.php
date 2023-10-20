@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Models\Option;
 use DB;
 use App\Models\Order;
+use App\Models\Ordermeta;
 use App\Models\Orderstock;
 class CheckoutController extends Controller
 {
@@ -498,12 +499,13 @@ class CheckoutController extends Controller
                     'value' => json_encode($customer_info)
                 ]);
 
-                $order->ordermeta()->create([
-                    'key' => 'transcation_log',
-                    'value' => json_encode($paymentresult['transaction_log'])
-                ]);
-
-                $order->ordermeta()->create([
+                $transcation_log = new Ordermeta;
+                $transcation_log->order_id = $order->id;
+                $transcation_log->key = 'transcation_log';
+                $transcation_log->value = json_encode($paymentresult['transaction_log']);
+                $transcation_log->save();
+    
+                $order->orderlasttrans()->create([
                     'key' => 'last_transcation_log',
                     'value' => json_encode($paymentresult['transaction_log'])
                 ]);

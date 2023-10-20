@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Lib\NotifyToUser;
 use App\Models\User;
 use App\Models\Orderstock;
+use App\Models\Ordermeta;
 use App\Models\Price;
 use App\Models\Ordershipping;
 use Auth;
@@ -237,12 +238,14 @@ class OrderController extends Controller
             $order->payment_status = 1;
             $order->save();
 
-            $order->ordermeta()->create([
-                'key' => 'transcation_log',
-                'value' => json_encode($paymentresult['transaction_log'])
-            ]);
 
-            $order->ordermeta()->update([
+            $transcation_log = new Ordermeta;
+            $transcation_log->order_id = $order->id;
+            $transcation_log->key = 'transcation_log';
+            $transcation_log->value = json_encode($paymentresult['transaction_log']);
+            $transcation_log->save();
+
+            $order->orderlasttrans()->update([
                 'key' => 'last_transcation_log',
                 'value' => json_encode($paymentresult['transaction_log'])
             ]);
@@ -400,10 +403,12 @@ class OrderController extends Controller
             $order->status_id = 2;
             $order->save();
 
-            $order->ordermeta()->create([
-                'key' => 'transcation_log',
-                'value' => json_encode($paymentresult['transaction_log'])
-            ]);
+
+            $transcation_log = new Ordermeta;
+            $transcation_log->order_id = $order->id;
+            $transcation_log->key = 'transcation_log';
+            $transcation_log->value = json_encode($paymentresult['transaction_log']);
+            $transcation_log->save();
 
             $order->orderlasttrans()->update([
                 'key' => 'last_transcation_log',
