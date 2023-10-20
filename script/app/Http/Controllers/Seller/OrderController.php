@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Lib\NotifyToUser;
 use App\Models\User;
 use App\Models\Orderstock;
+use App\Models\Ordermeta;
 use App\Models\Price;
 use App\Models\Ordershipping;
 use Auth;
@@ -67,7 +68,7 @@ class OrderController extends Controller
      */
     public function show($id)
     {
-         abort_if(!getpermission('order'),401);
+        abort_if(!getpermission('order'),401);
 
         $info=Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule','ordertable')->findorFail($id);
         $ordermeta=json_decode($info->ordermeta->value ?? '');
@@ -123,12 +124,9 @@ class OrderController extends Controller
         DB::beginTransaction();
         try { 
 
-        $info=Order::findorFail($id);
-        if ($request->mail_notify) {
-            $info->with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule');
-        }
+        $info = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+
         $info->status_id=$request->status;
-       // $info->payment_status=$request->payment_status;
         $info->save();
 
         if($request->status == 1){
@@ -140,8 +138,8 @@ class OrderController extends Controller
         $user_info =  NotifyToUser::makeNotifyToUser($info);
 
           
-        $admin_details = User::where('role_id',3)->first();
-        \App\Lib\NotifyToUser::makeNotifyToAdmin($info, $admin_details->email);
+        // $admin_details = User::where('role_id',3)->first();
+        // \App\Lib\NotifyToUser::makeNotifyToAdmin($info, $admin_details->email);
         
         $shippingArray = [
             'shipping_driver' => $request->shipping_service ?? $request->chooseTracking,
@@ -236,6 +234,19 @@ class OrderController extends Controller
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 1;
             $order->save();
+
+
+            $transcation_log = new Ordermeta;
+            $transcation_log->order_id = $order->id;
+            $transcation_log->key = 'transcation_log';
+            $transcation_log->value = json_encode($paymentresult['transaction_log']);
+            $transcation_log->save();
+
+            $order->orderlasttrans()->update([
+                'key' => 'last_transcation_log',
+                'value' => json_encode($paymentresult['transaction_log'])
+            ]);
+
         }
 
 
@@ -360,7 +371,7 @@ class OrderController extends Controller
     public function refund($id)
     {
         abort_if(!getpermission('order'),401);
-        $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+        $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
 
         $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
         $ordermeta=json_decode($order->ordermeta->value ?? '');
@@ -389,7 +400,18 @@ class OrderController extends Controller
             $order->status_id = 2;
             $order->save();
 
-    
+
+            $transcation_log = new Ordermeta;
+            $transcation_log->order_id = $order->id;
+            $transcation_log->key = 'transcation_log';
+            $transcation_log->value = json_encode($paymentresult['transaction_log']);
+            $transcation_log->save();
+
+            $order->orderlasttrans()->update([
+                'key' => 'last_transcation_log',
+                'value' => json_encode($paymentresult['transaction_log'])
+            ]);
+
         // send email to admin
 
         $order_status = 'Order Cancel & Refund';
