@@ -172,6 +172,8 @@ class Stripe {
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
 
+            dd($arr_body);
+
             // $transaction = $stripe->transfer(array(
             //     'amount'        => $totalAmount,
             //     'currency'      => $currency,

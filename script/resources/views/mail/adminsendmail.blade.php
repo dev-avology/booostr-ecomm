@@ -24,7 +24,6 @@
         <tbody>
             <tr style="background-color:#00c0ff; width: 100%;">
                 <th style="width: 50%; text-align: left; padding: 20px;">
-                    {{-- <img src="{{ env('WP_URL') }}{{ tenant()->logo }}" alt="logo" style="width: 100%; max-width: 120px;"> --}}
                     @if (!empty(tenant()->logo))
                     <img src="{{ env('WP_URL') }}{{ tenant()->logo }}"alt="logo" style="width: 100%; max-width: 120px;" />
                     @endif
@@ -64,6 +63,7 @@
                 $order_status = $data['message'];
             } elseif ($data['message'] == 'You have received a new order') {
                 $order_status = $data['message'];
+                $main_message = 'This email is to alert you that '. $data['data']->club_name .' has recieved a new order via their Booostr Store' ;
             } else {
                 if ($data['data']['status_id'] == 1) {
                     $order_status = 'Order Complete';
@@ -82,13 +82,14 @@
                     <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order Date: {{ $date_format }}</p>
                 </td>
             </tr>
+
             <tr>
                 <td colspan="2" style="width: 100%; padding-top: 40px; padding-bottom: 50px; font-size: 15px;">
                     <p style="padding: 0;margin: 0;padding-left: 30px; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">{{$main_message}}</p>
                 </td>
             </tr>
-            
-            <tr>
+        
+             <tr>
                 <td colspan="2" style="width: 100%; padding-top: 15px; padding-bottom: 35px;padding-left: 30px">
                     <a href="{{$data['link']}}" style=" font-size: 15px; color: #00c0ffba; font-weight: 700;font-family: 'Nunito', 'Segoe UI', Arial;">Click to Login and View Order</a>
                 </td>
@@ -101,6 +102,8 @@
                     </p>
                 </td>
             </tr>
+            
+         
         </tbody>
     </table>
 </body>
