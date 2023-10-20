@@ -55,6 +55,11 @@ class Order extends Model
     {
         return $this->hasOne('App\Models\Ordermeta')->where('key','orderinfo');
     }
+
+    public function orderlasttrans()
+    {
+        return $this->hasOne('App\Models\Ordermeta')->where('key','last_transcation_log');
+    }
     
     public function meta()
     {
