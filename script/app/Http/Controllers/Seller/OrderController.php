@@ -68,7 +68,7 @@ class OrderController extends Controller
      */
     public function show($id)
     {
-         abort_if(!getpermission('order'),401);
+        abort_if(!getpermission('order'),401);
 
         $info=Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule','ordertable')->findorFail($id);
         $ordermeta=json_decode($info->ordermeta->value ?? '');
@@ -124,12 +124,9 @@ class OrderController extends Controller
         DB::beginTransaction();
         try { 
 
-        $info=Order::findorFail($id);
-        if ($request->mail_notify) {
-            $info->with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule');
-        }
+        $info = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+
         $info->status_id=$request->status;
-       // $info->payment_status=$request->payment_status;
         $info->save();
 
         if($request->status == 1){
@@ -141,8 +138,8 @@ class OrderController extends Controller
         $user_info =  NotifyToUser::makeNotifyToUser($info);
 
           
-        $admin_details = User::where('role_id',3)->first();
-        \App\Lib\NotifyToUser::makeNotifyToAdmin($info, $admin_details->email);
+        // $admin_details = User::where('role_id',3)->first();
+        // \App\Lib\NotifyToUser::makeNotifyToAdmin($info, $admin_details->email);
         
         $shippingArray = [
             'shipping_driver' => $request->shipping_service ?? $request->chooseTracking,
@@ -374,7 +371,7 @@ class OrderController extends Controller
     public function refund($id)
     {
         abort_if(!getpermission('order'),401);
-        $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+        $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
 
         $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
         $ordermeta=json_decode($order->ordermeta->value ?? '');

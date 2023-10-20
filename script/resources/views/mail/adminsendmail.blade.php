@@ -35,24 +35,29 @@
             </tr>
             <tr>
                 <td colspan="2" style="font-family: 'Nunito', 'Segoe UI', Arial; padding-top: 39px; padding-bottom: 39px; font-size: 24px; font-weight: normal; text-align: center;     text-transform: capitalize;">
-                    {{$data['data']->club_name}} Store
+                    {{$data['data']->club_name ?? ''}} Store
                 </td>
             </tr>
             
             <tr>
                 <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order #: {{$data['data']->invoice_no}}</p>
+                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order #: {{$data['data']->invoice_no ?? ''}}</p>
                 </td>
               
             </tr>
             <tr>
                 <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order Total: ${{$data['data']->total}}</p>
+                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order Total: ${{$data['data']->total ?? ''}}</p>
                 </td>
             </tr>
+
             @php
             $date = date_create($data['data']->created_at);
             $date_format = date_format($date, "d/m/Y");
+
+            $cancelDate = date_create($data['data']->cancel_date);
+            $cancel_date_format = date_format($cancelDate, "d/m/Y");
+
             @endphp
 
             @php
@@ -80,9 +85,28 @@
             @endphp
             <tr>
                 <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order Date: {{ $date_format }}</p>
+                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order Date: {{ $date_format  ?? ''}}</p>
                 </td>
             </tr>
+
+            @if (!empty($data['data']->cancel_date))
+            <tr>
+                <td colspan="2" style="width: 100%;">
+                    <p style="padding: 0; margin: 0; padding-left: 30px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Cancel Date: {{ $cancel_date_format ?? ''}}</p>
+                </td>
+            </tr>
+            @endif
+
+            @if (!empty($data['data']->refund_amount))
+            <tr>
+                <td colspan="2" style="width: 100%;">
+                    <p style="padding: 0; margin: 0; padding-left: 30px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Refund Amount: ${{$data['data']->refund_amount ?? ''}}</p>
+                </td>
+            </tr>
+            @endif
+
+           
+
 
             <tr>
                 <td colspan="2" style="width: 100%; padding-top: 40px; padding-bottom: 50px; font-size: 15px;">
@@ -99,7 +123,7 @@
                 <td colspan="2" style="width: 100%; ;padding-left: 30px">
                     <p style="font-family: 'Nunito', 'Segoe UI', Arial; font-size: 15px; color: #3c3c3c; padding-bottom: 30px;line-height: 23px;
                     ">From, <br>
-                        The Booostr Team on behalf of {{$data['data']->club_name}}
+                        The Booostr Team on behalf of {{$data['data']->club_name ?? ''}}
                     </p>
                 </td>
             </tr>
