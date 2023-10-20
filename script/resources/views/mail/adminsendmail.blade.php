@@ -61,6 +61,7 @@
                 $main_message = 'This email to alert you that you have successfully captured the payment for order #: ' . $data['data']->invoice_no . ', and the funds will be transferred to your bank account within 1-3 business days. Please make sure the order is fulfilled as quickly as possible.';
             } elseif ($data['message'] == 'Order Cancel & Refund') {
                 $order_status = $data['message'];
+                $main_message = 'This email is to alert you that you have cancelled and refunded order #: ' . $data['data']->invoice_no . ' from ' . $data['data']->club_name . ' Store.';
             } elseif ($data['message'] == 'You have received a new order') {
                 $order_status = $data['message'];
                 $main_message = 'This email is to alert you that '. $data['data']->club_name .' has recieved a new order via their Booostr Store' ;
@@ -85,7 +86,7 @@
 
             <tr>
                 <td colspan="2" style="width: 100%; padding-top: 40px; padding-bottom: 50px; font-size: 15px;">
-                    <p style="padding: 0;margin: 0;padding-left: 30px; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">{{$main_message}}</p>
+                    <p style="padding: 0;margin: 0;padding-left: 30px; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">{{ $main_message ?? '' }}</p>
                 </td>
             </tr>
         
