@@ -72,7 +72,7 @@ class OrderController extends Controller
 
         $info=Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule','ordertable')->findorFail($id);
         $ordermeta=json_decode($info->ordermeta->value ?? '');
-        $order_status=Category::where([['type','status'],['status',1]])->orderBy('featured','ASC')->get();
+        $order_status=Category::where([['type','status'],['status',1]])->where('id','!=',3)->orderBy('featured','ASC')->get();
         if ($info->order_method == 'delivery') {
            $riders=User::where('role_id',5)->latest()->get();
         }
@@ -97,7 +97,7 @@ class OrderController extends Controller
 
         $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
         $ordermeta=json_decode($order->ordermeta->value ?? '');
-        $order_status=Category::where([['type','status'],['status',1]])->orderBy('featured','ASC')->get();
+        $order_status=Category::where([['type','status'],['status',1]])->where('id','!=',3)->orderBy('featured','ASC')->get();
 
         if ($order->order_method == 'delivery') {
            $riders=User::where('role_id',5)->latest()->get();
@@ -116,6 +116,7 @@ class OrderController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+    
     public function update(Request $request, $order_user_id)
     {
         abort_if(!getpermission('order'),401);
@@ -129,57 +130,124 @@ class OrderController extends Controller
         $info->status_id=$request->status;
         $info->save();
 
-        if($request->status == 1){
-          $this->post_order_data($info);
+
+        if($request->status == 2){
+
+            $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+    
+            $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+            $ordermeta=json_decode($order->ordermeta->value ?? '');
+    
+            $gateway_data_info = json_decode($gateway->data);
+            $payment_data['test_mode']  = $gateway->test_mode;
+            $payment_data['currency']   = $gateway->currency_name ?? 'USD';
+            $payment_data['getway_id']  = $gateway->id;
+            $payment_data['amount']  = $order->total;
+            $payment_data['transaction_id']  = $order->transaction_id;
+            $payment_data['application_fee_amount']  = (float) $ordermeta->booster_platform_fee??0;
+            $payment_data['card_fee_amount']  = (float) $ordermeta->credit_card_fee??0;
+            $payment_data['refund_application_fee']  = true;
+            $payment_data['refund_card_fee']  = true;
+    
+            if (!empty($gateway->data)) {
+                foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
+                    $payment_data[$key] = $info;
+                };
+            }
+    
+            $paymentresult= $gateway->namespace::refund_payment($payment_data);
+    
+            if ($paymentresult['payment_status'] == '1') {
+                $order->payment_status = 5;
+                $order->status_id = 2;
+                $order->save();
+    
+                $transcation_log = new Ordermeta;
+                $transcation_log->order_id = $order->id;
+                $transcation_log->key = 'transcation_log';
+                $transcation_log->value = json_encode($paymentresult['transaction_log']);
+                $transcation_log->save();
+    
+                $order->orderlasttrans()->update([
+                    'key' => 'last_transcation_log',
+                    'value' => json_encode($paymentresult['transaction_log'])
+                ]);
+    
+            // send email to admin
+    
+            $order_status = 'Order Cancel & Refund';
+            $admin_details = User::where('role_id',3)->first();
+    
+            \App\Lib\NotifyToUser::makeNotifyToAdmin($order,$admin_details->email,$mail_from=null,$type='tenant_order_notification',$order_status);
+    
+            // send email to user
+    
+                if ($order->notify_driver == 'mail') {
+                    $ordermeta=json_decode($order->ordermeta->value ?? '');
+                    if (!empty($ordermeta)) {
+                        $mail_to=$ordermeta->email ?? '';
+                    }
+                    else{
+                        $mail_to=$order->user->email ?? '';
+                    }
+                    $mail_from=Auth::user()->email;
+                    $order['order_cancel_and_refund'] = 'Order cancel & refund';
+                    \App\Lib\NotifyToUser::customermail($order,$mail_to);
+                }
+            }
+        }else{
+
+            // currently comment the user email because the reason of testing admin email
+            $admin_details = User::where('role_id',3)->first();
+            \App\Lib\NotifyToUser::makeNotifyToAdmin($info, $admin_details->email);
+
+            if ($request->status == 1) {
+
+                $this->post_order_data($info);
+
+                $shippingArray = [
+                    'shipping_driver' => $request->shipping_service ?? $request->chooseTracking,
+                    'tracking_no' => $request->tacking_number
+                ];
+
+                $orderShipping = Ordershipping::where('order_id', $id)->update($shippingArray);
+
+                $info = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+
+                $user_info =  NotifyToUser::makeNotifyToUser($info);
+
+                $deletable_ids=[];
+
+                $prices=Orderstock::where('order_id',$id)->whereHas('price')->with('price')->get();
+                foreach ($prices as $key => $row) {
+                    $current_stock=$row->price->qty;
+                    $order_stock=$row->qty;
+
+                    if ($order_stock >= $current_stock) {
+                        $new_stock=0;
+                        $stock_status=0;
+                    }
+                    else{
+                        $new_stock=$current_stock-$order_stock;
+                        $stock_status=1;
+                    }
+                    $price_row=Price::find($row->price_id);
+                    if (!empty($price_row)) {
+                        $price_row->qty=$new_stock;
+                        $price_row->stock_status=$stock_status;
+                        $price_row->save();
+                    }
+                    array_push($deletable_ids,$row->id);
+                }
+                if (count($deletable_ids) != 0) {
+                    Orderstock::whereIn('id',$deletable_ids)->delete();
+                } 
+            }
         }
 
-        // currently comment the user email because the reason of testing admin email
-
-        $user_info =  NotifyToUser::makeNotifyToUser($info);
-
-          
-        // $admin_details = User::where('role_id',3)->first();
-        // \App\Lib\NotifyToUser::makeNotifyToAdmin($info, $admin_details->email);
-        
-        $shippingArray = [
-            'shipping_driver' => $request->shipping_service ?? $request->chooseTracking,
-            'tracking_no' => $request->tacking_number
-        ];
-        $orderShipping = Ordershipping::where('order_id', $id)->update($shippingArray);
-
-        if ($request->status == 1) {
-          $deletable_ids=[];
-
-          $prices=Orderstock::where('order_id',$id)->whereHas('price')->with('price')->get();
-          foreach ($prices as $key => $row) {
-             $current_stock=$row->price->qty;
-             $order_stock=$row->qty;
-
-             if ($order_stock >= $current_stock) {
-                 $new_stock=0;
-                 $stock_status=0;
-             }
-             else{
-                $new_stock=$current_stock-$order_stock;
-                $stock_status=1;
-             }
-             $price_row=Price::find($row->price_id);
-             if (!empty($price_row)) {
-                 $price_row->qty=$new_stock;
-                 $price_row->stock_status=$stock_status;
-                 $price_row->save();
-             }
-             array_push($deletable_ids,$row->id);
-          }
-
-          if (count($deletable_ids) != 0) {
-               Orderstock::whereIn('id',$deletable_ids)->delete();
-          } 
-        }
            DB::commit();
         } catch (\Throwable $th) {
             DB::rollback();
-            return $th;
             $errors['errors']['error']='Opps something wrong';
             return response()->json($errors,401);
         } 
@@ -246,7 +314,6 @@ class OrderController extends Controller
                 'key' => 'last_transcation_log',
                 'value' => json_encode($paymentresult['transaction_log'])
             ]);
-
         }
 
 
@@ -400,7 +467,6 @@ class OrderController extends Controller
             $order->status_id = 2;
             $order->save();
 
-
             $transcation_log = new Ordermeta;
             $transcation_log->order_id = $order->id;
             $transcation_log->key = 'transcation_log';
@@ -433,7 +499,6 @@ class OrderController extends Controller
             $order['order_cancel_and_refund'] = 'Order cancel & refund';
             \App\Lib\NotifyToUser::customermail($order,$mail_to);
         }
-
      }
         return redirect()->back();
     }

@@ -53,10 +53,10 @@
 
             @php
             $date = date_create($data['data']->created_at);
-            $date_format = date_format($date, "d/m/Y");
+            $date_format = date_format($date, "m/d/Y");
 
             $cancelDate = date_create($data['data']->cancel_date);
-            $cancel_date_format = date_format($cancelDate, "d/m/Y");
+            $cancel_date_format = date_format($cancelDate, "m/d/Y");
 
             @endphp
 

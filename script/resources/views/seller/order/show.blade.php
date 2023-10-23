@@ -208,18 +208,35 @@
                                     </div>
                                 </div>
 
-								<div class="col-sm-3" id="hiddenChooseTracking" style="display:none;">
-									<div class="form-group">
-										<label>Select shipping service</label>
-										<select class="form-control selectric" id="chooseTracking" name="chooseTracking">
-											<option value="" selected><b>{{ __('Select option') }}</b></option>
-											<option value="FedEx" @if ($info->shippingwithinfo->shipping_driver == 'FedEx') selected="" @endif>{{ __('FedEx') }}</option>
-											<option value="UPS" @if ($info->shippingwithinfo->shipping_driver == 'UPS') selected="" @endif>{{ __('UPS') }}</option>
-											<option value="US Postal Service" @if ($info->shippingwithinfo->shipping_driver == 'US Postal Service') selected="" @endif>{{ __('US Postal Service') }}</option>
-											<option value="Other" @if ($info->shippingwithinfo->shipping_drivers == 'Other') selected="" @endif>{{ __('Other') }}</option>
-										</select>
-									</div>
-								</div>
+                                <div class="col-sm-4" id="hiddenChooseTracking" style="display:none;">
+                                    <div class="form-group text-left">
+                                        <label>Select shipping service</label>
+                                        <select class="form-control selectric" id="chooseTracking" name="chooseTracking">
+                                            <option value=""><b>{{ __('Select Order Status') }}</b></option>
+                                            <option value="" selected><b>{{ __('Select option') }}</b></option>
+                                            <option value="FedEx" @if ($info->shippingwithinfo->shipping_driver == 'FedEx') selected="" @endif>{{ __('FedEx') }}</option>
+                                            <option value="UPS" @if ($info->shippingwithinfo->shipping_driver == 'UPS') selected="" @endif><b>{{ __('UPS') }}</b></option>
+                                            <option value="US Postal Service" @if ($info->shippingwithinfo->shipping_driver == 'US Postal Service') selected="" @endif><b>{{ __('US Postal Service') }}</b></option>
+                                            <option value="Other" @if ($info->shippingwithinfo->shipping_drivers == 'Other') selected="" @endif><b>{{ __('Other') }}</b></option>
+                                        </select>
+                                    </div>
+                                </div>
+
+								{{-- <div class="col-sm-3" id="hiddenChooseTracking" style="display:none;">
+                                    <div class="form-group">
+                                        <label style="text-align: left;">Select shipping service</label>
+                                        <select class="form-control selectric" id="chooseTracking" name="chooseTracking">
+                                            <option value="" selected><b style="text-align: left;">{{ __('Select option') }}</b></option>
+                                            <option value="FedEx" @if ($info->shippingwithinfo->shipping_driver == 'FedEx') selected="" @endif>{{ __('FedEx') }}</option>
+                                            <option value="UPS" @if ($info->shippingwithinfo->shipping_driver == 'UPS') selected="" @endif><b style="text-align: left;">{{ __('UPS') }}</b></option>
+                                            <option value="US Postal Service" @if ($info->shippingwithinfo->shipping_driver == 'US Postal Service') selected="" @endif><b style="text-align: left;">{{ __('US Postal Service') }}</b></option>
+                                            <option value="Other" @if ($info->shippingwithinfo->shipping_drivers == 'Other') selected="" @endif><b style="text-align: left;">{{ __('Other') }}</b></option>
+                                        </select>
+                                    </div>
+                                </div> --}}
+                                
+                                
+                                
 								
 
 								<div class="col-sm-3" id="hide_tacking_number" style="display:none;">
@@ -507,6 +524,7 @@
 				$("#hide_tacking_number").hide();
 				$("#chooseTracking").attr("required", true);
 			} else {
+                console.log(chooseTrackingVal);
 				$("#hiddenChooseTracking").hide();
 				$("#hide_tacking_number").hide();
 				$("#hide_shipping_service").hide();
