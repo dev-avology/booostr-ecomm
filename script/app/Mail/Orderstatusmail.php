@@ -11,14 +11,16 @@ class Orderstatusmail extends Mailable
 {
     use Queueable, SerializesModels;
     public $data;
+    public $subject;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($data)
+    public function __construct($data,$subject)
     {
         $this->data = $data;
+        $this->subject = $subject;
     }
 
     /**
@@ -29,6 +31,7 @@ class Orderstatusmail extends Mailable
     public function build()
     {
         $data=$this->data;
+        $subject=$this->subject;
 
         if ($this->data['type'] == 'tenant_order_notification') {
          $currency=$this->data['currency_info'];
@@ -45,7 +48,7 @@ class Orderstatusmail extends Mailable
          $invoice_info=$this->data['invoice_data'];
         
          return $this->from($data['from'])
-         ->subject($invoice_info->invoice_subject ?? 'Order Mail')
+         ->subject($subject)
          ->view('mail.seller.customerorder')->with(['order'=>$data['data'],'currency'=>$currency,'ordermeta'=>$ordermeta,'invoice_info'=>$invoice_info,'card_number'=>$card_number]);
         }
         elseif ($this->data['type'] == 'order_recived'){

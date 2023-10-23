@@ -11,14 +11,16 @@ class Adminsendmail extends Mailable
 {
     use Queueable, SerializesModels;
     public $data;
+    public $subject;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($data)
+    public function __construct($data,$subject)
     {
         $this->data = $data;
+        $this->subject = $subject;
     }
 
     /**
@@ -29,6 +31,7 @@ class Adminsendmail extends Mailable
     public function build()
     {
         $data = $this->data;
+        $subject = $this->subject;
 
         if ($this->data['type'] == 'tenant_order_notification') {
          $currency=$this->data['currency_info'];
@@ -44,6 +47,7 @@ class Adminsendmail extends Mailable
             \Config::set('app.name', ucfirst($data['data']['tenantid']));
             $newData = $this->data['data'];
             $newData['club_name'] = $data['invoice_data']->store_legal_name;
+            // dd($newData['club_name']);
 
             if($this->data['message'] == 'Order Cancel & Refund'){
                 if(!empty($data['data']->orderlasttrans->value)){
@@ -61,7 +65,8 @@ class Adminsendmail extends Mailable
             $new_array = json_decode($newData, true);
 		    $orderno = $new_array['invoice_no'];
 
-            return $this->markdown('mail.adminsendmail')->subject('['.ucfirst($this->data['tenantid']).'] '.$this->data['message'].' ('.$orderno.')')->with('data', $new_array);
+
+            return $this->markdown('mail.adminsendmail')->subject($subject)->with('data', $new_array);
         }
     }
 }

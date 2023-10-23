@@ -24,9 +24,7 @@
         <tbody>
             <tr style="background-color:#00c0ff; width: 100%;">
                 <th style="width: 50%; text-align: left; padding: 20px;">
-                    @if (!empty(tenant()->logo))
-                    <img src="{{ env('WP_URL') }}{{ tenant()->logo }}"alt="logo" style="width: 100%; max-width: 120px;" />
-                    @endif
+                    <img src="{{ env('WP_URL') }}{{'uploads/2022/03/booostr-logo-long-top-header.png'}}" alt="logo" style="width: 100%; max-width: 120px;" />
                 </th>
                 <th style="width: 50%; padding-right: 40px; text-align: right;">
                     <a href=""
@@ -115,9 +113,9 @@
             </tr>
         
              <tr>
-                <td colspan="2" style="width: 100%; padding-top: 15px; padding-bottom: 35px;padding-left: 30px">
-                    <a href="{{$data['link']}}" style=" font-size: 15px; color: #00c0ffba; font-weight: 700;font-family: 'Nunito', 'Segoe UI', Arial;">Click to Login and View Order</a>
-                </td>
+                <td colspan="2" style="width: 100%; padding-top: 15px; padding-bottom: 35px; padding-left: 30px;">
+                    <a href="https://staging3.booostr.co/dashboard/?ua=storemanager&item=<?php echo tenant()->club_id; ?>" style="font-size: 15px; color: #00c0ffba; font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;">Click to Login and View Order</a>
+                </td>                
             </tr>
             <tr>
                 <td colspan="2" style="width: 100%; ;padding-left: 30px">

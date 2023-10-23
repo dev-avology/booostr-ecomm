@@ -24,7 +24,8 @@ class Ordershipping extends Model
         'weight',
         'info',
         'lat',
-        'long'
+        'long',
+        'tracking_no'
         
     ];
 
