@@ -208,11 +208,10 @@
                                     </div>
                                 </div>
 
-                                <div class="col-sm-4" id="hiddenChooseTracking" style="display:none;">
+                                <div class="col-sm-4" id="hiddenChooseTracking" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;" @endif>
                                     <div class="form-group text-left">
                                         <label>Select shipping service</label>
                                         <select class="form-control selectric" id="chooseTracking" name="chooseTracking">
-                                            <option value=""><b>{{ __('Select Order Status') }}</b></option>
                                             <option value="" selected><b>{{ __('Select option') }}</b></option>
                                             <option value="FedEx" @if ($info->shippingwithinfo->shipping_driver == 'FedEx') selected="" @endif>{{ __('FedEx') }}</option>
                                             <option value="UPS" @if ($info->shippingwithinfo->shipping_driver == 'UPS') selected="" @endif><b>{{ __('UPS') }}</b></option>
@@ -237,12 +236,10 @@
                                 
                                 
                                 
-								
-
-								<div class="col-sm-3" id="hide_tacking_number" style="display:none;">
+								<div class="col-sm-3" id="hide_tacking_number" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;"@endif>
 									<div class="form-group">
 										<label>Enter tracking number</label>
-										<input type="number" class="form-control" name="tacking_number" id="tacking_number" id="tacking_number">
+										<input type="number" value="{{$info->shippingwithinfo->tracking_no}}" class="form-control" name="tacking_number" id="tacking_number" id="tacking_number">
 									</div>
 								</div>
 
@@ -513,48 +510,7 @@
 
 	<script type="text/javascript">
 		$(document).ready(function() {
-			var selectedValue = $('#mainSelect').val();
-			var chooseTrackingVal = $('#chooseTracking').val();
-			$("#tacking_number").val('');
-			$("#shipping_service").val('');
 			
-
-			if (selectedValue === "1") {
-				$("#hiddenChooseTracking").show();
-				$("#hide_tacking_number").hide();
-				$("#chooseTracking").attr("required", true);
-			} else {
-                console.log(chooseTrackingVal);
-				$("#hiddenChooseTracking").hide();
-				$("#hide_tacking_number").hide();
-				$("#hide_shipping_service").hide();
-	
-				$("#chooseTracking").attr("required", false);
-				$("#tacking_number").attr("required", false);
-				$("#shipping_service").attr("required", false);
-			}
-
-			if (chooseTrackingVal === "FedEx" || chooseTrackingVal === "UPS" || chooseTrackingVal === "US Postal Service") {
-				$("#hide_tacking_number").show();
-				$("#hide_shipping_service").hide();
-
-				$("#tacking_number").attr("required", true);
-				$("#shipping_service").attr("required", false);
-
-			} else if(chooseTrackingVal === "Other") {
-				$("#hide_tacking_number").show();
-				$("#hide_shipping_service").show();
-
-				$("#tacking_number").attr("required", true);
-				$("#shipping_service").attr("required", true);
-
-			} else {
-				$("#hide_tacking_number").hide();
-				$("#hide_shipping_service").hide();
-
-				$("#tacking_number").attr("required", false);
-				$("#shipping_service").attr("required", false);
-			}
 	
 			$("#mainSelect").on("change", function() {
 				$("#tacking_number").val('');

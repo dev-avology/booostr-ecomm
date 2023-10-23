@@ -48,6 +48,24 @@
         tr.br-none:after {
             border: 0;
         }
+
+        .add-shipping-color p {
+            color: #3c3c3c;
+        }
+
+        .add-shipping-color a {
+            color: #3c3c3c;
+            text-decoration: none;
+        }
+
+        #click_to_login {
+            text-decoration: underline !important;
+        }
+
+        #learn_more {
+            color: #fff;
+            text-decoration: underline !important;
+        }
     </style>
 </head>
 
@@ -57,6 +75,7 @@
 
         <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;border-collapse: collapse;">
             <tbody>
+
                 <tr style="background-color: #535353; width: 100%;" class="border-style br-none">
                     <th style="width: 15%; text-align: left; padding: 40px 0 0 20px;border-collapse: collapse;">
                         {{-- <img src="./img/Champs-Sports-Logo.png" alt="logo"
@@ -128,32 +147,32 @@
 
 
         @if ($data['data']['status_id'] == '1')
-            <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
-                <tbody>
-                    <tr class="border-style">
-                        <td style="width: 50%;padding-left: 15px; font-size: 15px; text-align: left;"
-                            class="spac-top spac-btm">
-                            <h4
-                                style="font-weight: 700;font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;text-transform: uppercase;padding-left: 20px;">
-                                SHIPPER:</h4>
-                            <span
-                                style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">
-                                {{ $data['data']['shippingwithinfo']->shipping_driver ?? '' }}</span>
-                        </td>
-                        <td style="width: 50%;padding-left: 15px; font-size: 15px; text-align: left;"
-                            class="spac-top spac-btm">
-                            <h4
-                                style="font-weight: 700;
-                        font-family: 'Nunito', 'Segoe UI', Arial;
-                        font-size: 17px;
-                        color: #3c3c3c;
-                        text-transform: uppercase;padding-left: 20px;">
-                                TRACKING #:</h4>
-                            <span
-                                style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">{{ $data['data']['shippingwithinfo']->tracking_no ?? '' }}</span>
-                        </td>
-                    </tr>
-                </tbody>
+            <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff;">
+                <tr>
+                    <td colspan="2">
+                        <hr width="94%" style="border-top: 0px;" color="#e5e5e5" />
+                    </td>
+                </tr>
+                <tr class="border-style">
+                    <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
+                        class="spac-top spac-btm">
+                        <h4
+                            style="font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial; font-size: 17px; color: #3c3c3c; text-transform: uppercase; padding-left: 20px;">
+                            SHIPPER:</h4>
+                        <span
+                            style="padding-left: 20px; margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-weight: 500;">
+                            {{ $data['data']['shippingwithinfo']->shipping_driver ?? '' }}
+                        </span>
+                    </td>
+                    <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
+                        class="spac-top spac-btm">
+                        <h4
+                            style="font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial; font-size: 17px; color: #3c3c3c; text-transform: uppercase; padding-left: 20px;">
+                            TRACKING #:</h4>
+                        <span
+                            style="padding-left: 20px; margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-weight: 500;">{{ $data['data']['shippingwithinfo']->tracking_no ?? '' }}</span>
+                    </td>
+                </tr>
             </table>
         @endif
 
@@ -167,82 +186,86 @@
                 $amountRefunded = $decodedJsonLastTrans['amount_refunded'] ?? '';
 
                 $cancelDate = date_create($createdAt);
-                $cancel_date_format = date_format($cancelDate, 'd/m/Y');
+                $cancel_date_format = date_format($cancelDate, 'm/d/Y');
             }
 
         @endphp
 
         @if ($data['data']['status_id'] == '2')
-            <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
-                <tbody>
-                    <tr class="border-style">
-                        <td style="width: 50%;padding-left: 15px; font-size: 15px; text-align: left;"
-                            class="spac-top spac-btm">
-                            <h4
-                                style="font-weight: 700;
-                        font-family: 'Nunito', 'Segoe UI', Arial;
-                        font-size: 17px;
-                        color: #3c3c3c;
-                        text-transform: uppercase;padding-left: 20px;">
-                                CANCELED & REFUNDED</h4>
-                            <p
-                                style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">
-                                {{ $cancel_date_format ?? '' }}</p>
-                        </td>
-                        <td style="width: 50%;padding-left: 15px; font-size: 15px; text-align: left;"
-                            class="spac-top spac-btm">
-                            <h4
-                                style="font-weight: 700;
-                        font-family: 'Nunito', 'Segoe UI', Arial;
-                        font-size: 17px;
-                        color: #3c3c3c;
-                        text-transform: uppercase;padding-left: 20px;">
-                                REFUND AMOUNT</h4>
-                            <p
-                                style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">
-                                ${{ $amountRefunded ?? '' }}</p>
-                        </td>
-                    </tr>
-                </tbody>
+            <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff;">
+                <tr>
+                    <td colspan="2">
+                        <hr width="94%" style="border-top: 0px;" color="#e5e5e5" />
+                    </td>
+                </tr>
+                <tr class="border-style">
+                    <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
+                        class="spac-top spac-btm">
+                        <h4
+                            style="font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial; font-size: 17px; color: #3c3c3c; text-transform: uppercase; padding-left: 20px;">
+                            CANCELED & REFUNDED</h4>
+                        <p
+                            style="padding-left: 20px; margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-weight: 500;">
+                            {{ $cancel_date_format ?? '' }}</p>
+                    </td>
+                    <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
+                        class="spac-top spac-btm">
+                        <h4
+                            style="font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial; font-size: 17px; color: #3c3c3c; text-transform: uppercase; padding-left: 20px;">
+                            REFUND AMOUNT</h4>
+                        <p
+                            style="padding-left: 20px; margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-weight: 500;">
+                            ${{ $amountRefunded ?? '' }}</p>
+                    </td>
+                </tr>
             </table>
         @endif
 
-        <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
+        <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff;">
+            <tr>
+                <td colspan="2">
+                    <hr width="94%" style="border-top: 0px;" color="#e5e5e5" />
+                </td>
+            </tr>
+            <tr class="border-style">
+                <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
+                    class="spac-top spac-btm">
+                    <span
+                        style="font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; margin: 0; padding-left: 20px;">
+                        Order #: <span style="font-weight: 500;">{{ $data['data']['invoice_no'] ?? '' }}</span>
+                    </span><br>
+                    <span
+                        style="font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; margin: 0; padding-left: 20px">Date
+                        Placed:<span style="font-weight: 500;">
+                            {{ $order->created_at->format('m-d-Y') ?? '' }}</span>
+                    </span>
+                </td>
+                <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
+                    class="spac-top spac-btm">
+                    <a id="click_to_login" href="https://staging3.booostr.co/"
+                        style="font-size: 15px; color: #00c0ffba; font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial; text-decoration: none;">Click
+                        to Login and View Order</a>
+                </td>
+            </tr>
+        </table>
+
+        <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff;">
             <tbody>
-                <tr class="border-style">
-                    <td style="width: 50%;padding-left: 15px; font-size: 15px; text-align: left;"
-                        class="spac-top spac-btm">
-                        <span
-                            style="font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; margin: 0;padding-left: 20px;">
-                            Order #: <span style="font-weight: 500;">{{ $data['data']['invoice_no'] ?? '' }}</span>
-                        </span><br>
-                        <span
-                            style="font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; margin: 0;padding-left: 20px">
-                            Date Placed:<span style="font-weight: 500;">
-                                {{ $order->created_at->format('d-m-Y') ?? '' }}</span>
-                        </span>
-                    </td>
-                    <td style="width: 50%;padding-left: 15px; font-size: 15px; text-align: left;"
-                        class="spac-top spac-btm">
-                        <a href="https://staging3.booostr.co/"
-                            style="font-size: 15px; color: #00c0ffba; font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial; text-decoration: none;">Click to Login and View Order</a>
+                <tr>
+                    <td colspan="2">
+                        <hr width="94%" style="border-top: 0px;" color="#e5e5e5" />
                     </td>
                 </tr>
-            </tbody>
-        </table>
-        <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
-            <tbody>
                 <tr class="border-style">
-                    <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;"
+                    <td style="width: 50%; padding-left: 15px; font-size: 15px; padding-right: 15px;"
                         class="spac-top spac-btm">
                         <h5
-                            style="padding-left: 20px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;
-                            ">
-                            Billing Address:</h5>
-                        <p
-                            style="padding-left: 20px;font-weight:500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;">
+                            style="padding-left: 20px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px;">
+                            Billing Address:
+                        </h5>
+                        <p class="add-shipping-color"
+                            style="padding-left: 20px; font-weight: 500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px;">
                             @php
-
                                 $billing_name = $ordermeta->name;
                                 $billing_email = $ordermeta->email;
                                 $billing_phone = $ordermeta->phone;
@@ -255,42 +278,55 @@
                                 $billing_country = $billing_address->country;
                                 $billing_post_code = $billing_address->post_code;
 
-                                $new_billing_address = $billing_name . ',<Br>' . $billing_email . ',<Br>' . $billing_phone . ',<Br>' . $billing_add . ',<Br>' . $billing_city . ',<Br>' . $billing_state . ',<Br>' . $billing_country . ',<Br>' . $billing_post_code;
+                                $new_billing_address = $billing_name . '<br>' . $billing_add . '<br>' . $billing_city . ', ' . $billing_state . ' ' . $billing_post_code . '<br>' . $billing_country . '<br>' . $billing_phone . '<br>' . $billing_email;
                             @endphp
                             {!! $new_billing_address !!}
                         </p>
-
                     </td>
-                    <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;"
+                    <td style="width: 50%; padding-left: 15px; font-size: 15px; padding-right: 15px;"
                         class="spac-top spac-btm">
                         <h5
-                            style="padding-left: 20px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;
-                        ">
-                            Payment Information:</h5>
+                            style="padding-left: 20px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px;">
+                            Payment Information:
+                        </h5>
+                        @php
+                            if ($data['data']['payment_status'] == '2') {
+                                $authorized = 'Pending';
+                            } elseif ($data['data']['payment_status'] == '1') {
+                                $authorized = 'Paid';
+                            } elseif ($data['data']['payment_status'] == '3') {
+                                $authorized = 'Incomplete';
+                            } elseif ($data['data']['payment_status'] == '4') {
+                                $authorized = 'Authorized';
+                            } elseif ($data['data']['payment_status'] == '5') {
+                                $authorized = 'Refunded';
+                            }
+                        @endphp
                         <span
-                            style="padding-left: 20px;font-weight:500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;text-transform: capitalize;
-                        ">Status:
-                            <span>Authorized</span></span>
+                            style="padding-left: 20px; font-weight: 500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px; text-transform: capitalize;">Status:
+                            <span>{{ $authorized ?? '' }}</span>
+                        </span>
                         <p
-                            style="padding-left: 20px;font-weight:500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;text-transform: capitalize;
-                        ">
+                            style="padding-left: 20px; font-weight: 500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px; text-transform: capitalize;">
                             Card: <span>{{ $card_number ?? '' }}</span></p>
                         <p
-                            style="padding-left: 20px;font-weight:500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;text-transform: capitalize;
-                        ">
+                            style="padding-left: 20px; font-weight: 500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px; text-transform: capitalize;">
                             Name: <span>{{ $ordermeta->name ?? '' }}</span></p>
                         <p
-                            style="padding-left: 20px;font-weight:500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;text-transform: capitalize;
-                        ">
+                            style="padding-left: 20px; font-weight: 500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px; text-transform: capitalize;">
                             Amount: <span>{{ currency_formate($order->total) }}</span></p>
                     </td>
-
                 </tr>
             </tbody>
-
         </table>
+
         <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
             <tbody>
+                <tr>
+                    <td colspan="2">
+                        <hr width="94%" style="border-top: 0px;" color="#e5e5e5" />
+                    </td>
+                </tr>
                 <tr class="border-style">
                     <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;"
                         class="spac-top spac-btm">
@@ -298,9 +334,8 @@
                             style="padding-left: 20px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;
                             ">
                             Shipping Address:</h5>
-                        <span
-                            style="padding-left: 20px;font-weight:500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;
-                            ">
+                        <p class="add-shipping-color"
+                            style="padding-left: 20px; font-weight: 500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px;">
                             @php
                                 $shippping_name = $ordermeta->shipping->name;
                                 $shippping_phone = $ordermeta->shipping->phone;
@@ -310,22 +345,26 @@
                                 $shippping_country = $ordermeta->shipping->country;
                                 $shippping_post_code = $ordermeta->shipping->post_code;
 
-                                $new_shiiping_address = $shippping_name . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_phone . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_address . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_city . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_state . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_country . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_post_code;
+                                // $new_shiiping_address = $shippping_name . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_address . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_city . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_state . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_country . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_post_code;
+
+                                $new_shiiping_address = $shippping_name . '<br>' . $shippping_address . '<br>' . $shippping_city . ', ' . $shippping_state . ' ' . $shippping_post_code . '<br>' . $shippping_country . '<br>' . $shippping_phone . '<br>' . $billing_email;
+
                             @endphp
                             {!! $new_shiiping_address !!}
-                        </span>
+                        </p>
                     </td>
                     <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;"
                         class="spac-top spac-btm">
-                        <h5
-                            style="padding-left: 20px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;">
-                            Shipping Information:</h5>
-
-                        <span
-                            style="padding-left: 20px;font-weight:500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;text-transform: capitalize;
-                        ">{!! $data['data']['shippingwithinfo']->shipping_driver ?? '' !!}
-                            <br>
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{!! $data['data']['shippingwithinfo']->tracking_no ?? '' !!}</span>
+                        @php $shippingservice = $data['data']['shippingwithinfo']->shipping_driver ?? ''; @endphp
+                        @if ($shippingservice != 'local' || $shippingservice != '')
+                            <h5
+                                style="padding-left: 20px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;">
+                                Shipping Information:</h5>
+                            <span
+                                style="padding-left: 20px;font-weight:500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;text-transform: capitalize;">{!! $data['data']['shippingwithinfo']->shipping_driver ?? '' !!}
+                                <br>&nbsp;&nbsp;&nbsp;&nbsp;
+                                {!! $data['data']['shippingwithinfo']->tracking_no ?? '' !!}</span>
+                        @endif
                     </td>
                 </tr>
             </tbody>
@@ -333,14 +372,30 @@
 
         <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
             <tbody>
-
+                <tr>
+                    <td colspan="4">
+                        <hr width="94%" style="border-top: 0px;" color="#e5e5e5" />
+                    </td>
+                </tr>
                 <tr class="border-style">
                 <tr class="heading">
-                    <td class="text-left">Product</td>
+                    <td class="text-left"
+                        style="padding-left: 35px;
+                    font-weight: bold;
+                    font-family: 'Nunito','Segoe UI',Arial;
+                    color: #3c3c3c;
+                    font-size: 16px;">
+                        Product</td>
 
-                    <td class="text-center">Price</td>
-                    <td class="text-center">Qty</td>
-                    <td class="text-right">Totals</td>
+                    <td class="text-center"
+                        style="font-weight: bold;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
+                        Price</td>
+                    <td class="text-center"
+                        style="font-weight: bold;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
+                        Qty</td>
+                    <td class="text-right"
+                        style="font-weight: bold;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
+                        Totals</td>
                 </tr>
 
                 @php $subtotal = 0; @endphp
@@ -355,7 +410,9 @@
                     </tr>
 
                     <tr>
-                        <td class="text-left">{{ $row->term->title ?? '' }}
+                        <td class="text-left"
+                            style="padding-left: 35px;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
+                            {{ $row->term->title ?? '' }}
                             @foreach ($options ?? [] as $key => $item)
                                 <br>
                                 <span>{{ $key }}:</span><br>
@@ -367,9 +424,15 @@
                                 <hr>
                             @endforeach
                         </td>
-                        <td class="text-center">{{ $row->amount }}</td>
-                        <td class="text-center">{{ $row->qty }}</td>
-                        <td class="text-right">{{ currency_formate($row->amount * $row->qty) }}</td>
+                        <td class="text-center"
+                            style="font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
+                            {{ $row->amount }}</td>
+                        <td class="text-center"
+                            style="font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
+                            {{ $row->qty }}</td>
+                        <td class="text-right"
+                            style="font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
+                            {{ currency_formate($row->amount * $row->qty) }}</td>
                     </tr>
                     @php $subtotal = $subtotal + $row->amount*$row->qty; @endphp
                 @endforeach
@@ -377,6 +440,11 @@
         </table>
         <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
             <tbody>
+                <tr>
+                    <td colspan="2">
+                        <hr width="94%" style="border-top: 0px;" color="#e5e5e5" />
+                    </td>
+                </tr>
                 <tr class="border-style">
                     <th style="text-align: right;width: 70%;" class="spac-top">
                         @php
@@ -466,6 +534,11 @@
 
         <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
             <tbody>
+                <tr>
+                    <td>
+                        <hr width="94%" style="border-top: 0px;" color="#e5e5e5" />
+                    </td>
+                </tr>
                 <tr class="border-style">
                     <td style="width: 100%;padding-left: 15px;font-size: 15px; padding-right: 15px;"
                         class="spac-top spac-btm">
@@ -502,7 +575,11 @@
                         color: #fff;
                         padding-bottom: 10px;">
                             Powered By:</h6>
-                        <img src="./img/Champs-Sports-Logo.png" alt="logo" style="width: 100%;max-width: 115px;">
+                        <img src="{{ env('WP_URL') }}{{ 'uploads/2022/03/booostr-logo-long-top-header.png' }}"alt="logo"
+                            style="width: 100%;max-width: 115px;" />
+                        {{-- @if (!empty(tenant()->logo))
+                         <img src="{{ env('WP_URL') }}{{ tenant()->logo }}" style="width: 100%;max-width: 115px;"/>
+                        @endif --}}
                     </td>
                     <td>
                         <p
@@ -514,12 +591,12 @@
                             style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 14px;
                         color: #fff;
                         font-weight: 300;">
-                            Lorem <a href=""
+                            utilizes<a href=""
                                 style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 14px;
                         color: #fff;
-                        font-weight: 300;">utilizes
-                                Booostr</a>to help them manage their organization, communication with their team and
-                            supporters and raise money online.<a>Learn more here</a></p>
+                        font-weight: 300;">
+                                Booostr</a>to help them manage their organization, communicate with their team and
+                            supporters and raise money online.&nbsp;&nbsp;<a id="learn_more">Learn more here</a></p>
                     </td>
                 </tr>
             </tbody>

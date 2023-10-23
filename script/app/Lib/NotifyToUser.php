@@ -59,6 +59,7 @@ class NotifyToUser
 
 	public static function makeNotifyToAdmin($info,$mail_to,$mail_from=null,$type='tenant_order_notification',$order_status='')
 	{
+
 		$new_array = json_decode($info, true);
 
 		$invoiceNo = $new_array['invoice_no'];
@@ -89,17 +90,39 @@ class NotifyToUser
 		    dispatch(new TenantMailJob($data));
 		}
 		else{
-			$mail = new Adminsendmail($data);
+			
+
+			$status_id = $new_array['status_id'];
+            $payment_status = $new_array['payment_status'];
+            $subject = '';
+
+            if($status_id == 3 && $payment_status == 4){
+             $subject = '['.$invoice_info->store_legal_name.'] You have received a new order' .' (#'.$invoiceNo.') via your Booostr Online Store';
+            }else if($status_id == 1 && $payment_status == 1){
+                $subject = '['.$invoice_info->store_legal_name.'] Order' .' (#'.$invoiceNo.') - Completed & Shipped';
+            }else if($status_id == 2 && $payment_status == 5){
+                $subject = '['.$invoice_info->store_legal_name.'] Order' .' (#'.$invoiceNo.') - Cancelled & Refunded';
+            }else if($payment_status == 1){
+                $subject = '['.$invoice_info->store_legal_name.'] Order' .' (#'.$invoiceNo.') - Payment Captured';
+            }else{
+              $subject = '['.$invoice_info->store_legal_name.'] (#'.$invoiceNo.')';
+            }
+
+
+			 $mail = new Adminsendmail($data,$subject);
 		
+			
+
             Mail::to($mail_to)->send($mail);
 		}
+	
+
 	}
 
 	
 
 	public static function customermail($info,$mail_to,$mail_from=null,$type='tenant_order_notification')
-	{
-		
+	{		
 		$data['to']=$mail_to;
 		$data['from']=$mail_from;
 		
@@ -129,7 +152,22 @@ class NotifyToUser
 		    dispatch(new TenantMailJob($data));
 		}
 		else{
-			$mail = new Orderstatusmail($data);
+
+			$status_id = $info->status_id;
+			
+            // $payment_status = $new_array['payment_status'];
+            $subject = '';
+            if($status_id == 3){
+             $subject = 'Thank you for your ['.$invoice_info->store_legal_name.'] Store Order' .' (#'.$info->invoice_no.')';
+            }else if($status_id == 1){
+				$subject = 'Shipped! -Your ['.$invoice_info->store_legal_name.'] Store Order' .' (#'.$info->invoice_no.') is on its way';
+            }else if($status_id == 2){
+                $subject = 'Canceled & Refunded! - ['.$invoice_info->store_legal_name.'] Store Order' .' (#'.$info->invoice_no.') has been canceled.';
+            }else{
+				$subject = 'Order Info';
+			}
+
+			$mail = new Orderstatusmail($data,$subject);
 		
             Mail::to($mail_to)->send($mail);
 		}
