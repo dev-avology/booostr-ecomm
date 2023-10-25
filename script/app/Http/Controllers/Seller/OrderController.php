@@ -322,12 +322,17 @@ class OrderController extends Controller
                 'key' => 'last_transcation_log',
                 'value' => json_encode($paymentresult['transaction_log'])
             ]);
+
+            $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+
+            $order_status = 'Order captured';
+            $admin_details = User::where('role_id',3)->first();
+            \App\Lib\NotifyToUser::makeNotifyToAdmin($order,$admin_details->email,$mail_from=null,$type='tenant_order_notification',$order_status);
+
         }
 
 
-        $order_status = 'Order captured';
-        $admin_details = User::where('role_id',3)->first();
-        \App\Lib\NotifyToUser::makeNotifyToAdmin($order,$admin_details->email,$mail_from=null,$type='tenant_order_notification',$order_status);
+        
 
         return redirect()->back();
     }
@@ -469,7 +474,7 @@ class OrderController extends Controller
         }
 
         $paymentresult= $gateway->namespace::refund_payment($payment_data);
-
+        
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 5;
             $order->status_id = 2;

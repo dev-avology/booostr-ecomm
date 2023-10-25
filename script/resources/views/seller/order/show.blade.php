@@ -237,7 +237,7 @@ $shipping_servics = ['FedEx','UPS','US Postal Service'];
                                 </div> --}}
                                 
                                 
-                                <div class="col-sm-3" id="hide_shipping_service" @if ($info->shippingwithinfo->shipping_driver != 'local' && in_array($info->shippingwithinfo->shipping_driver,$shipping_servics))  style="display:none;" @endif>
+                                <div class="col-sm-3" id="hide_shipping_service" @if (($info->shippingwithinfo->shipping_driver != 'local' || $info->shippingwithinfo->shipping_driver != 'Local') || in_array($info->shippingwithinfo->shipping_driver,$shipping_servics))  style="display:none;" @endif>
 									<div class="form-group text-left">
 										<label>Enter shipping service</label>
 									<input type="text" class="form-control" name="shipping_service" id="shipping_service" value="{{$info->shippingwithinfo->shipping_driver??''}}">
