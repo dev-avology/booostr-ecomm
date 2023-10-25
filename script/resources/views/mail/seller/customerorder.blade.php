@@ -588,12 +588,12 @@
                             style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 14px;
                         color: #fff;
                         font-weight: 300;padding-bottom: 25px;font-size:12px;">
-                            utilizes<a href="https://booostr.co/"
+                            utilizes<a href="https://staging3.booostr.co/"
                                 style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 14px;
                         color: #fff;
                         font-weight: 300;text-decoration: none;">
                                 <span style="text-decoration:underline;cursor: pointer;">Booostr</span></a> to help them manage their organization, communicate with their team and
-                            supporters and raise money online.&nbsp;&nbsp;<a id="learn_more" href="https://booostr.co/">Learn more here</a></p>
+                            supporters and raise money online.&nbsp;&nbsp;<a id="learn_more" href="https://staging3.booostr.co/">Learn more here</a></p>
                     </td>
                 </tr>
             </tbody>
