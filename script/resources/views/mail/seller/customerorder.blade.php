@@ -355,7 +355,8 @@
                     <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;padding-bottom: 124px;"
                         class="spac-top spac-btm">
                         @php $shippingservice = $data['data']['shippingwithinfo']->shipping_driver ?? ''; @endphp
-                        @if ($shippingservice != 'local' || $shippingservice != 'Local')
+
+                        @if ($shippingservice != 'local' && $shippingservice != 'Local' && $shippingservice != '')
                             <h5
                                 style="padding-left: 20px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;">
                                 Shipping Information:</h5>
