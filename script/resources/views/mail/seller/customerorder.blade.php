@@ -183,7 +183,7 @@
                 $decodedJsonLastTrans = json_decode($jsonString, true);
                 $timestamp = $decodedJsonLastTrans['created'] ?? '';
                 $createdAt = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
-                $amountRefunded = $decodedJsonLastTrans['amount_refunded'] ?? '';
+           echo $amountRefunded = $decodedJsonLastTrans['amount_refunded'] ?? '';
 
                 $cancelDate = date_create($createdAt);
                 $cancel_date_format = date_format($cancelDate, 'm/d/Y');

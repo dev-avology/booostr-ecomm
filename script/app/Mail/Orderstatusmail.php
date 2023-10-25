@@ -46,7 +46,7 @@ class Orderstatusmail extends Mailable
          $billing_email = $ordermeta->email;
          $billing_phone = $ordermeta->phone;
          $invoice_info=$this->data['invoice_data'];
-        dd($orderlasttrans->amount_refunded);
+         
          return $this->from($data['from'])
          ->subject($subject)
          ->view('mail.seller.customerorder')->with(['order'=>$data['data'],'currency'=>$currency,'ordermeta'=>$ordermeta,'invoice_info'=>$invoice_info,'card_number'=>$card_number,'amount_refunded'=>$orderlasttrans->amount_refunded]);
