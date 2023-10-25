@@ -49,13 +49,12 @@ class Orderstatusmail extends Mailable
         
          return $this->from($data['from'])
          ->subject($subject)
-         ->view('mail.seller.customerorder')->with(['order'=>$data['data'],'currency'=>$currency,'ordermeta'=>$ordermeta,'invoice_info'=>$invoice_info,'card_number'=>$card_number]);
+         ->view('mail.seller.customerorder')->with(['order'=>$data['data'],'currency'=>$currency,'ordermeta'=>$ordermeta,'invoice_info'=>$invoice_info,'card_number'=>$card_number,'amount_refunded'=>$orderlasttrans->amount_refunded]);
         }
         elseif ($this->data['type'] == 'order_recived'){
             \Config::set('app.name', ucfirst($data['data']['tenantid']));
             return $this->markdown('mail.orderrecived')->from($data['from'])->subject('['.ucfirst($data['data']['tenantid']).'] You have received a new order ('.$data['data']['orderno'].')')->with('data',$data);
         }
-        
 
     }
 }
