@@ -45,7 +45,7 @@
             </tr>
             <tr>
                 <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order Total: ${{$data['data']->total ?? ''}}</p>
+                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order Total: {{ currency_formate($data['data']->total ?? 0) }}</p>
                 </td>
             </tr>
 

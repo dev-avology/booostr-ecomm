@@ -116,7 +116,7 @@
     </div>
   </div>
 
-  @php
+  {{-- @php
 
      $date= \Carbon\Carbon::now()->addDays(7)->format('Y-m-d');
      $will_expire=tenant('will_expire');
@@ -130,7 +130,7 @@
             {{ __('Please') }} <ins><a target="_blank" class="text" href="{{ url(env('APP_URL').'/partner/domain/renew/'.tenant('id')) }}">{{ __('renew') }}</a></ins> {{ __('the plan!') }}
         </div>
     </div>
-    @endif
+    @endif --}}
 </div>
  <div class="row pending_order_list" id="pending_order_list">
     
