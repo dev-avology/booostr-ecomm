@@ -474,7 +474,7 @@ class OrderController extends Controller
         }
 
         $paymentresult= $gateway->namespace::refund_payment($payment_data);
-        
+
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 5;
             $order->status_id = 2;
@@ -490,6 +490,9 @@ class OrderController extends Controller
                 'key' => 'last_transcation_log',
                 'value' => json_encode($paymentresult['transaction_log'])
             ]);
+
+
+        $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
 
         // send email to admin
 
