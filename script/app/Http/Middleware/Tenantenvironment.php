@@ -22,13 +22,13 @@ class Tenantenvironment
         
 
         if (tenant('status') == 1) {
-          if (tenant('will_expire') < now()) {
-            $renew_url= url(env('APP_URL').'/partner/domain/renew/'.tenant('id'));
-            echo "<center>Subscription Expired Please Renew The Plan...</center>";
-            echo "<center><a href=".$renew_url.">Renew Now</a></center>";
+          // if (tenant('will_expire') < now()) {
+          //   $renew_url= url(env('APP_URL').'/partner/domain/renew/'.tenant('id'));
+          //   echo "<center>Subscription Expired Please Renew The Plan...</center>";
+          //   echo "<center><a href=".$renew_url.">Renew Now</a></center>";
           
-            die();
-          }
+          //   die();
+          // }
 
           $url=$request->getHost();
           $url=str_replace('www.','',$url);
