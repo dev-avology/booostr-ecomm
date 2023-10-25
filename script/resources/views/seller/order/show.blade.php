@@ -207,7 +207,9 @@
                                         </select>
                                     </div>
                                 </div>
-
+@php
+$shipping_servics = ['FedEx','UPS','US Postal Service'];
+@endphp
                                 <div class="col-sm-4" id="hiddenChooseTracking" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;" @endif>
                                     <div class="form-group text-left">
                                         <label>Select shipping service</label>
@@ -216,7 +218,7 @@
                                             <option value="FedEx" @if ($info->shippingwithinfo->shipping_driver == 'FedEx') selected="" @endif>{{ __('FedEx') }}</option>
                                             <option value="UPS" @if ($info->shippingwithinfo->shipping_driver == 'UPS') selected="" @endif><b>{{ __('UPS') }}</b></option>
                                             <option value="US Postal Service" @if ($info->shippingwithinfo->shipping_driver == 'US Postal Service') selected="" @endif><b>{{ __('US Postal Service') }}</b></option>
-                                            <option value="Other" @if ($info->shippingwithinfo->shipping_drivers == 'Other') selected="" @endif><b>{{ __('Other') }}</b></option>
+                                            <option value="Other" @if ($info->shippingwithinfo->shipping_driver != 'local' && !in_array($info->shippingwithinfo->shipping_driver,$shipping_servics)) selected="" @endif><b>{{ __('Other') }}</b></option>
                                         </select>
                                     </div>
                                 </div>
@@ -235,20 +237,21 @@
                                 </div> --}}
                                 
                                 
-                                
-								<div class="col-sm-3" id="hide_tacking_number" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;"@endif>
-									<div class="form-group">
-										<label>Enter tracking number</label>
-										<input type="number" value="{{$info->shippingwithinfo->tracking_no}}" class="form-control" name="tacking_number" id="tacking_number" id="tacking_number">
+                                <div class="col-sm-3" id="hide_shipping_service" @if ($info->shippingwithinfo->shipping_driver != 'local' && in_array($info->shippingwithinfo->shipping_driver,$shipping_servics))  style="display:none;" @endif>
+									<div class="form-group text-left">
+										<label>Enter shipping service</label>
+									<input type="text" class="form-control" name="shipping_service" id="shipping_service" value="{{$info->shippingwithinfo->shipping_driver??''}}">
 									</div>
 								</div>
 
-								<div class="col-sm-3" id="hide_shipping_service" style="display:none;">
-									<div class="form-group">
-										<label>Enter shipping service</label>
-									<input type="text" class="form-control" name="shipping_service" id="shipping_service">
+								<div class="col-sm-3" id="hide_tacking_number" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;"@endif>
+									<div class="form-group text-left">
+										<label>Enter tracking number</label>
+										<input type="text" value="{{$info->shippingwithinfo->tracking_no}}" class="form-control" name="tacking_number" id="tacking_number" id="tacking_number">
 									</div>
 								</div>
+
+								
 
 
                             </div>

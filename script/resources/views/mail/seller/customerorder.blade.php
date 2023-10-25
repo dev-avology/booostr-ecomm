@@ -77,7 +77,7 @@
             <tbody>
 
                 <tr style="background-color: #535353; width: 100%;" class="border-style br-none">
-                    <th style="width: 15%; text-align: left; padding: 40px 0 0 20px;border-collapse: collapse;">
+                    <th style="width: 15%; text-align: left; padding: 20px 0 0 20px;border-collapse: collapse;">
                         {{-- <img src="./img/Champs-Sports-Logo.png" alt="logo"
                             style="width: 100%; max-width: 120px; margin-bottom: -15px;position: relative;z-index: 9;"> --}}
 
@@ -117,7 +117,7 @@
                         @if ($data['data']['status_id'] == '2')
                             <p
                                 style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">
-                                Hi {{ $firstName }} we are sorry that your order had to be cancelled. We have
+                                Hi {{ $firstName }} we are sorry that your order had to be canceled. We have
                                 refunded your order. Your orginal order details are below for your records. You should
                                 see the funds returned to the payment method used for the order in 3-5 business days.
                             </p>
@@ -127,7 +127,7 @@
                         @if ($data['data']['status_id'] == '1')
                             <p
                                 style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">
-                                Hi {{ $firstName }} ,we are excited to let you know that you order from
+                                Hi {{ $firstName }} ,we are excited to let you know that your order from
                                 {{ $invoice_info->store_legal_name ?? '' }} Store has shipped! Your shipping carrier and
                                 tracking information are below.</p>
                         @endif
@@ -137,8 +137,8 @@
                             <p
                                 style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">
                                 Thank you for your order from {{ $invoice_info->store_legal_name ?? '' }} Store. We have
-                                included your order details below for your records. You should recieve a shipping
-                                confirmation email soon. We really appreciete the support!</p>
+                                included your order details below for your records. You should receive a shipping
+                                confirmation email soon. We really appreciate the support!</p>
                         @endif
                     </td>
                 </tr>
@@ -242,7 +242,7 @@
                 </td>
                 <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
                     class="spac-top spac-btm">
-                    <a id="click_to_login" href="https://staging3.booostr.co/"
+                    <a id="click_to_login" href="https://staging3.booostr.co/dashboard/?ua=user-receipts"
                         style="font-size: 15px; color: #00c0ffba; font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial; text-decoration: none;">Click
                         to Login and View Order</a>
                 </td>
@@ -283,7 +283,7 @@
                             {!! $new_billing_address !!}
                         </p>
                     </td>
-                    <td style="width: 50%; padding-left: 15px; font-size: 15px; padding-right: 15px;"
+                    <td style="width: 50%; padding-left: 15px; font-size: 15px; padding-right: 15px;padding-bottom: 72px;"
                         class="spac-top spac-btm">
                         <h5
                             style="padding-left: 20px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px;">
@@ -353,7 +353,7 @@
                             {!! $new_shiiping_address !!}
                         </p>
                     </td>
-                    <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;"
+                    <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;padding-bottom: 124px;"
                         class="spac-top spac-btm">
                         @php $shippingservice = $data['data']['shippingwithinfo']->shipping_driver ?? ''; @endphp
                         @if ($shippingservice != 'local' || $shippingservice != '')
@@ -426,7 +426,7 @@
                         </td>
                         <td class="text-center"
                             style="font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
-                            {{ $row->amount }}</td>
+                            {{ currency_formate($row->amount) }}</td>
                         <td class="text-center"
                             style="font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
                             {{ $row->qty }}</td>
@@ -461,7 +461,7 @@
                     font-family: 'Nunito', 'Segoe UI', Arial;
                     color: #3c3c3c;
                     font-size: 16px;font-weight: 500;">
-                            {{ number_format($order->total - $shipping_price, 2) }}</p>
+                            {{ currency_formate($subtotal) }}</p>
                     </td>
                 </tr>
                 <tr>
@@ -544,7 +544,7 @@
                         class="spac-top spac-btm">
                         <p
                             style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;    font-weight: 500;">
-                            If you have questions about your order ,please don't hesitate to reach out. You will recieve
+                            If you have questions about your order ,please don't hesitate to reach out. You will receive
                             an email confirmation once your order has shipped.</p>
 
                         <p
@@ -554,7 +554,7 @@
                         </p>
                         <p
                             style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;    font-weight: 500;">
-                            Hello Testor Club
+                            {{ $invoice_info->store_legal_name ?? '' }}
                         </p>
                     </td>
                 </tr>
@@ -573,13 +573,10 @@
                         <h6
                             style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;
                         color: #fff;
-                        padding-bottom: 10px;">
+                        padding-left: 10px;">
                             Powered By:</h6>
                         <img src="{{ env('WP_URL') }}{{ 'uploads/2022/03/booostr-logo-long-top-header.png' }}"alt="logo"
-                            style="width: 100%;max-width: 115px;" />
-                        {{-- @if (!empty(tenant()->logo))
-                         <img src="{{ env('WP_URL') }}{{ tenant()->logo }}" style="width: 100%;max-width: 115px;"/>
-                        @endif --}}
+                            style="width: 100%;max-width: 115px;"/>
                     </td>
                     <td>
                         <p
@@ -590,13 +587,13 @@
                         <p
                             style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 14px;
                         color: #fff;
-                        font-weight: 300;">
-                            utilizes<a href=""
+                        font-weight: 300;padding-bottom: 25px;font-size:12px;">
+                            utilizes<a href="https://booostr.co/"
                                 style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 14px;
                         color: #fff;
-                        font-weight: 300;">
-                                Booostr</a>to help them manage their organization, communicate with their team and
-                            supporters and raise money online.&nbsp;&nbsp;<a id="learn_more">Learn more here</a></p>
+                        font-weight: 300;text-decoration: none;">
+                                <span style="text-decoration:underline;cursor: pointer;">Booostr</span></a> to help them manage their organization, communicate with their team and
+                            supporters and raise money online.&nbsp;&nbsp;<a id="learn_more" href="https://booostr.co/">Learn more here</a></p>
                     </td>
                 </tr>
             </tbody>

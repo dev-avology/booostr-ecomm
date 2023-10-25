@@ -295,12 +295,15 @@ class OrderController extends Controller
             };
         }
 
+    
+
         $paymentresult= $gateway->namespace::capture_payment($payment_data);
-        //$paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534'];
+        //$paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534','transaction_log'=>$tran_log];
 
 
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 1;
+            $order->status_id = 4;
             $order->save();
 
 
