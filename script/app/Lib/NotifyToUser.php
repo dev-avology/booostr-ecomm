@@ -96,19 +96,20 @@ class NotifyToUser
             $payment_status = $new_array['payment_status'];
             $subject = '';
 
-            if($status_id == 3 && $payment_status == 4){
-             $subject = '['.$invoice_info->store_legal_name.'] You have received a new order' .' (#'.$invoiceNo.') via your Booostr Online Store';
-            }else if($status_id == 1 && $payment_status == 1){
-                $subject = '['.$invoice_info->store_legal_name.'] Order' .' (#'.$invoiceNo.') - Completed & Shipped';
-            }else if($status_id == 2 && $payment_status == 5){
-                $subject = '['.$invoice_info->store_legal_name.'] Order' .' (#'.$invoiceNo.') - Cancelled & Refunded';
-            }else if($payment_status == 1){
-                $subject = '['.$invoice_info->store_legal_name.'] Order' .' (#'.$invoiceNo.') - Payment Captured';
-            }else{
-              $subject = '['.$invoice_info->store_legal_name.'] (#'.$invoiceNo.')';
-            }
-
-
+			if ($status_id == 3 && $payment_status == 4) {
+				$subject = $invoice_info->store_legal_name . ' You have received a new order' . ' #' . $invoiceNo . ' via your Booostr Online Store';
+				//if you need payment status when shipped order then you can add this && $payment_status == 1
+			} else if ($status_id == 1) {
+				$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Completed & Shipped';
+			   //if you need payment status when cancel order then you can add this && $payment_status == 5
+			} else if ($status_id == 2) {
+				$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Cancelled & Refunded';
+			} else if ($status_id == 4) {
+				$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Payment Captured';
+			} else {
+				$subject = $invoice_info->store_legal_name . ' #' . $invoiceNo;
+			}
+			
 			 $mail = new Adminsendmail($data,$subject);
 		
 			
@@ -155,14 +156,13 @@ class NotifyToUser
 
 			$status_id = $info->status_id;
 			
-            // $payment_status = $new_array['payment_status'];
             $subject = '';
             if($status_id == 3){
-             $subject = 'Thank you for your ['.$invoice_info->store_legal_name.'] Store Order' .' (#'.$info->invoice_no.')';
+             $subject = 'Thank you for your '.$invoice_info->store_legal_name.' Store order: #'.$info->invoice_no;
             }else if($status_id == 1){
-				$subject = 'Shipped! -Your ['.$invoice_info->store_legal_name.'] Store Order' .' (#'.$info->invoice_no.') is on its way';
+				$subject = "Shipped! - Your " . $invoice_info->store_legal_name . " Store order: #" . $info->invoice_no . " is on it's way";
             }else if($status_id == 2){
-                $subject = 'Canceled & Refunded! - ['.$invoice_info->store_legal_name.'] Store Order' .' (#'.$info->invoice_no.') has been canceled.';
+                $subject = 'Canceled & Refunded! - Your' .$invoice_info->store_legal_name . 'Store order: #'. $info->invoice_no. 'has been canceled.';
             }else{
 				$subject = 'Order Info';
 			}
