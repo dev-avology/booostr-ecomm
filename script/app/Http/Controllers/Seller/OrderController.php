@@ -194,6 +194,11 @@ class OrderController extends Controller
                     $order['order_cancel_and_refund'] = 'Order cancel & refund';
                     \App\Lib\NotifyToUser::customermail($order,$mail_to);
                 }
+            }else{
+                $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+                $order->payment_status = 6;
+                $order->status_id = 2;
+                $order->save();
             }
         }else{
 
