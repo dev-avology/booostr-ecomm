@@ -183,7 +183,6 @@
                 $decodedJsonLastTrans = json_decode($jsonString, true);
                 $timestamp = $decodedJsonLastTrans['created'] ?? '';
                 $createdAt = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
-                $amountRefunded = $decodedJsonLastTrans['amount_refunded'] ?? '';
 
                 $cancelDate = date_create($createdAt);
                 $cancel_date_format = date_format($cancelDate, 'm/d/Y');
@@ -356,7 +355,7 @@
                     <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;padding-bottom: 124px;"
                         class="spac-top spac-btm">
                         @php $shippingservice = $data['data']['shippingwithinfo']->shipping_driver ?? ''; @endphp
-                        @if ($shippingservice != 'local' || $shippingservice != 'Local' || $shippingservice != '')
+                        @if ($shippingservice != 'local' || $shippingservice != 'Local')
                             <h5
                                 style="padding-left: 20px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;">
                                 Shipping Information:</h5>

@@ -98,7 +98,7 @@
             @if (!empty($data['data']->refund_amount))
             <tr>
                 <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0; margin: 0; padding-left: 30px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Refund Amount: ${{$data['data']->refund_amount ?? ''}}</p>
+                    <p style="padding: 0; margin: 0; padding-left: 30px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Refund Amount: {{currency_formate($data['data']->refund_amount ?? 0)}}</p>
                 </td>
             </tr>
             @endif
