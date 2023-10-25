@@ -162,7 +162,7 @@ class NotifyToUser
             }else if($status_id == 1){
 				$subject = "Shipped! - Your " . $invoice_info->store_legal_name . " Store order: #" . $info->invoice_no . " is on it's way";
             }else if($status_id == 2){
-                $subject = 'Canceled & Refunded! - Your' .$invoice_info->store_legal_name . 'Store order: #'. $info->invoice_no. 'has been canceled.';
+                $subject = 'Cancelled & Refunded! - Your ' .$invoice_info->store_legal_name . ' Store order: #'. $info->invoice_no. ' has been cancelled.';
             }else{
 				$subject = 'Order Info';
 			}
