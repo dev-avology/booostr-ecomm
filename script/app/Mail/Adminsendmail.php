@@ -57,7 +57,7 @@ class Adminsendmail extends Mailable
                     $createdAt = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
                     $amountRefunded = $decodedJsonLastTrans['amount_refunded'] ?? '';
     
-                    $newData['refund_amount'] = $amountRefunded;
+                    $newData['refund_amount'] = $amountRefunded/100;
                     $newData['cancel_date'] = $createdAt;
                 }
             }
