@@ -61,13 +61,13 @@
             @php
             if ($data['message'] == 'Order captured') {
                 $order_status = $data['message'];
-                $main_message = 'This email to alert you that you have successfully captured the payment for order #: ' . $data['data']->invoice_no . ', and the funds will be transferred to your bank account within 1-3 business days. Please make sure the order is fulfilled as quickly as possible.';
+                $main_message = 'This email is to alert you that you have successfully captured the payment for order #: ' . $data['data']->invoice_no . ', and the funds will be transferred to your bank account within 1-3 business days. Please make sure the order is fulfilled as quickly as possible.';
             } elseif ($data['message'] == 'Order Cancel & Refund') {
                 $order_status = $data['message'];
                 $main_message = 'This email is to alert you that you have cancelled and refunded order #: ' . $data['data']->invoice_no . ' from ' . $data['data']->club_name . ' Store.';
             } elseif ($data['message'] == 'You have received a new order') {
                 $order_status = $data['message'];
-                $main_message = 'This email is to alert you that '. $data['data']->club_name .' has recieved a new order via their Booostr Store' ;
+                $main_message = 'This email is to alert you that '. $data['data']->club_name .' has received a new order via their Booostr Store.' ;
             } else {
                 if ($data['data']['status_id'] == 1) {
                     $order_status = 'Order Complete';
