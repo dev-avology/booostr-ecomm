@@ -77,13 +77,13 @@
             <tbody>
 
                 <tr style="background-color: #535353; width: 100%;" class="border-style br-none">
-                    <th style="width: 15%; text-align: left; padding: 20px 0 0 20px;border-collapse: collapse;">
+                    <th style="width:15%;text-align:left;padding: 18px 0 7px 20px;border-collapse:collapse;">
                         {{-- <img src="./img/Champs-Sports-Logo.png" alt="logo"
                             style="width: 100%; max-width: 120px; margin-bottom: -15px;position: relative;z-index: 9;"> --}}
 
                         @if (!empty(tenant()->logo))
                             <img src="{{ env('WP_URL') }}{{ tenant()->logo }}" alt="logo"
-                                style="width: 100%; max-width: 120px; margin-bottom: -15px;position: relative;z-index: 9;" />
+                                style="width: 100%;max-width: 120px;"/>
                         @endif
                     </th>
                     <th style="width: 70%;border-collapse: collapse;">
@@ -117,8 +117,8 @@
                         @if ($data['data']['status_id'] == '2')
                             <p
                                 style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">
-                                Hi {{ $firstName }} we are sorry that your order had to be canceled. We have
-                                refunded your order. Your orginal order details are below for your records. You should
+                                Hi {{ $firstName }}, we are sorry that your order had to be cancelled. We have
+                                refunded your order. Your original order details are below for your records. You should
                                 see the funds returned to the payment method used for the order in 3-5 business days.
                             </p>
                         @endif
@@ -127,7 +127,7 @@
                         @if ($data['data']['status_id'] == '1')
                             <p
                                 style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">
-                                Hi {{ $firstName }} ,we are excited to let you know that your order from
+                                Hi {{ $firstName }}, we are excited to let you know that your order from
                                 {{ $invoice_info->store_legal_name ?? '' }} Store has shipped! Your shipping carrier and
                                 tracking information are below.</p>
                         @endif
@@ -352,19 +352,23 @@
                             {!! $new_shiiping_address !!}
                         </p>
                     </td>
-                    <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;padding-bottom: 124px;"
+                    <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;padding-bottom: 150px;"
                         class="spac-top spac-btm">
-                        @php $shippingservice = $data['data']['shippingwithinfo']->shipping_driver ?? ''; @endphp
+                        @php 
 
-                        @if ($shippingservice != 'local' && $shippingservice != 'Local' && $shippingservice != '')
+                        $shippingservice = $data['data']['shippingwithinfo']->shipping_driver ?? ''; 
+                        $shipping_info =json_decode($data['data']['shippingwithinfo']->info ?? '');
+                        $shipping_level = $shipping_info->shipping_label;
+
+                        @endphp
+
+                        {{-- @if ($shippingservice != 'local' && $shippingservice != 'Local' && $shippingservice != '') --}}
                             <h5
                                 style="padding-left: 20px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;">
                                 Shipping Information:</h5>
-                            <span
-                                style="padding-left: 20px;font-weight:500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;text-transform: capitalize;">{!! $data['data']['shippingwithinfo']->shipping_driver ?? '' !!}
-                                <br>&nbsp;&nbsp;&nbsp;&nbsp;
-                                {!! $data['data']['shippingwithinfo']->tracking_no ?? '' !!}</span>
-                        @endif
+                            <span style="padding-left: 20px;font-weight:500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;text-transform: capitalize;">{{ $shipping_level ?? ''}} Shipping
+                            </span>
+                        {{-- @endif --}}
                     </td>
                 </tr>
             </tbody>
@@ -544,7 +548,7 @@
                         class="spac-top spac-btm">
                         <p
                             style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;    font-weight: 500;">
-                            If you have questions about your order ,please don't hesitate to reach out. You will receive
+                            If you have questions about your order, please don't hesitate to reach out. You will receive
                             an email confirmation once your order has shipped.</p>
 
                         <p
