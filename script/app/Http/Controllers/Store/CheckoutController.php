@@ -515,7 +515,22 @@ class CheckoutController extends Controller
                 $order->orderstockitems()->insert($priceids);
             }
 
+
+          
             DB::commit();
+
+            $user_recipt = [
+                'receipts_date'=>$order->created_at,
+                'receipt_title'=>$request->name,
+                'receipent_org'=>'Booostr Ecommerce',
+                'category'=>'ecommerce',
+                'user_id' =>  $request->wpuid ??0,
+                'club_id' =>Tenant('club_id'),
+                'recurring'=>'one-time',
+                'camp_id'=>$order->invoice_no,
+            ];
+
+           $recipt =  $this->send_order_recipt($user_recipt);
 
             \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
 
@@ -546,6 +561,35 @@ class CheckoutController extends Controller
 
     }
 
+
+
+    private function send_order_recipt($data){
+
+        $postData = json_encode($data);
+
+        $url = env("WP_fINITIAL_MANAGER_URL");
+        
+        $url = ($url != '') ? $url.'ec/v1/user-recipt' : "https://staging3.booostr.co/wp-json/ec/v1/user-recipt";
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+
+        // Check for cURL errors
+        if (curl_errno($ch)) {
+            echo 'cURL error: ' . curl_error($ch);
+        }
+        curl_close($ch);
+        return $response;
+    }
     public function success()
     {
         Cart::instance('default')->destroy();
