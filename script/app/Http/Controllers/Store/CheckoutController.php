@@ -567,9 +567,9 @@ class CheckoutController extends Controller
 
         $postData = json_encode($data);
 
-        $url = env("WP_fINITIAL_MANAGER_URL");
+        $url = env("WP_API_URL");
         
-        $url = ($url != '') ? $url.'ec/v1/user-recipt' : "https://staging3.booostr.co/wp-json/ec/v1/user-recipt";
+        $url = ($url != '') ? $url.'/user-recipt' : "https://staging3.booostr.co/wp-json/store-api/v1/user-recipt";
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
