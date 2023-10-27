@@ -398,7 +398,7 @@ class OrderController extends Controller
                                 'booster_id' =>Tenant('club_id'),
                                 'coaid'=>95,
                                 'contactname'=>$ordermeta['name'],
-                                'memo'=>'Booostr Ecommerce',
+                                //'memo'=>'Booostr Ecommerce',
                                 'user_id' =>  $ordermeta['wpuid']??0,
                                 'revenue_name'=>'4-850 Booostr Ecommerce',
                                 'transaction_type'=> 'I',
@@ -408,12 +408,16 @@ class OrderController extends Controller
                                 'expense_category'=>'Revenue',
                                 'receipts_issued'=> 'Yes',
                                 'status'=>1,
+                                'donor_name'=>$ordermeta['name'].'(Online Order)',
                                 'created'=>$order->created_at,
                                 'modified'=>$order->updated_at,
                                 'invoicenumber'=>$order->invoice_no,
                                 'invoicreatedate'=>$shipped_and_fullfilldate,
                                 'invoiceprocessingfee'=>$processing_fees,
-                                'invoicesalestax'=> $sales_tax]);
+                                'invoicesalestax'=> $sales_tax,
+                                'invoiceopt'=>$order->invoice_no,
+                                'deposite_date'=>$shipped_and_fullfilldate,
+                            ]);
 
         // 'order_date' => $order_date, 
         // 'order_subtotal' => $sub_total,
@@ -426,9 +430,9 @@ class OrderController extends Controller
         // 'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,
         // 'date_of_payment' => $shipped_and_fullfilldate
                                          
-        $url = env("WP_fINITIAL_MANAGER_URL");
+        $url = env("WP_API_URL");
         
-        $url = ($url != '') ? $url : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
+        $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
