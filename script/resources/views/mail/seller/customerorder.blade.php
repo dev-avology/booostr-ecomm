@@ -241,7 +241,7 @@
                 </td>
                 <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
                     class="spac-top spac-btm">
-                    <a id="click_to_login" href="{{ env('WP_CLUB_URL')}}?id={{ $data['data']['invoice_no']}}&rcp-action=ecomm_download_receipt"
+                    <a id="click_to_login" href="{{ env('WP_CLUB_URL')}}dashboard/?ua=user-receipts"
                         style="font-size: 15px; color: #00c0ffba; font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial; text-decoration: none;">Click
                         to Login and View Order</a>
                 </td>

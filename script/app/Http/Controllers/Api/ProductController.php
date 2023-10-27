@@ -491,7 +491,11 @@ class ProductController extends Controller
 
         $orderlasttrans=json_decode($info->orderlasttrans->value ?? '');
         $timestamp = $orderlasttrans->created ?? '';
+
         $createdAt = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
+
+        $order_data['created_at'] = date_format($info->created_at, "m/d/Y");
+
         $amount_refunded = $orderlasttrans->amount_refunded;
         $lastdigit = $orderlasttrans->source->last4;
         $card_number = str_pad($lastdigit, 16, "*", STR_PAD_LEFT);
