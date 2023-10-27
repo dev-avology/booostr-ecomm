@@ -15,7 +15,6 @@ class NotifyToUser
 	
 	public static function makeNotifyToUser($info)
 	{
-		
 		if($info->user_id != null){
 			if ($info->notify_driver == 'mail') {
 			 $ordermeta=json_decode($info->ordermeta->value ?? '');
@@ -55,6 +54,76 @@ class NotifyToUser
 		}
 		
 		return true;
+	}
+
+	public static function sendEmail($info, $to=null, $email_identity){
+	    try{		
+		    if($email_identity == 'admin'){
+				$currency=get_option('currency_info');
+				$invoice_info=get_option('invoice_data',true);
+				$info['invoice_data'] = $invoice_info;
+				$invoiceNo = $info['invoice_no'];	
+				
+				if (env('QUEUE_MAIL') == 'on') {
+					\Config::set('queue.connections', 'central');
+					dispatch(new TenantMailJob($data));
+				}
+				else{
+					
+					$status_id = $info['status_id'];
+					$payment_status = $info['payment_status'];
+					$subject = '';
+
+					if ($status_id == 3 && $payment_status == 4) {
+						$subject = $invoice_info->store_legal_name . ' You have received a new order' . ' #' . $invoiceNo . ' via your Booostr Online Store';
+					} else if ($status_id == 1) {
+						$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Completed & Shipped';
+					} else if ($status_id == 2) {
+						$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Cancelled & Refunded';
+					} else if ($status_id == 4) {
+						$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Payment Captured';
+					} else {
+						$subject = $invoice_info->store_legal_name . ' #' . $invoiceNo;
+					}
+					$mail = new Adminsendmail($info,$subject);
+					Mail::to($to)->send($mail);
+				}
+
+			}else {
+				$data['to']= $to;			
+				$data['from']= '';			
+				$data['type']='tenant_order_notification';
+				$currency=get_option('currency_info');
+				$invoice_info=get_option('invoice_data',true);
+				$data['currency_info']=$currency;
+				$data['invoice_data']=$invoice_info;
+				$data['data']=$info;
+				
+				if (env('QUEUE_MAIL') == 'on') {
+					\Config::set('queue.connections', 'central');
+					dispatch(new TenantMailJob($data));
+				}
+				else{
+					$status_id = $info->status_id;
+					
+					$subject = '';
+					if($status_id == 3){
+					$subject = 'Thank you for your '.$invoice_info->store_legal_name.' Store order: #'.$info->invoice_no;
+					}else if($status_id == 1){
+						$subject = "Shipped! - Your " . $invoice_info->store_legal_name . " Store order: #" . $info->invoice_no . " is on it's way";
+					}else if($status_id == 2){
+						$subject = 'Cancelled & Refunded! - Your ' .$invoice_info->store_legal_name . ' Store order: #'. $info->invoice_no. ' has been cancelled.';
+					}else{
+						$subject = 'Order Info';
+					}
+		
+					$mail = new Orderstatusmail($data,$subject);
+					Mail::to($to)->send($mail);
+				}	
+			}
+		} catch (\Throwable $th) {
+			dd($th);
+		} 
 	}
 
 	public static function makeNotifyToAdmin($info,$mail_to,$mail_from=null,$type='tenant_order_notification',$order_status='')

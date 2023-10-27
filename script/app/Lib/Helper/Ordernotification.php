@@ -17,15 +17,15 @@ class Ordernotification
 			
 			\App\Lib\NotifyToUser::fmc($order->invoice_no,'You have received a new order',url('/seller/order/'.$order->id),asset('uploads/'.tenant('uid').'/notification.png'),$tokens);
 
-			 return redirect('/thanks');
+			return redirect('/thanks');
 		}
 
 		if ($order->notify_driver == 'mail') {
 			$customermail=json_decode($order->ordermeta->value ?? '');
 			if (isset($customermail->email)) {
-				$order_status = 'You have received a new order';
 				$admin_details = User::where('role_id',3)->first();
-				\App\Lib\NotifyToUser::makeNotifyToAdmin($order,$admin_details->email,$mail_from=null,$type='tenant_order_notification',$order_status);
+				$to = $admin_details->email;
+				\App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
 			}
 			// return redirect('/thanks');
 		}
