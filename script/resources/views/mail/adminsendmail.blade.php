@@ -112,7 +112,7 @@
         
              <tr>
                 <td colspan="2" style="width: 100%; padding-top: 15px; padding-bottom: 35px; padding-left: 30px;">
-                    <a href="https://staging3.booostr.co/dashboard/?ua=storemanager&item=<?php echo tenant()->club_id; ?>" style="font-size: 15px; color: #00c0ffba; font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;">Click to Login and View Order</a>
+                    <a href="{{ env('WP_CLUB_URL')}}dashboard/?ua=storemanager&item=<?php echo tenant()->club_id; ?>" style="font-size: 15px; color: #00c0ffba; font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;">Click to Login and View Order</a>
                 </td>                
             </tr>
             <tr>
