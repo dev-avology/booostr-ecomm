@@ -40,6 +40,7 @@ Route::group([
     Route::post('/cart/update_cart', 'Api\ProductController@CartQty');
     Route::post('/checkout/order', 'Api\ProductController@CartQty');
     Route::post('/resend_invoice','Api\ProductController@resend_invoice');
+    Route::post('/get_invoice_info','Api\ProductController@getInvoiceInfo');
 });
 
 
