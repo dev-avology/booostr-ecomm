@@ -485,6 +485,10 @@ class ProductController extends Controller
     public function getInvoiceInfo(Request $request){
         $info = Order::with('orderlasttrans','orderitems','shippingwithinfo','ordermeta')->findOrFail($request->invoice_no);
 
+        $shipping_method = json_decode($info->shippingwithinfo->info ?? '');
+
+        $shipping_details = ['shipping_driver' => $info->shippingwithinfo->shipping_driver,'tracking_no' => $info->shippingwithinfo->tracking_no,'shipping_method' => $shipping_method->shipping_label.' Shipping'];
+
         $orderlasttrans=json_decode($info->orderlasttrans->value ?? '');
         $timestamp = $orderlasttrans->created ?? '';
         $createdAt = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
@@ -518,7 +522,7 @@ class ProductController extends Controller
         $new_shiiping_address = $shippping_name . '<br>' . $shippping_address . '<br>' . $shippping_city . ', ' . $shippping_state . ' ' . $shippping_post_code . '<br>' . $shippping_country . '<br>' . $shippping_phone . '<br>' . $billing_email;
 
         $order_data['shipping_address'] = $new_shiiping_address;
-        $order_data['amount_refunded'] = $amount_refunded??0;
+        $order_data['amount_refunded'] = currency_formate($amount_refunded/100??0);
         $order_data['invoice_no'] = $info->invoice_no;
 
         if ($info->payment_status == '1') {
@@ -530,7 +534,7 @@ class ProductController extends Controller
         }
 
         $order_data['payment_status'] = $authorized;
-        $payment_information = ['status' => $authorized,'card' => $card_number,'name' => $billing_name, 'amount' => $info->total];
+        $payment_information = ['status' => $authorized,'card' => $card_number,'name' => $billing_name, 'amount' => currency_formate($info->total)];
         $order_data['payment_card_info'] = $payment_information;
 
 
@@ -566,6 +570,7 @@ class ProductController extends Controller
         $order_data['shipping_price'] = currency_formate($shipping_price); 
         $order_data['grand_total'] = currency_formate($info->total); 
         $order_data['product_list'] = $items;
+        $order_data['shipping_details'] = $shipping_details;
               
         if($info){
             return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$order_data]);
