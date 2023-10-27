@@ -491,7 +491,9 @@ class ProductController extends Controller
 
         $orderlasttrans=json_decode($info->orderlasttrans->value ?? '');
         $timestamp = $orderlasttrans->created ?? '';
+
         $createdAt = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
+
         $amount_refunded = $orderlasttrans->amount_refunded;
         $lastdigit = $orderlasttrans->source->last4;
         $card_number = str_pad($lastdigit, 16, "*", STR_PAD_LEFT);
@@ -565,12 +567,14 @@ class ProductController extends Controller
         $order_data['sub_total'] = currency_formate($subtotal ?? 0) ;
         $order_data['discount'] = '-'.currency_formate($info->discount);
         $order_data['tax'] = currency_formate($info->tax);
+        $order_data['created_at'] = date_format($info->created_at, "m/d/Y");
 
         $shipping_price=$info->shippingwithinfo->shipping_price ?? 0;
         $order_data['shipping_price'] = currency_formate($shipping_price); 
         $order_data['grand_total'] = currency_formate($info->total); 
         $order_data['product_list'] = $items;
         $order_data['shipping_details'] = $shipping_details;
+
               
         if($info){
             return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$order_data]);
