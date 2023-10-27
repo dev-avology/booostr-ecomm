@@ -481,4 +481,96 @@ class ProductController extends Controller
             return response()->json(["status" => 'false', "message" => 'Order Placed failed']);
         }
     }
+
+    public function getInvoiceInfo(Request $request){
+        $info = Order::with('orderlasttrans','orderitems','shippingwithinfo','ordermeta')->findOrFail($request->invoice_no);
+
+        $orderlasttrans=json_decode($info->orderlasttrans->value ?? '');
+        $timestamp = $orderlasttrans->created ?? '';
+        $createdAt = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
+        $amount_refunded = $orderlasttrans->amount_refunded;
+        $lastdigit = $orderlasttrans->source->last4;
+        $card_number = str_pad($lastdigit, 16, "*", STR_PAD_LEFT);
+        $order_data = [];
+        $ordermeta=json_decode($info->ordermeta->value ?? '');
+
+        $billing_name = $ordermeta->name;
+        $billing_email = $ordermeta->email;
+        $billing_phone = $ordermeta->phone;
+
+        $billing_add = $ordermeta->billing->address;
+        $billing_city = $ordermeta->billing->city;
+        $billing_state = $ordermeta->billing->state;
+        $billing_country = $ordermeta->billing->country;
+        $billing_post_code = $ordermeta->billing->post_code;
+
+        $new_billing_address = $billing_name . '<br>' . $billing_add . '<br>' . $billing_city . ', ' . $billing_state . ' ' . $billing_post_code . '<br>' . $billing_country . '<br>' . $billing_phone . '<br>' . $billing_email;
+        $order_data['billing_address'] = $new_billing_address;
+
+        $shippping_name = $ordermeta->shipping->name;
+        $shippping_phone = $ordermeta->shipping->phone;
+        $shippping_address = $ordermeta->shipping->address;
+        $shippping_city = $ordermeta->shipping->city;
+        $shippping_state = $ordermeta->shipping->state;
+        $shippping_country = $ordermeta->shipping->country;
+        $shippping_post_code = $ordermeta->shipping->post_code;
+
+        $new_shiiping_address = $shippping_name . '<br>' . $shippping_address . '<br>' . $shippping_city . ', ' . $shippping_state . ' ' . $shippping_post_code . '<br>' . $shippping_country . '<br>' . $shippping_phone . '<br>' . $billing_email;
+
+        $order_data['shipping_address'] = $new_shiiping_address;
+        $order_data['amount_refunded'] = $amount_refunded??0;
+        $order_data['invoice_no'] = $info->invoice_no;
+
+        if ($info->payment_status == '1') {
+            $authorized = 'Paid';
+        } elseif ($info->payment_status == '4') {
+            $authorized = 'Authorized';
+        } elseif ($info->payment_status == '5') {
+            $authorized = 'Refunded';
+        }
+
+        $order_data['payment_status'] = $authorized;
+        $payment_information = ['status' => $authorized,'card' => $card_number,'name' => $billing_name, 'amount' => $info->total];
+        $order_data['payment_card_info'] = $payment_information;
+
+
+        $items = [];
+        $subtotal = 0; 
+        foreach ($info->orderitems ?? [] as $row){
+            $product_name = []; 
+            $variations = json_decode($row->info);
+            $options = $variations->options ?? [];
+            $product_name['name'] = $row->term->title ;
+                foreach ($options ?? [] as $key => $item){
+                    $key;
+                    foreach ($item ?? [] as $r){
+                        $product_name['name']=$r->name ;
+                        $product_name['price'] = currency_formate($r->price ?? 0) ;
+                    }
+                }
+                              
+                $product_name['amount'] = currency_formate($row->amount) ;
+            
+                $product_name['qty'] = $row->qty ;
+            
+                $product_name['total'] =  currency_formate($row->amount * $row->qty) ;
+            $subtotal = $subtotal + $row->amount*$row->qty; 
+            $items[] = $product_name;
+        }
+
+        $order_data['sub_total'] = currency_formate($subtotal ?? 0) ;
+        $order_data['discount'] = '-'.currency_formate($info->discount);
+        $order_data['tax'] = currency_formate($info->tax);
+
+        $shipping_price=$info->shippingwithinfo->shipping_price ?? 0;
+        $order_data['shipping_price'] = currency_formate($shipping_price); 
+        $order_data['grand_total'] = currency_formate($info->total); 
+        $order_data['product_list'] = $items;
+              
+        if($info){
+            return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$order_data]);
+        }else{
+            return response()->json(["status" => 'false', "message" => 'Something went wrong']);
+        }
+    }
 }
