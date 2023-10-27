@@ -487,7 +487,7 @@ class ProductController extends Controller
 
         $shipping_method = json_decode($info->shippingwithinfo->info ?? '');
 
-        $shipping_details = ['shipping_driver' => $info->shippingwithinfo->shipping_driver,'tracking_no' => $info->shippingwithinfo->tracking_no,'shipping_method' => $shipping_method->shipping_label.' Shipping'];
+        $shipping_details = ['shipping_driver' => $info->shippingwithinfo->shipping_driver,'tracking_no' => $info->shippingwithinfo->tracking_no,'shipping_method' => $shipping_method->shipping_label == 'Free Shipping' ? $shipping_method->shipping_label : $shipping_method->shipping_label .' Shipping'];
 
         $orderlasttrans=json_decode($info->orderlasttrans->value ?? '');
         $timestamp = $orderlasttrans->created ?? '';
