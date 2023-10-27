@@ -66,6 +66,8 @@ class OrderController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+
+
     public function show($id)
     {
         abort_if(!getpermission('order'),401);
@@ -122,6 +124,9 @@ class OrderController extends Controller
         abort_if(!getpermission('order'),401);
         list($id, $user_id) = explode('_', $order_user_id);
 
+        $admin_details = User::where('role_id',3)->first();
+        $to = $admin_details->email;
+
         DB::beginTransaction();
         try { 
 
@@ -174,37 +179,31 @@ class OrderController extends Controller
                 ]);
     
             // send email to admin
+
+            $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
     
-            $order_status = 'Order Cancel & Refund';
-            $admin_details = User::where('role_id',3)->first();
-    
-            \App\Lib\NotifyToUser::makeNotifyToAdmin($order,$admin_details->email,$mail_from=null,$type='tenant_order_notification',$order_status);
+            \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
     
             // send email to user
-    
-                if ($order->notify_driver == 'mail') {
-                    $ordermeta=json_decode($order->ordermeta->value ?? '');
-                    if (!empty($ordermeta)) {
-                        $mail_to=$ordermeta->email ?? '';
-                    }
-                    else{
-                        $mail_to=$order->user->email ?? '';
-                    }
-                    $mail_from=Auth::user()->email;
-                    $order['order_cancel_and_refund'] = 'Order cancel & refund';
-                    \App\Lib\NotifyToUser::customermail($order,$mail_to);
+            if ($order->notify_driver == 'mail') {
+                $ordermeta=json_decode($order->ordermeta->value ?? '');
+                if (!empty($ordermeta)) {
+                    $mail_to=$ordermeta->email ?? '';
                 }
+                else{
+                    $mail_to=$order->user->email ?? '';
+                }
+                \App\Lib\NotifyToUser::sendEmail($order, $mail_to, 'user');
+            }
+
             }else{
                 $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
                 $order->payment_status = 6;
                 $order->status_id = 2;
                 $order->save();
             }
-        }else{
 
-            // currently comment the user email because the reason of testing admin email
-            $admin_details = User::where('role_id',3)->first();
-            \App\Lib\NotifyToUser::makeNotifyToAdmin($info, $admin_details->email);
+        }else {
 
             if ($request->status == 1) {
 
@@ -219,7 +218,18 @@ class OrderController extends Controller
 
                 $info = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
 
-                $user_info =  NotifyToUser::makeNotifyToUser($info);
+                \App\Lib\NotifyToUser::sendEmail($info, $to, 'admin');
+                
+                if ($info->notify_driver == 'mail') {
+                    $ordermeta=json_decode($info->ordermeta->value ?? '');
+                    if (!empty($ordermeta)) {
+                        $userTo=$ordermeta->email ?? '';
+                    }
+                    else{
+                        $userTo=$info->user->email ?? '';
+                    }
+                    \App\Lib\NotifyToUser::sendEmail($info, $userTo, 'user');
+                }
 
                 $deletable_ids=[];
 
@@ -279,6 +289,10 @@ class OrderController extends Controller
     public function capture($id)
     {
         abort_if(!getpermission('order'),401);
+
+        $admin_details = User::where('role_id',3)->first();
+        $to = $admin_details->email;
+        
         $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
 
         $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
@@ -299,8 +313,6 @@ class OrderController extends Controller
                 $payment_data[$key] = $info;
             };
         }
-
-    
 
         $paymentresult= $gateway->namespace::capture_payment($payment_data);
         //$paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534','transaction_log'=>$tran_log];
@@ -325,15 +337,8 @@ class OrderController extends Controller
 
             $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
 
-            $order_status = 'Order captured';
-            $admin_details = User::where('role_id',3)->first();
-            \App\Lib\NotifyToUser::makeNotifyToAdmin($order,$admin_details->email,$mail_from=null,$type='tenant_order_notification',$order_status);
-
+            \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
         }
-
-
-        
-
         return redirect()->back();
     }
 
@@ -455,6 +460,10 @@ class OrderController extends Controller
     public function refund($id)
     {
         abort_if(!getpermission('order'),401);
+
+        $admin_details = User::where('role_id',3)->first();
+        $to = $admin_details->email;
+
         $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
 
         $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
@@ -495,31 +504,21 @@ class OrderController extends Controller
                 'value' => json_encode($paymentresult['transaction_log'])
             ]);
 
-
             $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+            
+            \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
 
-        // send email to admin
-
-        $order_status = 'Order Cancel & Refund';
-        $admin_details = User::where('role_id',3)->first();
-
-        \App\Lib\NotifyToUser::makeNotifyToAdmin($order,$admin_details->email,$mail_from=null,$type='tenant_order_notification',$order_status);
-
-        // send email to user
-
-        if ($order->notify_driver == 'mail') {
-            $ordermeta=json_decode($order->ordermeta->value ?? '');
-            if (!empty($ordermeta)) {
-                $mail_to=$ordermeta->email ?? '';
+            if ($order->notify_driver == 'mail') {
+                $ordermeta=json_decode($order->ordermeta->value ?? '');
+                if (!empty($ordermeta)) {
+                    $mail_to=$ordermeta->email ?? '';
+                }
+                else{
+                    $mail_to=$order->user->email ?? '';
+                }
+                \App\Lib\NotifyToUser::sendEmail($order, $mail_to, 'user');
             }
-            else{
-                $mail_to=$order->user->email ?? '';
-            }
-            $mail_from=Auth::user()->email;
-            $order['order_cancel_and_refund'] = 'Order cancel & refund';
-            \App\Lib\NotifyToUser::customermail($order,$mail_to);
         }
-     }
         return redirect()->back();
     }
 

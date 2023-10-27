@@ -533,10 +533,7 @@ class CheckoutController extends Controller
            $recipt =  $this->send_order_recipt($user_recipt);
 
             \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
-
-            \App\Lib\NotifyToUser::customermail($order,$request->email);
-
-            //Mail::raw('Order recived', function($msg) {$msg->to('nishant.avology@gmail.com')->subject('Order recived Test Email'); });
+            \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
 
             if(Session::has('cart') && $cartid != null){
                 Cart::destroy($cartid);
