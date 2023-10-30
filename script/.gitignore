@@ -6,3 +6,9 @@ vendor/
 storage/
 storage
 uploads/store_logo/*
+!script/views/vendor/
+!script/views/vendor/**
+!script/vendor/omnipay/stripe/
+!script/vendor/omnipay/stripe/**
+!script/vendor/bumbummen99/
+!script/vendor/bumbummen99/**
