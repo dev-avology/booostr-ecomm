@@ -22,6 +22,17 @@ use Exception;
 class ProductController extends Controller
 {
 
+
+   public function categoryList(Request $request){
+       $posts=Category::where('type','category')->with('preview','icon')->withCount('products')->get();
+
+       $product_count = Term::query()->where('type', 'product')->whereIn('list_type', [0,1])->with('media', 'firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->count();
+
+       return response()->json(["status" => true, "message" => "products", "result" => ['categories'=>$posts,'product_count'=>$product_count]]);
+    }
+
+
+
     public function productList(Request $request)
     {
         $posts = Term::query()->where('type', 'product')->whereIn('list_type', [0,1])->with('media', 'firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice');
