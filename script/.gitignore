@@ -1,9 +1,5 @@
 .env
 .DS_Store
-vendor
 storage/
 storage
 uploads/store_logo/*
-!script/views/vendor/
-!script/vendor/omnipay/stripe/
-!script/vendor/bumbummen99/

@@ -4,5 +4,5 @@ storage/
 storage
 uploads/store_logo/*
 script/vendor
-script/resources/views/testing
-!script/resources/views/testing/track
+!script/vendor/omnipay/stripe/
+!script/vendor/bumbummen99/
