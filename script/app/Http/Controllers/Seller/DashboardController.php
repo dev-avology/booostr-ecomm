@@ -10,13 +10,16 @@ use App\Models\Order;
 use App\Models\Term;
 use App\Models\Category;
 use App\Models\User;
+use App\Models\Option;
 use Auth;
 class DashboardController extends Controller
 {
     public function dashboard()
     {
+        $tax=Option::where('key','tax')->first();
+        $tax = $tax->value ?? 0.00; 
         abort_if(!getpermission('dashboard'),401);
-    	return view('seller.dashboard');
+    	return view('seller.dashboard', compact('tax'));
     }
 
     public function getCurrentOrders()

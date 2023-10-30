@@ -116,6 +116,15 @@
     </div>
   </div>
 
+
+  @if(($tax=='0') || ($tax == '0.000%') || ($tax == '0.'))
+  <div class="col-md-12">
+      <div class="alert alert-warning">
+           {{ __('Please update sales tax in store setting!') }} 
+      </div>
+  </div>
+  @endif
+
   {{-- @php
 
      $date= \Carbon\Carbon::now()->addDays(7)->format('Y-m-d');
