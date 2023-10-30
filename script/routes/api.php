@@ -31,6 +31,7 @@ Route::group([
     'prefix'     => '/storedata',
     'middleware' => [AvalogyMiddleware::class, InitializeTenancyByRequestData::class, 'tenantenvironment'],
 ], function () {
+    Route::get('/categories', 'Api\ProductController@categoryList');
     Route::get('/products', 'Api\ProductController@productList');
     Route::get('/product/{id}', 'Api\ProductController@productDetail');
     Route::post('/product/search', 'Api\ProductController@search');
