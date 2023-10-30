@@ -1,8 +1,5 @@
 .env
 .DS_Store
-vendor
-/vendor
-vendor/
 storage/
 storage
 uploads/store_logo/*
