@@ -57,7 +57,6 @@ class NotifyToUser
 	}
 
 	public static function sendEmail($info, $to=null, $email_identity){
-	    try{		
 		    if($email_identity == 'admin'){
 				$currency=get_option('currency_info');
 				$invoice_info=get_option('invoice_data',true);
@@ -121,9 +120,7 @@ class NotifyToUser
 					Mail::to($to)->send($mail);
 				}	
 			}
-		} catch (\Throwable $th) {
-			dd($th);
-		} 
+		
 	}
 
 	public static function makeNotifyToAdmin($info,$mail_to,$mail_from=null,$type='tenant_order_notification',$order_status='')
