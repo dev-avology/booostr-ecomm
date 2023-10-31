@@ -488,6 +488,15 @@ class OrderController extends Controller
             };
         }
 
+        $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
+        $order->save();
+        $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+
+       $data =  $this->post_order_data($order,'refund');
+
+       dd($data);
+
+
         $paymentresult= $gateway->namespace::refund_payment($payment_data);
 
         if ($paymentresult['payment_status'] == '1') {
