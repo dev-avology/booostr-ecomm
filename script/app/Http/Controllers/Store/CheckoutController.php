@@ -26,6 +26,8 @@ use DB;
 use App\Models\Order;
 use App\Models\Ordermeta;
 use App\Models\Orderstock;
+use Carbon\Carbon;
+
 class CheckoutController extends Controller
 {
 
@@ -432,6 +434,7 @@ class CheckoutController extends Controller
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $paymentresult['payment_id'];
             $order->payment_status =$paymentresult['payment_status'];
+            $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
 
             $oder_items = [];
