@@ -50,7 +50,7 @@
 
             @php
 
-            $date = date_create($data['created_at']);
+            $date = date_create($data['placed_at']);
             $date_format = date_format($date, "m/d/Y");
 
             $jsonString = $data->orderlasttrans->value;
