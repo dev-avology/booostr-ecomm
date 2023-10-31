@@ -503,7 +503,7 @@ class ProductController extends Controller
         $orderlasttrans=json_decode($info->orderlasttrans->value ?? '');
         $timestamp = $orderlasttrans->created ?? '';
 
-        $createdAt = Carbon::parse($info->placed_at)->format('m-d-Y h:i A');
+        $createdAt = Carbon::parse($info->placed_at)->format('m/d/Y h:i A');
 
         $amount_refunded = $orderlasttrans->amount_refunded;
         $lastdigit = $orderlasttrans->source->last4;
@@ -578,7 +578,7 @@ class ProductController extends Controller
         $order_data['sub_total'] = currency_formate($subtotal ?? 0) ;
         $order_data['discount'] = '-'.currency_formate($info->discount);
         $order_data['tax'] = currency_formate($info->tax);
-        $order_data['created_at'] = date_format($info->created_at, "m/d/Y");
+        $order_data['created_at'] = $createdAt;
 
         $shipping_price=$info->shippingwithinfo->shipping_price ?? 0;
         $order_data['shipping_price'] = currency_formate($shipping_price); 
