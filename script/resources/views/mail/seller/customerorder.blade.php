@@ -236,7 +236,7 @@
                     <span
                         style="font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; margin: 0; padding-left: 20px">Date
                         Placed:<span style="font-weight: 500;">
-                            {{ \Carbon\Carbon::parse($info->placed_at)->format('m/d/Y') }}</span>
+                            {{ \Carbon\Carbon::parse($order->placed_at)->format('m/d/Y h:i A') }}</span>
                     </span>
                 </td>
                 <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
