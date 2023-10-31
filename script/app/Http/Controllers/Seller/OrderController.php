@@ -430,8 +430,8 @@ class OrderController extends Controller
         // 'chart_of_accounts' => 'Booostr Ecommerce',
         // 'under_net_recieved'=> $net_recieved_amount,
         // 'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,
-        // 'date_of_payment' => $shipped_and_fullfilldate
-                   
+        // 'date_of_payment' => $shipped_and_fullfilldate  
+        
         $url = env("WP_API_URL");
         
         $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
@@ -454,7 +454,7 @@ class OrderController extends Controller
         }
         curl_close($ch);
         //Log::info($response);
-        dd($response);
+       // dd($response);
         return $response;
     }
 
@@ -488,15 +488,7 @@ class OrderController extends Controller
             };
         }
 
-        $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
-        $order->save();
-        $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
-
-       $data =  $this->post_order_data($order,'refund');
-
-       dd($data);
-
-
+      
         $paymentresult= $gateway->namespace::refund_payment($payment_data);
 
         if ($paymentresult['payment_status'] == '1') {
