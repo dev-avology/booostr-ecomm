@@ -4,6 +4,9 @@ use Omnipay\Omnipay;
 use Omnipay\Stripe\Message\Transfers;
 use Session;
 use Illuminate\Http\Request;
+use Money\Currency;
+use Money\Money;
+
 
 class Stripe {
     public static function redirect_if_payment_success()
@@ -154,18 +157,27 @@ class Stripe {
         $data['test_mode']=$test_mode;
         $application_fee_amount = $array['application_fee_amount'];
         $credit_card_fee = $array['credit_card_fee'];
+        
 
         $stripe = Omnipay::create('Stripe');
         $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
         if($token){
+
+            $applicarionfee = ($application_fee_amount + $credit_card_fee)*100;
+
+
+            $currency_obj = new Currency($currency);
+
+            $applicarionfee = new Money($applicarionfee, $currency_obj);
+
             $response = $stripe->authorize([
                 'amount' => $totalAmount,
-                'currency' => $currency,
+                'currency' =>  $currency_obj,
                 'token' => $token,
                 'onBehalfOf' => $array['stripe_account_id'],
                 'destination'   => $array['stripe_account_id'],
-                'applicationFee'=>$application_fee_amount + $credit_card_fee
+                'applicationFee'=> $applicarionfee,
             ])->send();
             
         }
