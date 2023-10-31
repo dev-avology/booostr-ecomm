@@ -360,9 +360,34 @@ $shipping_servics = ['FedEx','UPS','US Postal Service'];
                                     style="background-color: {{ $info->orderstatus->slug ?? '' }}">{{ $info->orderstatus->name ?? '' }}</span>
                             @endif
                         </p>
+
                         <p>{{ __('Order Type') }}
                             <span class="badge badge-success float-right">{{ $info->order_method }}</span>
                         </p>
+
+                        <p>{{ __('Order Placed') }}
+                            <span class="badge badge-success float-right">
+                                {{ \Carbon\Carbon::parse($info->placed_at)->format('m/d/Y h:i A') }}
+                            </span>
+                        </p>
+
+                        @if($info->captured_at != null)
+                        <p>{{ __('Order Capture') }}
+                            <span class="badge badge-danger float-right">
+                            {{ \Carbon\Carbon::parse($info->captured_at)->format('m/d/Y h:i A') }}
+                            </span>
+                        </p>
+                        @endif
+
+                        @if($info->refunded_at != null)
+
+                        <p>{{ __('Order Refund') }}
+                            <span class="badge badge-warning float-right">
+                                {{ \Carbon\Carbon::parse($info->refunded_at)->format('m/d/Y h:i A') }}
+                            </span>
+                        </p>
+                        @endif
+                        
                     </div>
                 </div>
                 @if (!empty($info->schedule))
