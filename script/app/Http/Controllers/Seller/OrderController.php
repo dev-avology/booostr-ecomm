@@ -410,7 +410,7 @@ class OrderController extends Controller
         'expense_category'=>'Revenue',
         'receipts_issued'=> 'Yes',
         'status'=>1,
-        'donor_name'=>$ordermeta['name'].'(Online Order)',
+        'donor_name'=>$ordermeta['name'].' (Online Order)',
         'created'=>$order->placed_at,
         'modified'=>Carbon::now()->setTimezone(config('app.timezone'))->format('m-d-Y h:i A'),
         'invoicenumber'=>$order->invoice_no,
@@ -430,8 +430,8 @@ class OrderController extends Controller
         // 'chart_of_accounts' => 'Booostr Ecommerce',
         // 'under_net_recieved'=> $net_recieved_amount,
         // 'net_recieved_shipped_full_fill_date' => $shipped_and_fullfilldate,
-        // 'date_of_payment' => $shipped_and_fullfilldate
-                                         
+        // 'date_of_payment' => $shipped_and_fullfilldate  
+        
         $url = env("WP_API_URL");
         
         $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
@@ -488,6 +488,7 @@ class OrderController extends Controller
             };
         }
 
+      
         $paymentresult= $gateway->namespace::refund_payment($payment_data);
 
         if ($paymentresult['payment_status'] == '1') {
