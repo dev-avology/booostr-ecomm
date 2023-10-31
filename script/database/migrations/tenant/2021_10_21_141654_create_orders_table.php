@@ -27,6 +27,11 @@ class CreateOrdersTable extends Migration
             $table->string('order_method')->nullable(); 
             $table->integer('order_from')->default(1); //1=websiteend 2=api end 3= adminend 
             $table->string('notify_driver')->default('mail');//notification driver
+
+            $table->datetime('captured_at')->nullable();
+            $table->datetime('refunded_at')->nullable();
+            $table->datetime('placed_at')->nullable();
+            
             $table->timestamps();
             
             $table->foreign('user_id')

@@ -165,6 +165,7 @@ class OrderController extends Controller
             if ($paymentresult['payment_status'] == '1') {
                 $order->payment_status = 5;
                 $order->status_id = 2;
+                $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
                 $order->save();
     
                 $transcation_log = new Ordermeta;
@@ -321,6 +322,7 @@ class OrderController extends Controller
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 1;
             $order->status_id = 4;
+            $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
 
 
@@ -344,7 +346,7 @@ class OrderController extends Controller
 
 
 
-    public function post_order_data($order){
+    public function post_order_data($order,$post_type = 'capture'){
 
         $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
         $qty = $order->orderitems[0]['qty'];
@@ -394,31 +396,31 @@ class OrderController extends Controller
 
 
         $postData = json_encode(['contact_mgr_data'=>$contact_manager_data,
-                                'category_type'=> 'Booostr Ecommerce',
-                                'booster_id' =>Tenant('club_id'),
-                                'coaid'=>95,
-                                'contactname'=>$ordermeta['name'],
-                                //'memo'=>'Booostr Ecommerce',
-                                'user_id' =>  $ordermeta['wpuid']??0,
-                                'revenue_name'=>'4-850 Booostr Ecommerce',
-                                'transaction_type'=> 'I',
-                                'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
-                                'net_revenue'=>$net_recieved_amount,
-                                'transaction_amount'=>$order_total,
-                                'expense_category'=>'Revenue',
-                                'receipts_issued'=> 'Yes',
-                                'status'=>1,
-                                'donor_name'=>$ordermeta['name'].'(Online Order)',
-                                'created'=>$order->created_at,
-                                'modified'=>$order->updated_at,
-                                'invoicenumber'=>$order->invoice_no,
-                                'invoicreatedate'=>$shipped_and_fullfilldate,
-                                'invoiceprocessingfee'=>$processing_fees,
-                                'invoicesalestax'=> $sales_tax,
-                                'invoiceopt'=>$order->invoice_no,
-                                'deposite_date'=>$shipped_and_fullfilldate,
-                            ]);
-
+        'category_type'=> 'Booostr Ecommerce',
+        'booster_id' =>Tenant('club_id'),
+        'coaid'=>95,
+        'contactname'=>$ordermeta['name'],
+        //'memo'=>'Booostr Ecommerce',
+        'user_id' =>  $ordermeta['wpuid']??0,
+        'revenue_name'=>'4-850 Booostr Ecommerce',
+        'transaction_type'=> 'I',
+        'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
+        'net_revenue'=>$net_recieved_amount,
+        'transaction_amount'=>$order_total,
+        'expense_category'=>'Revenue',
+        'receipts_issued'=> 'Yes',
+        'status'=>1,
+        'donor_name'=>$ordermeta['name'].'(Online Order)',
+        'created'=>$order->created_at,
+        'modified'=>$order->updated_at,
+        'invoicenumber'=>$order->invoice_no,
+        'invoicreatedate'=>$order->placed_at,
+        'invoiceprocessingfee'=>$processing_fees,
+        'invoicesalestax'=> $sales_tax,
+        'invoiceopt'=>$order->invoice_no,
+        'deposite_date'=>$order->captured_at,
+        'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
+    ]);
         // 'order_date' => $order_date, 
         // 'order_subtotal' => $sub_total,
         // 'sales_tax' =>$sales_tax,
@@ -491,6 +493,7 @@ class OrderController extends Controller
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 5;
             $order->status_id = 2;
+            $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
 
             $transcation_log = new Ordermeta;
@@ -506,6 +509,8 @@ class OrderController extends Controller
 
             $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
             
+            $this->post_order_data($order,'refund');
+
             \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
 
             if ($order->notify_driver == 'mail') {
