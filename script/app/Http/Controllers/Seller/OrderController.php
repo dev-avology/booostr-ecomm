@@ -410,7 +410,7 @@ class OrderController extends Controller
         'expense_category'=>'Revenue',
         'receipts_issued'=> 'Yes',
         'status'=>1,
-        'donor_name'=>$ordermeta['name'].'(Online Order)',
+        'donor_name'=>$ordermeta['name'].' (Online Order)',
         'created'=>$order->placed_at,
         'modified'=>Carbon::now()->setTimezone(config('app.timezone'))->format('m-d-Y h:i A'),
         'invoicenumber'=>$order->invoice_no,
