@@ -523,7 +523,7 @@ class CheckoutController extends Controller
             DB::commit();
 
             $user_recipt = [
-                'receipts_date'=>$order->created_at,
+                'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
                 'receipt_title'=>$request->name,
                 'receipent_org'=>'Booostr Ecommerce',
                 'category'=>'ecommerce',
