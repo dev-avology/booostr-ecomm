@@ -25,6 +25,11 @@ Route::get('php-info',function(){
   phpinfo();
 });
 
+Route::get('/close-store-maneger', function(){
+    Auth::logout();
+    return redirect(env('APP_URL').'/login');
+});
+
 
 // Match my own domain
 Route::group(['domain' => env('APP_URL')], function($domain)

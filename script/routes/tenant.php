@@ -32,7 +32,13 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
 
     //ecommerce routes for public
     
-    Route::get('/', 'Store\PageController@home');
+    // Route::get('/', 'Store\PageController@home');
+
+    Route::get('/', function(){
+        $data = json_decode(tenant()->club_info, true);
+        $clubUrl = $data['club_url'];
+        return redirect($clubUrl);
+    });
 
     
     Route::get('/products', 'Store\PageController@products');
