@@ -503,7 +503,7 @@ class ProductController extends Controller
         $orderlasttrans=json_decode($info->orderlasttrans->value ?? '');
         $timestamp = $orderlasttrans->created ?? '';
 
-        $createdAt = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
+        $createdAt = Carbon::parse($info->placed_at)->format('m-d-Y h:i A');
 
         $amount_refunded = $orderlasttrans->amount_refunded;
         $lastdigit = $orderlasttrans->source->last4;
