@@ -44,6 +44,18 @@
         <li>
             <a class="nav-link" href="{{ url('/seller/product') }}">{{ __('Products') }}</a>
         </li>
+        <li>
+            <a class="nav-link" href="{{ url('/seller/category') }}">{{ __('Categories') }}</a>
+        </li>
+        <li>
+            <a class="nav-link" href="{{ url('/seller/brand') }}">{{ __('Brands') }}</a>
+        </li>
+        <li>
+            <a class="nav-link" href="{{ url('/seller/attribute') }}">{{ __('Attributes') }}</a>
+        </li>
+        <li>
+            <a class="nav-link" href="{{ url('/seller/tag') }}">{{ __('Tags') }}</a>
+        </li>
         <!-- <li>
             <a class="nav-link" href="{{ url('/seller/features') }}">{{ __('Product Features') }}</a>
         </li> -->
@@ -51,18 +63,10 @@
         <!-- <li>
             <a class="nav-link" href="{{ url('/seller/barcode') }}">{{ __('Barcode Print') }}</a>
         </li> -->
-        <li>
-            <a class="nav-link" href="{{ url('/seller/attribute') }}">{{ __('Attributes') }}</a>
-        </li>
-        <li>
-            <a class="nav-link" href="{{ url('/seller/tag') }}">{{ __('Tags') }}</a>
-        </li>
-        <li>
-            <a class="nav-link" href="{{ url('/seller/category') }}">{{ __('Categories') }}</a>
-        </li>
-        <li>
-            <a class="nav-link" href="{{ url('/seller/brand') }}">{{ __('Brands') }}</a>
-        </li>
+       
+        
+        
+       
         <!-- <li>
             <a class="nav-link" href="{{ url('/seller/coupon') }}">{{ __('Coupons') }}</a>
         </li> -->

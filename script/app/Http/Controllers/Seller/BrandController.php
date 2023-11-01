@@ -29,6 +29,32 @@ class BrandController extends Controller
         return view("seller.brand.index",compact('posts','request'));
     }
 
+    public function makeSlug($title,$type)
+    {
+       $slug_gen=Str::slug($title); 
+       $slug=Category::where('type',$type)->where('slug',$slug_gen)->count();
+       if ($slug > 0) {
+          $slug_count=$slug+1;
+          $slug=$slug_gen.$slug_count;
+          return $this->makeSlug($slug,$type);
+       }
+
+       return $slug_gen;
+
+
+    }
+
+    public function addJqueryBrand(Request $request){
+        $brand=new Category;
+        $brand->name=$request->brand_name;
+        $brand->slug=$this->makeSlug($request->brand_name,'brand');
+        $brand->type='brand';
+        $brand->featured=1;
+        $brand->save();
+        $brandId = $brand->id;
+        return $brandId;
+    }
+
     /**
      * Show the form for creating a new resource.
      *

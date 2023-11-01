@@ -126,23 +126,44 @@
                                 </select>
                             </div>
                          </div>
-                        <div class="from-group row mb-2">
+                        {{-- <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Select Product Brand') }} : </label>
                            <div class="col-lg-12">
-                              <select name="categories[]"  class="selectric form-control">
+                              <select name="categories[]"  multiple="" class="selectric form-control select3" id="mySelect3">
                               <option disabled="" value="" selected="">{{ __('Select Brand') }}</option>
                               {{NastedCategoryList('brand')}}
                               </select>
                            </div>
-                        </div>
-                        <div class="from-group row mb-2">
+                        </div> --}}
+                        {{-- <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Select Product Tags') }} : </label>
                            <div class="col-lg-12">
                               <select name="categories[]" multiple=""  class="form-control select2">
                               {{NastedCategoryList('tag')}}
                               </select>
                            </div>
+                        </div> --}}
+
+                        <div class="from-group row mb-2">
+                           <label for="" class="col-lg-12">{{ __('Select Product Brand') }} : </label>
+                           <div class="col-lg-12">
+                              <select name="categories[]" multiple="" class="form-control select2" id="mySelect3">
+                                 {{NastedCategoryList('brand')}}
+                              </select>
+                           </div>
                         </div>
+
+                        <div class="from-group row mb-2">
+                           <label for="" class="col-lg-12">{{ __('Select Product Tags') }} : </label>
+                           <div class="col-lg-12">
+                              <select name="categories[]" multiple=""  class="form-control select2" id="mySelect2">
+                              {{NastedCategoryList('tag')}}
+                              </select>
+                           </div>
+                        </div>
+
+
+
                      </div>
                   </div>
                </div>
@@ -284,6 +305,101 @@ $(".drop_product_type").change(function() {
     }
     $('.product_weight_sec').show();
 });
+
+
+$(document).ready(function() {
+  $('#mySelect2').select2({
+    tags: true,
+    createTag: function(params) {
+      return {
+        id: params.term,
+        text: params.term,
+        newOption: true // Indicates it's a new option
+      };
+    }
+  });
+
+  $('#mySelect3').select2({
+    tags: true,
+    createTag: function(params) {
+      return {
+        id: params.term,
+        text: params.term,
+        newOption: true // Indicates it's a new option
+      };
+    }
+  });
+
+
+  // get newly added option
+  $('#mySelect2').on('select2:select', function(e) {
+    var selectedOption = e.params.data;
+    if (selectedOption.newOption) {
+      // This is a new option, save it to your system
+      var newOptionText = selectedOption.text;
+      var type = "create_dynamic_option";
+      // ajax request for updating the new option
+      $.ajax({
+        url: "/seller/add-jquery-tag", // Updated route definition
+        type: "POST", // HTTP request method (GET, POST, PUT, DELETE, etc.)
+        data: {
+          'tag_name': newOptionText,
+          'type': type,
+          '_token': "{{csrf_token()}}"
+        },
+        dataType: "json", // Expected data type of the response
+        success: function(data) {
+         //  console.log(data);
+           if (data) {
+               // Update the value of the new option with the received ID
+               var newOptionId = data;
+               $('#mySelect2').find('option[value="' + newOptionText + '"]').val(newOptionId);
+           }
+        },
+        error: function(xhr, status, error) {
+          $('#mySelect2').find('option[value="' + newOptionText + '"]').remove();
+        }
+      });
+    }
+  });
+
+
+// get newly added option
+$('#mySelect3').on('select2:select', function(e) {
+    var selectedOption = e.params.data;
+    if (selectedOption.newOption) {
+      // This is a new option, save it to your system
+      var newOptionText = selectedOption.text;
+      var type = "create_dynamic_option";
+      // ajax request for updating the new option
+      $.ajax({
+        url: "/seller/add-jquery-brand", // Updated route definition
+        type: "POST", // HTTP request method (GET, POST, PUT, DELETE, etc.)
+        data: {
+          'brand_name': newOptionText,
+          'type': type,
+          '_token': "{{csrf_token()}}"
+        },
+        dataType: "json", // Expected data type of the response
+        success: function(data) {
+         //  console.log(data);
+           if (data) {
+            console.log(data);
+               // Update the value of the new option with the received ID
+               // var newOptionId = data;
+               // $('#mySelect3').find('option[value="' + newOptionText + '"]').val(newOptionId);
+           }
+        },
+        error: function(xhr, status, error) {
+          $('#mySelect3').find('option[value="' + newOptionText + '"]').remove();
+        }
+      });
+    }
+  });
+
+
+});
+
 </script>
 @endpush
 
