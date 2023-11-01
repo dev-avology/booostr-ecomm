@@ -549,7 +549,7 @@ class CheckoutController extends Controller
             }
 
 
-            return redirect()->away($redirect_url . '/?tab=thankyou&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
+            return redirect()->away($redirect_url . '/?tab=thankyou&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
         } catch (\Throwable $th) {
             DB::rollback();
 
