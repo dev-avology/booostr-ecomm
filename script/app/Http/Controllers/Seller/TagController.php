@@ -26,6 +26,18 @@ class TagController extends Controller
 
     }
 
+    public function addJqueryTag(Request $request){
+        $tag_name = $request->tag_name;
+        $tag=new Category;
+        $tag->name=$request->tag_name;
+        $tag->slug=$this->makeSlug($request->tag_name,'tag');
+        $tag->type='tag';
+        $tag->featured=1;
+        $tag->save();
+        $tag_id = $tag->id;
+        return $tag_id;
+    }
+
     /**
      * Show the form for creating a new resource.
      *
