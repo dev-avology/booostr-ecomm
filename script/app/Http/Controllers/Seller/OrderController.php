@@ -403,7 +403,7 @@ class OrderController extends Controller
         //'memo'=>'Booostr Ecommerce',
         'user_id' =>  $ordermeta['wpuid']??0,
         'revenue_name'=>'4-850 Booostr Ecommerce',
-        'transaction_type'=> ($post_type == 'refund') ? 'Refunds' : 'I',
+        'transaction_type'=>'I',
         'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
         'net_revenue'=>$net_recieved_amount,
         'transaction_amount'=>$order_total,
