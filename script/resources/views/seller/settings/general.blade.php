@@ -500,8 +500,8 @@
          <div class="row">
             {{-- left side --}}
             <div class="col-lg-4">
-                <h6>{{ __('Store Banner Images') }}</h6>
-                <strong>{{ __('Your customers will see the banner images.') }}</strong>
+                <h6>{{ __('Store Banner Image') }}</h6>
+                <strong>{{ __('Your customers will see the banner image.') }}</strong>
             </div>
             {{-- /left side --}}
             {{-- right side --}}
@@ -509,11 +509,13 @@
                <div class="card">
                   <div class="card-body">
                     <div class="from-group row mb-2">
-                        <label for="" class="col-lg-12">{{ __('Already uploaded banner image link:') }} <a target="_blank" href="{{$banner_logo->value}}" style="color:#838181;">{{$banner_logo->value}}</a></label>
+                       
                         <label for="" class="col-lg-12">{{ __('Banner Image:') }} (Width: 875px & Height: 250px)</label>
                         <div class="col-lg-12">
                             <input type="file" name="banner" class="form-control" accept=".png,.jpeg,.jpg" >
                         </div>
+
+                        <label class="col-lg-12 pt-3">{{ __('Already uploaded banner image link:') }} <a target="_blank" href="{{$banner_logo->value}}" style="color:#838181;">{{$banner_logo->value}}</a></label>
                     </div>
                     {{-- <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Store Favicon:') }} (48x48)</label>
