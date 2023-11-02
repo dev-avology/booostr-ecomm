@@ -100,7 +100,7 @@
                             <div class="col-lg-8 col-12 col-65 container">
                                 <div class="checkout-form  pb-3">
                                     <h3 class="mt-3 mb-1">Billing Address</h3>
-                                    <em>Please create your account to check your order status quickly</em>
+                                    <em>Enter your payment method billing information below</em>
                                     <!-- Form -->
 									<div class="row mt-3" id="error-msg">
 									</div>

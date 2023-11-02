@@ -579,6 +579,10 @@ class ProductController extends Controller
         $order_data['discount'] = '-'.currency_formate($info->discount);
         $order_data['tax'] = currency_formate($info->tax);
         $order_data['created_at'] = $createdAt;
+        $club_info = tenant()->club_info;
+
+        $club_email=json_decode($club_info ?? '');
+        $order_data['club_email'] = $club_email->club_email;
 
         $shipping_price=$info->shippingwithinfo->shipping_price ?? 0;
         $order_data['shipping_price'] = currency_formate($shipping_price); 
