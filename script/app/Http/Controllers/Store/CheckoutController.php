@@ -521,11 +521,12 @@ class CheckoutController extends Controller
 
           
             DB::commit();
+            $club_info = tenant_club_info();
 
             $user_recipt = [
                 'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
                 'receipt_title'=>$request->name,
-                'receipent_org'=>'Booostr Ecommerce',
+                'receipent_org'=>$club_info['club_name'].' Store',
                 'category'=>'ecommerce',
                 'user_id' =>  $request->wpuid ??0,
                 'club_id' =>Tenant('club_id'),
@@ -564,6 +565,7 @@ class CheckoutController extends Controller
 
 
     private function send_order_recipt($data){
+
 
         $postData = json_encode($data);
 
@@ -668,7 +670,7 @@ class CheckoutController extends Controller
     public function applyTax(Request $request)
     {
         $club_info = tenant_club_info();
-
+        
         $address = explode(',',$club_info['address']);
         $state = trim($address[count($address)-2]);
 
