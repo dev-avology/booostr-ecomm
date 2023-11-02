@@ -412,7 +412,7 @@ class OrderController extends Controller
         'status'=>1,
         'donor_name'=>$ordermeta['name'].' (Online Order)',
         'created'=>$order->placed_at,
-        'modified'=>Carbon::now()->setTimezone(config('app.timezone'))->format('m-d-Y h:i A'),
+        'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
         'invoicenumber'=>$order->invoice_no,
         'invoicreatedate'=>$order->placed_at,
         'invoiceprocessingfee'=>$processing_fees,
