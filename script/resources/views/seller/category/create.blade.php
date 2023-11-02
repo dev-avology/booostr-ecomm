@@ -85,6 +85,18 @@
                              {{NastedCategoryList('category')}}
                            </select>
                         </div>
+                        <span class="pl-3" style="font-size:12px;">(if category is a top level (parent) category - do not select anything)</span>
+                     </div>
+                     <div class="from-group row mb-2">
+                        <label for="" class="col-lg-12">Show : </label>
+                        <div class="col-lg-12">
+                           @php $show_option = array('all'=>'All','ecommerse_only'=>'Ecommerce Only','pos_only'=>'POS Only'); @endphp
+                           <select name="cat_show_on" class="form-control">
+                              @foreach($show_option as $key=>$val)
+                              <option value="{{$key}}">{{$val}}</option>
+                              @endforeach
+                           </select>
+                        </div>
                      </div>
                      <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Description :') }} </label>

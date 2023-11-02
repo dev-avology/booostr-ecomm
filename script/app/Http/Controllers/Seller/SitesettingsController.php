@@ -169,6 +169,27 @@ class SitesettingsController extends Controller
          //    $banner->move($path, 'banner.png');
          //   }
 
+
+         if ($request->hasFile('banner')) {
+            $banner = $request->file('banner');
+            $filename = $banner->getClientOriginalName();
+
+            $filename = str_replace(' ', '-', $filename);
+            $banner->move($path, $filename);
+
+            $banner_logo=Option::where('key','banner_logo')->first();
+            if (!empty($banner_logo)) {
+               Option::where('key', 'banner_logo')->update(['value' => env('APP_URL').'/'.$path.'/'.$filename]);
+            }else{
+               $bannerLogo=new Option;
+               $bannerLogo->key='banner_logo';
+               $bannerLogo->value=env('APP_URL').'/'.$path.'/'.$filename;
+               $bannerLogo->autoload=1;
+               $bannerLogo->save();
+            }
+           }
+
+
          //   $invoice_info['store_legal_name']=$request->store_legal_name;
          //   $invoice_info['store_legal_phone']=$request->store_legal_phone;
          //   $invoice_info['store_legal_address']=$request->store_legal_address;
