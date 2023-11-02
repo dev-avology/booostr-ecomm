@@ -496,22 +496,22 @@
          </div>
          <div class="row">
             {{-- left side --}}
-            {{-- <div class="col-lg-4">
-                <h6>{{ __('Store Images') }}</h6>
-                <strong>{{ __('Your customers will see the images.') }}</strong>
-            </div> --}}
+            <div class="col-lg-4">
+                <h6>{{ __('Store Banner Images') }}</h6>
+                <strong>{{ __('Your customers will see the banner images.') }}</strong>
+            </div>
             {{-- /left side --}}
             {{-- right side --}}
-            {{-- <div class="col-lg-8">
+            <div class="col-lg-8">
                <div class="card">
                   <div class="card-body">
                     <div class="from-group row mb-2">
-                        <label for="" class="col-lg-12">{{ __('Store Logo:') }} (Height: 100px)</label>
+                        <label for="" class="col-lg-12">{{ __('Banner Image:') }} (Width: 875px & Height: 250px)</label>
                         <div class="col-lg-12">
-                            <input type="file"  name="logo" class="form-control" accept=".png" >
+                            <input type="file" name="banner" class="form-control" accept=".png,.jpeg,.jpg" >
                         </div>
                     </div>
-                    <div class="from-group row mb-2">
+                    {{-- <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Store Favicon:') }} (48x48)</label>
                         <div class="col-lg-12">
                             <input type="file"  name="favicon" class="form-control" accept=".ico" >
@@ -528,10 +528,10 @@
                         <div class="col-lg-12">
                             <input type="file"  name="banner" class="form-control" accept=".png" >
                         </div>
-                    </div>
+                    </div> --}}
                   </div>
                </div>
-            </div> --}}
+            </div>
             {{-- /right side --}}
          </div>
          <div class="row">

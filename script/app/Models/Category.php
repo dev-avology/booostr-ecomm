@@ -53,6 +53,11 @@ class Category extends Model
     	return $this->hasOne(Categorymeta::class)->where('type','preview');
     }
 
+    public function show_on()
+    {
+    	return $this->hasOne(Categorymeta::class)->where('type','show_on');
+    }
+
     public function locations()
     {
       return $this->belongsToMany(Location::class,'shippingcategories');

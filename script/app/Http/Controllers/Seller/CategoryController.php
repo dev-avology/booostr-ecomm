@@ -88,6 +88,10 @@ class CategoryController extends Controller
                $category->meta()->create(['type'=>'icon','content'=>$request->icon]);
             }
 
+            if ($request->cat_show_on) {
+                $category->meta()->create(['type'=>'show_on','content'=>$request->cat_show_on]);
+             }
+
             
             DB::commit();
         } catch (\Throwable $th) {
@@ -124,7 +128,8 @@ class CategoryController extends Controller
     public function edit($id)
     {
          abort_if(!getpermission('products'),401);
-        $info=Category::with('description','preview','icon')->findorFail($id);
+        $info=Category::with('description','preview','icon','show_on')->findorFail($id);
+
         return view("seller.category.edit",compact('info'));
     }
 
@@ -200,6 +205,22 @@ class CategoryController extends Controller
                } 
             }
            
+
+
+            if ($request->cat_show_on) {
+                if (empty($category->show_on)) {
+                     $category->show_on()->create(['type'=>'show_on','content'=>$request->cat_show_on]);
+                }
+                else{
+                    $category->show_on()->update(['content'=>$request->cat_show_on]);
+                }
+             
+            }
+            else{
+               if (!empty($category->show_on)) {
+                $category->show_on()->delete();
+               } 
+            }
 
            
 
