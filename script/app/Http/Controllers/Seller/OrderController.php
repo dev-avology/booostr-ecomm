@@ -403,7 +403,7 @@ class OrderController extends Controller
         //'memo'=>'Booostr Ecommerce',
         'user_id' =>  $ordermeta['wpuid']??0,
         'revenue_name'=>'4-850 Booostr Ecommerce',
-        'transaction_type'=> 'I',
+        'transaction_type'=>'I',
         'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
         'net_revenue'=>$net_recieved_amount,
         'transaction_amount'=>$order_total,
@@ -420,6 +420,7 @@ class OrderController extends Controller
         'invoiceopt'=>$order->invoice_no,
         'deposite_date'=>$order->captured_at,
         'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
+        'record_type' => $post_type,
     ]);
         // 'order_date' => $order_date, 
         // 'order_subtotal' => $sub_total,
