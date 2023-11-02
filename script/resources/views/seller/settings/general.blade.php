@@ -494,6 +494,9 @@
             </div>
             {{-- /right side --}}
          </div>
+
+
+
          <div class="row">
             {{-- left side --}}
             <div class="col-lg-4">
@@ -506,6 +509,7 @@
                <div class="card">
                   <div class="card-body">
                     <div class="from-group row mb-2">
+                        <label for="" class="col-lg-12">{{ __('Already uploaded banner image link:') }} <a target="_blank" href="{{$banner_logo->value}}" style="color:#838181;">{{$banner_logo->value}}</a></label>
                         <label for="" class="col-lg-12">{{ __('Banner Image:') }} (Width: 875px & Height: 250px)</label>
                         <div class="col-lg-12">
                             <input type="file" name="banner" class="form-control" accept=".png,.jpeg,.jpg" >

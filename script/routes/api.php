@@ -42,6 +42,7 @@ Route::group([
     Route::post('/checkout/order', 'Api\ProductController@CartQty');
     Route::post('/resend_invoice','Api\ProductController@resend_invoice');
     Route::post('/get_invoice_info','Api\ProductController@getInvoiceInfo');
+    Route::get('/get_banner_image','Api\ProductController@getBannerImage');
 });
 
 

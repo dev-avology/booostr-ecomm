@@ -13,6 +13,7 @@ use App\Models\Getway;
 use App\Models\Location;
 use App\Models\Order;
 use App\Models\Coupon;
+use App\Models\Option;
 use Carbon\Carbon;
 use Cart;
 use DB;
@@ -593,6 +594,15 @@ class ProductController extends Controller
               
         if($info){
             return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$order_data]);
+        }else{
+            return response()->json(["status" => 'false', "message" => 'Something went wrong']);
+        }
+    }
+
+    public function getBannerImage(Request $request){
+      $banner = Option::where('key','banner_logo')->first();
+      if($banner){
+          return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$banner]);
         }else{
             return response()->json(["status" => 'false', "message" => 'Something went wrong']);
         }
