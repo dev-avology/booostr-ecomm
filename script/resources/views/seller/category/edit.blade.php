@@ -100,14 +100,23 @@
                            <span class="pl-3" style="font-size:12px;">(if category is a top level (parent) category - do not select anything)</span>
                         </div>
 
+                     
                         <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">Show : </label>
                            <div class="col-lg-12">
                               @php $show_option = array('all'=>'All','ecommerse_only'=>'Ecommerce Only','pos_only'=>'POS Only'); @endphp
                               <select name="cat_show_on" class="form-control">
+                                 @if(!empty($info->show_on)) 
                                  @foreach($show_option as $key=>$val)
-                                 <option @if($info->show_on->content??'' == $key) selected @endif value="{{$key}}">{{$val}}</option>
+                                 <option @if($info->show_on->content == $key) selected @endif value="{{$key}}">{{$val}}</option>
                                  @endforeach
+                                 @else
+                                 @foreach($show_option as $key=>$val)
+                                 <option value="{{$key}}">{{$val}}</option>
+                                 @endforeach
+
+                                 @endif
+
                               </select>
                            </div>
                         </div>

@@ -128,7 +128,8 @@ class CategoryController extends Controller
     public function edit($id)
     {
          abort_if(!getpermission('products'),401);
-        $info=Category::with('description','preview','icon')->findorFail($id);
+        $info=Category::with('description','preview','icon','show_on')->findorFail($id);
+
         return view("seller.category.edit",compact('info'));
     }
 
