@@ -106,7 +106,7 @@
                               @php $show_option = array('all'=>'All','ecommerse_only'=>'Ecommerce Only','pos_only'=>'POS Only'); @endphp
                               <select name="cat_show_on" class="form-control">
                                  @foreach($show_option as $key=>$val)
-                                 <option @if($info->show_on->content == $key) selected @endif value="{{$key}}">{{$val}}</option>
+                                 <option @if($info->show_on->content??'' == $key) selected @endif value="{{$key}}">{{$val}}</option>
                                  @endforeach
                               </select>
                            </div>
