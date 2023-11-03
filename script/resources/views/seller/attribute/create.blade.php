@@ -39,7 +39,7 @@
                                         <option value="checkbox">{{ __('Checkbox (Multiple Select)') }}</option>
                                         <option value="checkbox_custom">{{ __('Checkbox (Custom Multiple Select)') }}</option>
                                         <option value="radio">{{ __('Radio Button (Single Select)') }}</option>
-                                        <option value="radio_custom">{{ __('Radio Button (Custom Single Select)') }}</option>
+                                        {{-- <option value="radio_custom">{{ __('Radio Button (Custom Single Select)') }}</option> --}}
                                         <option value="color_single">{{ __('Color Selector (Single Select)') }}</option>
                                         <option value="color_multi">{{ __('Color Selector (Multiple Select)') }}</option>
                                     </select>
