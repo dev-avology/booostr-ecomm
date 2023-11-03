@@ -521,9 +521,33 @@ class CheckoutController extends Controller
 
           
             DB::commit();
+            
             $club_info = tenant_club_info();
 
+           $name = explode(' ',$request->name);
+
+            $contact_manager_data = array(
+                'first_name' => $name[0],
+                'last_name' => $name[1]??'',
+                'user_id' =>  $request->wpuid ??0,
+                'phone_number' => $request->phone,					
+                'booster_name' => $name[0],
+                'country' =>   $request->billing['country'],									
+                'address_1' => $request->billing['address'],
+                'address_2' =>  '',
+                'city' => $request->billing['city'],
+                'state' =>  $request->billing['state'],
+                'zip' =>  $request->billing['post_code'],													
+                'email' =>  $request->email,                   
+                'booster_id' =>Tenant('club_id'),
+                'booster_level_id' => 4,
+                'contact_tags' => '',
+            );	  
+
+
+
             $user_recipt = [
+                'contact_mgr_data'=>$contact_manager_data,
                 'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
                 'receipt_title'=>$request->name,
                 'receipent_org'=>$club_info['club_name'].' Store',
