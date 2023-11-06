@@ -6,9 +6,9 @@
 <section class="section">
 {{-- section title --}}
 <div class="section-header">
- <a href="{{ route('seller.site-settings.index') }}" class="btn btn-primary mr-2">
+ {{-- <a href="{{ route('seller.site-settings.index') }}" class="btn btn-primary mr-2">
             <i class="fas fa-arrow-left"></i>
-        </a>
+        </a> --}}
         <h1>{{ __('Store details') }}</h1>
 </div>
 {{-- /section title --}}
@@ -515,7 +515,11 @@
                             <input type="file" name="banner" class="form-control" accept=".png,.jpeg,.jpg" >
                         </div>
 
-                        <label class="col-lg-12 pt-3">{{ __('Already uploaded banner image link:') }} <a target="_blank" href="{{$banner_logo->value}}" style="color:#838181;">{{$banner_logo->value}}</a></label>
+                        @if(!empty($banner_logo->value))
+
+                        <label class="col-lg-12 pt-3">{{ __('Already uploaded banner image link:') }} <a target="_blank" href="{{$banner_logo->value ?? ''}}" style="color:#838181;">{{$banner_logo->value ?? ''}}</a></label>
+
+                        @endif
                     </div>
                     {{-- <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Store Favicon:') }} (48x48)</label>
