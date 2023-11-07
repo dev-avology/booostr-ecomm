@@ -130,12 +130,13 @@
                                                 </div>
                                             @endif
                                         </div>
+
                                         <div class="col-lg-6 col-md-6 col-12">
                                             <div class="form-group">
                                                 <label><i class="fa fa-user"></i>{{ __('Full Name') }}<span>*</span></label>
                                                 <input type="text" name="name" id="billing-name"
                                                     data-shippingf="shipping-name" value="{{ $customer['name'] }}"
-                                                    placeholder=""  class="required" data-msg="{{__('Billing Full Name')}}">
+                                                    placeholder=""  class="required" data-msg="{{__('Billing Full Name')}}" @if(!empty($customer['name'])) disabled @endif>
                                             </div>
                                         </div>
 
@@ -145,7 +146,7 @@
                                                         class="fa fa-envelope"></i>{{ __('Email Address') }}<span>*</span></label>
                                                 <input value="{{ $customer['email'] }}" id="billing-email"
                                                     data-shippingf="shipping-email" type="email" name="email"
-                                                    placeholder="" class="required" data-msg="{{__('Billing Email')}}" required readonly>
+                                                    placeholder="" class="required" data-msg="{{__('Billing Email')}}" required @if(!empty($customer['email'])) disabled @endif>
                                             </div>
                                             
                                         </div>
@@ -156,7 +157,7 @@
                                                 <input type="number" id="billing-phone" name="phone"
                                                     data-shippingf="shipping-phone"
                                                     value="{{ str_replace('-', '', $customer['phone']) }}" placeholder=""
-                                                     maxlength="20" class="required" data-msg="{{__('Billing Phone Number')}}">
+                                                     maxlength="20" class="required" data-msg="{{__('Billing Phone Number')}}" @if(!empty($customer['phone'])) disabled @endif>
                                             </div>
                                         </div>
                                         <div class="col-lg-12 col-md-12 col-12 delivery_address_area">
@@ -165,7 +166,7 @@
                                                     <span>*</span></label>
                                                 <input type="text" class="location_input required" id="location_input"
                                                     data-shippingf="location_input1" name="billing[address]" placeholder=""
-                                                     value="{{ $customer['address'] }}" data-msg="{{__('Billing Address')}}">
+                                                     value="{{ $customer['address'] }}" data-msg="{{__('Billing Address')}}" @if(!empty($customer['address'])) disabled @endif>
                                             </div>
                                         </div>
                                         <div class="col-lg-6 col-md-6 col-12 delivery_address_city">
@@ -174,15 +175,16 @@
                                                     <span>*</span></label>
                                                 <input type="text" class="location_input required" id="location_city"
                                                     data-shippingf="location_city1" name="billing[city]" placeholder=""
-                                                     value="{{ $customer['city'] }}" data-msg="{{__('Billing City')}}">
+                                                     value="{{ $customer['city'] }}" data-msg="{{__('Billing City')}}" @if(!empty($customer['city'])) disabled @endif>
                                             </div>
                                         </div>
                                         <div class="col-lg-6 col-md-6 col-12 delivery_address_state">
                                             <div class="form-group">
                                                 <label> <i class="fa fa-map"></i>{{ __('State') }} <span>*</span></label>
+
+
                                                 <select class="location_input nice-select required" id="location_state"
-                                                    data-shippingf="location_state1" name="billing[state]" data-msg="{{__('Billing State')}}"
-                                                    >
+                                                        data-shippingf="location_state1" name="billing[state]" data-msg="{{__('Billing State')}}" @if(!empty($customer['state'])) disabled @endif>
                                                     @foreach ($states_data as $key => $val)
                                                         <option @if ($key == $customer['state']) selected @endif
                                                             value="{{ $key }}">{{ $val }}</option>
@@ -196,7 +198,7 @@
                                                 <label> <i class="fa fa-globe"></i>
                                                     {{ __('Country') }} <span>*</span></label>
                                                 <select id="billing-country" name="billing[country]"
-                                                    data-shippingf="billing-country1" class="nice-select required" data-msg="{{__('Billing Country')}}">
+                                                    data-shippingf="billing-country1" class="nice-select required" data-msg="{{__('Billing Country')}}" disabled>
                                                     <option value="USA">United State</option>
                                                 </select>
                                             </div>
@@ -207,7 +209,7 @@
                                                     {{ __('Zip Code') }}<span>*</span></label>
                                                 <input type="text" id="post_code" name="billing[post_code]"
                                                     data-shippingf="post_code1" placeholder=""
-                                                    value="{{ $customer['zip'] }}"  class="required" data-msg="{{__('Billing Postal Code')}}">
+                                                    value="{{ $customer['zip'] }}"  class="required" data-msg="{{__('Billing Postal Code')}}" @if(!empty($customer['zip'])) readonly @endif>
                                             </div>
                                         </div>
 
