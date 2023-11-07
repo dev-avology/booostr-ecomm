@@ -147,6 +147,7 @@
                                                     data-shippingf="shipping-email" type="email" name="email"
                                                     placeholder="" class="required" data-msg="{{__('Billing Email')}}" required readonly>
                                             </div>
+                                            
                                         </div>
                                         <div class="col-lg-6 col-md-6 col-12">
                                             <div class="form-group">
