@@ -145,7 +145,7 @@
                                                         class="fa fa-envelope"></i>{{ __('Email Address') }}<span>*</span></label>
                                                 <input value="{{ $customer['email'] }}" id="billing-email"
                                                     data-shippingf="shipping-email" type="email" name="email"
-                                                    placeholder="" class="required" data-msg="{{__('Billing Email')}}" required>
+                                                    placeholder="" class="required" data-msg="{{__('Billing Email')}}" required readonly>
                                             </div>
                                         </div>
                                         <div class="col-lg-6 col-md-6 col-12">
