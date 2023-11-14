@@ -398,7 +398,7 @@ class OrderController extends Controller
         $postData = json_encode(['contact_mgr_data'=>$contact_manager_data,
         'category_type'=> 'Booostr Ecommerce',
         'booster_id' =>Tenant('club_id'),
-        'coaid'=>95,
+        'coaid'=>41,
         'contactname'=>$ordermeta['name'],
         //'memo'=>'Booostr Ecommerce',
         'user_id' =>  $ordermeta['wpuid']??0,
