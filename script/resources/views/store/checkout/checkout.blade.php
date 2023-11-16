@@ -1,6 +1,13 @@
 @extends('layouts.checkout')
 @section('content')
 
+<style>
+a.cart-summary > span {
+    display: inline;
+    float: left;
+    width: 100%;
+}
+</style>
 
  <!-- Spinner container -->
  <div id="page-loader" class="spinner-container" style="display:none;">
@@ -339,8 +346,22 @@
                                                         class="fa fa-shopping-cart"></i>
                                                     <b>{{ Cart::instance('default')->countItems() }}</b></span></h2>
                                             @foreach (Cart::instance('default')->content() as $item)
-                                                <p><a href="#"> <img src="{{ $item->options->preview }}"
-                                                            alt="img">{{ $item->name }}</a> <span
+                                                <p><a href="#" class="cart-summary"> <img src="{{ $item->options->preview }}"
+                                                            alt="img"><span>{{ $item->name }}</span>
+						@php if(count($item->options['options'])){
+                          echo "<span class='product-description'>";
+						 foreach($item->options['options'] as $option => $selected_option){
+						  echo "<strong>".$option." : </strong>";
+						  $sel_option = array();
+                             foreach($selected_option as $selected){
+								 $sel_option[] = $selected['name'];
+							 }
+                            echo implode(',',$sel_option);
+                             echo "<br>";							
+						 }						
+						  echo "</span>";	 						
+						 } @endphp
+															</a> <span
                                                         class="price">{{ get_option('currency_data', true)->currency_icon }}{{ number_format($item->price, 2) }}</span>
                                                 </p>
                                             @endforeach
