@@ -49,7 +49,7 @@ class ProductController extends Controller
     
     public function productDetail(Request $request,$id)
     {
-        $info=Term::query()->where('type','product')->where('status',1)->whereIn('list_type', [0,1])->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','seo')->withCount('reviews')->where('id', $id)->first();
+        $info=Term::query()->where('type','product')->where('status',1)->whereIn('list_type', [0,1])->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo')->withCount('reviews')->where('id', $id)->first();
         if(empty($info)){
             return response()->json(["status" => false, "message" => "sorry, product not found", "result" => []]);
         }
