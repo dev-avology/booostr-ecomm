@@ -127,8 +127,9 @@ class Term extends Model
     }
     public function prices()
     {
-        return $this->hasMany(Price::class, 'term_id');
+        return $this->hasMany(Price::class, 'term_id')->with('varitions','varitionOptions');
     }
+    
     public function categories()
     {
       return $this->belongsToMany(Category::class,'termcategories');
@@ -171,12 +172,12 @@ class Term extends Model
 
     public function productoptionwithcategories()
     {
-      return $this->hasMany(Productoption::class,'term_id')->with('categorywithchild','priceswithcategories');
+      return $this->hasMany(Productoption::class,'term_id')->with('categorywithchild','priceswithcategories','priceswithvaritions');
     }
 
     public function optionwithcategories()
     {
-      return $this->hasMany(Productoption::class,'term_id')->with('category','priceswithcategories');
+      return $this->hasMany(Productoption::class,'term_id')->with('category','priceswithcategories','priceswithvaritions');
     }
 
     public function orders()
