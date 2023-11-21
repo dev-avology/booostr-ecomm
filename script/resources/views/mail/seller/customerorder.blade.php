@@ -93,7 +93,7 @@
                         </h2>
                     </th>
                     <th style="width: 15%; padding-right: 20px; text-align: right;border-collapse: collapse;">
-                        <a href=""
+                        <a href="{{ env('WP_CLUB_URL') }}login"
                             style="color: #fff; font-size: 20px; font-weight: 100; text-transform: uppercase; text-decoration: none; font-family: 'Nunito', 'Segoe UI', Arial;">login</a>
                     </th>
                 </tr>

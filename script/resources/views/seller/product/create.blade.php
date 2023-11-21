@@ -169,12 +169,12 @@
                </div>
                {{-- /right side --}}
             </div>
-            <input type="hidden" value="0" name="product_type" />
-            <!-- <div class="row">
+            {{-- <input type="hidden" value="0" name="product_type" /> --}}
+             <div class="row">
                {{-- left side --}}
                <div class="col-lg-4">
-                  <strong>{{ __('Product Type') }}</strong>
-                  <p>{{ __('Select product type form here') }}</p>
+                  <strong>{{ __('Price Type') }}</strong>
+                  <p>{{ __('Select Price type form here') }}</p>
                </div>
                {{-- /left side --}}
                {{-- right side --}}
@@ -182,7 +182,7 @@
                   <div class="card card-primary">
                      <div class="card-body">
                         <div class="from-group row mb-2">
-                           <label for="" class="col-lg-12">{{ __('Product Type') }} : </label>
+                           <label for="" class="col-lg-12">{{ __('Price Type') }} : </label>
                            <div class="col-lg-12">
                               <select name="product_type"  class="form-control product_type ">
                                  <option value="0">{{ __('Simple Product') }}</option>
@@ -193,7 +193,7 @@
                      </div>
                   </div>
                </div>
-            </div> -->
+            </div>
             <div class="row single_product_price_area">
                {{-- left side --}}
                <div class="col-lg-4">

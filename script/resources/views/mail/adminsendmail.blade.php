@@ -27,7 +27,7 @@
                     <img src="{{ env('WP_URL') }}{{'uploads/2022/03/booostr-logo-long-top-header.png'}}" alt="logo" style="width: 100%; max-width: 120px;" />
                 </th>
                 <th style="width: 50%; padding-right: 40px; text-align: right;">
-                    <a href=""
+                    <a href="{{ env('WP_CLUB_URL') }}login"
                         style="color: #fff;font-size: 20px;font-weight: 100;text-transform: uppercase; text-decoration: none; font-family: 'Nunito', 'Segoe UI', arial;">login</a>
                 </th>
             </tr>
