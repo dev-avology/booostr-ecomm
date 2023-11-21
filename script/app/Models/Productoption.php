@@ -40,6 +40,6 @@ class Productoption extends Model
 
     public function priceswithvaritions()
     {
-        return $this->belongsToMany(Category::class,'variationproductoptions')->select('id','name');
+        return $this->belongsToMany(Category::class,'variationproductoptions')->select('id','name')->distinct();
     }
 }
