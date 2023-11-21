@@ -56,6 +56,7 @@
             </div>
          </div>
          @endif
+
          @php
          $stock_manage=$info->price->stock_manage ?? '';
          $stock_status=$info->price->stock_status ?? '';
@@ -79,6 +80,7 @@
             </div>
          </div>
       </div>
+
       <div class="from-group row mb-2">
          <label for="" class="col-lg-12">{{ __('Tax') }} : </label>
          @php 
@@ -95,12 +97,18 @@
 
       <div class="variation_product_area {{ $info->is_variation == 0 ? 'none' : '' }}">
          <div id="accordion">
+
+            @php 
+            $usedarrtibuteOption = [];
+            @endphp
+
             @foreach($info->productoptionwithcategories ?? [] as $key => $row)
             @php
             $selected_childs=[];
+            $usedarrtibuteOption[$row->id] = $row->categorywithchild->name;
 
-            foreach($row->priceswithcategories ?? [] as $price_category){
-                array_push($selected_childs, $price_category->category_id);
+            foreach($row->priceswithvaritions->unique() ?? [] as $price_category){
+                array_push($selected_childs, $price_category->id);
             }
             @endphp
              <div class="accordion renderchild{{ $key }}">
@@ -147,7 +155,7 @@
                      <div class="from-group col-lg-6  mb-2">
                         <label for="" >{{ __('Select Type :') }} </label>
                         <div >
-                           <select name="childattribute[child][{{$row->id}}][select_type]" class="form-control selectric    selecttype{{ $key }}">
+                           <select name="optionattribute[{{$row->category_id}}][select_type]" class="form-control selectric    selecttype{{ $key }}">
                               <option value="1" @if($row->select_type == 1) selected @endif>{{ __('Multiple Select') }}</option>
                               <option value="0" @if($row->select_type == 0) selected @endif>{{ __('Single Select') }}</option>
                            </select>
@@ -156,7 +164,7 @@
                      <div class="from-group col-lg-6  mb-2">
                         <label for="" >{{ __('Is Required ? :') }} </label>
                         <div >
-                           <select name="childattribute[child][{{$row->id}}][is_required]" class="form-control selectric    is_required{{ $key }}">
+                           <select name="optionattribute[{{$row->category_id}}][is_required]" class="form-control selectric    is_required{{ $key }}">
                               <option value="1" @if($row->is_required == 1) selected @endif>{{ __('Yes') }}</option>
                               <option value="0" @if($row->is_required == 0) selected @endif>{{ __('No') }}</option>
                            </select>
@@ -164,83 +172,129 @@
                      </div>
                   </div>
                   <hr>
-                  <div id="children_attribute_render_area{{ $key }}">
-                    @foreach($row->priceswithcategories ?? [] as $priceswithcategory)
-                     <div class=" " id="childcard{{$priceswithcategory->category_id}}">
-                        <div class="card-header">
-                           <h4>{{ $row->categorywithchild->name ?? '' }} / <span class="text-danger">  {{ $priceswithcategory->category->name ?? '' }}</span></h4>
-                        </div>
-                        <div class=" row">
-                           <div class="from-group col-lg-6">
-                              <label for="" >{{ __('Price :') }} </label>
-                              <div >
-                                 <input type="number" step="any" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][price]" value="{{ $priceswithcategory->price }}" />
-                              </div>
-                           </div>
-                           <div class="from-group col-lg-6  mb-2">
-                              <label for="">{{ __('Stock Quantity :') }} </label>
-                              <div >
-                                 <input type="number" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][qty]" value="{{ $priceswithcategory->qty }}"/>
-                              </div>
-                           </div>
-                           <div class="from-group col-lg-6 mb-2">
-                              <label for="" >{{ __('SKU :') }} </label>
-                              <div >
-                                 <input type="text" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][sku]" value="{{ $priceswithcategory->sku }}"/>
-                              </div>
-                           </div>
-                           <div class="from-group col-lg-6  mb-2">
-                              <label for="" >{{ __('Weight :') }} </label>
-                              <div >
-                                 <input type="number" step="any" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][weight]" value="{{ $priceswithcategory->weight }}"/>
-                              </div>
-                           </div>
-                           <div class="from-group col-lg-6  mb-2">
-                              <label for="" >{{ __('Manage Stock ?') }} </label>
-                              <div >
-                                 <select class="form-control selectric" name="childattribute[priceoption][{{$priceswithcategory->id}}][stock_manage]">
-                                    <option value="1" @if($priceswithcategory->stock_manage == 1) selected @endif>{{ __('Yes') }}</option>
-                                    <option value="0" @if($priceswithcategory->stock_manage == 0) selected @endif>{{ __('No') }}</option>
-                                 </select>
-                              </div>
-                           </div>
-                           <div class="from-group col-lg-6  mb-2">
-                              <label for="" >{{ __('Stock Status:') }} </label>
-                              <div >
-                                 <select class="form-control selectric" name="childattribute[priceoption][{{$priceswithcategory->id}}][stock_status]">
-                                    <option value="1" @if($priceswithcategory->stock_status == 1) selected @endif>{{ __('In Stock') }}</option>
-                                    <option value="0" @if($priceswithcategory->stock_status == 0) selected @endif>{{ __('Out Of Stock') }}</option>
-                                 </select>
-                              </div>
-                           </div>
-
-                           <div class="from-group col-lg-6  mb-2">
-                              <label for="" >{{ __('Tax:') }} </label>
-                              <div >
-                                 <select class="form-control selectric" name="childattribute[priceoption][{{$priceswithcategory->id}}][tax]">
-                                    <option value="1" @if($priceswithcategory->tax == 1) selected @endif>{{ __('Enable') }}</option>
-                                    <option value="0" @if($priceswithcategory->tax == 0) selected @endif>{{ __('Disable') }}</option>
-                                 </select>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                     @endforeach
-                  </div>
+                 
                </div>
             </div>
             @endforeach
+            
+            <div class="accordion renderchildVaritions">
+               <div class="accordion-header h-50" role="button" data-toggle="collapse" data-target="#panel-body-Varitions">
+                  <div class="float-left">
+                     <h6>
+                      Variation Products
+                    </h6>
+                  </div>
+                   <div class="float-right">
+                     <button class="btn btn-secondary float-right add_more_attribute" type="button"><i class="fas fa-plus"></i> {{ __('Add More variation') }}</button>
+                  </div>
+               </div>
+               <div class="accordion-body collapse show" id="panel-body-Varitions" data-parent="#accordion">
+
+                  <div id="children_attribute_render_area">
+                     @php 
+                     $used_combination = [];
+                     @endphp
+                     @foreach($info->prices ?? [] as $priceswithcategory)
+                      <div class="accordion" id="childcard{{$priceswithcategory->id}}">
+                        <div class="accordion-header h-50" role="button" data-toggle="collapse" data-target="#panel-body-{{$priceswithcategory->id}}">
+                           <div class="float-left">   
+                                 <h4> 
+                                       @php $usku = ''; @endphp
+                                       @foreach($priceswithcategory->varitions as $varition)
+                                       {{ $usedarrtibuteOption[$varition->pivot->productoption_id] ?? '' }} / <span class="text-danger">  {{ $varition->name ?? '' }}</span>
+                                       @php $usku .= $varition->id; 
+                                       //dump($varition->id);
+                                       @endphp
+                                       <input type="hidden" name="childattribute[priceoption][{{$priceswithcategory->id}}][varition][{{$varition->pivot->productoption_id}}]" value="{{$varition->id}}">
+                                       @endforeach
+                                       @php $used_combination[] = trim($usku); @endphp
+      
+                                 </h4>
+                           </div>
+                           <div class="float-right">
+                              <a class="btn btn-danger btn-sm text-white varition_option_delete" data-id="{{$priceswithcategory->id}}"><i class="fa fa-trash"></i></a>
+                           </div>      
+                        </div>
+      
+                        <div class="accordion-body collapse show" id="panel-body-{{$priceswithcategory->id}}" data-parent="#children_attribute_render_area">
+                           <div class=" row">
+                              <div class="from-group col-lg-6">
+                                 <label for="" >{{ __('Price :') }} </label>
+                                 <div >
+                                    <input type="number" step="any" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][price]" value="{{ $priceswithcategory->price }}" />
+                                 </div>
+                              </div>
+                              <div class="from-group col-lg-6  mb-2">
+                                 <label for="">{{ __('Stock Quantity :') }} </label>
+                                 <div >
+                                    <input type="number" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][qty]" value="{{ $priceswithcategory->qty }}"/>
+                                 </div>
+                              </div>
+                              <div class="from-group col-lg-6 mb-2">
+                                 <label for="" >{{ __('SKU :') }} </label>
+                                 <div >
+                                    <input type="text" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][sku]" value="{{ $priceswithcategory->sku }}"/>
+                                 </div>
+                              </div>
+                              <div class="from-group col-lg-6  mb-2">
+                                 <label for="" >{{ __('Weight :') }} </label>
+                                 <div >
+                                    <input type="number" step="any" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][weight]" value="{{ $priceswithcategory->weight }}"/>
+                                 </div>
+                              </div>
+                              <div class="from-group col-lg-6  mb-2">
+                                 <label for="" >{{ __('Manage Stock ?') }} </label>
+                                 <div >
+                                    <select class="form-control selectric" name="childattribute[priceoption][{{$priceswithcategory->id}}][stock_manage]">
+                                       <option value="1" @if($priceswithcategory->stock_manage == 1) selected @endif>{{ __('Yes') }}</option>
+                                       <option value="0" @if($priceswithcategory->stock_manage == 0) selected @endif>{{ __('No') }}</option>
+                                    </select>
+                                 </div>
+                              </div>
+                              <div class="from-group col-lg-6  mb-2">
+                                 <label for="" >{{ __('Stock Status:') }} </label>
+                                 <div >
+                                    <select class="form-control selectric" name="childattribute[priceoption][{{$priceswithcategory->id}}][stock_status]">
+                                       <option value="1" @if($priceswithcategory->stock_status == 1) selected @endif>{{ __('In Stock') }}</option>
+                                       <option value="0" @if($priceswithcategory->stock_status == 0) selected @endif>{{ __('Out Of Stock') }}</option>
+                                    </select>
+                                 </div>
+                              </div>
+      
+                              <div class="from-group col-lg-6  mb-2">
+                                 <label for="" >{{ __('Tax:') }} </label>
+                                 <div >
+                                    <select class="form-control selectric" name="childattribute[priceoption][{{$priceswithcategory->id}}][tax]">
+                                       <option value="1" @if($priceswithcategory->tax == 1) selected @endif>{{ __('Enable') }}</option>
+                                       <option value="0" @if($priceswithcategory->tax == 0) selected @endif>{{ __('Disable') }}</option>
+                                    </select>
+                                 </div>
+                              </div>
+                           </div>
+                        </div> 
+                      </div>
+                      @endforeach
+      
+                  </div>   
+
+
+               </div>   
+
          </div>
+         
+            
       </div>
       <div class="from-group  mb-2">
          <button class="btn btn-primary basicbtn col-lg-2 float-left" type="submit"><i class="far fa-save"></i> {{ __('Update') }}</button>
+    
+         <button class="btn btn-primary col-lg-3 ml-5 create_variation_product" style="display:none" type="button"><i class="fas fa-plus"></i> {{ __('Create variation products') }}</button>
 
-          <button class="btn btn-primary col-lg-3 float-right add_more_attribute" type="button"><i class="fas fa-plus"></i> {{ __('Add More variation') }}</button>
       </div>
    </form>
 </div>
 <input type="hidden" id="max_short" value="{{ count($info->productoptionwithcategories) }}">
 <input type="hidden" id="parentattributes" value="{{ $attributes }}" />
+<input type="hidden" id="used_combination" value='{!! json_encode($used_combination,true) !!}' />
 @endsection
 
 @push('script')

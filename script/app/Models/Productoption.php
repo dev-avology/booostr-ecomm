@@ -37,4 +37,9 @@ class Productoption extends Model
     {
         return $this->hasMany(Price::class)->with('category');
     }
+
+    public function priceswithvaritions()
+    {
+        return $this->belongsToMany(Category::class,'variationproductoptions')->select('id','name');
+    }
 }

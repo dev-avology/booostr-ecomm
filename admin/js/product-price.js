@@ -3,6 +3,9 @@
    var short=$('#max_short').val();
    const parentAttributes= JSON.parse($('#parentattributes').val());
 
+   if (parentAttributes.length == $('.parentattribute').length) {
+      $('.add_more_attribute').hide();
+   }
   //add more attributes
    $('.add_more_attribute').on('click',function(e){
      
@@ -97,7 +100,7 @@
    `;
 
 
-      $('#accordion').append(html);
+      $('.renderchildVaritions').before(html);
 
       $('.select2').select2();
       $(".selectric").selectric({
@@ -142,91 +145,188 @@
 
    });
 
+   
 
+//this event will execute when children attribute change
+ $(document).on('change','.childattribute',function (argument) {
+   
+  if($(this).data('type') == 'new'){
+   $('#children_attribute_render_area').html('');  
+  }
 
-   //this event will execute when children attribute change
-   $(document).on('change','.childattribute',function (argument) {
-      var short=$('option:selected', this).data('short');
-      var parent_name=$('option:selected', this).data('parent');
-      var parentid=$('option:selected', this).data('parentid');
-      var type=$(this).data('type');
-      var selected_child_ids=$(this).val();
-      console.log(parentid)
-      console.log(type)
-      if (type == 'new') {
-         $('.selecttype'+short).attr('name',"childattribute[new_child_group]["+parentid+"][select_type]");
-         $('.is_required'+short).attr('name',"childattribute[new_child_group]["+parentid+"][is_required]");
-      }
-      //select name from selected options
-      var namearray = $('option:selected', this).toArray().map(item => item.text).join();
-      var names=namearray.split(',');
+    $('.create_variation_product').show();
+    return false;
+ })
 
-      var selected = $(this).find('option:selected');
-      var unselected = $(this).find('option:not(:selected)');
+   $(document).on('click','.create_variation_product',function (argument) {
       
+      var used_combination = $('#used_combination').val();
+      var usedCombination = used_combination.replace(/&quot;/g, '"');
+        usedCombination = JSON.parse(usedCombination);
+   
+      console.log(usedCombination);
 
-      $.each(unselected, function(index, value){
-          $('#childcard'+$(this).val()).remove();
-       });
 
-      var unselectedparentAttr = $('.parentattribute'+short).find('option:not(:selected)');
-     
-      $.each(unselectedparentAttr, function(index, value){
-         
-          $(this).attr('disabled','');
-       });
+      var useedOptions = {};
 
-      $.each(selected_child_ids, function (index, id) {
-         
-         if($("#childcard"+id).length == 0)
-         {
-            if (type == 'new') {
-               var price_name=`childattribute[new_child_group][${parentid}][childrens][${id}][price]`;
-               var qtyname=`childattribute[new_child_group][${parentid}][childrens][${id}][qty]`;
-               var skuname=`childattribute[new_child_group][${parentid}][childrens][${id}][sku]`;
-               var stock_manage_name=`childattribute[new_child_group][${parentid}][childrens][${id}][stock_manage]`;
-               var weight_name=`childattribute[new_child_group][${parentid}][childrens][${id}][weight]`;
-               var stock_status=`childattribute[new_child_group][${parentid}][childrens][${id}][stock_status]`;
+      var selectedOptions = [];
+      console.log($(".parentattribute option:selected").length);
+            $(".parentattribute option:selected").each(function(index, row)
+            {
+               var varValue = [];
+
+              if($(".childattribute"+ $(row).data('short') +" option:selected").length == 0){
+                 alert('choosed valid attribute and it\'s option');
+                 return true;
+              }
+
+               $(".childattribute"+ $(row).data('short') +" option:selected").each(function(index, row1)
+               {
+                  varValue.push($(row1).val());
+                  useedOptions[$(row1).val()] = {'short':$(row).data('short'), 'type':$(row1).parent().data('type'),'parent':$(row1).data('parent'),'parent_id':$(row).val(),'label':$(row1).data('attrname')};
+               });
+
+            // selectedOptions[$(row).val()] = varValue;
+               selectedOptions.push(varValue);
+
+            });
+
+         var result = crossJoin(selectedOptions);
+
+        
+         var html = '';
+
+         $(result).each(function(variationIndex, variation) {
+            
+            var id = '';
+            var type = ''; 
+
+            if(Array.isArray(variation)){
+               $(variation).each(function(optIndex, opt) {
+                  id += opt;
+                  if(`${useedOptions[opt].type}` == 'new'){
+                     type =  `${useedOptions[opt].type}`;
+                  }
+
+               });
+            }else{
+               id += variation;
+               type =  `${useedOptions[opt].type}`;
             }
-            else{
-                var price_name=`childattribute[new_priceoption][${parentid}][${id}][price]`;
-                var qtyname=`childattribute[new_priceoption][${parentid}][${id}][qty]`;
-                var skuname=`childattribute[new_priceoption][${parentid}][${id}][sku]`;
-                var stock_manage_name=`childattribute[new_priceoption][${parentid}][${id}][stock_manage]`;
-                var weight_name=`childattribute[new_priceoption][${parentid}][${id}][weight]`;
-                var stock_status=`childattribute[new_priceoption][${parentid}][${id}][stock_status]`;
-            }   
-            var html=`<div class="" id="childcard${id}">
-                  <div class="card-header">
-                     <h4>${parent_name} / <span class="text-danger">  ${names[index]}</span></h4>
 
-                     
-                  </div>
-                  <div class="row">
+
+           if ($.inArray(id, usedCombination) !== -1 && type !== 'new') {
+               return true; 
+           }
+           id = ''
+
+          html +=`<div class="accordion" id="childcard${variationIndex}new">
+          <div class="accordion-header h-50" role="button" data-toggle="collapse" data-target="#panel-body-${variationIndex}new">
+             <div class="float-left"> <h4>`;
+          var hiddenInput = '';
+           type = ''; 
+          var parentid = '';
+          var short= '';
+          
+            if(Array.isArray(variation)){
+               $(variation).each(function(optIndex, opt) {
+                  html +=` ${useedOptions[opt].parent} / <span class="text-danger">  ${useedOptions[opt].label}</span>`;
+                  type =  `${useedOptions[opt].type}`;
+
+                  short =  `${useedOptions[opt].short}`;
+                 
+                  parentid = `${useedOptions[opt].parent_id}`;
+
+                  if (type == 'new') {
+
+
+                  $('.selecttype'+short).attr('name',"optionattribute["+parentid+"][select_type]");
+                  $('.is_required'+short).attr('name',"optionattribute["+parentid+"][is_required]");
+                  }
+                  // }else{
+                  //    hiddenInput += `<input type="hidden" name="childattribute[new_priceoption][${variationIndex}][varition][${useedOptions[opt].parent_id}]" value="${opt}">`;
+
+                  // }
+
+                  hiddenInput += `<input type="hidden" name="childattribute[childrens][${variationIndex}][varition][${useedOptions[opt].parent_id}]" value="${opt}">`;
+
+                  id += opt;
+               });  
+            }else{
+               html +=` ${useedOptions[variation].parent} / <span class="text-danger">  ${useedOptions[variation].label}</span>`;
+               id += variation;
+               type =  `${useedOptions[variation].type}`;
+
+               short =  `${useedOptions[variation].short}`;
+                 
+               parentid = `${useedOptions[variation].parent_id}`;
+
+               if (type == 'new') {
+               //hiddenInput += `<input type="hidden" name="childattribute[childrens][${variationIndex}][varition][${useedOptions[variation].parent_id}]" value="${variation}">`;
+
+               $('.selecttype'+short).attr('name',"optionattribute["+parentid+"][select_type]");
+               $('.is_required'+short).attr('name',"optionattribute["+parentid+"][is_required]");
+               }
+
+               // }else{
+               //    hiddenInput += `<input type="hidden" name="childattribute[new_priceoption][${variationIndex}][varition][${useedOptions[variation].parent_id}]" value="${variation}">`;
+
+               // }
+               hiddenInput += `<input type="hidden" name="childattribute[childrens][${variationIndex}][varition][${useedOptions[variation].parent_id}]" value="${variation}">`;
+
+            }   
+
+
+           // if (type == 'new') {
+               var price_name=`childattribute[childrens][${variationIndex}][price]`;
+               var qtyname=`childattribute[childrens][${variationIndex}][qty]`;
+               var skuname=`childattribute[childrens][${variationIndex}][sku]`;
+               var stock_manage_name=`childattribute[childrens][${variationIndex}][stock_manage]`;
+               var weight_name=`childattribute[childrens][${variationIndex}][weight]`;
+               var stock_status=`childattribute[childrens][${variationIndex}][stock_status]`;
+            // }
+            // else{
+            //     var price_name=`childattribute[new_priceoption][${variationIndex}][price]`;
+            //     var qtyname=`childattribute[new_priceoption][${variationIndex}][qty]`;
+            //     var skuname=`childattribute[new_priceoption][${variationIndex}][sku]`;
+            //     var stock_manage_name=`childattribute[new_priceoption][${variationIndex}][stock_manage]`;
+            //     var weight_name=`childattribute[new_priceoption][${variationIndex}][weight]`;
+            //     var stock_status=`childattribute[new_priceoption][${variationIndex}][stock_status]`;
+            // }
+
+
+
+            html +=`</h4>
+            </div>
+            <div class="float-right">
+               <a class="btn btn-danger btn-sm text-white varition_option_delete" data-id="${variationIndex}new"><i class="fa fa-trash"></i></a>
+            </div>      
+         </div> <div class="accordion-body collapse show" id="panel-body-${variationIndex}new" data-parent="#children_attribute_render_area">
+         <div class="row">
                      
                       <div class="from-group col-lg-6">
                         <label for="" >Price : </label>
                         <div >
-                           <input type="number" required step="any" class="form-control" name="${price_name}"/>
+                           <input type="number" required step="any" class="form-control" name="${price_name}" value="0"/>
                         </div>
                      </div>
                       
                       <div class="from-group col-lg-6  mb-2">
                         <label for="">Stock Quantity : </label>
                         <div >
-                           <input type="number" class="form-control" name="${qtyname}"/>
+                           <input type="number" class="form-control" name="${qtyname}" value="100"/>
                         </div>
                      </div>
                      <div class="from-group col-lg-6 mb-2">
                         <label for="" >SKU : </label>
                         <div >
-                           <input type="text" class="form-control" name="${skuname}"/>
+                           <input type="text" class="form-control" name="${skuname}" value="SKU${id}"/>
                         </div>
                      </div>
                       <div class="from-group col-lg-6  mb-2">
                         <label for="" >Weight : </label>
                         <div >
-                           <input type="number" step="any" class="form-control" name="${weight_name}"/>
+                           <input type="number" step="any" class="form-control" name="${weight_name}" value="0"/>
                         </div>
                      </div>
                      <div class="from-group col-lg-6  mb-2">
@@ -244,31 +344,45 @@
                         <div >
                           
                            <select class="form-control selectric" name="${stock_status}">
-                              <option value="1">In Stock</option>
+                              <option value="1" selected>In Stock</option>
                               <option value="0">Out Of Stock</option>
                            </select>
                         </div>
                      </div>
+                     ${hiddenInput}
                   </div>
-               </div>`;
+               </div></div>`;
 
-        $('#children_attribute_render_area'+short).append(html);  
-       
-        }
-      });
-       
-          
-    $(".selectric").selectric({
-          disableOnMobile: false,
-          nativeOnMobile: false
+
+
         });
+        
+        console.log(html);
+        
+        $('#children_attribute_render_area').append(html);  
+
+        $('.create_variation_product').hide();
+
+
    });
 
    
    $(document).on('click','.option_delete',function(){
        var id=$(this).data('id');
-      $('.renderchild'+id).remove();
+       $('.renderchild'+id).remove();
+      $('#children_attribute_render_area').html('');  
+
+      if($('.parentattribute').length > 0){
+         $('.create_variation_product').show();
+         $('.add_more_attribute').show();
+      }
+
    });
+
+   $(document).on('click','.varition_option_delete',function(){
+      var id=$(this).data('id');
+      $('#childcard'+id).remove();
+  });
 
    $('.product_type').on('change',function(){
       var type=$(this).val();
@@ -281,5 +395,36 @@
          $('.single_product_area').show();
       }
    });
+
+   function crossJoin(arrays) {
+      // Check if there are at least two arrays
+      if (arrays.length < 2) {
+        console.error('At least two arrays are required for cross join.');
+        return arrays[0];
+      }
+    
+      // Initialize result with the first array
+      let result = arrays[0].map(item => [item]);
+    
+      // Iterate over the remaining arrays
+      for (let i = 1; i < arrays.length; i++) {
+        const currentArray = arrays[i];
+        const tempResult = [];
+    
+        // Iterate over the existing result and combine with the current array
+        for (let j = 0; j < result.length; j++) {
+          for (let k = 0; k < currentArray.length; k++) {
+            // Ensure each element in result is an array before using concat
+            tempResult.push(result[j].concat(currentArray[k]));
+          }
+        }
+    
+        // Update the result with the temporary result
+        result = tempResult;
+      }
+    
+      return result;
+    }
+  
  
 })(jQuery);

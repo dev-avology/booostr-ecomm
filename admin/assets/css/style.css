@@ -1494,6 +1494,9 @@ h6 .badge {
       box-shadow: 0 2px 6px #acb5f6;
       background-color: rgb(0, 192, 255);
       color: #fff; }
+    #children_attribute_render_area .accordion .accordion-header[aria-expanded="true"]{
+      background-color: #004eff;
+      }
   .accordion .accordion-body {
     line-height: 24px; }
 
