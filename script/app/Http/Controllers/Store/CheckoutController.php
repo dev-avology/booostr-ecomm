@@ -115,7 +115,7 @@ class CheckoutController extends Controller
         ];
 
         Session::put('customer_data',$customer);
-dd(['cartid'=>$cartid,'redirect_url'=>$redirect_url]);
+
        return redirect()->route('direct.checkout',['cartid'=>$cartid,'redirect_url'=>$redirect_url]);
     }
 
@@ -234,7 +234,7 @@ dd(['cartid'=>$cartid,'redirect_url'=>$redirect_url]);
        $free_shipping = $free_shipping ? (int)$free_shipping->value : 0;
 
        $shipping_price = 0;
-
+       
        $min_cart_total=Option::where('key','min_cart_total')->first();
        $min_cart_total = $min_cart_total ? (int)$min_cart_total->value : 100;
 
