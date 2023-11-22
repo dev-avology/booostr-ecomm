@@ -348,16 +348,27 @@ a.cart-summary > span {
                                             @foreach (Cart::instance('default')->content() as $item)
                                                 <p><a href="#" class="cart-summary"> <img src="{{ $item->options->preview }}"
                                                             alt="img"><span>{{ $item->name }}</span>
+                                                           
 						@php if(count($item->options['options'])){
                           echo "<span class='product-description'>";
 						 foreach($item->options['options'] as $option => $selected_option){
-						  echo "<strong>".$option." : </strong>";
-						  $sel_option = array();
-                             foreach($selected_option as $selected){
-								 $sel_option[] = $selected['name'];
-							 }
-                            echo implode(',',$sel_option);
-                             echo "<br>";							
+                            $product_options = $selected_option->varitionOptions;
+                            foreach($selected_option->varitions as $sel_val){
+                                $cur_opt_name = $product_options->filter(function ($x) use ($sel_val) {
+                                return $x->id == $sel_val->pivot->productoption_id;
+                            });
+    						   echo "<strong>".$cur_opt_name->first()->category->name." : </strong>";
+                              echo $sel_val->name;
+                              echo "<br>";
+                            }
+                             //dump($selected_option->varitions); 
+						//   echo "<strong>".$option." : </strong>";
+						//   $sel_option = array();
+                        //      foreach($selected_option as $selected){
+						// 		 $sel_option[] = $selected['name'];
+						// 	 }
+                        //     echo implode(',',$sel_option);
+                        //      echo "<br>";							
 						 }						
 						  echo "</span>";	 						
 						 } @endphp
