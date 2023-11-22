@@ -178,7 +178,7 @@
             @endforeach
             
             <div class="accordion renderchildVaritions">
-               <div class="accordion-header h-50" role="button" data-toggle="collapse" data-target="#panel-body-Varitions">
+               <div class="accordion-header h-50" >
                   <div class="float-left">
                      <h6>
                       Variation Products

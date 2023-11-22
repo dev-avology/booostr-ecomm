@@ -142,7 +142,7 @@
          var html=`<div id="children_attribute_render_area${short}"></div>`;
          $('.children_attribute_render_area').append(html);
       }
-
+      $('.create_variation_product').show();
    });
 
    
@@ -176,8 +176,12 @@
                var varValue = [];
 
               if($(".childattribute"+ $(row).data('short') +" option:selected").length == 0){
-                 alert('choosed valid attribute and it\'s option');
-                 return true;
+               alert('choosed valid attribute and it\'s option');
+               $(".childattribute"+ $(row).data('short')).closest('.row').css({"border": "1px solid red"});
+
+               return true;
+              }else{
+               $(".childattribute"+ $(row).data('short')).closest('.row').css({"border": "0px"});
               }
 
                $(".childattribute"+ $(row).data('short') +" option:selected").each(function(index, row1)
