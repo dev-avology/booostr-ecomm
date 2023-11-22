@@ -211,7 +211,7 @@
                });
             }else{
                id += variation;
-               type =  `${useedOptions[opt].type}`;
+               type =  `${useedOptions[variation].type}`;
             }
 
 
