@@ -156,7 +156,7 @@
                         <label for="" >{{ __('Select Type :') }} </label>
                         <div >
                            <select name="optionattribute[{{$row->category_id}}][select_type]" class="form-control selectric    selecttype{{ $key }}">
-                              <option value="1" @if($row->select_type == 1) selected @endif>{{ __('Multiple Select') }}</option>
+                              {{-- <option value="1" @if($row->select_type == 1) selected @endif>{{ __('Multiple Select') }}</option> --}}
                               <option value="0" @if($row->select_type == 0) selected @endif>{{ __('Single Select') }}</option>
                            </select>
                         </div>
