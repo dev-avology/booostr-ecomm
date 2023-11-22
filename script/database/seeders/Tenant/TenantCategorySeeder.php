@@ -58,7 +58,7 @@ class TenantCategorySeeder extends Seeder
         3 => 
         array (
           'id' => 4,
-          'name' => 'Size',
+          'name' => 'Color',
           'slug' => 'radio',
           'type' => 'parent_attribute',
           'category_id' => NULL,
@@ -123,7 +123,7 @@ class TenantCategorySeeder extends Seeder
         8 => 
         array (
           'id' => 9,
-          'name' => 'Color',
+          'name' => 'Size',
           'slug' => 'checkbox',
           'type' => 'parent_attribute',
           'category_id' => NULL,
