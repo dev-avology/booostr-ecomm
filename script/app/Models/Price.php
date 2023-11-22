@@ -35,4 +35,8 @@ class Price extends Model
         return $this->belongsToMany(Category::class,'variationproductoptions')->select('id','name')->withPivot('productoption_id');
     }
 
+    public function varitionOptions(){
+        return $this->belongsToMany(Productoption::class,'variationproductoptions')->with('category');
+    }
+
 }

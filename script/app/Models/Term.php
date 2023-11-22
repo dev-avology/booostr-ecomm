@@ -127,7 +127,7 @@ class Term extends Model
     }
     public function prices()
     {
-        return $this->hasMany(Price::class, 'term_id')->with('varitions');
+        return $this->hasMany(Price::class, 'term_id')->with('varitions','varitionOptions');
     }
     
     public function categories()
