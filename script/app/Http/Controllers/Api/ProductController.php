@@ -90,14 +90,16 @@ class ProductController extends Controller
         $cartid = !empty($request->header('cartid')) ? $request->header('cartid') : Str::random(10);
         $info = '';
         if ($request->id) {
-            $info = Term::query()
-            ->where('id', $request->id)
-            ->where('type', 'product')
-            ->where('status', 1)
-            ->with(['excerpt', 'preview', 'prices' => function ($query) use ($request) {
-                $query->where('id', $request->variation_id);
-            }])
-            ->first();
+            $info = Term::where('id', $request->id)
+                ->where('type', 'product')
+                ->where('status', 1)
+                ->with(['excerpt', 'preview'])
+                ->when($request->variation_id, function ($query) use ($request) {
+                    $query->with(['prices' => function ($subQuery) use ($request) {
+                        $subQuery->where('id', $request->variation_id);
+                    }]);
+                })
+                ->first();
         }
         // dd($info);
         
