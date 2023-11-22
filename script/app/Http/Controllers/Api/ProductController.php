@@ -90,8 +90,16 @@ class ProductController extends Controller
         $cartid = !empty($request->header('cartid')) ? $request->header('cartid') : Str::random(10);
         $info = '';
         if ($request->id) {
-            $info = Term::query()->where('id', $request->id)->where('type', 'product')->where('status', 1)->with('excerpt','preview')->first();
+            $info = Term::query()
+            ->where('id', $request->id)
+            ->where('type', 'product')
+            ->where('status', 1)
+            ->with(['excerpt', 'preview', 'prices' => function ($query) use ($request) {
+                $query->where('id', $request->variation_id);
+            }])
+            ->first();
         }
+        // dd($info);
         
         if (empty($info)) {
             return response()->json(["status" => 0, "message" => 'Opps product not available', "result" => []]);
@@ -101,46 +109,48 @@ class ProductController extends Controller
         Cart::restore($cartid);
         
         if ($info->is_variation == 1) {
-            $groups = [];
-            foreach ($request->option ?? [] as $key => $option) {
-                $option_values = [];
-                foreach ($option as $k => $value) {
-                    array_push($option_values, $value);
-                }
-                $group = Productoption::with(array('priceswithcategories' => function ($query) use ($option_values) {
-                    return $query->whereIn('id', $option_values);
-                }))->with('category')->where('id', $key)->first();
-                array_push($groups, $group);
-            }
-            $final_price = 0;
-            $final_weight = 0;
-            $price_option = [];
-            $priceids = [];
-            $tax = 1;
-            foreach ($groups as $key => $row) {
-                foreach ($row->priceswithcategories as $key => $value) {
-                    if ($value->stock_manage == 1) {
-                        array_push($priceids, $value->id);
-                    }
-                    $final_price = $final_price + $value->price;
-                    $final_weight = $final_weight + $value->weight;
-                    $tax = $value->tax ?? 1;
-                    $price_option[$row->category->name][$value->id]['price'] = $value->price;
-                    $price_option[$row->category->name][$value->id]['sku'] = $value->sku;
-                    $price_option[$row->category->name][$value->id]['weight'] = $value->weight;
-                    $price_option[$row->category->name][$value->id]['name'] = $value->category->name;
-                }
-            }
+
+
+            // $groups = [];
+            // foreach ($request->option ?? [] as $key => $option) {
+            //     $option_values = [];
+            //     foreach ($option as $k => $value) {
+            //         array_push($option_values, $value);
+            //     }
+            //     $group = Productoption::with(array('priceswithcategories' => function ($query) use ($option_values) {
+            //         return $query->whereIn('id', $option_values);
+            //     }))->with('category')->where('id', $key)->first();
+            //     array_push($groups, $group);
+            // }
+            // $final_price = 0;
+            // $final_weight = 0;
+            // $price_option = [];
+            // $priceids = [];
+            // $tax = 1;
+            // foreach ($groups as $key => $row) {
+            //     foreach ($row->priceswithcategories as $key => $value) {
+            //         if ($value->stock_manage == 1) {
+            //             array_push($priceids, $value->id);
+            //         }
+            //         $final_price = $final_price + $value->price;
+            //         $final_weight = $final_weight + $value->weight;
+            //         $tax = $value->tax ?? 1;
+            //         $price_option[$row->category->name][$value->id]['price'] = $value->price;
+            //         $price_option[$row->category->name][$value->id]['sku'] = $value->sku;
+            //         $price_option[$row->category->name][$value->id]['weight'] = $value->weight;
+            //         $price_option[$row->category->name][$value->id]['name'] = $value->category->name;
+            //     }
+            // }
            $cart_item = Cart::add(
-                ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $final_price, 'weight' => $final_weight, 
+                ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $info->prices[0]['price'], 'weight' => $info->prices[0]['weight'], 
                 'options' => [
-                    'tax' =>$tax,
-                    'options' => $price_option, 'sku' => null, 'stock' => null, 'price_id' => $priceids,'short_description'=>($info->excerpt->value ?? ''),
+                    'tax' =>$info->prices[0]['tax'],
+                    'options' => $info->prices, 'sku' => null, 'stock' => null, 'price_id' => $info->prices[0]['id'],'short_description'=>($info->excerpt->value ?? ''),
                     'preview'=>asset($info->preview->value ?? 'uploads/default.png')
                     ]
                 ]);
 
-         if($tax == 1){
+         if($info->prices[0]['tax'] == 1){
             $cart_item->setTaxRate(getTaxRate());
          }
 
