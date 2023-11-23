@@ -72,7 +72,7 @@
 
                         </select>
                      </div>
-                     <div class="from-group col-lg-6  mb-2">
+                     <!--<div class="from-group col-lg-6  mb-2">
                         <label for="" >Select Type : </label>
                         <div >
                            <select  class="form-control selectric selecttype${short}">
@@ -89,7 +89,7 @@
                               <option value="0" >No</option>
                            </select>
                         </div>
-                     </div>
+                     </div> -->
                   </div>
                   <hr>
                   <div id="children_attribute_render_area${short}">
@@ -241,12 +241,12 @@
                  
                   parentid = `${useedOptions[opt].parent_id}`;
 
-                  if (type == 'new') {
+                  // if (type == 'new') {
 
 
-                  $('.selecttype'+short).attr('name',"optionattribute["+parentid+"][select_type]");
-                  $('.is_required'+short).attr('name',"optionattribute["+parentid+"][is_required]");
-                  }
+                  // $('.selecttype'+short).attr('name',"optionattribute["+parentid+"][select_type]");
+                  // $('.is_required'+short).attr('name',"optionattribute["+parentid+"][is_required]");
+                  // }
                   // }else{
                   //    hiddenInput += `<input type="hidden" name="childattribute[new_priceoption][${variationIndex}][varition][${useedOptions[opt].parent_id}]" value="${opt}">`;
 
@@ -265,12 +265,12 @@
                  
                parentid = `${useedOptions[variation].parent_id}`;
 
-               if (type == 'new') {
-               //hiddenInput += `<input type="hidden" name="childattribute[childrens][${variationIndex}][varition][${useedOptions[variation].parent_id}]" value="${variation}">`;
+               // if (type == 'new') {
+               // //hiddenInput += `<input type="hidden" name="childattribute[childrens][${variationIndex}][varition][${useedOptions[variation].parent_id}]" value="${variation}">`;
 
-               $('.selecttype'+short).attr('name',"optionattribute["+parentid+"][select_type]");
-               $('.is_required'+short).attr('name',"optionattribute["+parentid+"][is_required]");
-               }
+               // $('.selecttype'+short).attr('name',"optionattribute["+parentid+"][select_type]");
+               // $('.is_required'+short).attr('name',"optionattribute["+parentid+"][is_required]");
+               // }
 
                // }else{
                //    hiddenInput += `<input type="hidden" name="childattribute[new_priceoption][${variationIndex}][varition][${useedOptions[variation].parent_id}]" value="${variation}">`;
