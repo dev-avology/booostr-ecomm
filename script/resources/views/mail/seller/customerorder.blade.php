@@ -409,6 +409,8 @@
                         $variations = json_decode($row->info);
 
                         $options = $variations->options ?? [];
+                       // $selected_variation = $options->varitions ?? [];
+                       // $varition_options = $options->varition_options ?? [];
 
                     @endphp
                     </tr>
@@ -418,13 +420,15 @@
                             style="padding-left: 35px;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
                             {{ $row->term->title ?? '' }}
                             @foreach ($options ?? [] as $key => $item)
-                                <br>
-                                <span>{{ $key }}:</span><br>
+                              @php $product_options = $item->varition_options; @endphp
+                            @foreach($item->varitions as $sel_val)
+                                @php $cur_opt_name = array_filter($product_options,function ($x) use ($sel_val) {
+                                    return $x->id == $sel_val->pivot->productoption_id;
+                                } );
+                                @endphp
 
-                                @foreach ($item ?? [] as $r)
-                                    <span>{{ __('Name:') }} {{ $r->name ?? '' }},</span>
-                                    <span>{{ __('Price:') }} {{ currency_formate($r->price ?? 0) }},</span>
-                                @endforeach
+                             <br><strong>{{reset($cur_opt_name)->category->name}} : </strong>{{$sel_val->name}}
+                            @endforeach
                                 <hr>
                             @endforeach
                         </td>
