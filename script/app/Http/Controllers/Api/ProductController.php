@@ -147,7 +147,7 @@ class ProductController extends Controller
                 ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $info->prices[0]['price'], 'weight' => $info->prices[0]['weight'], 
                 'options' => [
                     'tax' =>$info->prices[0]['tax'],
-                    'options' => $info->prices, 'sku' => null, 'stock' => null, 'price_id' => $info->prices[0]['id'],'short_description'=>($info->excerpt->value ?? ''),
+                    'options' => $info->prices, 'sku' => $info->prices[0]['sku'], 'stock' => null, 'price_id' => $info->prices[0]['id'],'short_description'=>($info->excerpt->value ?? ''),
                     'preview'=>asset($info->preview->value ?? 'uploads/default.png')
                     ]
                 ]);

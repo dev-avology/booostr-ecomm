@@ -48,16 +48,17 @@
                                             <br>
                                         </a>
                                         @foreach ($options ?? [] as $key => $item)
-                                            <span>{{ $key }}:</span><br>
-                                            @foreach ($item ?? [] as $r)
-                                                <span>{{ __('Name:') }} {{ $r->name ?? '' }}</span><br>
-                                                <span>{{ __('Sku:') }} {{ $r->sku ?? '' }}</span><br>
-                                                <span>{{ __('Price:') }}
-                                                    {{ currency_formate($r->price ?? 0) }}</span><br>
-                                                <span>{{ __('Weight:') }} {{ $r->weight ?? '' }}</span><br>
+                                            @php $product_options = $item->varition_options; @endphp
+                                            @foreach($item->varitions as $sel_val)
+                                                @php $cur_opt_name = array_filter($product_options,function ($x) use ($sel_val) {
+                                                    return $x->id == $sel_val->pivot->productoption_id;
+                                                } );
+                                                @endphp
+
+                                            <strong>{{reset($cur_opt_name)->category->name}} : </strong>{{$sel_val->name}}<br>
                                             @endforeach
-                                            <hr>
-                                        @endforeach
+                                                <hr>
+                                            @endforeach
                                     </div>
                                     <div class="col-3 text-right">
                                         {{ currency_formate($row->amount) }} × {{ $row->qty }}
