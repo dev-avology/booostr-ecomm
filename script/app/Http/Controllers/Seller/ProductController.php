@@ -340,9 +340,11 @@ class ProductController extends Controller
                      foreach ($request->parentattribute ?? [] as $option) {
                       $group = Productoption::firstOrNew(['term_id'=>$term->id,'category_id'=>$option]);
                         // $group = Productoption::where('id', $keychild)->first();
-                         $group->select_type = $request->optionattribute[$option]['select_type'];
-                         $group->is_required = $request->optionattribute[$option]['select_type'];
-                         $group->save();
+                        //  $group->select_type = $request->optionattribute[$option]['select_type'];
+                        //  $group->is_required = $request->optionattribute[$option]['select_type'];
+                        $group->select_type = 0;
+                        $group->is_required = 1;
+                        $group->save();
                          $product_options[$option] = $group->id;
                      }
 

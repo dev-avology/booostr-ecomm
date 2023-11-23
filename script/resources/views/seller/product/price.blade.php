@@ -152,7 +152,7 @@
                             @endforeach
                         </select>
                      </div>
-                     <div class="from-group col-lg-6  mb-2">
+                     {{-- <div class="from-group col-lg-6  mb-2">
                         <label for="" >{{ __('Select Type :') }} </label>
                         <div >
                            <select name="optionattribute[{{$row->category_id}}][select_type]" class="form-control selectric    selecttype{{ $key }}">
@@ -169,7 +169,7 @@
                               <option value="0" @if($row->is_required == 0) selected @endif>{{ __('No') }}</option>
                            </select>
                         </div>
-                     </div>
+                     </div> --}}
                   </div>
                   <hr>
                  

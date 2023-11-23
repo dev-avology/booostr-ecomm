@@ -36,16 +36,16 @@
                                 <div class="col-lg-12">
                                     <select class="form-control selectric" name="select_type">
                                        
-                                        <option value="checkbox">{{ __('Checkbox (Multiple Select)') }}</option>
-                                        <option value="checkbox_custom">{{ __('Checkbox (Custom Multiple Select)') }}</option>
-                                        <option value="radio">{{ __('Radio Button (Single Select)') }}</option>
+                                        {{-- <option value="checkbox">{{ __('Checkbox (Multiple Select)') }}</option>
+                                        <option value="checkbox_custom">{{ __('Checkbox (Custom Multiple Select)') }}</option> --}}
+                                        <option value="radio">{{ __('Radio Button') }}</option>
                                         {{-- <option value="radio_custom">{{ __('Radio Button (Custom Single Select)') }}</option> --}}
-                                        <option value="color_single">{{ __('Color Selector (Single Select)') }}</option>
-                                        <option value="color_multi">{{ __('Color Selector (Multiple Select)') }}</option>
+                                        <option value="color_single">{{ __('Color Selector ') }}</option>
+                                        {{-- <option value="color_multi">{{ __('Color Selector (Multiple Select)') }}</option> --}}
                                     </select>
                                 </div>
                             </div>
-                            <div class="from-group row mb-2">
+                            {{-- <div class="from-group row mb-2">
                                 <label for="" class="col-lg-12">{{ __('Is Filterable ?') }} </label>
                                 <div class="col-lg-12">
                                    <select class="form-control selectric" name="featured">
@@ -53,7 +53,8 @@
                                        <option value="0">{{ __('No') }}</option>
                                    </select>
                                 </div>
-                            </div>
+                            </div> --}}
+                            <input type="hidden" name="featured" value="0">
                         </div>
                         <div class="card-footer">
                             <button class="btn btn-primary basicbtn">{{ __('Save') }}</button>
