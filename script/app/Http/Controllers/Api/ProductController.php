@@ -572,10 +572,16 @@ class ProductController extends Controller
             $options = $variations->options ?? [];
             $product_name['name'] = $row->term->title ;
                 foreach ($options ?? [] as $key => $item){
-                    $key;
-                    foreach ($item ?? [] as $r){
-                        $product_name['name']=$r->name ;
-                        $product_name['price'] = currency_formate($r->price ?? 0) ;
+
+                    $product_options = $item->varition_options;
+                    foreach($item->varitions as $sel_val){
+                       
+                       $cur_opt_name = array_filter($product_options,function ($x) use ($sel_val) {
+                            return $x->id == $sel_val->pivot->productoption_id;
+                        } );
+
+
+                        $product_name['name'] .= '<br><strong>'.reset($cur_opt_name)->category->name.': </strong>'.$sel_val->name;
                     }
                 }
                               
