@@ -13,22 +13,7 @@ class TenantProductoptionSeeder extends Seeder
      */
     public function run()
     {
-        $productoptions= array(
-            array(
-                "id" => 1,
-                "term_id" => 1,
-                "category_id" => 9,
-                "select_type" => 1,
-                "is_required" => 1
-            ),
-            array(
-                "id" => 2,
-                "term_id" => 1,
-                "category_id" => 4,
-                "select_type" => 1,
-                "is_required" => 1
-            )
-        );
+        $productoptions= array();
 
         Productoption::insert($productoptions);
     }
