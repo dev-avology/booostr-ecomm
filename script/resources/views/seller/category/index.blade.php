@@ -34,7 +34,8 @@
                             <tbody>
                                 @foreach($posts as $row)
                                 <tr>
-                                  <td><a href="{{ url('category',$row->slug) }}">{{ $row->name }}</a></td>
+                                  {{-- <td><a href="{{ url('category',$row->slug) }}">{{ $row->name }}</a></td> --}}
+                                  <td>{{ $row->name }}</td>
                                   <td><img src="{{ asset($row->icon->content ?? '') }}" alt="" height="50"></td>
                                    <td><img src="{{ asset($row->preview->content ?? '') }}" alt="" height="50"></td>
                                   <td>{{ date('d-m-Y', strtotime($row->created_at)) }}</td>
