@@ -27,8 +27,8 @@ class ProductController extends Controller
    public function categoryList(Request $request){
 
        //$posts=Category::where('type','category')->with('preview','icon','show_on')->withCount('products')->get();
-       $posts = Category::where('type', 'category')
-        ->with('preview', 'icon')
+       $posts = Category::where('type', 'category')->whereNull('category_id')
+        ->with('preview', 'icon','recursiveChildren')
         ->withCount('products')
         ->whereDoesntHave('show_on', function ($query) {
             $query->where('type', 'show_on')->where('content', 'pos_only');
