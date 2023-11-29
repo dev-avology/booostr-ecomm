@@ -29,7 +29,19 @@ class Category extends Model
 
     public function childrenCategories()
     {
-      return $this->hasMany(Category::class,'category_id','id')->with('categories');
+      return $this->hasMany(Category::class,'category_id','id');
+    }
+
+    public function childrenCategoriesEcommerce()
+    {
+      return $this->hasMany(Category::class,'category_id','id')->whereDoesntHave('show_on', function ($query) {
+        $query->where('type', 'show_on')->where('content', 'pos_only');
+      })->withCount('products');
+    }
+
+    public function recursiveChildren()
+    {
+        return $this->childrenCategoriesEcommerce()->with('recursiveChildren');
     }
 
     public function meta()
@@ -41,6 +53,7 @@ class Category extends Model
     {
     	return $this->hasOne(Categorymeta::class)->where('type','description');
     }
+
 
     public function shippingMethod()
     {

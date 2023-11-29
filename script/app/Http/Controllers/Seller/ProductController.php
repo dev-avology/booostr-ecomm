@@ -115,31 +115,66 @@ class ProductController extends Controller
                     'tax' => $request->tax
                 ]);
             } else {
-                $productoptions = [];
-                foreach ($request->childattribute['options'] ?? [] as $key => $value) {
-                    if (isset($request->childattribute['priceoption'][$key])) {
-                        $group = $term->productoption()->create(['category_id' => $key, 'select_type' => $value['select_type'], 'is_required' => $value['is_required']]);
 
-                        foreach ($request->childattribute['priceoption'][$key] ?? [] as $k => $row) {
+                $product_options = [];
+                $product_varitions = [];
+                
+                foreach ($request->parentattribute ?? [] as $option) {
+                    $group = Productoption::firstOrNew(['term_id'=>$term->id,'category_id'=>$option]);
+                      // $group = Productoption::where('id', $keychild)->first();
+                      //  $group->select_type = $request->optionattribute[$option]['select_type'];
+                      //  $group->is_required = $request->optionattribute[$option]['select_type'];
+                      $group->select_type = 0;
+                      $group->is_required = 1;
+                      $group->save();
+                       $product_options[$option] = $group->id;
+                   }
+                      if (isset($request->childattribute['childrens'])) {
+                          foreach ($request->childattribute['childrens'] ?? [] as $key => $child_row) {
+                              $data['term_id'] = $term->id;
+                              $data['price'] = $child_row['price'] ?? 0;
+                              $data['qty'] = $child_row['qty'] ?? 0;
+                              $data['sku'] = $child_row['sku'] ?? 0;
+                              $data['weight'] = $child_row['weight'] ?? 0;
+                              $data['stock_manage'] = $child_row['stock_manage'] ?? 0;
+                              $data['stock_status'] = $child_row['stock_status'] ?? 0;
+                              $data['tax'] = $request->tax ?? 1;
+                              $varition = Price::create($data);
+                              $varitions_data = [];
+                              foreach($child_row['varition'] ?? [] as $key=>$opt){
+                                  $varitions_data[] = ['productoption_id'=>$product_options[$key],'category_id'=>$opt] ;
+                              }
+                              $varition->varitions()->sync($varitions_data);
+                              
+                              array_push($product_varitions, $varition->id);
+                          }
+                  }
 
-                            $data['term_id'] = $term->id;
-                            $data['price'] = $row['price'] ?? 0;
-                            $data['qty'] = $row['qty'] ?? 0;
-                            $data['sku'] = $row['sku'] ?? 0;
-                            $data['weight'] = $row['weight'] ?? 0;
-                            $data['tax'] = $row['tax'] ?? 1;
-                            $data['productoption_id'] = $group->id;
-                            $data['stock_manage'] = $row['stock_manage'] ?? 0;
-                            $data['stock_status'] = $row['stock_status'] ?? 0;
-                            $data['category_id'] = $k;
+                // $productoptions = [];
+                // foreach ($request->childattribute['options'] ?? [] as $key => $value) {
+                //     if (isset($request->childattribute['priceoption'][$key])) {
+                //         $group = $term->productoption()->create(['category_id' => $key, 'select_type' => $value['select_type'], 'is_required' => $value['is_required']]);
 
-                            array_push($productoptions, $data);
-                        }
-                    }
-                }
-                if (count($productoptions) > 0) {
-                    $term->prices()->insert($productoptions);
-                }
+                //         foreach ($request->childattribute['priceoption'][$key] ?? [] as $k => $row) {
+
+                //             $data['term_id'] = $term->id;
+                //             $data['price'] = $row['price'] ?? 0;
+                //             $data['qty'] = $row['qty'] ?? 0;
+                //             $data['sku'] = $row['sku'] ?? 0;
+                //             $data['weight'] = $row['weight'] ?? 0;
+                //             $data['tax'] = $row['tax'] ?? 1;
+                //             $data['productoption_id'] = $group->id;
+                //             $data['stock_manage'] = $row['stock_manage'] ?? 0;
+                //             $data['stock_status'] = $row['stock_status'] ?? 0;
+                //             $data['category_id'] = $k;
+
+                //             array_push($productoptions, $data);
+                //         }
+                //     }
+                // }
+                // if (count($productoptions) > 0) {
+                //     $term->prices()->insert($productoptions);
+                // }
             }
 
             DB::commit();
