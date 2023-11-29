@@ -147,7 +147,7 @@ class Term extends Model
 
     public function category()
     {
-      return $this->belongsToMany(Category::class,'termcategories')->where('type','category')->select('id','name','type','slug');
+      return $this->belongsToMany(Category::class,'termcategories')->where('type','category')->select('categories.id','categories.name','categories.type','categories.category_id','slug')->with('ancestors');
     }
 
     public function brands()

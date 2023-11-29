@@ -27,10 +27,21 @@ class Category extends Model
       return $this->hasOne(Category::class,'id','category_id');
     }
 
+    public function parents()
+    {
+      return $this->BelongsTo(Category::class,'category_id','id');
+    }
+
     public function childrenCategories()
     {
       return $this->hasMany(Category::class,'category_id','id');
     }
+
+    public function ancestors()
+    {
+        return $this->parents()->with('ancestors');
+    }
+
 
     public function childrenCategoriesEcommerce()
     {
