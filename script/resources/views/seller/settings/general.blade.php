@@ -519,6 +519,11 @@
                         <div class="col-lg-12">
                             <input type="text" name="banner_button_text" value="{{$banner_button_text->value ?? ''}}" class="form-control">
                         </div>
+
+                        <label for="" class="col-lg-12">{{ __('Banner button url:') }}</label>
+                        <div class="col-lg-12">
+                            <input type="text" name="banner_button_url" value="{{$banner_button_url->value ?? ''}}" class="form-control">
+                        </div>
                        
                         <label for="" class="col-lg-12">{{ __('Banner Image:') }} (Width: 875px & Height: 250px)</label>
                         <div class="col-lg-12">
