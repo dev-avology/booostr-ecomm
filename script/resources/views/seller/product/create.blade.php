@@ -190,6 +190,15 @@
                               </select>
                            </div>
                         </div>
+                        <div class="from-group row mb-2">
+                           <label for="" class="col-lg-12">{{ __('Tax') }} : </label>
+                           <div class="col-lg-12">
+                              <select name="tax" class="form-control selectric">
+                                 <option value="1" >{{ __('Enable') }}</option>
+                                 <option value="0" >{{ __('Disable') }}</option>
+                              </select>
+                           </div>
+                        </div>
                      </div>
                   </div>
                </div>
@@ -247,15 +256,7 @@
                               </select>
                            </div>
                         </div>
-                        <div class="from-group row mb-2">
-                           <label for="" class="col-lg-12">{{ __('Tax') }} : </label>
-                           <div class="col-lg-12">
-                              <select name="tax" class="form-control selectric">
-                                 <option value="1" >{{ __('Enable') }}</option>
-                                 <option value="0" >{{ __('Disable') }}</option>
-                              </select>
-                           </div>
-                        </div>
+                        
                      </div>
                      <div class="card-footer">
                            <button class="btn btn-primary mt-2 basicbtn" type="submit">{{ __('Create Product') }}</button>
