@@ -261,7 +261,7 @@
                                  </div>
                               </div>
       
-                              <div class="from-group col-lg-6  mb-2">
+                              <!--div class="from-group col-lg-6  mb-2">
                                  <label for="" >{{ __('Tax:') }} </label>
                                  <div >
                                     <select class="form-control selectric" name="childattribute[priceoption][{{$priceswithcategory->id}}][tax]">
@@ -269,7 +269,7 @@
                                        <option value="0" @if($priceswithcategory->tax == 0) selected @endif>{{ __('Disable') }}</option>
                                     </select>
                                  </div>
-                              </div>
+                              </div-->
                            </div>
                         </div> 
                       </div>
