@@ -274,7 +274,11 @@
                <div class="col-lg-8">
                   <div class="card card-primary">
                      <div class="attribute_render_area"></div>
-                     <button class="btn btn-primary col-sm-12 add_more_attribute" type="button"><i class="fa fa-plus"></i> {{ __('Add More') }}</button>
+                     <div id="children_attribute_render_area"></div>
+                     
+                     <button class="btn btn-primary col-sm-12 add_more_attribute" type="button"><i class="fa fa-plus"></i> {{ __('Add More Attribute') }}</button>
+                   
+                     <button class="btn btn-primary mt-2 col-sm-12 create_variation_product" style="display:none" type="button"><i class="fas fa-plus"></i> {{ __('Create variation products') }}</button>
 
                      <button class="btn btn-primary mt-2 basicbtn" type="submit">{{ __('Create Product') }}</button>
                </div>

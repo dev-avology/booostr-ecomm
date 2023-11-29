@@ -164,10 +164,7 @@
       var usedCombination = used_combination.replace(/&quot;/g, '"');
         usedCombination = JSON.parse(usedCombination);
    
-      console.log(usedCombination);
-
-
-      var useedOptions = {};
+       var useedOptions = {};
 
       var selectedOptions = [];
       console.log($(".parentattribute option:selected").length);
