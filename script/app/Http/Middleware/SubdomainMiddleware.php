@@ -21,7 +21,7 @@ class SubdomainMiddleware
                 return $next($request);
             }
 
-           die('Opps this domain not available');
+           die('Oops this domain not available');
             
         }
         return redirect(env('APP_URL'));

@@ -18,7 +18,7 @@ class SellerMiddleware
     {
          if (Auth::check() && Auth::User()->role_id == 3) {
             if (Auth::user()->status != 1) {
-                \Session::flash('error','Opps your account is disabled please contact with support');
+                \Session::flash('error','Oops your account is disabled please contact with support');
                 Auth::logout();
                 return redirect()->route('login');
             }

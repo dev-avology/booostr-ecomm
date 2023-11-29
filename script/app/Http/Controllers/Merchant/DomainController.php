@@ -465,7 +465,7 @@ class DomainController extends Controller
 
        $user=User::where([['email',$request->email],['role_id',2],['status',1]])->first();
        if (empty($user)) {
-        $error['errors']['email']='Opps invalid email...!!';
+        $error['errors']['email']='Oops invalid email...!!';
          return response()->json($error,422);
        }
 
@@ -502,7 +502,7 @@ class DomainController extends Controller
       $data=Session::get('domain_transfer_info');
       
       if ($data['otp'] != $request->otp) {
-          $error['errors']['otp']='Opps invalid OTP';
+          $error['errors']['otp']='Oops invalid OTP';
           return response()->json($error,422);
       }
 
@@ -514,7 +514,7 @@ class DomainController extends Controller
       $user=User::where([['email',$data['email']],['role_id',2],['status',1]])->first();
 
       if (empty($user)) {
-        $error['errors']['email']='Opps user not exists';
+        $error['errors']['email']='Oops user not exists';
         return response()->json($error,422);
       }
       $info->user_id=$user->id;

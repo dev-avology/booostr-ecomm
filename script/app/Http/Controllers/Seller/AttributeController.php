@@ -84,7 +84,7 @@ class AttributeController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
             return $th;
-            $errors['errors']['error']='Opps something wrong';
+            $errors['errors']['error']='Oops something wrong';
             return response()->json($errors,401);
         }   
 
@@ -178,7 +178,7 @@ class AttributeController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
             return $th;
-            $errors['errors']['error']='Opps something wrong';
+            $errors['errors']['error']='Oops something wrong';
             return response()->json($errors,401);
         }   
 

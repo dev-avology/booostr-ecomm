@@ -75,7 +75,7 @@ class CartController extends Controller
                     ->latest()
                     ->first();
         if ($coupon == null) {
-             $errors['errors']['error']='Opps this coupon is not available...';
+             $errors['errors']['error']='Oops this coupon is not available...';
              return response()->json($errors,401);
         }
 
@@ -365,7 +365,7 @@ class CartController extends Controller
             }
             
             if ($price->stock_status == 0) {
-                $errors['errors']['error']='Opps Maximum stock limit exceeded';
+                $errors['errors']['error']='Oops Maximum stock limit exceeded';
                 return response()->json($errors,401);
                 
             }

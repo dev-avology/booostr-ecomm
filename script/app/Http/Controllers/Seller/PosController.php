@@ -88,7 +88,7 @@ class PosController extends Controller
               }
             }
             else{
-                $errors['errors']['error']='Opps product not available';
+                $errors['errors']['error']='Oops product not available';
                 return response()->json($errors,401);
             }
         }
@@ -260,7 +260,7 @@ class PosController extends Controller
                     ->latest()
                     ->first();
             if ($coupon == null) {
-                 $errors['errors']['error']='Opps this coupon is not available...';
+                 $errors['errors']['error']='Oops this coupon is not available...';
                  return response()->json($errors,401);
             }
 
@@ -391,7 +391,7 @@ class PosController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
             return $th;
-            $errors['errors']['error']='Opps something wrong';
+            $errors['errors']['error']='Oops something wrong';
             return response()->json($errors,401);
         } 
 

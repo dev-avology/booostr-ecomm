@@ -118,7 +118,7 @@ class ProductController extends Controller
 
                 $product_options = [];
                 $product_varitions = [];
-                
+
                 foreach ($request->parentattribute ?? [] as $option) {
                     $group = Productoption::firstOrNew(['term_id'=>$term->id,'category_id'=>$option]);
                       // $group = Productoption::where('id', $keychild)->first();
@@ -181,7 +181,7 @@ class ProductController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
 
-            $errors['errors']['error'] = 'Opps something wrong';
+            $errors['errors']['error'] = 'Oops something wrong';
             return response()->json($errors, 401);
         }
         return response()->json(['Product Created']);
@@ -336,7 +336,7 @@ class ProductController extends Controller
             } catch (\Throwable $th) {
                 DB::rollback();
                 return $th;
-                $errors['errors']['error'] = 'Opps something wrong';
+                $errors['errors']['error'] = 'Oops something wrong';
                 return response()->json($errors, 401);
             }
 
@@ -585,7 +585,7 @@ class ProductController extends Controller
                 DB::commit();
             } catch (\Throwable $th) {
                 DB::rollback();
-                //$errors['errors']['error'] = 'Opps something wrong';
+                //$errors['errors']['error'] = 'Oops something wrong';
                 dd($th);
 //                $errors['errors']['error'] = $th;
                 return response()->json($errors, 401);
@@ -621,7 +621,7 @@ class ProductController extends Controller
                 DB::commit();
             } catch (\Throwable $th) {
                 DB::rollback();
-                $errors['errors']['error'] = 'Opps something wrong';
+                $errors['errors']['error'] = 'Oops something wrong';
                 return response()->json($errors, 401);
             }
             return response()->json('Product Image Updated...!!');
@@ -645,7 +645,7 @@ class ProductController extends Controller
                 DB::commit();
             } catch (\Throwable $th) {
                 DB::rollback();
-                $errors['errors']['error'] = 'Opps something wrong';
+                $errors['errors']['error'] = 'Oops something wrong';
                 return response()->json($errors, 401);
             }
             return response()->json('Product Seo Updated...!!');
@@ -679,7 +679,7 @@ class ProductController extends Controller
                 DB::commit();
             } catch (\Throwable $th) {
                 DB::rollback();
-                $errors['errors']['error'] = 'Opps something wrong';
+                $errors['errors']['error'] = 'Oops something wrong';
                 return response()->json($errors, 401);
             }
             return response()->json('Product Discount Applied...!!');

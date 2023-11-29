@@ -399,7 +399,7 @@ class ThemesettingsController extends Controller
                     $theme_demo->delete();
                 }
             }else{
-                $errors['errors']['error']='Opps something wrong';
+                $errors['errors']['error']='Oops something wrong';
                 return response()->json($errors,401);
             }
         }else{

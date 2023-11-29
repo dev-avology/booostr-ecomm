@@ -28,7 +28,7 @@ class AvalogyMiddleware
                 if(get_option('tax') == "" || (float)get_option('tax') == 0){
                     $response = [
                         'status' => 'error',
-                        'message' => 'Opps the store is temporary disabled.Set Sales Tax in Store Setting...!!',
+                        'message' => 'Oops the store is temporary disabled.Set Sales Tax in Store Setting...!!',
                     ];
                     return response()->json($response, 413);
                }

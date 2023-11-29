@@ -112,7 +112,7 @@ class ProductController extends Controller
         // dd($info);
         
         if (empty($info)) {
-            return response()->json(["status" => 0, "message" => 'Opps product not available', "result" => []]);
+            return response()->json(["status" => 0, "message" => 'Oops product not available', "result" => []]);
         }
         
         Cart::instance($cartid);
@@ -209,7 +209,7 @@ class ProductController extends Controller
     {
         $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
         if(empty($cartid)){
-            return response()->json(["status" => 0, "message" => 'Opps cart not found', "result" => []]);
+            return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []]);
         }
         //initialize cart
         Cart::instance($cartid);
@@ -237,7 +237,7 @@ class ProductController extends Controller
     {
         $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
         if(empty($cartid)){
-            return response()->json(["status" => 0, "message" => 'Opps cart not found', "result" => []]);
+            return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []]);
         }
         //initialize cart
         Cart::instance($cartid);
@@ -270,7 +270,7 @@ class ProductController extends Controller
     {
         $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
         if(empty($cartid)){
-            return response()->json(["status" => 0, "message" => 'Opps cart not found', "result" => []]);
+            return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []]);
         }
         Cart::instance($cartid);
         Cart::restore($cartid);
@@ -367,15 +367,15 @@ class ProductController extends Controller
                 ->latest()
                 ->first();
             if ($coupon == null) {
-                $errors['errors']['error'] = 'Opps this coupon is not available...';
-                return response()->json(["status" => 0, "message" => 'Opps this coupon is not available...', "result" => $errors], 401);
+                $errors['errors']['error'] = 'Oops this coupon is not available...';
+                return response()->json(["status" => 0, "message" => 'Oops this coupon is not available...', "result" => $errors], 401);
             }
 
             if ($coupon->is_conditional == 1) {
 
                 if ($total_amount < $coupon->min_amount) {
                     $errors['errors']['error'] = 'The minumum order amount is ' . number_format($coupon->min_amount, 2) . ' for this coupon';
-                    return response()->json(["status" => 0, "message" => 'Opps this coupon has minumum order imit', "result" => $errors], 401);
+                    return response()->json(["status" => 0, "message" => 'Oops this coupon has minumum order imit', "result" => $errors], 401);
                 }
             }
 
@@ -495,8 +495,8 @@ class ProductController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
             return $th;
-            $errors['errors']['error'] = 'Opps something wrong';
-            return response()->json(["status" => 0, "message" => 'Opps something wrong', "result" => $errors], 401);
+            $errors['errors']['error'] = 'Oops something wrong';
+            return response()->json(["status" => 0, "message" => 'Oops something wrong', "result" => $errors], 401);
         }
 
         return response()->json(["status" => true, "message" => 'Order Placed']);
