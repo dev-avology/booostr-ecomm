@@ -509,6 +509,16 @@
                <div class="card">
                   <div class="card-body">
                     <div class="from-group row mb-2">
+
+                        <label for="" class="col-lg-12 mt-2">{{ __('Banner Title:') }}</label>
+                        <div class="col-lg-12">
+                            <input type="text" name="banner_title" value=" {{$banner_title->value ?? ''}}" class="form-control">
+                        </div>
+
+                        <label for="" class="col-lg-12">{{ __('Banner button text:') }}</label>
+                        <div class="col-lg-12">
+                            <input type="text" name="banner_button_text" value="{{$banner_button_text->value ?? ''}}" class="form-control">
+                        </div>
                        
                         <label for="" class="col-lg-12">{{ __('Banner Image:') }} (Width: 875px & Height: 250px)</label>
                         <div class="col-lg-12">

@@ -82,6 +82,8 @@ class SitesettingsController extends Controller
            $shipping_method=Option::where('key','shipping_method')->first();
 
            $banner_logo=Option::where('key','banner_logo')->first();
+           $banner_button_text=Option::where('key','banner_button_text')->first();
+           $banner_title=Option::where('key','banner_title')->first();
           // $shipping_method=$shipping_method ?? '';
 
           $tax=Option::where('key','tax')->first();
@@ -94,7 +96,7 @@ class SitesettingsController extends Controller
           $min_cart_total = $min_cart_total ? $min_cart_total->value : 100;
 
            return view('seller.settings.general',compact('languages','lat_lang','address','phone_number','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings',
-           'banner_logo'));
+           'banner_logo','banner_button_text','banner_title'));
        }
       
     }
@@ -191,6 +193,23 @@ class SitesettingsController extends Controller
                $bannerLogo->save();
             }
            }
+
+           if($request->banner_title){
+            $bannerTitle=new Option;
+            $bannerTitle->key='banner_title';
+            $bannerTitle->value=$request->banner_title;
+            $bannerTitle->autoload=1;
+            $bannerTitle->save();
+           }
+
+           if($request->banner_button_text){
+            $bannerTitle=new Option;
+            $bannerTitle->key='banner_button_text';
+            $bannerTitle->value=$request->banner_button_text;
+            $bannerTitle->autoload=1;
+            $bannerTitle->save();
+           }
+
 
 
          //   $invoice_info['store_legal_name']=$request->store_legal_name;
