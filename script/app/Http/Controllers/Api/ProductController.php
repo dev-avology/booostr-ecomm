@@ -25,7 +25,15 @@ class ProductController extends Controller
 
 
    public function categoryList(Request $request){
-       $posts=Category::where('type','category')->with('preview','icon')->withCount('products')->get();
+
+       //$posts=Category::where('type','category')->with('preview','icon','show_on')->withCount('products')->get();
+       $posts = Category::where('type', 'category')
+        ->with('preview', 'icon')
+        ->withCount('products')
+        ->whereDoesntHave('show_on', function ($query) {
+            $query->where('type', 'show_on')->where('content', 'pos_only');
+        })
+        ->get();
 
        $product_count = Term::query()->where('type', 'product')->whereIn('list_type', [0,1])->with('media', 'firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->count();
 
