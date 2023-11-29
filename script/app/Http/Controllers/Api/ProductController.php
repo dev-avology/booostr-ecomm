@@ -627,6 +627,10 @@ class ProductController extends Controller
 
     public function getBannerImage(Request $request){
       $banner = Option::where('key','banner_logo')->first();
+      $banner_title = Option::where('key','banner_title')->first();
+      $banner_button_text = Option::where('key','banner_button_text')->first();
+      $banner['banner_title'] = $banner_title->value;
+      $banner['banner_button_text'] = $banner_button_text->value;
       if($banner){
           return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$banner]);
         }else{
