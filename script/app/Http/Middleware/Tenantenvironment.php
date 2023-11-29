@@ -36,7 +36,7 @@ class Tenantenvironment
           $url= preg_replace("/^([a-zA-Z0-9].*\.)?([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z.]{2,})$/", '$2', $url); 
           if ($url != env('APP_PROTOCOLESS_URL')) {
              if (tenant('custom_domain') != 'on') {
-                 die('<center>Opps Custom domain not support</center>');
+                 die('<center>Oops Custom domain not support</center>');
              }
           }
         
@@ -70,7 +70,7 @@ class Tenantenvironment
 
        elseif (tenant('status') == 2) {
         $renew_url= url(env('APP_URL').'/partner/support');
-         echo "<center>Opps the store is temporary disabled...!!</center>";
+         echo "<center>Oops the store is temporary disabled...!!</center>";
          echo "<center><a href=".$renew_url.">Submit a request</a></center>";
 
          die();

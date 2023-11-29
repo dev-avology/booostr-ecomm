@@ -216,7 +216,7 @@ class StoreController extends Controller
             } catch (Exception $e) {
               DB::rollback();
 
-              $error['errors']['email']='Opps database credintials is wrong';
+              $error['errors']['email']='Oops database credintials is wrong';
               return response()->json($error,422);
             }
         }
@@ -369,7 +369,7 @@ class StoreController extends Controller
         DB::commit();
         } catch (Exception $e) {
             DB::rollback();
-            $error['errors']['database']='Opps something wrong with demoimport please check the database credintials';
+            $error['errors']['database']='Oops something wrong with demoimport please check the database credintials';
             return response()->json($error,422);
         }       
 

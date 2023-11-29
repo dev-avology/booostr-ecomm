@@ -20,7 +20,7 @@ class Usermiddleware
             return $next($request);
         }
         else{
-           \Session::flash('error','Opps your account is disabled please contact with support');
+           \Session::flash('error','Oops your account is disabled please contact with support');
 
            Auth::logout();
            return redirect('/login');

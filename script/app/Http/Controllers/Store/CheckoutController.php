@@ -75,7 +75,7 @@ class CheckoutController extends Controller
     public function redirect_to_checkout(Request $request,$cartid,$redirect_url='/')
     {
         if (empty($cartid)) {
-            return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Opps something went wrong']);
+            return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Oops something went wrong']);
         }
         $domain=tenant('domain');
         $customer=[
@@ -141,7 +141,7 @@ class CheckoutController extends Controller
         //load cart in session
         Cart::checkout_restore($cartid);
         if(Cart::content()->isEmpty()){
-            return redirect()->away($redirect_url.'/?type=error&message=Opps Your cart is empty');
+            return redirect()->away($redirect_url.'/?type=error&message=Oops Your cart is empty');
         }
        
         $club_info = tenant_club_info();
@@ -297,7 +297,7 @@ class CheckoutController extends Controller
     {
         $redirect_url=Session::has('redirect_url')?Session::get('redirect_url'):'https://www.boostr.co';
         if(Cart::content()->isEmpty()){
-            return redirect()->away($redirect_url.'/?type=error&message=Opps Your cart is empty');
+            return redirect()->away($redirect_url.'/?type=error&message=Oops Your cart is empty');
         }
 
        $request->validate([
@@ -591,7 +591,7 @@ class CheckoutController extends Controller
 
          //   dd($th);
           
-            return redirect()->away($redirect_url . '/?type=error&message=Opps something wrong while saving order data');
+            return redirect()->away($redirect_url . '/?type=error&message=Oops something wrong while saving order data');
         }
         return redirect()->away($redirect_url);
 

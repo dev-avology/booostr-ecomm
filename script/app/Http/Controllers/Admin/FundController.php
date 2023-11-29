@@ -72,7 +72,7 @@ class FundController extends Controller
             $user->amount=$user->amount+$deposit->amount;
             $user->save();
         }else{
-            $error['errors']['domain']='Opps! Please select any row.';
+            $error['errors']['domain']='Oops! Please select any row.';
     		return response()->json($error,422);
         }
 

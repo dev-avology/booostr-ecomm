@@ -68,11 +68,11 @@ class MedialistController extends Controller
                 }
                  return response()->json('Media Deleted');
             }else{
-                $errors['errors']['error']='Opps! Please select Any Status.';
+                $errors['errors']['error']='Oops! Please select Any Status.';
                 return response()->json($errors,401);
             }
         }else{
-            $errors['errors']['error']='Opps! Please select Any Status.Please select any checkbox.';
+            $errors['errors']['error']='Oops! Please select Any Status.Please select any checkbox.';
             return response()->json($errors,401);
         } 
     }
