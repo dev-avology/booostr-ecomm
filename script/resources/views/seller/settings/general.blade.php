@@ -509,21 +509,36 @@
                <div class="card">
                   <div class="card-body">
                     <div class="from-group row mb-2">
+                        <label for="" class="col-lg-12 mt-2">{{ __('Backend manage banner link:') }}</label>
+                        <div class="col-lg-12">
+                            <select class="form-control" name="manage_banner" id="manage_banner">
+                                <option selected>Select banner link</option>
+                                <option value='product'>Product</option>
+                                <option value='category'>Category</option>
+                            </select>
+                        </div>
 
-                        <label for="" class="col-lg-12 mt-2">{{ __('Banner Title:') }}</label>
+                        <label for="" class="col-lg-12 mt-2">{{ __('Banner type:') }}</label>
+                        <div class="col-lg-12">
+                            <select class="form-control" name="banner_type" id="banner_type">
+                                <option selected>Select banner type</option>
+                            </select>
+                        </div>
+
+                        {{-- <label for="" class="col-lg-12 mt-2">{{ __('Banner Title:') }}</label>
                         <div class="col-lg-12">
                             <input type="text" name="banner_title" value=" {{$banner_title->value ?? ''}}" class="form-control">
-                        </div>
+                        </div> --}}
 
-                        <label for="" class="col-lg-12">{{ __('Banner button text:') }}</label>
+                        {{-- <label for="" class="col-lg-12">{{ __('Banner button text:') }}</label>
                         <div class="col-lg-12">
                             <input type="text" name="banner_button_text" value="{{$banner_button_text->value ?? ''}}" class="form-control">
-                        </div>
+                        </div> --}}
 
-                        <label for="" class="col-lg-12">{{ __('Banner button url:') }}</label>
+                        {{-- <label for="" class="col-lg-12">{{ __('Banner button url:') }}</label>
                         <div class="col-lg-12">
                             <input type="text" name="banner_button_url" value="{{$banner_button_url->value ?? ''}}" class="form-control">
-                        </div>
+                        </div> --}}
                        
                         <label for="" class="col-lg-12">{{ __('Banner Image:') }} (Width: 875px & Height: 250px)</label>
                         <div class="col-lg-12">
@@ -1302,6 +1317,35 @@ $(document).ready(function () {
             });
 
         //});
+
+        $(document).ready(function() {
+        $('#manage_banner').change(function() {
+            var selectedValue = $(this).val();
+            $.ajax({
+                type : "GET",
+                url:'{{ url("seller/get-banner-types") }}' +'/'+selectedValue,
+                success: function(data) {
+                    $('#banner_type').empty();
+                    // var vl = JSON.parse(data);
+                    
+                    $.each(data['term'], function(key, value) {
+                        //  console.log(value);
+                        if(data['type'] == 'product'){
+
+                           $('#banner_type').append('<option value="' + value.full_id + '">' + value.title + '</option>');
+                        console.log(value.title);
+                        }else{
+                            $('#banner_type').append('<option value="' + value.id + '">' + value.name + '</option>');
+                        }
+                        // $('#banner_type').append('<option value="' + value.full_id + '">' + value.title + '</option>');
+                    });
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        });
+    });
 
 </script>
 @endpush
