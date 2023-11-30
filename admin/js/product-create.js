@@ -224,13 +224,13 @@ $(document).on('change','.childattribute',function (argument) {
                        <div class="from-group col-lg-6  mb-2">
                          <label for="">Stock Quantity : </label>
                          <div >
-                            <input type="number" class="form-control" name="${qtyname}" value="100"/>
+                            <input type="number" class="form-control" name="${qtyname}" value="0"/>
                          </div>
                       </div>
                       <div class="from-group col-lg-6 mb-2">
                          <label for="" >SKU : </label>
                          <div >
-                            <input type="text" class="form-control" name="${skuname}" value="SKU${id}"/>
+                            <input type="text" class="form-control" name="${skuname}" value=""/>
                          </div>
                       </div>
                        <div class="from-group col-lg-6  mb-2">
