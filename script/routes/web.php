@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 
 
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -31,12 +30,13 @@ Route::get('/close-store-maneger', function(){
 });
 
 
+
 // Match my own domain
 Route::group(['domain' => env('APP_URL')], function($domain)
 {
 
     Auth::routes();
-
+  
     Route::get('/','WelcomeController@index')->name('welcome');
     Route::get('blog/{title}','BlogController@show')->name('blog.show');
     Route::get('blogs/search','BlogController@search')->name('blog.search');
@@ -394,9 +394,13 @@ Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 
     Route::resource('blog','BlogController');
     Route::resource('slider','SliderController');
     Route::resource('banner','BannerController');
+   
     Route::resource('special-menu','SpecialmenuController');
 
     Route::get('/store-settings','SiteController@index');
+ 
+    Route::get('/get-banner-types/{type}','SiteController@getBannerType');
+    
     Route::post('/theme-data-update/{type}','SiteController@updatethemesettings')->name('themeoption.update');
 
     Route::get('settings/seo','SeoController@index')->name('seo.index');

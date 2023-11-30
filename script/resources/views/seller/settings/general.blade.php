@@ -509,23 +509,50 @@
                <div class="card">
                   <div class="card-body">
                     <div class="from-group row mb-2">
+                        <label for="" class="col-lg-12 mt-2">{{ __('Banner link type:') }}</label>
+                        <div class="col-lg-12">
+                            <select class="form-control" name="manage_banner" id="manage_banner">
+                                {{-- <option selected>Select banner link</option> --}}
+                                <option value='product'>Product</option>
+                                <option value='category'>Category</option>
+                                <option value='custom' selected>Custom</option>
+                            </select>
+                        </div>
 
-                        <label for="" class="col-lg-12 mt-2">{{ __('Banner Title:') }}</label>
+                        <label for="" class="col-lg-12 mt-2 nonCustomHidden" style="display:none;">{{ __('Banner link:') }}</label>
+                        <div class="col-lg-12 nonCustomHidden" style="display:none;">
+                            <select class="form-control" name="banner_type" id="banner_type">
+                                <option selected disabled>Select banner type</option>
+                            </select>
+                        </div>
+
+                        <label for="" class="col-lg-12 mt-2 customHidden">{{ __('Custom url:') }}</label>
+                        <div class="col-lg-12 customHidden">
+                            <input type="text" name="custom_url" class="form-control">
+                        </div>
+
+                        @if(!empty($bannerUrlValue))
+
+                        <label class="col-lg-12 pt-3">{{ __('Already uploaded banner url :') }} <a target="_blank" href="{{$bannerUrlValue ?? ''}}" style="color:#838181;">{{$bannerUrlValue ?? ''}}</a></label>
+
+                        @endif
+
+                        {{-- <label for="" class="col-lg-12 mt-2">{{ __('Banner Title:') }}</label>
                         <div class="col-lg-12">
                             <input type="text" name="banner_title" value=" {{$banner_title->value ?? ''}}" class="form-control">
-                        </div>
+                        </div> --}}
 
-                        <label for="" class="col-lg-12">{{ __('Banner button text:') }}</label>
+                        {{-- <label for="" class="col-lg-12">{{ __('Banner button text:') }}</label>
                         <div class="col-lg-12">
                             <input type="text" name="banner_button_text" value="{{$banner_button_text->value ?? ''}}" class="form-control">
-                        </div>
+                        </div> --}}
 
-                        <label for="" class="col-lg-12">{{ __('Banner button url:') }}</label>
+                        {{-- <label for="" class="col-lg-12">{{ __('Banner button url:') }}</label>
                         <div class="col-lg-12">
                             <input type="text" name="banner_button_url" value="{{$banner_button_url->value ?? ''}}" class="form-control">
-                        </div>
+                        </div> --}}
                        
-                        <label for="" class="col-lg-12">{{ __('Banner Image:') }} (Width: 875px & Height: 250px)</label>
+                        <label for="" class="col-lg-12 py-4">{{ __('Banner Image:') }} (Width: 875px & Height: 250px)</label>
                         <div class="col-lg-12">
                             <input type="file" name="banner" class="form-control" accept=".png,.jpeg,.jpg" >
                         </div>
@@ -1302,6 +1329,46 @@ $(document).ready(function () {
             });
 
         //});
+
+        $(document).ready(function() {
+            $('#manage_banner').change(function() {
+                var selectedValue = $(this).val();
+                $.ajax({
+                    type: "GET",
+                    url: '{{ url("seller/get-banner-types") }}' + '/' + selectedValue,
+                    success: function(data) {
+                        $('#banner_type').empty();
+
+                        var defaultOptionText = '';
+
+                        $.each(data['term'], function(key, value) {
+                            if (data['type'] == 'product') {
+                                defaultOptionText = 'Select product link';
+                                $('.customHidden').hide();
+                                $('.nonCustomHidden').show();
+                                $('#banner_type').append('<option value="' + value.id + '">' + value.title + '</option>');
+                            } else if (data['type'] == 'category') {
+                                defaultOptionText = 'Select category link';
+                                $('.customHidden').hide();
+                                $('.nonCustomHidden').show();
+                                $('#banner_type').append('<option value="' + value.id + '">' + value.name + '</option>');
+                            } else if (data['type'] == 'custom') {
+                                $('.customHidden').show();
+                                $('.nonCustomHidden').hide();
+                            }
+                        });
+
+                        // Append the default option with the dynamically set text
+                        $('#banner_type').prepend('<option selected disabled>' + defaultOptionText + '</option>');
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+
+
 
 </script>
 @endpush

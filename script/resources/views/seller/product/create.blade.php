@@ -358,7 +358,10 @@ $(document).ready(function() {
            if (data) {
                // Update the value of the new option with the received ID
                var newOptionId = data;
-               $('#mySelect2').find('option[value="' + newOptionText + '"]').val(newOptionId);
+               $('#mySelect2').find('option[value="' + newOptionText + '"]').remove();
+             //  $('#mySelect2').find('option[value="' + newOptionId + '"]').attr('selected');
+               var newOption = new Option(newOptionText, newOptionId, true, true);
+               $('#mySelect2').append(newOption);
            }
         },
         error: function(xhr, status, error) {
@@ -391,8 +394,12 @@ $('#mySelect3').on('select2:select', function(e) {
            if (data) {
             console.log(data);
                // Update the value of the new option with the received ID
-               // var newOptionId = data;
-               // $('#mySelect3').find('option[value="' + newOptionText + '"]').val(newOptionId);
+                var newOptionId = data;
+                $('#mySelect3').find('option[value="' + newOptionText + '"]').remove();
+                //$('#mySelect3').find('option[value="' + newOptionId + '"]').attr('selected');
+               var newOption = new Option(newOptionText, newOptionId, true, true);
+               $('#mySelect3').append(newOption);
+
            }
         },
         error: function(xhr, status, error) {

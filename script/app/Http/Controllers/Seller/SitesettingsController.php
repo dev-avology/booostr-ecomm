@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Option;
 use Auth;
+use Illuminate\Support\str;
 use Storage;
 class SitesettingsController extends Controller
 {
@@ -82,10 +83,13 @@ class SitesettingsController extends Controller
            $shipping_method=Option::where('key','shipping_method')->first();
 
            $banner_logo=Option::where('key','banner_logo')->first();
-           $banner_button_text=Option::where('key','banner_button_text')->first();
-           $banner_title=Option::where('key','banner_title')->first();
-           $banner_button_url=Option::where('key','banner_button_url')->first();
+         //   $banner_button_text=Option::where('key','banner_button_text')->first();
+           //$banner_title=Option::where('key','banner_title')->first();
+          // $banner_button_url=Option::where('key','banner_button_url')->first();
           // $shipping_method=$shipping_method ?? '';
+
+          $bannerUrls=Option::where('key','banner_url')->first();
+          $bannerUrlValue=$bannerUrls->value ?? '';
 
           $tax=Option::where('key','tax')->first();
           $tax = $tax->value ?? 0.00; 
@@ -97,7 +101,7 @@ class SitesettingsController extends Controller
           $min_cart_total = $min_cart_total ? $min_cart_total->value : 100;
 
            return view('seller.settings.general',compact('languages','lat_lang','address','phone_number','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings',
-           'banner_logo','banner_button_text','banner_title','banner_button_url'));
+           'banner_logo','bannerUrlValue'));
        }
       
     }
@@ -195,29 +199,81 @@ class SitesettingsController extends Controller
             }
            }
 
-           if($request->banner_title){
-            $bannerTitle=new Option;
-            $bannerTitle->key='banner_title';
-            $bannerTitle->value=$request->banner_title;
-            $bannerTitle->autoload=1;
-            $bannerTitle->save();
-           }
+          $club_decode_json = json_decode(tenant()->club_info);
+          $storeName = Str::slug($club_decode_json->club_name, '-');
+          $newClubUrl = env('WP_CLUB_URL');
 
-           if($request->banner_button_text){
-            $bannerTitle=new Option;
-            $bannerTitle->key='banner_button_text';
-            $bannerTitle->value=$request->banner_button_text;
-            $bannerTitle->autoload=1;
-            $bannerTitle->save();
-           }
+          $bannerUrl=Option::where('key','banner_url')->first();
+          if($bannerUrl){
+            if($request->manage_banner){
+               if($request->manage_banner == 'product' && (!empty($request->banner_type))){
+                 $productId = $request->banner_type; 
+                 $pUrl = $newClubUrl . 'all-booster-clubs/listing/'.$storeName.'?tab=product_detail&product_id=' . $productId . '&store_name=' . $storeName;
 
-           if($request->banner_button_url){
-            $bannerTitle=new Option;
-            $bannerTitle->key='banner_button_url';
-            $bannerTitle->value=$request->banner_button_url;
-            $bannerTitle->autoload=1;
-            $bannerTitle->save();
+                 Option::where('key', 'banner_url')->update(['value' => $pUrl]);
+  
+               }elseif($request->manage_banner=='category' && (!empty($request->banner_type))){
+  
+                 $categoryId = $request->banner_type; 
+  
+                 $catUrl = $newClubUrl . 'all-booster-clubs/listing/'.$storeName.'?tab=store&category_id=' . $categoryId;
+
+                 Option::where('key', 'banner_url')->update(['value' => $catUrl]);
+  
+               }elseif($request->manage_banner=='custom' && (!empty($request->custom_url))){
+                  Option::where('key', 'banner_url')->update(['value' => $request->custom_url]);
+               }
+            }
+          }else{
+
+            if($request->manage_banner){
+               if($request->manage_banner == 'product' && (!empty($request->banner_type))){
+                 $productId = $request->banner_type; 
+                 $pUrl = $newClubUrl . 'all-booster-clubs/listing/'.$storeName.'?tab=product_detail&product_id=' . $productId . '&store_name=' . $storeName;
+  
+                 $productBanner=new Option;
+                 $productBanner->key='banner_url';
+                 $productBanner->value= $pUrl;
+                 $productBanner->autoload=1;
+                 $productBanner->save();
+  
+               }elseif($request->manage_banner=='category' && (!empty($request->banner_type))){
+  
+                 $categoryId = $request->banner_type; 
+  
+                 $catUrl = $newClubUrl . 'all-booster-clubs/listing/'.$storeName.'?tab=store&category_id=' . $categoryId;
+  
+                 $categoryBanner=new Option;
+                 $categoryBanner->key='banner_url';
+                 $categoryBanner->value= $catUrl;
+                 $categoryBanner->autoload=1;
+                 $categoryBanner->save();
+  
+               }elseif($request->manage_banner=='custom' && (!empty($request->custom_url))){
+                 $categoryBanner=new Option;
+                 $categoryBanner->key='banner_url';
+                 $categoryBanner->value= $request->custom_url;
+                 $categoryBanner->autoload=1;
+                 $categoryBanner->save();
+               }
            }
+          }
+
+         //   if($request->banner_button_text){
+         //    $bannerTitle=new Option;
+         //    $bannerTitle->key='banner_button_text';
+         //    $bannerTitle->value=$request->banner_button_text;
+         //    $bannerTitle->autoload=1;
+         //    $bannerTitle->save();
+         //   }
+
+         //   if($request->banner_button_url){
+         //    $bannerTitle=new Option;
+         //    $bannerTitle->key='banner_button_url';
+         //    $bannerTitle->value=$request->banner_button_url;
+         //    $bannerTitle->autoload=1;
+         //    $bannerTitle->save();
+         //   }
 
 
 

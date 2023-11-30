@@ -64,7 +64,7 @@
         <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Select Product Brand') }} : </label>
             <div class="col-lg-12">
-                <select name="categories[]" class="selectric form-control">
+                <select name="categories[]"  multiple="" class="form-control select2">
 
                     {{NastedCategoryList('brand',$selected_categories)}}
                 </select>

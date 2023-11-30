@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Seller;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Option;
+use App\Models\Term;
+use App\Models\Category;
 use Auth;
 class SiteController extends Controller
 {
@@ -13,6 +15,25 @@ class SiteController extends Controller
       abort_if(!getpermission('website_settings'),401);
       return view(baseview('admin/options'));
     }
+
+    public function getBannerType($type){
+      if($type == 'product'){
+         $data['term'] = Term::where('type','product')->get();
+         $data['type'] = "product";
+         return response()->json($data);
+      }else if($type == 'category'){
+         $data['term'] = Category::where('type','category')->get();
+         $data['type'] = "category";
+        
+         return response()->json($data);
+      }else{
+         // return 'ahish';
+         $data['term'] = Category::where('type','category')->get();;
+         $data['type'] = "custom";
+        
+         return response()->json($data);
+      }
+  }
 
     public function updatethemesettings(Request $request,$page_name)
     {
