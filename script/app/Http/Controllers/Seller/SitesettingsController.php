@@ -214,9 +214,9 @@ class SitesettingsController extends Controller
   
                }elseif($request->manage_banner=='category' && (!empty($request->banner_type))){
   
-                 $categoryId = $request->banner_type; 
+                 $categoryName = Str::slug($request->banner_type, '-');
   
-                 $catUrl = $newClubUrl . 'all-booster-clubs/listing/'.$storeName.'?tab=store&category_id=' . $categoryId;
+                 $catUrl = $newClubUrl . 'all-booster-clubs/listing/'.$storeName.'?tab=store&category=' . $categoryName;
 
                  Option::where('key', 'banner_url')->update(['value' => $catUrl]);
   
@@ -239,9 +239,9 @@ class SitesettingsController extends Controller
   
                }elseif($request->manage_banner=='category' && (!empty($request->banner_type))){
   
-                 $categoryId = $request->banner_type; 
+                 $categoryName = Str::slug($request->banner_type, '-'); 
   
-                 $catUrl = $newClubUrl . 'all-booster-clubs/listing/'.$storeName.'?tab=store&category_id=' . $categoryId;
+                 $catUrl = $newClubUrl . 'all-booster-clubs/listing/'.$storeName.'?tab=store&category=' . $categoryName;
   
                  $categoryBanner=new Option;
                  $categoryBanner->key='banner_url';

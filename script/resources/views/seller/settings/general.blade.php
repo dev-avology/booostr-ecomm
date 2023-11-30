@@ -945,7 +945,7 @@
                                     style="{{ $display }}">
                                     <input type="hidden" value="0" name="base_price['flat_rate']">
                                     <label for=""
-                                        class="col-lg-10">{{ __('flat Rate Shipping Price for Cart Totals :') }} </label>
+                                        class="col-lg-10">{{ __('Flat Rate Shipping Price for Cart Totals :') }} </label>
 
                                     <div class="col-lg-12" id="flat_rate">
                                         @php
@@ -1351,7 +1351,7 @@ $(document).ready(function () {
                                 defaultOptionText = 'Select category link';
                                 $('.customHidden').hide();
                                 $('.nonCustomHidden').show();
-                                $('#banner_type').append('<option value="' + value.id + '">' + value.name + '</option>');
+                                $('#banner_type').append('<option value="' + value.name + '">' + value.name + '</option>');
                             } else if (data['type'] == 'custom') {
                                 $('.customHidden').show();
                                 $('.nonCustomHidden').hide();
