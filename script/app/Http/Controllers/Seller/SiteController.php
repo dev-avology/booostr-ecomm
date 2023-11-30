@@ -18,12 +18,18 @@ class SiteController extends Controller
 
     public function getBannerType($type){
       if($type == 'product'){
-         $data['term'] = Term::all();
+         $data['term'] = Term::where('type','product')->get();
          $data['type'] = "product";
          return response()->json($data);
-      }else{
+      }else if($type == 'category'){
          $data['term'] = Category::where('type','category')->get();
          $data['type'] = "category";
+        
+         return response()->json($data);
+      }else{
+         // return 'ahish';
+         $data['term'] = Category::where('type','category')->get();;
+         $data['type'] = "custom";
         
          return response()->json($data);
       }
