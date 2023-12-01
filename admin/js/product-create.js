@@ -375,10 +375,23 @@ $(document).on('change','.childattribute',function (argument) {
 
 
 
-   $(document).on('click','.varition_option_delete',function(){
+$(document).on('click','.varition_option_delete',function(){
       var id=$(this).data('id');
       $('#childcard'+id).remove();
-  });
+});
+
+ $(document).on('click','.option_delete',function(){
+   var id=$(this).data('id');
+   $('.renderchild'+id).remove();
+  $('#children_attribute_render_area').html('');  
+
+  if($('.parentattribute').length > 0){
+     $('.create_variation_product').show();
+     $('.add_more_attribute').show();
+  }
+
+});
+
 
 
 
@@ -447,6 +460,14 @@ $(document).on('change','.childattribute',function (argument) {
   $(document).on('click','.delete_attribute',function (argument) {
    var id=$(this).data('short');
    $('.renderchild'+id).remove();
+
+   $('#children_attribute_render_area').html('');  
+
+   if($('.parentattribute').length > 0){
+      $('.create_variation_product').show();
+      $('.add_more_attribute').show();
+   }
+   
   });
 
 

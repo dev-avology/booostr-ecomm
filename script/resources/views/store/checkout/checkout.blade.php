@@ -290,7 +290,7 @@ a.cart-summary > span {
                                         <div class="col-lg-6 col-md-6 col-12 post_code_area">
                                             <div class="form-group">
                                                 <label><i class="fa fa-envelope"></i>{{ __('Zip Code') }}<span>*</span></label>
-                                                <input type="text" id="post_code1" class="required" name="shipping[post_code]"
+                                                <input type="text" id="post_code1" class="required post_code_class" name="shipping[post_code]"
                                                     placeholder="" value="{{ $customer['zip'] }}"  data-msg="{{__('Shipping Postal Code')}}">
                                             </div>
                                         </div>

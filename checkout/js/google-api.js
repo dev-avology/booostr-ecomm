@@ -4,11 +4,16 @@
 
      var infoWindow = '',
          addressEl = document.querySelector('#location_input'),
+         addressEl2 = document.querySelector('#location_input1'),
          latEl = document.querySelector('#latitude'),
          longEl = document.querySelector('#longitude'),
          city = document.querySelector('#location_city'),
+         city1 = document.querySelector('#location_city1'),
          state = document.querySelector('#location_state'),
-         postal = document.querySelector('#post_code');
+         state1 = document.querySelector('#location_state1'),
+         postal = document.querySelector('#post_code'),
+         post_code_class = document.querySelector('#post_code1'),
+          
 
      /**
       * Creates a search box
@@ -38,6 +43,7 @@
               }
               case "postal_code": {
                 postcode = `${component.long_name}${postcode}`;
+
                 break;
               }
         
@@ -47,9 +53,11 @@
             //   }
               case "locality":
                 city.value = component.long_name;
+                city1.value = component.long_name;
                 break;
               case "administrative_area_level_1": {
                 state.value = component.short_name;
+                state1.value = component.short_name;
                 break;
               }
               case "country":
@@ -58,7 +66,9 @@
             }
           }
           addressEl.value=address1;
+          addressEl2.value=address1;
           postal.value=postcode;
+          post_code_class.value=postcode;
         
      });
 
