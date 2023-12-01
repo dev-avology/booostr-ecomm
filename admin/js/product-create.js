@@ -375,6 +375,10 @@ $(document).on('change','.childattribute',function (argument) {
 
 
 
+   $(document).on('click','.varition_option_delete',function(){
+      var id=$(this).data('id');
+      $('#childcard'+id).remove();
+  });
 
 
 
