@@ -2,6 +2,8 @@
    "use strict";
    var short=1;
    const parentAttributes= JSON.parse($('#parentattributes').val());
+
+   console.log(parentAttributes);
   
    $('.product_type').on('change',function(){
       var product_type=$(this).val();
@@ -397,10 +399,19 @@ $(document).on('click','.varition_option_delete',function(){
 
    //add more attributes
    $('.add_more_attribute').on('click',function(e){
+      
+     $('#children_attribute_render_area').html('');  
+     if($('.parentattribute').length > 0){
+        $('.create_variation_product').show();
+        $('.add_more_attribute').show();
+     }
+      
+      // console.log(parentAttributes.length,'ok');
       if (parentAttributes.length <= $('.parentattribute').length) {
          return true;
       }
       short++;
+
       var selected_options=[];
       $(".parentattribute option:selected").each(function()
       {
@@ -408,6 +419,8 @@ $(document).on('click','.varition_option_delete',function(){
              selected_options.push(parseInt($(this).val()));
          }
       });
+
+      console.log(selected_options);
       var options='';
       $.each(parentAttributes, function (index, row) {
          var childs=[];
@@ -467,7 +480,7 @@ $(document).on('click','.varition_option_delete',function(){
       $('.create_variation_product').show();
       $('.add_more_attribute').show();
    }
-   
+
   });
 
 
