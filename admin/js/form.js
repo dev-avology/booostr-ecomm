@@ -131,6 +131,7 @@
 				$('.ajaxform_with_reset').trigger('reset');
 				var placeholder_image=$('.placeholder_image').val();
 				$('.input_preview').attr('src',placeholder_image);
+				window.location.href = '/seller/product';
 			},
 			error: function(xhr, status, error) 
 			{
