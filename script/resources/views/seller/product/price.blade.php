@@ -120,7 +120,7 @@
                     </h6>
                   </div>
                   <div class="float-right">
-                     <a class="btn btn-danger btn-sm text-white option_delete" data-id="{{ $key }}"><i class="fa fa-trash"></i></a>
+                     <a class="btn btn-danger btn-sm text-white option_delete" data-id="{{ $key }}" data-old_attr_id="{{ $row->id }}"><i class="fa fa-trash"></i></a>
                   </div>
                </div>
                <div class="accordion-body collapse show" id="panel-body-{{ $key }}" data-parent="#accordion">
@@ -189,6 +189,7 @@
                   </div>
                </div>
                <div class="accordion-body collapse show" id="panel-body-Varitions" data-parent="#accordion">
+                  <p id = "variation-delete-msg" style = "color:red;"></p>
 
                   <div id="children_attribute_render_area">
                      @php 
@@ -212,9 +213,10 @@
                                  </h4>
                            </div>
                            <div class="float-right">
-                              <a class="btn btn-danger btn-sm text-white varition_option_delete" data-id="{{$priceswithcategory->id}}"><i class="fa fa-trash"></i></a>
+                              <a class="btn btn-danger btn-sm text-white varition_option_delete" data-id="{{$priceswithcategory->id}}" data-old_id="{{$priceswithcategory->id}}"><i class="fa fa-trash"></i></a>
                            </div>      
                         </div>
+
       
                         <div class="accordion-body collapse show" id="panel-body-{{$priceswithcategory->id}}" data-parent="#children_attribute_render_area">
                            <div class=" row">
@@ -284,6 +286,7 @@
          
       </div>    
       </div>
+
       <div class="from-group  mb-2">
          <button class="btn btn-primary basicbtn col-lg-2 float-left" type="submit"><i class="far fa-save"></i> {{ __('Update') }}</button>
     
@@ -311,6 +314,39 @@
        }
        $(this).val("$" + parseFloat(inputValue).toFixed(2));
     });
+
+    $('.varition_option_delete').click(function() {
+      var id = $(this).data('id');
+      var oldId = $(this).data('old_id');
+
+      $.ajax({
+        url: '/seller/product/remove-price/'+oldId, 
+        method: 'GET',
+        success: function(response) {
+          console.log('GET request successful:', response);
+          $('#variation-delete-msg').text('Variation product deleted successfully');
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.error('GET request failed:', textStatus, errorThrown);
+        }
+      });
+   });
+
+   $('.option_delete').click(function() {
+      var id = $(this).data('old_attr_id');
+
+      $.ajax({
+        url: '/seller/product/remove-variation-attribute/'+id, 
+        method: 'GET',
+        success: function(response) {
+          console.log('GET request successful:', response);
+          $('#variation-delete-msg').text('Variation attribute deleted successfully');
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.error('GET request failed:', textStatus, errorThrown);
+        }
+      });
+   });
 </script>
 
 @endpush

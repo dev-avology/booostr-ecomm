@@ -305,8 +305,12 @@ Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 
     Route::resource('shipping', 'ShippingController');
     Route::resource('features', 'FeaturesController');
     Route::resource('product', 'ProductController');
+
     Route::post('product-import', 'ProductController@import')->name('product.import');
     Route::get('product/edit/{id}/{type}', 'ProductController@edit');
+    Route::get('product/remove-price/{id}', 'ProductController@removeVariationPrice');
+    Route::get('product/remove-variation-attribute/{id}', 'ProductController@removeVariationAttribute');
+
     Route::post('products/destroys', 'ProductController@multiDelete')->name('products.destroys');
     Route::resource('attribute', 'AttributeController');
     Route::resource('media', 'MediaController');

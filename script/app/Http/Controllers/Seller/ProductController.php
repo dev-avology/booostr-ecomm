@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Term;
 use App\Models\Price;
 use App\Models\Productoption;
+use App\Models\Variationproductoption;
 use DB;
 use DNS1D;
 use DNS2D;
@@ -740,5 +741,29 @@ class ProductController extends Controller
         Excel::import(new ProductImport,  $request->file('file'));
 
         return response()->json(['Product Imported Successfully']);
+    }
+
+    public function removeVariationPrice($id){
+        $delete_res = Price::where('id', $id)->delete();
+        if($delete_res){
+            return response()->json(['status' => 'success']);
+        }
+    }
+
+    public function removeVariationAttribute($id){
+        // Assuming $id is the ID you want to delete
+        $productOption = Productoption::find($id);
+
+        if ($productOption) {
+            $priceIds = VariationProductOption::where('productoption_id', $id)
+                ->distinct()
+                ->pluck('price_id');
+
+            // Delete records in both tables in a single query
+            Price::whereIn('id', $priceIds)->delete();
+            $productOption->delete();
+            return response()->json(['status' => 'success']);
+        }
+        return response()->json(['status' => 'Some thing went wrong']);
     }
 }
