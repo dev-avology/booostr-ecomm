@@ -83,7 +83,7 @@
 
                         @if (!empty(tenant()->logo))
                             <img src="{{ env('WP_URL') }}{{ tenant()->logo }}" alt="logo"
-                                style="max-width:120px;min-height:84px;border-radius:100px;"/>
+                                style="width: 100%;max-width: 120px;min-height:84px;border-radius:100px;"/>
                         @endif
                     </th>
                     <th style="width: 70%;border-collapse: collapse;">
