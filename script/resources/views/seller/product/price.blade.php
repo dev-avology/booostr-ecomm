@@ -194,17 +194,32 @@
                   <div id="children_attribute_render_area">
                      @php 
                      $used_combination = [];
+                     $allVariationNames = []; 
                      @endphp
                      @foreach($info->prices ?? [] as $priceswithcategory)
-                      <div class="accordion" id="childcard{{$priceswithcategory->id}}">
+                        @php
+                           $class = '';
+                            foreach($priceswithcategory->varitions as $varition){
+                               $class .= ' attr-'.$varition->name; 
+                            }
+    
+                         @endphp 
+
+                      <div class="accordion{{$class}}" id="childcard{{$priceswithcategory->id}}">
                         <div class="accordion-header h-50" role="button" data-toggle="collapse" data-target="#panel-body-{{$priceswithcategory->id}}">
                            <div class="float-left">   
                                  <h4> 
-                                       @php $usku = ''; @endphp
+                                       @php 
+                                       $usku = ''; 
+                                       $variationNames = []; 
+                                       @endphp
                                        @foreach($priceswithcategory->varitions as $varition)
+                                       
                                        {{ $usedarrtibuteOption[$varition->pivot->productoption_id] ?? '' }} / <span class="text-danger">  {{ $varition->name ?? '' }}</span>
-                                       @php $usku .= $varition->id; 
-                                       //dump($varition->id);
+                                       @php 
+                                       $usku .= $varition->id; 
+                                       $variationNames[] = $varition->name;
+                                       $allVariationNames[] = $varition->name;
                                        @endphp
                                        <input type="hidden" name="childattribute[priceoption][{{$priceswithcategory->id}}][varition][{{$varition->pivot->productoption_id}}]" value="{{$varition->id}}">
                                        @endforeach
@@ -325,6 +340,7 @@
         success: function(response) {
           console.log('GET request successful:', response);
           $('#variation-delete-msg').text('Variation product deleted successfully');
+          removeAttrValue();
         },
         error: function(jqXHR, textStatus, errorThrown) {
           console.error('GET request failed:', textStatus, errorThrown);
@@ -347,6 +363,23 @@
         }
       });
    });
+
+   function removeAttrValue() {
+    $(".parentattribute option:selected").each(function(index, row) {
+      $(".childattribute" + $(row).data('short') + " option:selected").each(function(index, row1) {
+         var attrVal = $(row1).data('attrname'); 
+         var new_attr = '#children_attribute_render_area .attr-'+attrVal;
+          if($(new_attr).length == 0 ){
+             $(this).prop("selected", false)
+             $(".childattribute" + $(row).data('short')).trigger('change.select2');
+            console.log('has 0 options',$(new_attr).length,attrVal);
+         }else{
+            console.log('has options',$(new_attr).length,attrVal);
+          }
+
+      });
+    });
+}
 </script>
 
 @endpush
