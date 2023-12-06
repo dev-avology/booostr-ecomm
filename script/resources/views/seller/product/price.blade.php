@@ -10,7 +10,7 @@
 
 @section('product_content')
 <div class="tab-pane fade show active" id="general_info" role="tabpanel" aria-labelledby="home-tab4">
-   <form class="ajaxform " action="{{ route('seller.product.update',$info->id) }}" method="post">
+   <form class="ajaxform_with_reload" action="{{ route('seller.product.update',$info->id) }}" method="post">
       @csrf
       @method("PUT")
       <div class="from-group row mb-2">

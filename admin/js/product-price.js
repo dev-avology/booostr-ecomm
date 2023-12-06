@@ -364,6 +364,7 @@
 
         $('.create_variation_product').hide();
 
+        $(this).closest('form').submit();
 
    });
 
