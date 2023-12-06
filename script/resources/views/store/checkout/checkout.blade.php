@@ -603,10 +603,11 @@ a.cart-summary > span {
                 var searchBox;
                 var city;
             </script>
-            <script type="text/javascript" src="{{ asset('checkout/js/google-api.js') }}"></script>
         @endif
 
         <script type="text/javascript" src="{{ asset('checkout/js/checkout.js') }}"></script>
+        <script type="text/javascript" src="{{ asset('checkout/js/google-api.js') }}"></script>
+
     @endpush
     @push('js')
         <script src="https://js.stripe.com/v3/"></script>
