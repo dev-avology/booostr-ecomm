@@ -248,7 +248,7 @@ class ProductController extends Controller
             return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
         }
         $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
-            return $cartItem->id == $id?$rowId:false;
+            return $cartItem->rowId == $id?$rowId:false;
         });
         if($rowid->isNotEmpty()){
             Cart::remove($rowid->first()->rowId);//remove
@@ -283,7 +283,7 @@ class ProductController extends Controller
             return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
         }
         $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
-            return $cartItem->id == $id?$rowId:false;
+            return $cartItem->rowId == $id?$rowId:false;
         });
         if($rowid->isNotEmpty()){
             Cart::update($rowid->first()->rowId, $request->qty);//QTY update

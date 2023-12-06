@@ -28,7 +28,6 @@
             addresss = places[0].formatted_address;
             let address1 = "";
             let postcode = "";
-         console.log(places[0]);
          for (const component of places[0].address_components) {
             // @ts-ignore remove once typings fixed
             const componentType = component.types[0];
@@ -58,6 +57,8 @@
               case "administrative_area_level_1": {
                 state.value = component.short_name;
                 state1.value = component.short_name;
+                console.log('Dispatch Event change',state1);
+                shipping_state_change();
                 break;
               }
               case "country":

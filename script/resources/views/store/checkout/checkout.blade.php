@@ -560,6 +560,8 @@ a.cart-summary > span {
         @if ($source_code == 'off')
             <script type="text/javascript" src="{{ asset('theme/disable-source-code.js') }}"></script>
         @endif
+        <script type="text/javascript" src="{{ asset('checkout/js/checkout.js') }}"></script>
+
         @if (1)
             <script async defer
                 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmimJcxCmMIgBR0G0UKmQAgfr7RSS8pDg&libraries=places&radius=5&location={{ tenant('lat') }}%2C{{ tenant('long') }}&callback=initialize">
@@ -603,10 +605,9 @@ a.cart-summary > span {
                 var searchBox;
                 var city;
             </script>
-            <script type="text/javascript" src="{{ asset('checkout/js/google-api.js') }}"></script>
         @endif
+        <script type="text/javascript" src="{{ asset('checkout/js/google-api.js') }}"></script>
 
-        <script type="text/javascript" src="{{ asset('checkout/js/checkout.js') }}"></script>
     @endpush
     @push('js')
         <script src="https://js.stripe.com/v3/"></script>

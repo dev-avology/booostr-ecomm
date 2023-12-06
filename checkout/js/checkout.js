@@ -291,6 +291,7 @@ function shipping_state_change()
 			}
 		});
  
-
+ 
 }
+console.log('Tax updated');
 }
