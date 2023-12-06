@@ -58,7 +58,7 @@
                 state.value = component.short_name;
                 state1.value = component.short_name;
                 console.log('Dispatch Event change',state1);
-                document.querySelector('#location_state1').dispatchEvent(new Event('change'));
+                shipping_state_change();
                 break;
               }
               case "country":
