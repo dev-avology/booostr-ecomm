@@ -58,6 +58,7 @@
               case "administrative_area_level_1": {
                 state.value = component.short_name;
                 state1.value = component.short_name;
+                state1.dispatchEvent(new Event('change'));
                 break;
               }
               case "country":
