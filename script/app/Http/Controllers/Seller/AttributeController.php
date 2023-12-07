@@ -64,9 +64,9 @@ class AttributeController extends Controller
         $parent->featured=$request->featured;
         $parent->save();
 
-        if ($request->child) {
+        if ($request->newchild) {
             $childs=[];
-            foreach ($request->child as $key => $row) {
+            foreach ($request->newchild as $key => $row) {
                 if (!empty($row)) {
                     $arr['name']=$row;
                     $arr['slug']=$row;
@@ -88,7 +88,7 @@ class AttributeController extends Controller
             return response()->json($errors,401);
         }   
 
-        return response()->json('Attribute Created Successfully...!!!');
+        return response()->json(['msg'=>'Attribute Created Successfully...!!!','redirect_to'=>route('seller.attribute.index')]);
 
     }
 

@@ -126,12 +126,20 @@
 			
 			success: function(response){ 
 				$('.basicbtn').removeAttr('disabled')
+				console.log(response.redirect_to);
+				
+				if(response.redirect_to){
+					Sweet('success',response.msg);
+				   window.location.href = response.redirect_to;
+				}else{
 				Sweet('success',response);
 				$('.basicbtn').html(basicbtnhtml);
 				$('.ajaxform_with_reset').trigger('reset');
 				var placeholder_image=$('.placeholder_image').val();
 				$('.input_preview').attr('src',placeholder_image);
-				window.location.href = '/seller/product';
+			}
+
+				//window.location.href = '/seller/product';
 			},
 			error: function(xhr, status, error) 
 			{
