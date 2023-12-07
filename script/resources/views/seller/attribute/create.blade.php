@@ -100,5 +100,8 @@
     function success(argument) {
         $('.childs').remove()
     }
+    var total=0;
+
 </script>
+<script src="{{ asset('admin/js/attribute-edit.js') }}"></script>
 @endpush

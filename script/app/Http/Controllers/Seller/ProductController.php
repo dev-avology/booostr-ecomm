@@ -160,7 +160,9 @@ class ProductController extends Controller
             $errors['errors']['error'] = 'Oops something wrong';
             return response()->json($errors, 401);
         }
-        return response()->json(['Product Created']);
+        //return response()->json(['Product Created']);
+        return response()->json(['msg'=>'Product Created','redirect_to'=>route('seller.product.index')]);
+
     }
 
     /**
