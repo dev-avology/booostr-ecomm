@@ -22,7 +22,7 @@
          <form class="ajaxform" method="post" action="{{ route('seller.category.update',$info->id) }}">
             @csrf
             @method("PUT")
-            <div class="row">
+            <div class="row" style="display:none">
                {{-- left side --}}
                <div class="col-lg-5">
                   <strong>{{ __('Image') }}</strong>
@@ -42,7 +42,7 @@
                </div>
                {{-- /right side --}}
             </div>
-            <div class="row">
+            <div class="row" style="display:none">
                {{-- left side --}}
                <div class="col-lg-5">
                   <strong>{{ __('Category Icon') }}</strong>

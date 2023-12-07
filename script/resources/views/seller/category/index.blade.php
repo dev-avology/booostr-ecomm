@@ -25,8 +25,8 @@
                             <thead>
                                 <tr>
                                     <th>{{ __('Name') }}</th>
-                                    <th>{{ __('Icon') }}</th>
-                                    <th>{{ __('Preview') }}</th>
+                                    {{-- <th>{{ __('Icon') }}</th>
+                                    <th>{{ __('Preview') }}</th> --}}
                                     <th>{{ __('Created At') }}</th>
                                     <th>{{ __('Action') }}</th>
                                 </tr>
@@ -36,8 +36,8 @@
                                 <tr>
                                   {{-- <td><a href="{{ url('category',$row->slug) }}">{{ $row->name }}</a></td> --}}
                                   <td>{{ $row->name }}</td>
-                                  <td><img src="{{ asset($row->icon->content ?? '') }}" alt="" height="50"></td>
-                                   <td><img src="{{ asset($row->preview->content ?? '') }}" alt="" height="50"></td>
+                                  <!--td><img src="{{ asset($row->icon->content ?? '') }}" alt="" height="50"></td>
+                                   <td><img src="{{ asset($row->preview->content ?? '') }}" alt="" height="50"></td-->
                                   <td>{{ date('d-m-Y', strtotime($row->created_at)) }}</td>
                                   <td class="">
                                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
