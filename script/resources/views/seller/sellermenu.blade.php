@@ -35,25 +35,25 @@
 
 
 <li class="menu-header">{{ __('Product Management') }}</li>
-<li class="{{ Request::is('seller/product*') ? 'active' : '' }} {{ Request::is('seller/barcode*') ? 'active' : '' }}">
+<li class="{{ Request::is('seller/product*') ? 'active' : '' }} {{ Request::is('seller/category*') ? 'active' : '' }} {{ Request::is('seller/brand*') ? 'active' : '' }} {{ Request::is('seller/attribute*') ? 'active' : '' }} {{ Request::is('seller/tag*') ? 'active' : '' }}">
     <a class="nav-link has-dropdown" href="#">
         <i class="fas fa-box"></i>
         <span>{{ __('Products') }}</span>
     </a>
     <ul class="dropdown-menu" >
-        <li>
+        <li class="{{ Request::is('seller/product*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ url('/seller/product') }}">{{ __('Products') }}</a>
         </li>
-        <li>
+        <li class="{{ Request::is('seller/category*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ url('/seller/category') }}">{{ __('Categories') }}</a>
         </li>
-        <li>
+        <li class="{{ Request::is('seller/brand*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ url('/seller/brand') }}">{{ __('Brands') }}</a>
         </li>
-        <li>
+        <li class="{{ Request::is('seller/attribute*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ url('/seller/attribute') }}">{{ __('Attributes') }}</a>
         </li>
-        <li>
+        <li class="{{ Request::is('seller/tag*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ url('/seller/tag') }}">{{ __('Tags') }}</a>
         </li>
         <!-- <li>
