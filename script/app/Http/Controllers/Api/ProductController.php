@@ -646,10 +646,14 @@ class ProductController extends Controller
 
     public function getFooterLinks(){
         $footerLink = Term::where('type', 'page')->get();
+        foreach($footerLink as $link){
+            $link['link'] = url('/page',$link['slug']);
+        }
+
         if($footerLink){
             return response()->json(["status" => 'true', "message" => 'Footer link get successfully','data' =>$footerLink]);
           }else{
-              return response()->json(["status" => 'false', "message" => 'Something went wrong']);
-          }
+            return response()->json(["status" => 'false', "message" => 'Something went wrong']);
+        }
     }
 }
