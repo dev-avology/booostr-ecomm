@@ -641,4 +641,13 @@ class ProductController extends Controller
             return response()->json(["status" => 'false', "message" => 'Something went wrong']);
         }
     }
+
+    public function getFooterLinks(){
+        $footerLink = Term::where('type', 'page')->get();
+        if($footerLink){
+            return response()->json(["status" => 'true', "message" => 'Footer link get successfully','data' =>$footerLink]);
+          }else{
+              return response()->json(["status" => 'false', "message" => 'Something went wrong']);
+          }
+    }
 }
