@@ -15,6 +15,7 @@ use DNS2D;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ProductImport;
 use Auth;
+use Error;
 
 class ProductController extends Controller
 {
@@ -150,32 +151,6 @@ class ProductController extends Controller
                               array_push($product_varitions, $varition->id);
                           }
                   }
-
-                // $productoptions = [];
-                // foreach ($request->childattribute['options'] ?? [] as $key => $value) {
-                //     if (isset($request->childattribute['priceoption'][$key])) {
-                //         $group = $term->productoption()->create(['category_id' => $key, 'select_type' => $value['select_type'], 'is_required' => $value['is_required']]);
-
-                //         foreach ($request->childattribute['priceoption'][$key] ?? [] as $k => $row) {
-
-                //             $data['term_id'] = $term->id;
-                //             $data['price'] = $row['price'] ?? 0;
-                //             $data['qty'] = $row['qty'] ?? 0;
-                //             $data['sku'] = $row['sku'] ?? 0;
-                //             $data['weight'] = $row['weight'] ?? 0;
-                //             $data['tax'] = $row['tax'] ?? 1;
-                //             $data['productoption_id'] = $group->id;
-                //             $data['stock_manage'] = $row['stock_manage'] ?? 0;
-                //             $data['stock_status'] = $row['stock_status'] ?? 0;
-                //             $data['category_id'] = $k;
-
-                //             array_push($productoptions, $data);
-                //         }
-                //     }
-                // }
-                // if (count($productoptions) > 0) {
-                //     $term->prices()->insert($productoptions);
-                // }
             }
 
             DB::commit();
@@ -371,7 +346,7 @@ class ProductController extends Controller
 
                     $product_options = [];
                     $product_varitions = [];
-          //dd($request);
+               //dd($request);
 
                      foreach ($request->parentattribute ?? [] as $option) {
                       $group = Productoption::firstOrNew(['term_id'=>$term->id,'category_id'=>$option]);
@@ -484,111 +459,15 @@ class ProductController extends Controller
                     }
 
 
-                  //   dd($request);
-
-
-
-
-
-
-
-                    // foreach ($request->childattribute['child'] ?? [] as $keychild => $child) {
-                    //     array_push($updated_option_group, $keychild);
-                    //     $group = Productoption::where('id', $keychild)->first();
-                    //     $group->update(['select_type' => $child['select_type'], 'is_required' => $child['is_required']]);
-                    // }
-
-                    // foreach ($request->childattribute['priceoption'] ?? [] as $optionkey => $priceoption) {
-                    //     array_push($updated_child_row, $optionkey);
-
-                    //     Price::where('id', $optionkey)->update([
-                    //         'price' => $priceoption['price'],
-                    //         'qty' => $priceoption['qty'],
-                    //         'sku' => $priceoption['sku'],
-                    //         'weight' => $priceoption['weight'],
-                    //         'stock_manage' => $priceoption['stock_manage'],
-                    //         'stock_status' => $priceoption['stock_status'],
-                    //         'tax' => $request->tax ?? 1
-
-                    //     ]);
-                    // }
-
-                    // //delete row
-                    // $deleteable_option = [];
-                    // $deleteable_prices = [];
-                    // foreach ($term->productoption ?? [] as $row) {
-                    //     if (in_array($row->id, $updated_option_group) == false) {
-                    //         array_push($deleteable_option, $row->id);
-                    //     }
-                    // }
-
-                    // foreach ($term->prices ?? [] as $row) {
-                    //     if (in_array($row->id, $updated_child_row) == false) {
-                    //         array_push($deleteable_prices, $row->id);
-                    //     }
-                    // }
-
-                    // if (count($deleteable_option) > 0) {
-                    //     Productoption::whereIn('id', $deleteable_option)->delete();
-                    // }
-
-                    // if (count($deleteable_prices) > 0) {
-                    //     Price::whereIn('id', $deleteable_prices)->delete();
-                    // }
-
-                    // //insert new row
-                    // $productoptions = [];
-                    // foreach ($request->childattribute['new_priceoption'] ?? [] as $key => $value) {
-                    //     if (isset($request->childattribute['new_priceoption'][$key])) {
-                    //         foreach ($request->childattribute['new_priceoption'][$key] ?? [] as $k => $row) {
-
-                    //             $data['term_id'] = $term->id;
-                    //             $data['price'] = $row['price'] ?? 0;
-                    //             $data['qty'] = $row['qty'] ?? 0;
-                    //             $data['sku'] = $row['sku'] ?? 0;
-                    //             $data['weight'] = $row['weight'] ?? 0;
-                    //             $data['productoption_id'] = $key;
-                    //             $data['stock_manage'] = $row['stock_manage'] ?? 0;
-                    //             $data['stock_status'] = $row['stock_status'] ?? 0;
-                    //             $data['tax'] = $request->tax ?? 1;
-                    //             $data['category_id'] = $k;
-
-                    //             array_push($productoptions, $data);
-                    //         }
-                    //     }
-                    // }
-                    // if (isset($request->childattribute['new_child_group'])) {
-                    //     foreach ($request->childattribute['new_child_group'] ?? [] as $childkey => $child) {
-                    //         $group = $term->productoption()->create(['category_id' => $childkey, 'select_type' => $child['select_type'], 'is_required' => $child['is_required']]);
-                    //         foreach ($child['childrens'] ?? [] as $key => $child_row) {
-                    //             $data['term_id'] = $term->id;
-                    //             $data['price'] = $child_row['price'] ?? 0;
-                    //             $data['qty'] = $child_row['qty'] ?? 0;
-                    //             $data['sku'] = $child_row['sku'] ?? 0;
-                    //             $data['weight'] = $child_row['weight'] ?? 0;
-                    //             $data['productoption_id'] = $group->id;
-                    //             $data['stock_manage'] = $child_row['stock_manage'] ?? 0;
-                    //             $data['stock_status'] = $child_row['stock_status'] ?? 0;
-                    //             $data['tax'] = $request->tax ?? 1;
-                    //             $data['category_id'] = $key;
-
-                    //             array_push($productoptions, $data);
-                    //         }
-                    //     }
-                    // }
-                    // if (count($productoptions) > 0) {
-                    //     $term->prices()->insert($productoptions);
-                    // }
-
 
 
                 }
                 DB::commit();
             } catch (\Throwable $th) {
                 DB::rollback();
-                //$errors['errors']['error'] = 'Oops something wrong';
-                dd($th);
-//                $errors['errors']['error'] = $th;
+                $errors['errors']['error'] = 'Oops something wrong';
+                //dd($th);
+                // $errors['errors']['error'] = $th;
                 return response()->json($errors, 401);
             }
             return response()->json('Product Price Updated...!!');
@@ -715,6 +594,12 @@ class ProductController extends Controller
                 Term::query()->where('type', 'product')->where('id', $request->ids)->delete();
 
                 return response()->json('Successfully Product Deleted...!!!');
+            }elseif ($request->method == 'duplicate') {
+                foreach ($request->ids as $id) {
+                    $this->duplicateProduct($id);
+                }
+
+                return response()->json('Successfully Product duplicated...!!!');
             } else {
                 foreach ($request->ids as $id) {
 
@@ -766,4 +651,115 @@ class ProductController extends Controller
         }
         return response()->json(['status' => 'Some thing went wrong']);
     }
+
+    public function clone($id){
+      $new = $this->duplicateProduct($id);
+      if($new != 0){
+        return redirect()->route('seller.product.edit', $new);
+      }else{
+        return redirect()->back()->with('error','Oops somthing went wrong');
+      }
+    }
+
+    private function duplicateProduct($id){
+
+        $product = Term::where('type', 'product')->with('excerpt','price','media', 'medias','seo', 'description', 'termcategories','productoption','prices')->find($id);
+
+      // dd($product->productoption);
+        DB::beginTransaction();
+        try {
+            $term = new Term;
+            $term->title = $product->title.' Copy ';
+            $term->slug = $term->makeSlug($product->title.' Copy ', 'product');
+            $term->type = 'product';
+            $term->status = 0;
+            $term->is_variation = $product->is_variation;
+            $term->list_type = $product->list_type;
+            $term->save();
+
+
+            if (!empty($product->excerpt)) {
+                $term->excerpt()->create(['key' => 'excerpt', 'value' => $product->excerpt->value]);
+            }
+
+
+            if (!empty($product->description)) {
+                $term->description()->create(['key' => 'description', 'value' => $product->description]);
+            }
+
+            if(!empty($product->categories)){
+                $term->categories()->attach($product->categories->pluck('id')->toArray());
+            } 
+
+            if (!empty($product->media)) {
+                $term->media()->create(['key' => 'preview', 'value' => $product->media->value]);
+            }
+
+            if (!empty($product->medias)) {
+                $term->medias()->create(['key' => 'gallery', 'value' => $product->medias->value]);
+            }
+
+            if ($product->is_variation != 1) {
+
+                $term->price()->create([
+                    'price' => $product->price->price,
+                    'qty' => $product->price->qty,
+                    'sku' => '',
+                    'weight' => $product->price->weight,
+                    'stock_manage' => 0,
+                    'stock_status' => $product->price->stock_status,
+                    'tax' => $product->price->tax
+                ]);
+            } else {
+
+                $product_options = [];
+                $product_varitions = [];
+
+                foreach($product->productoption as $productoption){
+                    
+                    $option = Productoption::firstOrNew(['term_id'=>$term->id,'category_id'=>$productoption->category_id,'select_type'=>0,'is_required'=>1]);
+                    $option->save();
+                    $product_options[] = ['old'=>$productoption->id,'new'=>$option->id];
+                }
+
+                foreach($product->prices as $price){
+                    $data = [];
+                    $data['term_id'] = $term->id;
+                    $data['price'] = $price->price;
+                    $data['qty'] = $price->qty;
+                    $data['sku'] = '';
+                    $data['weight'] = $price->weight;
+                    $data['stock_manage'] =  0;
+                    $data['stock_status'] =  0;
+                    $data['tax'] = $price->tax;
+                    $varition = Price::create($data);
+                    $varitions_data = [];
+                    foreach($price->varitions as $old_varition){
+
+                        $filteredvarition = array_filter($product_options, function($option) use($old_varition){
+                            return $option['old'] == $old_varition->pivot->productoption_id;
+                        });
+
+                         $filteredvarition = reset($filteredvarition);
+                         if(isset($filteredvarition['new'])){
+                            $popt = $filteredvarition['new'];
+                            $varitions_data[] = ['productoption_id'=>$popt,'category_id'=>$old_varition->pivot->category_id];                     
+                         }
+                    }
+                    $varition->varitions()->sync($varitions_data);
+                }
+
+            }
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return 0;
+        }
+        
+       return $term->id; 
+
+    }
+
+
 }

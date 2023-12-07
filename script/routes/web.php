@@ -308,6 +308,7 @@ Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 
 
     Route::post('product-import', 'ProductController@import')->name('product.import');
     Route::get('product/edit/{id}/{type}', 'ProductController@edit');
+    Route::get('product/clone/{id}', 'ProductController@clone')->name('product.clone');
     Route::get('product/remove-price/{id}', 'ProductController@removeVariationPrice');
     Route::get('product/remove-variation-attribute/{id}', 'ProductController@removeVariationAttribute');
 
