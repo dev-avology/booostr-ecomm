@@ -241,10 +241,10 @@
                                     <input type="number" step="any" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][price]" value="{{ $priceswithcategory->price }}" />
                                  </div>
                               </div>
-                              <div class="from-group col-lg-6  mb-2">
+                              <div class="from-group col-lg-6  mb-2 ">
                                  <label for="">{{ __('Stock Quantity :') }} </label>
                                  <div >
-                                    <input type="number" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][qty]" value="{{ $priceswithcategory->qty }}"/>
+                                    <input type="number" class="stock-qty form-control" @if($priceswithcategory->stock_manage == 0) disabled @endif  name="childattribute[priceoption][{{$priceswithcategory->id}}][qty]" value="{{ $priceswithcategory->qty }}"/>
                                  </div>
                               </div>
                               <div class="from-group col-lg-6 mb-2">
@@ -262,7 +262,7 @@
                               <div class="from-group col-lg-6  mb-2">
                                  <label for="" >{{ __('Manage Stock ?') }} </label>
                                  <div >
-                                    <select class="form-control selectric" name="childattribute[priceoption][{{$priceswithcategory->id}}][stock_manage]">
+                                    <select class="form-control selectric manage_stock" name="childattribute[priceoption][{{$priceswithcategory->id}}][stock_manage]">
                                        <option value="1" @if($priceswithcategory->stock_manage == 1) selected @endif>{{ __('Yes') }}</option>
                                        <option value="0" @if($priceswithcategory->stock_manage == 0) selected @endif>{{ __('No') }}</option>
                                     </select>
@@ -320,6 +320,14 @@
 <script src="{{ asset('admin/js/product-price.js?v=1') }}"></script>
 
 <script>
+  $(document).on('change', '.manage_stock', function() {
+    if ($(this).val() == 0) {
+        $(this).closest('.accordion-body').find('.stock-qty').prop('disabled', true);
+    } else {
+        $(this).closest('.accordion-body').find('.stock-qty').prop('disabled', false);
+    }
+  });
+
     $(".product_price_input").change(function() {
        // This function will be executed when the input value changes.
        var inputValue = $(this).val();
@@ -372,14 +380,13 @@
           if($(new_attr).length == 0 ){
              $(this).prop("selected", false)
              $(".childattribute" + $(row).data('short')).trigger('change.select2');
-            console.log('has 0 options',$(new_attr).length,attrVal);
-         }else{
-            console.log('has options',$(new_attr).length,attrVal);
-          }
+         }
 
       });
     });
-}
+   }
+
+
 </script>
 
 @endpush
