@@ -43,6 +43,7 @@ Route::group([
     Route::post('/resend_invoice','Api\ProductController@resend_invoice');
     Route::post('/get_invoice_info','Api\ProductController@getInvoiceInfo');
     Route::get('/get_banner_image','Api\ProductController@getBannerImage');
+    Route::get('/get_footer_links','Api\ProductController@getFooterLinks');
 });
 
 
