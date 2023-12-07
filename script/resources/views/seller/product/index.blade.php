@@ -52,8 +52,9 @@
                         <option value="1">{{ __('Publish Now') }}</option>
                         <option value="0">{{ __('Draft') }}</option>
 
-
+                        <option value="duplicate">{{ __('Duplicate') }}</option>
                         <option value="delete" class="text-danger">{{ __('Delete Permanently') }}</option>
+                       
 
                     </select>
                     <div class="input-group-append">
@@ -102,6 +103,7 @@
                                   <td class="text-right">{{ date('d-m-Y', strtotime($row->created_at)) }}</td>
                                   <td class="text-right">
                                     <a class="text-primary" href="{{ route('seller.product.edit', $row->id) }}"><i class="fa fa-edit"></i></a>
+                                    <a class="text-primary" href="{{ route('seller.product.clone', $row->id) }}"><i class="fa fa-clone"></i></a>
                                 </td>
                             </tr>
                         @endforeach
