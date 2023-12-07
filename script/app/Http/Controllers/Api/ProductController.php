@@ -647,7 +647,7 @@ class ProductController extends Controller
     public function getFooterLinks(){
         $footerLink = Term::where('type', 'page')->get();
         foreach($footerLink as $link){
-            $link['link'] = url('/page',$link['slug']);
+            $link['link'] = "https://".tenant()->domain->domain."/page/".$link['slug'];
         }
 
         if($footerLink){
