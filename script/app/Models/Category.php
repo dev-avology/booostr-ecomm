@@ -121,7 +121,8 @@ class Category extends Model
 
     public function products()
     {
-      return $this->belongsToMany(Term::class,Termcategory::class)->with('firstprice','lastprice','excerpt','tags','preview');
+      return $this->belongsToMany(Term::class,Termcategory::class)->where('status', 1)
+      ->with('firstprice','lastprice','excerpt','tags','preview');
     }
 
     public function termcategories()
