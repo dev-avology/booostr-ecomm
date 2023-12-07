@@ -315,7 +315,7 @@
                       <div class="from-group col-lg-6  mb-2">
                         <label for="">Stock Quantity : </label>
                         <div >
-                           <input type="number" class="form-control" name="${qtyname}" value="0"/>
+                           <input type="number" class="form-control stock-qty" name="${qtyname}" value="0"/>
                         </div>
                      </div>
                      <div class="from-group col-lg-6 mb-2">
@@ -334,9 +334,9 @@
                         <label for="" >Manage Stock ? </label>
                         <div >
                            
-                           <select class="form-control selectric" name="${stock_manage_name}">
+                           <select class="form-control selectric manage_stock" name="${stock_manage_name}">
                               <option value="1" >Yes</option>
-                              <option value="0" selected>No</option>
+                              <option value="0">No</option>
                            </select>
                         </div>
                      </div>

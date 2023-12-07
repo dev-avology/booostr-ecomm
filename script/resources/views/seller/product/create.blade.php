@@ -213,7 +213,7 @@
                {{-- right side --}}
                <div class="col-lg-8">
                   <div class="card card-primary">
-                     <div class="card-body">
+                     <div class="accordion-body card-body">
                         <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Product Price') }} : </label>
                            <div class="col-lg-12">
@@ -223,7 +223,7 @@
                         <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Quantity') }} : </label>
                            <div class="col-lg-12">
-                              <input type="number" class="form-control" name="qty" placeholder="0">
+                              <input type="number" class="form-control stock-qty" name="qty" placeholder="0">
                            </div>
                         </div>
                         <div class="from-group row mb-2">
@@ -241,7 +241,7 @@
                         <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Manage Stock') }} : </label>
                            <div class="col-lg-12">
-                              <select name="stock_manage" class="form-control selectric">
+                              <select name="stock_manage" class="form-control selectric manage_stock">
                                  <option value="1">{{ __('Yes') }}</option>
                                  <option value="0">{{ __('No') }}</option>
                               </select>
@@ -301,6 +301,15 @@
 <script src="{{ asset('admin/js/select2.min.js') }}"></script>
 <script src="{{ asset('admin/js/product-create.js') }}"></script>
 <script>
+
+$(document).on('change', '.manage_stock', function() {
+    if ($(this).val() == 0) {
+        $(this).closest('.accordion-body').find('.stock-qty').prop('disabled', true);
+    } else {
+        $(this).closest('.accordion-body').find('.stock-qty').prop('disabled', false);
+    }
+  });
+  
 $(".drop_product_type").change(function() {
     // This function will be executed when the input value changes.
     var inputValue = $('.drop_product_type option:selected').text();

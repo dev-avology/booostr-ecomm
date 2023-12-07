@@ -21,7 +21,7 @@
    <div class="col-lg-12">
       <form class="ajaxform_with_reset" method="post" action="{{ route('seller.category.store') }}">
          @csrf
-         <div class="row">
+         <div class="row hide" style="display:none">
             {{-- left side --}}
             <div class="col-lg-5">
                <strong>{{ __('Image') }}</strong>
@@ -38,7 +38,7 @@
             </div>
             {{-- /right side --}}
          </div>
-          <div class="row">
+          <div class="row hide" style="display:none">
             {{-- left side --}}
             <div class="col-lg-5">
                <strong>{{ __('Category Icon') }}</strong>
