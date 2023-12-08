@@ -637,6 +637,12 @@ class ProductController extends Controller
         $address['post_code'] = $decode_address->post_code ?? '';
         $address['store_legal_email'] = $decode_address->store_legal_email ?? '';
 
+        $club_info = tenant()->club_info;
+
+        $club_info=json_decode($club_info ?? '');
+
+        $address['club_url'] = $club_info->club_url;
+
         $order_data['club_address'] = $address ?? '';
 
               
