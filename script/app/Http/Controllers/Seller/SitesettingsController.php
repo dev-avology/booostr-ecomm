@@ -44,16 +44,16 @@ class SitesettingsController extends Controller
 
          $decode_address=json_decode($club_address->value);
 
-         $address['store_legal_name'] = $decode_address->store_legal_name;
-         $address['store_legal_phone'] = $decode_address->store_legal_phone;
-         $address['store_legal_house'] = $decode_address->store_legal_house;
-         $address['store_legal_address'] = $decode_address->store_legal_address;
+         $address['store_legal_name'] = $decode_address->store_legal_name ?? '';
+         $address['store_legal_phone'] = $decode_address->store_legal_phone ?? '';
+         $address['store_legal_house'] = $decode_address->store_legal_house ?? '';
+         $address['store_legal_address'] = $decode_address->store_legal_address ?? '';
 
-         $address['store_legal_city'] = $decode_address->store_legal_city;
-         $address['country'] = $decode_address->country;
-         $address['state'] = $decode_address->state;
+         $address['store_legal_city'] = $decode_address->store_legal_city ?? '';
+         $address['country'] = $decode_address->country ?? '';
+         $address['state'] = $decode_address->state ?? '';
          $address['post_code'] = $decode_address->post_code;
-         $address['store_legal_email'] = $decode_address->store_legal_email;
+         $address['store_legal_email'] = $decode_address->store_legal_email ?? '';
 
          // $store_state = trim($address[count($address)-2]);
          // $store_country = trim($address[count($address)-1]);
