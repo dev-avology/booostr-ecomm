@@ -137,7 +137,7 @@ class SitesettingsController extends Controller
             ///    'notification_icon' => 'mimes:png|max:100',
               //  'banner' => 'mimes:png|max:200',
                'store_legal_name' => 'required|max:50',
-               'store_legal_phone' => 'required|max:20',
+              // 'store_legal_phone' => 'required|max:20',
                'store_legal_email' => 'required|email|max:50',
                'store_legal_address' => 'required|max:50',
                // 'store_legal_house' => 'required|max:50',
