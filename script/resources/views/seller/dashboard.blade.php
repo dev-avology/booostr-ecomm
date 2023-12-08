@@ -128,7 +128,7 @@
   @if(showAddressError())
   <div class="col-md-12">
       <div class="alert alert-warning">
-           {{ __('Please update club store address details.') }} 
+           {{ __('Please update store address details.') }} 
       </div>
   </div>
   @endif
