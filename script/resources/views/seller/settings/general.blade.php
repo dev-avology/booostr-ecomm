@@ -600,50 +600,59 @@
                     <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Legal name of company :') }}  </label>
                         <div class="col-lg-12">
-                            <input type="text" disabled value="{{ $store_name }}" name="store_legal_name" class="form-control" max="50">
+                            <input type="text" readonly value="{{ $address['store_legal_name'] }}" name="store_legal_name" class="form-control" max="50">
                         </div>
                     </div>
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Phone') }} : </label>
                         <div class="col-lg-12">
-                            <input type="number" disabled value="{{ str_replace('-','',$phone_number) ?? '' }}" name="store_legal_phone" class="form-control" required>
+                            <input type="number" readonly value="{{ $address['store_legal_phone'] }}" name="store_legal_phone" class="form-control" required>
                         </div>
                     </div>
                      <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Email') }} : </label>
                         <div class="col-lg-12">
-                            <input type="email" disabled value="{{ $store_sender_email ?? '' }}" name="store_legal_email" class="form-control" required>
+                            <input type="email" readonly value="{{ $address['store_legal_email'] }}" name="store_legal_email" class="form-control" required>
                         </div>
                     </div>
                     
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Address') }} : </label>
                         <div class="col-lg-12">
-                            <input type="text" disabled value="{{ isset($address[0]) ? $address[0] : '' }}"  name="store_legal_address" class="form-control" required>
+                            <input type="text" value="{{ $address['store_legal_address'] }}"  name="store_legal_address" class="form-control" required>
                         </div>
                     </div>
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Apartment, suite, etc.') }} : </label>
                         <div class="col-lg-12">
-                            <input type="text" disabled value="{{ isset($address[1]) ? $address[1] : '' }}" name="store_legal_house" class="form-control" required>
+                            <input type="text" value="{{ $address['store_legal_house'] }}" name="store_legal_house" class="form-control">
                         </div>
                     </div>
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('City') }} : </label>
                         <div class="col-lg-12">
-                            <input type="text" disabled value="{{ trim($address[count($address)-2]) ?? '' }}" name="store_legal_city" class="form-control" required>
+                            <input type="text" value="{{ $address['store_legal_city'] }}" name="store_legal_city" class="form-control" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="from-group col-lg-6  mb-2">
-                         <label for="" >{{ __('Country/region') }} : </label>
-                          <input type="text" disabled value="{{ trim($address[count($address)-1]) ?? '' }}" name="country" class="form-control">
-                        </div>
+                            <label for="" >{{ __('State') }} : </label>
+                             <input type="text" value="{{ $address['state'] }}" name="state" class="form-control">
+                           </div>
                         <div class="from-group col-lg-6  mb-2">
-                         <label for="" >{{ __('Postal code') }} : </label>
-                          <input type="text" disabled value="" name="post_code" class="form-control">
+                         <label for="" >{{ __('Country/region') }} : </label>
+                          <input type="text" value="{{ $address['country'] }}" name="country" class="form-control">
                         </div>
                   </div>
+
+                  <div class="from-group row mb-2">
+                    <label for="" class="col-lg-12">{{ __('Postle Code') }} : </label>
+                     <div class="col-lg-12">
+                        <input type="text" value="{{ $address['post_code'] }}" name="post_code" class="form-control">
+                     </div>
+                 </div>
+
+
                   </div>
                </div>
             </div>
