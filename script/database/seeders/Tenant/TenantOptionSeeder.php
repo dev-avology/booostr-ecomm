@@ -20,10 +20,15 @@ class TenantOptionSeeder extends Seeder
 
         $store_name = $club_info['club_name'];
         $store_email= $club_info['club_email'];
-        $store_address = trim($address[0]);
-        $store_house = trim($address[1]);
-        $store_state = trim($address[count($address)-2]);
-        $store_country = trim($address[count($address)-1]);
+        // $store_address = trim($address[0]);
+        // $store_house = trim($address[1]);
+        // $store_state = trim($address[count($address)-2]);
+        // $store_country = trim($address[count($address)-1]);
+        $store_address = '';
+        $store_house = '';
+        $store_state = '';
+        $store_city = '';
+        $store_country = '';
         $phone_number = $club_info['phone_number'];
         $timezone = $club_info['timezone'];
 
@@ -59,7 +64,7 @@ class TenantOptionSeeder extends Seeder
         array(
             "id" => 5,
             "key" => "invoice_data",
-            "value" => '{"store_legal_name":"'.$store_name.'","store_legal_phone":"'.$phone_number.'","store_legal_address":"'.$store_address.'","store_legal_house":"'.$store_house.'","store_legal_city":"'.$store_state.'","country":"'.$store_country.'","post_code":"","store_legal_email":"'.$store_email.'"}',
+            "value" => '{"store_legal_name":"'.$store_name.'","store_legal_phone":"'.$phone_number.'","store_legal_address":"'.$store_address.'","store_legal_house":"'.$store_house.'","store_legal_city":"'.$store_city.'","country":"'.$store_country.'","state":"'.$store_state.'","post_code":"","store_legal_email":"'.$store_email.'"}',
             "autoload" => 1
         ),
         array(

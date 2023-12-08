@@ -37,18 +37,27 @@ class SitesettingsController extends Controller
              
          $club_info = tenant_club_info();
 
-
-      //   $timezone = getClubTimeZone();
-
          $lat_lang = explode(',',$club_info['lat_lang']);
-         $address = explode(',',$club_info['address']);
+         $address = [];
 
+         $club_address=Option::where('key','invoice_data')->first();
 
+         $decode_address=json_decode($club_address->value);
 
+         $address['store_legal_name'] = $decode_address->store_legal_name;
+         $address['store_legal_phone'] = $decode_address->store_legal_phone;
+         $address['store_legal_house'] = $decode_address->store_legal_house;
+         $address['store_legal_address'] = $decode_address->store_legal_address;
 
-         $store_state = trim($address[count($address)-2]);
-         $store_country = trim($address[count($address)-1]);
-         $phone_number = $club_info['phone_number'];
+         $address['store_legal_city'] = $decode_address->store_legal_city;
+         $address['country'] = $decode_address->country;
+         $address['state'] = $decode_address->state;
+         $address['post_code'] = $decode_address->post_code;
+         $address['store_legal_email'] = $decode_address->store_legal_email;
+
+         // $store_state = trim($address[count($address)-2]);
+         // $store_country = trim($address[count($address)-1]);
+      //   $phone_number = $club_info['phone_number'];
 
            $languages=Option::where('key','languages')->first();
            $languages=json_decode($languages->value ?? '');
@@ -100,7 +109,7 @@ class SitesettingsController extends Controller
           $min_cart_total=Option::where('key','min_cart_total')->first();
           $min_cart_total = $min_cart_total ? $min_cart_total->value : 100;
 
-           return view('seller.settings.general',compact('languages','lat_lang','address','phone_number','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings',
+           return view('seller.settings.general',compact('languages','lat_lang','address','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings',
            'banner_logo','bannerUrlValue'));
        }
       
@@ -127,14 +136,15 @@ class SitesettingsController extends Controller
            //     'favicon' => 'mimes:ico|max:50',
             ///    'notification_icon' => 'mimes:png|max:100',
               //  'banner' => 'mimes:png|max:200',
-              //  'store_legal_name' => 'required|max:50',
-             //   'store_legal_phone' => 'required|max:20',
-               // 'store_legal_email' => 'required|email|max:50',
-              //  'store_legal_address' => 'required|max:50',
-              //  'store_legal_house' => 'required|max:50',
-              //  'store_legal_city' => 'required|max:30',
-              //  'country' => 'required|max:100',
-              //  'post_code' => 'required|max:50',
+               'store_legal_name' => 'required|max:50',
+               'store_legal_phone' => 'required|max:20',
+               'store_legal_email' => 'required|email|max:50',
+               'store_legal_address' => 'required|max:50',
+               // 'store_legal_house' => 'required|max:50',
+               'store_legal_city' => 'required|max:30',
+               'country' => 'required|max:100',
+               'state' => 'required|max:100',
+               'post_code' => 'required|max:50',
               //  'timezone' => 'required|max:50',
                // 'default_language' => 'required|max:50',
                // 'weight_type' => 'required|max:50', 
@@ -277,24 +287,25 @@ class SitesettingsController extends Controller
 
 
 
-         //   $invoice_info['store_legal_name']=$request->store_legal_name;
-         //   $invoice_info['store_legal_phone']=$request->store_legal_phone;
-         //   $invoice_info['store_legal_address']=$request->store_legal_address;
-         //   $invoice_info['store_legal_house']=$request->store_legal_house;
-         //   $invoice_info['store_legal_city']=$request->store_legal_city;
-         //   $invoice_info['country']=$request->country;
-         //   $invoice_info['post_code']=$request->post_code;
-         //   $invoice_info['store_legal_email']=$request->store_legal_email;
+           $invoice_info['store_legal_name']=$request->store_legal_name;
+           $invoice_info['store_legal_phone']=$request->store_legal_phone;
+           $invoice_info['store_legal_address']=$request->store_legal_address;
+           $invoice_info['store_legal_house']=$request->store_legal_house;
+           $invoice_info['store_legal_city']=$request->store_legal_city;
+           $invoice_info['country']=$request->country;
+           $invoice_info['state']=$request->state;
+           $invoice_info['post_code']=$request->post_code;
+           $invoice_info['store_legal_email']=$request->store_legal_email;
            
-         //   $invoice_data=Option::where('key','invoice_data')->first();
-         //   if (empty($invoice_data)) {
-         //      $invoice_data=new Option;
-         //      $invoice_data->key='invoice_data';
+           $invoice_data=Option::where('key','invoice_data')->first();
+           if (empty($invoice_data)) {
+              $invoice_data=new Option;
+              $invoice_data->key='invoice_data';
               
-         //   }
-         //   $invoice_data->value=json_encode($invoice_info);
-         //   $invoice_data->save();
-         //   TenantCacheClear('invoice_data');
+           }
+           $invoice_data->value=json_encode($invoice_info);
+           $invoice_data->save();
+           TenantCacheClear('invoice_data');
 
 
          //   $timezone=Option::where('key','timezone')->first();
@@ -328,10 +339,10 @@ class SitesettingsController extends Controller
          //   $weight_type->value=$request->weight_type;
          //   $weight_type->save();
 
-            $measurment_type=Option::where('key','measurment_type')->first();
+           $measurment_type=Option::where('key','measurment_type')->first();
            if (empty($measurment_type)) {
               $measurment_type=new Option;
-              $measurment_type->key='weight_type';
+              $measurment_type->key='measurment_type';
               $measurment_type->autoload=1;
            }
            $measurment_type->value=$request->measurment_type;

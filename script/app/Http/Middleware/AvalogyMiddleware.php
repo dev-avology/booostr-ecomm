@@ -25,10 +25,10 @@ class AvalogyMiddleware
         }else{
 
            if($request->hasHeader('X-Tenant')){
-                if(get_option('tax') == "" || (float)get_option('tax') == 0){
+                if(get_option('tax') == "" || (float)get_option('tax') == 0 || showAddressError()){
                     $response = [
                         'status' => 'error',
-                        'message' => 'Oops the store is temporary disabled.Set Sales Tax in Store Setting...!!',
+                        'message' => 'Oops the store is temporary disabled. Complete your store setting...!!',
                     ];
                     return response()->json($response, 413);
                }
