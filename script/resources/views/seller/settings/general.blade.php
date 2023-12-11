@@ -606,7 +606,7 @@
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Phone') }} : </label>
                         <div class="col-lg-12">
-                            <input type="number" readonly value="{{ $address['store_legal_phone'] }}" name="store_legal_phone" class="form-control" required>
+                            <input type="number"  value="{{ $address['store_legal_phone'] }}" name="store_legal_phone" class="form-control" required>
                         </div>
                     </div>
                      <div class="from-group row mb-2">
@@ -641,7 +641,8 @@
                            </div>
                         <div class="from-group col-lg-6  mb-2">
                          <label for="" >{{ __('Country/region') }} : </label>
-                          <input type="text" value="{{ $address['country'] }}" name="country" class="form-control">
+                         {{-- <input type="text" value="{{ $address['country'] }}" name="country" class="form-control"> --}}
+                         <input type="text" readonly value="USA" name="country" class="form-control">
                         </div>
                   </div>
 
