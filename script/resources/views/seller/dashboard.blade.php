@@ -116,11 +116,10 @@
     </div>
   </div>
 
-
-  @if(($tax=='0') || ($tax == '0.000%') || ($tax == '0.'))
+  @if(showAddressTaxError())
   <div class="col-md-12">
       <div class="alert alert-warning">
-           {{ __('Please update sales tax in store setting!') }} 
+           {{ __('Store will not launched until they fill Store Adrress and Tax.') }} 
       </div>
   </div>
   @endif
@@ -132,6 +131,18 @@
       </div>
   </div>
   @endif
+
+
+  @if(($tax=='0') || ($tax == '0.000%') || ($tax == '0.'))
+  <div class="col-md-12">
+      <div class="alert alert-warning">
+           {{ __('Please update sales tax in store setting!') }} 
+      </div>
+  </div>
+  @endif
+
+
+
 
   {{-- @php
 

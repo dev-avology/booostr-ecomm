@@ -23,7 +23,7 @@
           <div class="card-body">
             <div class="form-group">
               <label>{{ __('Page Title') }}</label>
-              <input type="text" class="form-control" placeholder="Page Title" required name="page_title" value="{{ $info->title }}">
+              <input type="text" class="form-control" placeholder="Page Title" required name="title" value="{{ $info->title }}">
             </div>
             <div class="form-group">
               <label>{{ __('Slug') }}</label>
