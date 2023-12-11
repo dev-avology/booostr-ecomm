@@ -567,7 +567,7 @@ function postlimitcheck($type = true){
 	$address['post_code'] = $decode_address->post_code ?? '';
 	$address['store_legal_email'] = $decode_address->store_legal_email ?? '';
 
-	if(empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) ||empty($address['post_code'])){
+	if(empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) ||empty($address['post_code']) || empty($address['store_legal_phone'])){
 		return true;
 	}else{
 		return false;
@@ -596,7 +596,7 @@ function showAddressTaxError(){
     $tax = $tax->value;
 
 	if (
-		(empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) || empty($address['post_code']))
+		(empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) || empty($address['post_code']) || empty($address['store_legal_phone']))
 		|| ((empty($tax) || ($tax=='0') || ($tax == '0.000%') || ($tax == '0.') || $tax == null))
 	) {
 		return true;
