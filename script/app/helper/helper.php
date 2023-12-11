@@ -573,3 +573,36 @@ function postlimitcheck($type = true){
 		return false;
 	}
 }
+
+function showAddressTaxError(){
+
+	$address = [];
+	$club_address=Option::where('key','invoice_data')->first();
+
+	$decode_address=json_decode($club_address->value);
+
+	$address['store_legal_name'] = $decode_address->store_legal_name ?? '';
+	$address['store_legal_phone'] = $decode_address->store_legal_phone ?? '';
+	$address['store_legal_house'] = $decode_address->store_legal_house ?? '';
+	$address['store_legal_address'] = $decode_address->store_legal_address ?? '';
+
+	$address['store_legal_city'] = $decode_address->store_legal_city ?? '';
+	$address['country'] = $decode_address->country ?? '';
+	$address['state'] = $decode_address->state ?? '';
+	$address['post_code'] = $decode_address->post_code ?? '';
+	$address['store_legal_email'] = $decode_address->store_legal_email ?? '';
+
+	$tax=Option::where('key','tax')->first();
+    $tax = $tax->value;
+
+	if (
+		(empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) || empty($address['post_code']))
+		|| ((empty($tax) || ($tax=='0') || ($tax == '0.000%') || ($tax == '0.') || $tax == null))
+	) {
+		return true;
+	} else {
+		return false;
+	}
+
+	// && (empty($tax) || ($tax == '0.000%') || ($tax == null)
+}

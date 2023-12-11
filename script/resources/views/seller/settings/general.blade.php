@@ -647,7 +647,7 @@
                   </div>
 
                   <div class="from-group row mb-2">
-                    <label for="" class="col-lg-12">{{ __('Postle Code') }} : </label>
+                    <label for="" class="col-lg-12">{{ __('Postal Code') }} : </label>
                      <div class="col-lg-12">
                         <input type="text" value="{{ $address['post_code'] }}" name="post_code" class="form-control">
                      </div>
@@ -990,15 +990,18 @@
                                                 <div class="col-lg-3">
 
                                                    
-                                                         <small>{{ __('Cart Subtotal Range (high)') }}</small>
+                                                    <small>{{ __('Cart Subtotal Range (high)') }}</small>
                             
-                                                        <div class="input-with-icon">
-                                                            <i class="fas fa-dollar-sign"></i>
-                                                    <input type="number" required=""
+                                                    <div class="input-with-icon checkbox-traverse" style="display:flex;">
+                                                        <i class="fas fa-dollar-sign hide-doller{{ $v['to'] }}"></i>
+                                                        <input type="number" required=""
                                                         value="{{ $v['to'] }}" step="any"
                                                         name="type_price['flatrate_range'][{{ $countp }}][to]"
-                                                        class="form-control" placeholder="0.00">
-                                                        </div>
+                                                        class="form-control hide-input{{ $v['to'] }}" placeholder="0.00">
+                                                        <p class="all-above{{ $v['to'] }}"></p>
+                                                        
+                                                    <input style="margin-left: 7px;margin-top: -15px;" class="check-only dynamic-checkbox{{ $v['to'] }}" type="checkbox" data-input_id="{{ $v['to'] }}" @php if($v['to']== 0.00) { echo "checked"; } @endphp>
+                                                    </div>
                                                 </div>
                                                 <div class="col-lg-3">
 
@@ -1250,8 +1253,50 @@ $(document).ready(function () {
     Inputmask("9{0,2}.9{0,3}", {
                 placeholder: "5.000",
                 greedy: true
-            }).mask('#tax');
+    }).mask('#tax');
+
+    $('.checkbox-traverse').each(function(index, element) {
+        var checkboxTraverse = $(this).children('input[type="checkbox"]');
+        var input_id = checkboxTraverse.data('input_id');
+
+        if (checkboxTraverse.is(':checked')) {
+            $('.hide-input' + input_id).css('display', 'none');
+            $('.hide-doller'+ input_id).css('display','none');
+            $('.all-above'+ input_id).text('All above price');
+            checkboxTraverse.siblings('input[type="number"]').addClass('blank_id'+input_id);
+            checkboxTraverse.siblings('input[type="number"]').val(0);
+            checkboxTraverse.siblings('input[type="number"]').css('display','none');
+            checkboxTraverse.siblings('i').css('display','none');
+            checkboxTraverse.siblings('p').text('All above price');
+        }
+    });
+
+    $('.check-only').on('change', function() {
+
+        $(this).each(function(index, element) {
+            var checkboxTraverse = $(this);
+            var input_id = checkboxTraverse.data('input_id');
+
+            if (checkboxTraverse.is(':checked')) {
+                $('.hide-input' + input_id).css('display', 'none');
+                $('.hide-doller'+ input_id).css('display','none');
+                $('.all-above'+ input_id).text('All above price');
+                checkboxTraverse.siblings('input[type="number"]').addClass('blank_id'+input_id);
+                checkboxTraverse.siblings('input[type="number"]').val(0);
+                checkboxTraverse.siblings('input[type="number"]').css('display','none');
+                checkboxTraverse.siblings('i').css('display','none');
+                checkboxTraverse.siblings('p').text('All above price');
+            }else{
+                console.log('un checked');
+                $('.blank_id'+input_id).css('display','block');
+                checkboxTraverse.siblings('p').text('');
+                checkboxTraverse.siblings('input[type="number"]').css('display','block');
+                checkboxTraverse.siblings('i').css('display','block');
+            }
         });
+    });
+
+});
 </script>
 <script>
   "use strict";
@@ -1323,20 +1368,21 @@ $(document).ready(function () {
                 return false;
             });
             $('.flatraterow').on('click', function() {
+    $('#flat_rate').append('<div class="row mt-2" id="f-' + rowtotal + '">' +
+        '<div class="col-lg-3"> <small> Cart Subtotal Range (low)</small><div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
+        rowtotal + '][from]" class="form-control" placeholder="0.00"></div></div>' +
+        '<div class="col-lg-1"><label for="">-</label></div>' +
+        '<div class="col-lg-3"><small> Cart Subtotal Range (high)</small><div class="input-with-icon checkbox-traverse" style="display:flex;"><i class="fas fa-dollar-sign hide-doller"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
+        rowtotal + '][to]" class="form-control hide-input" placeholder="0.00">' +
+        '<input class="check-only dynamic-checkbox" type="checkbox" data-input_id="' + rowtotal + '" style="margin-left: 7px;"></div></div>' +
+        '<div class="col-lg-3"><small>Shipping Cost to Customer</small> <div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
+        rowtotal + '][price]" class="form-control" placeholder="0.00"></div></div>' +
+        '<div class="col-lg-2"><a href="javascript:void(0)" data-rowid="f-' + rowtotal + '" class="flatrate-remove-row"><i class="fas fa-minus pt-4"></i></a></div>' +
+        '</div>');
 
-                $('#flat_rate').append('<div class="row mt-2" id="f-'+rowtotal+'">' +
-                    '<div class="col-lg-3"> <small> Cart Subtotal Range (low)</small><div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
-                    rowtotal + '][from]" class="form-control" placeholder="0.00"></div></div>' +
-                    '<div class="col-lg-1"><label for="">-</label></div>' +
-                    '<div class="col-lg-3"><small> Cart Subtotal Range (high)</small><div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
-                    rowtotal + '][to]" class="form-control" placeholder="0.00"></div></div>' +
-                    '<div class="col-lg-3"><small>Shipping Cost to Customer</small> <div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
-                    rowtotal + '][price]" class="form-control" placeholder="0.00"></div></div>' +
-                    ' <div class="col-lg-2"><a href="javascript:void(0)" data-rowid="f-'+rowtotal+'" class="flatrate-remove-row"><i class="fas fa-minus pt-4"></i></a></div> ' +
-                    '</div>');
+    rowtotal++;
+});
 
-                rowtotal++;
-            });
 
         //});
 

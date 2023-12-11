@@ -49,7 +49,7 @@ class PageController extends Controller
         }
        // Validate
         $request->validate([
-            'page_title' => 'required',
+            'title' => 'required|unique:terms',
             'status'     => 'required',
         ]);
 
@@ -65,8 +65,8 @@ class PageController extends Controller
         try { 
         // Page Data Store
         $page           = new Term();
-        $page->title    = $request->page_title;
-        $page->slug     = Str::slug($request->page_title);
+        $page->title    = $request->title;
+        $page->slug     = Str::slug($request->title);
         $page->type     = 'page';
         $page->status   = $request->status;
         $page->save();
@@ -113,7 +113,7 @@ class PageController extends Controller
        abort_if(!getpermission('website_settings'),401);
         // Validate
         $request->validate([
-            'page_title' => 'required',
+            'title' => 'required|unique:terms,title,'.$id,
             'status'     => 'required',
         ]);
 
@@ -126,7 +126,7 @@ class PageController extends Controller
         ];
         $page=Term::findOrFail($id);
 
-        $page->title    = $request->page_title;
+        $page->title    = $request->title;
         $page->slug     = $request->slug;
         $page->status   = $request->status;
         $page->save();
