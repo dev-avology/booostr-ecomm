@@ -119,7 +119,8 @@
   @if(showAddressTaxError())
   <div class="col-md-12">
       <div class="alert alert-warning">
-           {{ __('Store will not launched until they fill Store Adrress and Tax.') }} 
+           {{ __('The store will not be launched until the store address and tax information are updated
+           .') }} 
       </div>
   </div>
   @endif
