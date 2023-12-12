@@ -961,9 +961,12 @@
                                         @php
                                             
                                             $countp = 0;
+                                            
                                             if (!is_array($p)) {
                                                 $p = [];
                                                 $p[] = ['from' => 0, 'to' => 25, 'price' => 10];
+                                            }else{
+                                                $tr = count($p) -1;
                                             }
                                             
                                         @endphp
@@ -991,16 +994,33 @@
 
                                                    
                                                     <small>{{ __('Cart Subtotal Range (high)') }}</small>
-                            
+                                                    @if($tr == $countp && $v['to'] == 0 )
+                                                        @php 
+                                                            $displayText = 'style=display:block;';
+                                                            $displayInput = 'style=display:none;';
+                                                        @endphp
+                                                    @else
+                                                            @php 
+                                                            $displayText = 'style=display:none;';
+                                                            $displayInput = 'style=display:block;';
+                                                            @endphp
+                                                    @endif
+
                                                     <div class="input-with-icon checkbox-traverse" style="display:flex;">
-                                                        <i class="fas fa-dollar-sign hide-doller{{ $v['to'] }}"></i>
+                                                        <i class="fas fa-dollar-sign hide-doller{{ $v['to'] }}" {{$displayInput}}></i>
                                                         <input type="number" required=""
                                                         value="{{ $v['to'] }}" step="any"
                                                         name="type_price['flatrate_range'][{{ $countp }}][to]"
-                                                        class="form-control hide-input{{ $v['to'] }}" placeholder="0.00">
-                                                        <p class="all-above{{ $v['to'] }}"></p>
-                                                        
-                                                    <input style="margin-left: 7px;margin-top: -15px;" class="check-only dynamic-checkbox{{ $v['to'] }}" type="checkbox" data-input_id="{{ $v['to'] }}" @php if($v['to']== 0.00) { echo "checked"; } @endphp>
+                                                        class="form-control hide-input{{ $v['to'] }}" placeholder="0.00" {{$displayInput}}>
+                                                        <p class="all-above{{ $v['to'] }}" {{$displayText}}> All above price</p>
+                                                     
+                                                    @if($tr == $countp )
+                                                        <input style="margin-left: 7px;margin-top: -15px;" class="check-only dynamic-checkbox{{ $v['to'] }}" type="checkbox" data-input_id="{{ $v['to'] }}" @if($v['to'] == 0 ) checked @endif title=" All Price greater then (>) cart sub total low ">
+                                                        {{-- @php if($v['to']== 0.00) { echo "checked"; } @endphp --}}
+                                                     @endif
+
+                                                     {{-- ashish --}}
+
                                                     </div>
                                                 </div>
                                                 <div class="col-lg-3">
@@ -1255,45 +1275,65 @@ $(document).ready(function () {
                 greedy: true
     }).mask('#tax');
 
-    $('.checkbox-traverse').each(function(index, element) {
-        var checkboxTraverse = $(this).children('input[type="checkbox"]');
-        var input_id = checkboxTraverse.data('input_id');
+    // $('#flat_rate .checkbox-traverse:last').each(function(index, element) {
+    //     console.log('to ');
+    //     var checkboxTraverse = $(this).children('input[type="checkbox"]');
+    //     var input_id = checkboxTraverse.data('input_id');
 
+    //     if (checkboxTraverse.is(':checked')) {
+    //         $('.hide-input' + input_id).css('display', 'none');
+    //         $('.hide-doller'+ input_id).css('display','none');
+    //         $('.all-above'+ input_id).text('All above price');
+    //         checkboxTraverse.siblings('input[type="number"]').addClass('blank_id'+input_id);
+    //         checkboxTraverse.siblings('input[type="number"]').val(0);
+    //         checkboxTraverse.siblings('input[type="number"]').css('display','none');
+    //         checkboxTraverse.siblings('i').css('display','none');
+    //         checkboxTraverse.siblings('p').text('All above price');
+    //     }
+    // });
+
+    $('body').on('change', '.check-only', function() {
+        console.log('asjosj');
+
+        var checkboxTraverse = $(this);
         if (checkboxTraverse.is(':checked')) {
-            $('.hide-input' + input_id).css('display', 'none');
-            $('.hide-doller'+ input_id).css('display','none');
-            $('.all-above'+ input_id).text('All above price');
-            checkboxTraverse.siblings('input[type="number"]').addClass('blank_id'+input_id);
-            checkboxTraverse.siblings('input[type="number"]').val(0);
-            checkboxTraverse.siblings('input[type="number"]').css('display','none');
+            checkboxTraverse.siblings('p').text('All above price').css('display','block');
+            checkboxTraverse.siblings('input').css('display','none').val(0);
             checkboxTraverse.siblings('i').css('display','none');
-            checkboxTraverse.siblings('p').text('All above price');
+
+        }else{
+          checkboxTraverse.siblings('p').css('display','none');
+           checkboxTraverse.siblings('input').css('display','block').val(0);
+           checkboxTraverse.siblings('i').css('display','block');
+
         }
-    });
 
-    $('.check-only').on('change', function() {
+        // $(this).each(function(index, element) {
+        //     var checkboxTraverse = $(this);
+        //     var input_id = checkboxTraverse.data('input_id');
 
-        $(this).each(function(index, element) {
-            var checkboxTraverse = $(this);
-            var input_id = checkboxTraverse.data('input_id');
-
-            if (checkboxTraverse.is(':checked')) {
-                $('.hide-input' + input_id).css('display', 'none');
-                $('.hide-doller'+ input_id).css('display','none');
-                $('.all-above'+ input_id).text('All above price');
-                checkboxTraverse.siblings('input[type="number"]').addClass('blank_id'+input_id);
-                checkboxTraverse.siblings('input[type="number"]').val(0);
-                checkboxTraverse.siblings('input[type="number"]').css('display','none');
-                checkboxTraverse.siblings('i').css('display','none');
-                checkboxTraverse.siblings('p').text('All above price');
-            }else{
-                console.log('un checked');
-                $('.blank_id'+input_id).css('display','block');
-                checkboxTraverse.siblings('p').text('');
-                checkboxTraverse.siblings('input[type="number"]').css('display','block');
-                checkboxTraverse.siblings('i').css('display','block');
-            }
-        });
+        //     if (checkboxTraverse.is(':checked')) {
+        //         $('.hide-input' + input_id).css('display', 'none');
+        //         $('.hide-doller'+ input_id).css('display','none');
+        //         $('.all-above'+ input_id).text('All above price');
+        //         checkboxTraverse.siblings('input[type="number"]').addClass('blank_id'+input_id);
+        //         checkboxTraverse.siblings('input[type="number"]').val(0);
+        //         checkboxTraverse.siblings('input[type="number"]').css('display','none');
+        //         checkboxTraverse.siblings('i').css('display','none');
+        //         checkboxTraverse.siblings('p').text('All above price');
+        //     }else{
+        //         console.log('un checked');
+        //         checkboxTraverse.siblings('input[type="number"]').addClass('blank_id'+input_id);
+        //         $('.blank_id'+input_id).css('display','block');
+        //         // checkboxTraverse.siblings('p').text('');
+        //         // checkboxTraverse.siblings('input[type="number"]').css('display','block');
+        //         // checkboxTraverse.siblings('i').css('display','block');
+        //         $('.hide-input' + input_id).css('display', 'block');
+        //         $('.hide-doller'+ input_id).css('display','block');
+        //         $('.all-above'+ input_id).text('');
+        //         checkboxTraverse.siblings('input[type="number"]').val(0);
+        //     }
+        // });
     });
 
 });
@@ -1363,25 +1403,58 @@ $(document).ready(function () {
                 $('.type_price').hide();
                 $('.' + $(this).val()).show();
             });
+
+
             $(document).on('click','.flatrate-remove-row', function() {
                 $('#'+$(this).data('rowid')).remove();
                 return false;
             });
-            $('.flatraterow').on('click', function() {
-    $('#flat_rate').append('<div class="row mt-2" id="f-' + rowtotal + '">' +
-        '<div class="col-lg-3"> <small> Cart Subtotal Range (low)</small><div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
-        rowtotal + '][from]" class="form-control" placeholder="0.00"></div></div>' +
-        '<div class="col-lg-1"><label for="">-</label></div>' +
-        '<div class="col-lg-3"><small> Cart Subtotal Range (high)</small><div class="input-with-icon checkbox-traverse" style="display:flex;"><i class="fas fa-dollar-sign hide-doller"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
-        rowtotal + '][to]" class="form-control hide-input" placeholder="0.00">' +
-        '<input class="check-only dynamic-checkbox" type="checkbox" data-input_id="' + rowtotal + '" style="margin-left: 7px;"></div></div>' +
-        '<div class="col-lg-3"><small>Shipping Cost to Customer</small> <div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number"  value="" step="any" name="type_price[\'flatrate_range\'][' +
-        rowtotal + '][price]" class="form-control" placeholder="0.00"></div></div>' +
-        '<div class="col-lg-2"><a href="javascript:void(0)" data-rowid="f-' + rowtotal + '" class="flatrate-remove-row"><i class="fas fa-minus pt-4"></i></a></div>' +
-        '</div>');
 
-    rowtotal++;
-});
+            // ashish
+
+
+            $('.flatraterow').on('click', function() {
+
+                $('.check-only').each(function(index, element) {
+                    var checkboxTraverse = $(this);
+                    if(checkboxTraverse.prop('checked')){
+                        $(this).prop('checked', false);
+                       checkboxTraverse.siblings('p').css('display','none');
+                       checkboxTraverse.css('display','none');
+                       checkboxTraverse.siblings('input').css('display','block').val(0);
+                    }else{
+                        checkboxTraverse.css('display','none');
+                    }
+
+                });
+
+
+                $('#flat_rate').append('<div class="row mt-2" id="f-' + rowtotal + '">' +
+                '<div class="col-lg-3"> <small> Cart Subtotal Range (low)</small><div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number" value="" step="any" name="type_price[\'flatrate_range\'][' +
+                rowtotal + '][from]" class="form-control" placeholder="0.00"></div></div>' +
+                '<div class="col-lg-1"><label for="">-</label></div>' +
+                '<div class="col-lg-3"><small> Cart Subtotal Range (high)</small><div class="input-with-icon checkbox-traverse" style="display:flex;"><i class="fas fa-dollar-sign hide-doller' + rowtotal + '" style="display:none;"></i><input type="number" value="0" step="any" name="type_price[\'flatrate_range\'][' +
+                rowtotal + '][to]" class="form-control hide-input" placeholder="0.00" style="display:none;">' +
+                '<p class="all-above' + rowtotal + '">' +
+                'All above price' +
+                '</p>' +
+                '<input class="check-only dynamic-checkbox" type="checkbox" data-input_id="' + rowtotal + '" style="margin-left: 7px;margin-top:-15px;" checked>' +
+                '</div>' +
+                '</div>' +
+                '<div class="col-lg-3"><small>Shipping Cost to Customer</small> <div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number" value="" step="any" name="type_price[\'flatrate_range\'][' +
+                rowtotal + '][price]" class="form-control" placeholder="0.00"></div></div>' +
+                '<div class="col-lg-2"><a href="javascript:void(0)" data-rowid="f-' + rowtotal + '" class="flatrate-remove-row"><i class="fas fa-minus pt-4"></i></a></div>' +
+                '</div>');
+
+
+
+
+                rowtotal++;
+
+
+                
+
+            });
 
 
         //});
