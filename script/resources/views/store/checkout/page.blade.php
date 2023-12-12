@@ -25,7 +25,28 @@
 		
 		
 		<!-- Shopping Cart -->
-		<div class="shopping-cart section" id="cart-anchor-clr">
+		@if(!in_array($info->slug,['terms-and-conditions','privacy-policy','return-policy']))
+		<style>
+		div#cart-anchor-clr-page ul, div#cart-anchor-clr-page ol {
+			list-style: auto;
+		}
+
+		div#cart-anchor-clr-page p,div#cart-anchor-clr-page ul:not(.list-unstyled),div#cart-anchor-clr-page ol {
+			line-height: 28px;
+			font-family: "Nunito", "Segoe UI", arial;
+            color: #838181;
+			display: block;
+			margin-block-start: 1em;
+			margin-block-end: 1em;
+			margin-inline-start: 0px;
+			margin-inline-end: 0px;
+		}
+		div#cart-anchor-clr-page p{
+			/*padding-inline-start: 40px;*/
+		}
+		</style>
+		@endif
+		<div class="shopping-cart section" id="cart-anchor-clr-page">
 			<div class="container">
 				<div class="row">
 					<div class="col-sm-12">
