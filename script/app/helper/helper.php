@@ -554,7 +554,7 @@ function postlimitcheck($type = true){
 	$address = [];
 	$club_address=Option::where('key','invoice_data')->first();
 
-	$decode_address=json_decode($club_address->value);
+	$decode_address=json_decode($club_address->value ?? '');
 
 	$address['store_legal_name'] = $decode_address->store_legal_name ?? '';
 	$address['store_legal_phone'] = $decode_address->store_legal_phone ?? '';
@@ -579,7 +579,7 @@ function showAddressTaxError(){
 	$address = [];
 	$club_address=Option::where('key','invoice_data')->first();
 
-	$decode_address=json_decode($club_address->value);
+	$decode_address=json_decode($club_address->value ?? '');
 
 	$address['store_legal_name'] = $decode_address->store_legal_name ?? '';
 	$address['store_legal_phone'] = $decode_address->store_legal_phone ?? '';
@@ -593,7 +593,7 @@ function showAddressTaxError(){
 	$address['store_legal_email'] = $decode_address->store_legal_email ?? '';
 
 	$tax=Option::where('key','tax')->first();
-    $tax = $tax->value;
+    $tax = $tax->value ?? '';
 
 	if (
 		(empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) || empty($address['post_code']) || empty($address['store_legal_phone']))
