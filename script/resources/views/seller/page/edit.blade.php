@@ -25,10 +25,14 @@
               <label>{{ __('Page Title') }}</label>
               <input type="text" class="form-control" placeholder="Page Title" required name="title" value="{{ $info->title }}">
             </div>
+            @if(!in_array($info->slug,['terms-and-conditions','privacy-policy','return-policy']))
             <div class="form-group">
               <label>{{ __('Slug') }}</label>
               <input type="text" class="form-control"  required name="slug" value="{{ $info->slug }}">
             </div>
+            @else
+            <input type="hidden" name="slug" value="{{ $info->slug }}">
+            @endif
             <div class="form-group">
                 <label>{{ __('Short Description') }}</label>
                 <textarea name="page_excerpt" cols="30" rows="10" class="form-control">{{ $meta->page_excerpt ?? '' }}</textarea>

@@ -3,6 +3,11 @@
 @section('title','Dashboard')
 
 @section('content')
+<style>
+.error input.form-control {
+    border: 1px dashed red;
+}
+</style>
 <section class="section">
 {{-- section title --}}
 <div class="section-header">
@@ -984,7 +989,7 @@
                                                         <input type="number" required=""
                                                         value="{{ $v['from'] }}" step="any"
                                                         name="type_price['flatrate_range'][{{ $countp }}][from]"
-                                                        class="form-control" placeholder="0.00">
+                                                        class="form-control minP" placeholder="0.00">
                                                         </div>
                                                 </div>
                                                 <div class="col-lg-1">
@@ -1011,7 +1016,7 @@
                                                         <input type="number" required=""
                                                         value="{{ $v['to'] }}" step="any"
                                                         name="type_price['flatrate_range'][{{ $countp }}][to]"
-                                                        class="form-control hide-input{{ $v['to'] }}" placeholder="0.00" {{$displayInput}}>
+                                                        class="form-control hide-input{{ $v['to'] }} maxP" placeholder="0.00" {{$displayInput}}>
                                                         <p class="all-above{{ $v['to'] }}" {{$displayText}}> All above price</p>
                                                      
                                                     @if($tr == $countp )
@@ -1060,7 +1065,9 @@
                         <div class="from-group row mt-2">
                        
                             <div class="col-lg-4">
-                               <button type="submit" class="basicbtn btn btn-primary">{{ __('Save changes') }}</button>
+                               <button type="button" class="basicbtn btn btn-primary">{{ __('Save changes') }}</button>
+                               <button type="submit" class="basicbtnsbt btn btn-primary" style="display:none">{{ __('Save changes') }}</button>
+
                             </div>
                         </div>
 
@@ -1275,22 +1282,6 @@ $(document).ready(function () {
                 greedy: true
     }).mask('#tax');
 
-    // $('#flat_rate .checkbox-traverse:last').each(function(index, element) {
-    //     console.log('to ');
-    //     var checkboxTraverse = $(this).children('input[type="checkbox"]');
-    //     var input_id = checkboxTraverse.data('input_id');
-
-    //     if (checkboxTraverse.is(':checked')) {
-    //         $('.hide-input' + input_id).css('display', 'none');
-    //         $('.hide-doller'+ input_id).css('display','none');
-    //         $('.all-above'+ input_id).text('All above price');
-    //         checkboxTraverse.siblings('input[type="number"]').addClass('blank_id'+input_id);
-    //         checkboxTraverse.siblings('input[type="number"]').val(0);
-    //         checkboxTraverse.siblings('input[type="number"]').css('display','none');
-    //         checkboxTraverse.siblings('i').css('display','none');
-    //         checkboxTraverse.siblings('p').text('All above price');
-    //     }
-    // });
 
     $('body').on('change', '.check-only', function() {
         console.log('asjosj');
@@ -1307,34 +1298,10 @@ $(document).ready(function () {
            checkboxTraverse.siblings('i').css('display','block');
 
         }
-
-        // $(this).each(function(index, element) {
-        //     var checkboxTraverse = $(this);
-        //     var input_id = checkboxTraverse.data('input_id');
-
-        //     if (checkboxTraverse.is(':checked')) {
-        //         $('.hide-input' + input_id).css('display', 'none');
-        //         $('.hide-doller'+ input_id).css('display','none');
-        //         $('.all-above'+ input_id).text('All above price');
-        //         checkboxTraverse.siblings('input[type="number"]').addClass('blank_id'+input_id);
-        //         checkboxTraverse.siblings('input[type="number"]').val(0);
-        //         checkboxTraverse.siblings('input[type="number"]').css('display','none');
-        //         checkboxTraverse.siblings('i').css('display','none');
-        //         checkboxTraverse.siblings('p').text('All above price');
-        //     }else{
-        //         console.log('un checked');
-        //         checkboxTraverse.siblings('input[type="number"]').addClass('blank_id'+input_id);
-        //         $('.blank_id'+input_id).css('display','block');
-        //         // checkboxTraverse.siblings('p').text('');
-        //         // checkboxTraverse.siblings('input[type="number"]').css('display','block');
-        //         // checkboxTraverse.siblings('i').css('display','block');
-        //         $('.hide-input' + input_id).css('display', 'block');
-        //         $('.hide-doller'+ input_id).css('display','block');
-        //         $('.all-above'+ input_id).text('');
-        //         checkboxTraverse.siblings('input[type="number"]').val(0);
-        //     }
-        // });
     });
+
+
+
 
 });
 </script>
@@ -1431,10 +1398,10 @@ $(document).ready(function () {
 
                 $('#flat_rate').append('<div class="row mt-2" id="f-' + rowtotal + '">' +
                 '<div class="col-lg-3"> <small> Cart Subtotal Range (low)</small><div class="input-with-icon"><i class="fas fa-dollar-sign"></i><input type="number" value="" step="any" name="type_price[\'flatrate_range\'][' +
-                rowtotal + '][from]" class="form-control" placeholder="0.00"></div></div>' +
+                rowtotal + '][from]" class="form-control minP" placeholder="0.00"></div></div>' +
                 '<div class="col-lg-1"><label for="">-</label></div>' +
                 '<div class="col-lg-3"><small> Cart Subtotal Range (high)</small><div class="input-with-icon checkbox-traverse" style="display:flex;"><i class="fas fa-dollar-sign hide-doller' + rowtotal + '" style="display:none;"></i><input type="number" value="0" step="any" name="type_price[\'flatrate_range\'][' +
-                rowtotal + '][to]" class="form-control hide-input" placeholder="0.00" style="display:none;">' +
+                rowtotal + '][to]" class="form-control maxP hide-input" placeholder="0.00" style="display:none;">' +
                 '<p class="all-above' + rowtotal + '">' +
                 'All above price' +
                 '</p>' +
@@ -1497,7 +1464,36 @@ $(document).ready(function () {
             });
         });
 
+$(".basicbtn").on('click', function(e){
+    let correctval = true;
+    if($('#shipping_type').val() == 'flat_rate'){
+        var allPrice = $('#flat_rate').find('.row');
+        // console.log(allPrice.length);
+         var totalOption = allPrice.length;
 
+       allPrice.each(function(i,e){
+        let minP = parseFloat($(this).find('.minP').val());
+        let maxP = parseFloat($(this).find('.maxP').val());
+
+      // console.log(i,minP,maxP,totalOption-1, i < totalOption-1);
+
+       if(maxP < minP && i < totalOption-1){
+       
+            correctval = false;
+            $(this).addClass('error');
+         // console.log(i,minP,maxP,totalOption-1);
+       }else{
+        $(this).removeClass('error');
+       }
+
+      });
+
+    }
+    if(correctval){
+        $('.basicbtnsbt').trigger('click');
+    }
+   
+})
 
 </script>
 @endpush
