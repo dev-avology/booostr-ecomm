@@ -518,8 +518,9 @@ class ProductController extends Controller
     }
 
     public function getInvoiceInfo(Request $request){
-        $info = Order::with('orderlasttrans','orderitems','shippingwithinfo','ordermeta')->findOrFail($request->invoice_no);
-
+        $info = Order::with('orderlasttrans','orderitems','shippingwithinfo','ordermeta')->find($request->invoice_no);
+       
+    if($info){
         $shipping_method = json_decode($info->shippingwithinfo->info ?? '');
 
         $shipping_details = ['shipping_driver' => $info->shippingwithinfo->shipping_driver,'tracking_no' => $info->shippingwithinfo->tracking_no,'shipping_method' => $shipping_method->shipping_label == 'Free Shipping' ? $shipping_method->shipping_label : $shipping_method->shipping_label .' Shipping'];
@@ -646,7 +647,7 @@ class ProductController extends Controller
         $order_data['club_address'] = $address ?? '';
 
               
-        if($info){
+    
             return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$order_data]);
         }else{
             return response()->json(["status" => 'false', "message" => 'Something went wrong']);

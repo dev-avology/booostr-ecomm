@@ -23,18 +23,6 @@ class AvalogyMiddleware
             ];
             return response()->json($response, 413);
         }else{
-
-           if($request->hasHeader('X-Tenant')){
-                if(get_option('tax') == "" || (float)get_option('tax') == 0 || showAddressError()){
-                    $response = [
-                        'status' => 'error',
-                        'message' => 'Oops the store is temporary disabled. Complete your store setting...!!',
-                    ];
-                    return response()->json($response, 413);
-               }
-           }
-
-
             return $next($request);
         }
     }

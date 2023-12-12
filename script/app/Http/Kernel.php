@@ -84,6 +84,7 @@ class Kernel extends HttpKernel
         'user' => \App\Http\Middleware\Usermiddleware::class,
         'Isinstalled' => \App\Http\Middleware\IsinstalledMiddleware::class,
         'Avalogy' => \App\Http\Middleware\AvalogyMiddleware::class,
+        'Storecheck' => \App\Http\Middleware\StoreSettingCheckMiddleware::class,
         
     ];
 }
