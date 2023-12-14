@@ -606,3 +606,126 @@ function showAddressTaxError(){
 
 	// && (empty($tax) || ($tax == '0.000%') || ($tax == null)
 }
+
+function userChecklist(){
+
+	$checkList = [];
+
+	// address checklist
+
+	$address = [];
+	$club_address=Option::where('key','invoice_data')->first();
+
+	$decode_address=json_decode($club_address->value ?? '');
+
+	$address['store_legal_name'] = $decode_address->store_legal_name ?? '';
+	$address['store_legal_phone'] = $decode_address->store_legal_phone ?? '';
+	$address['store_legal_house'] = $decode_address->store_legal_house ?? '';
+	$address['store_legal_address'] = $decode_address->store_legal_address ?? '';
+
+	$address['store_legal_city'] = $decode_address->store_legal_city ?? '';
+	$address['country'] = $decode_address->country ?? '';
+	$address['state'] = $decode_address->state ?? '';
+	$address['post_code'] = $decode_address->post_code ?? '';
+	$address['store_legal_email'] = $decode_address->store_legal_email ?? '';
+
+	if(empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) || empty($address['post_code']) || empty($address['store_legal_phone'])){
+
+		$checkList['address'] = 0;
+	}else{
+
+		$checkList['address'] = 1;
+	}
+
+	// tax checklist code
+
+	$tax=Option::where('key','tax')->first();
+    $tax = $tax->value ?? '';
+
+	if (empty($tax) || ($tax=='0') || ($tax == '0.000%') || ($tax == '0.') || $tax == null) {
+		$checkList['tax'] = 0;
+	} else {
+		$checkList['tax'] = 1;
+	}
+
+	// store banner
+
+	$banner_logo=Option::where('key','banner_logo')->first();
+	$banner_logo=$banner_logo->value ?? '';
+
+	if (empty($banner_logo)) {
+		$checkList['banner_logo'] = 0;
+	} else {
+		$checkList['banner_logo'] = 1;
+	}
+
+	$bannerUrls=Option::where('key','banner_url')->first();
+	$bannerUrls=$bannerUrls->value ?? '';
+
+	if (empty($bannerUrls)) {
+		$checkList['banner_url'] = 0;
+	} else {
+		$checkList['banner_url'] = 1;
+	}
+
+	$shipping_method=Option::where('key','shipping_method')->first();
+	$shipping_method=$shipping_method->value;
+
+	if (empty($shipping_method)) {
+		$checkList['shipping_method'] = 0;
+	} else {
+		$checkList['shipping_method'] = 1;
+	}
+
+	$free_shipping=Option::where('key','free_shipping')->first() ;
+    $free_shipping = $free_shipping ?? '';
+
+	if (empty($shipping_method)) {
+		$checkList['free_shipping'] = 0;
+	} else {
+		$checkList['free_shipping'] = 1;
+	}
+
+	$category=Category::where('type','category')->first();
+
+	if (empty($category)) {
+		$checkList['category'] = 0;
+	} else {
+		$checkList['category'] = 1;
+	}
+
+	$simple_product = Term::where('type','product')->where('is_variation',0)->first();
+	if (empty($simple_product)) {
+		$checkList['simple_product'] = 0;
+	} else {
+		$checkList['simple_product'] = 1;
+	}
+
+	$variation_product = Category::where('type','parent_attribute')->first();
+	if (empty($variation_product)) {
+		$checkList['variation_product'] = 0;
+	} else {
+		$checkList['variation_product'] = 1;
+	}
+
+	return $checkList;
+}
+
+function settingLinks(){
+	$terms_page_id = [];
+	$termCondition = Term::where('type', 'page')->where('slug','terms-and-conditions')->first();
+	$privacyPolicy = Term::where('type', 'page')->where('slug','privacy-policy')->first();
+	$returnPolicy = Term::where('type', 'page')->where('slug','return-policy')->first();
+	$terms_page_id['term_condition_id'] = $termCondition['id'] ?? '';
+	$terms_page_id['privacy_policy_id'] = $privacyPolicy['id'] ?? '';
+	$terms_page_id['return_policy_id'] = $returnPolicy['id'] ?? '';
+	return $terms_page_id;
+}
+	
+
+// 	if($footerLink){
+// 		return response()->json(["status" => 'true', "message" => 'Footer link get successfully','data' =>$footerLink]);
+// 	  }else{
+// 		return response()->json(["status" => 'false', "message" => 'Something went wrong']);
+// 	}
+// }
