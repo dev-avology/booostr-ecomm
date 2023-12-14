@@ -4834,3 +4834,19 @@ input[type="radio"]:checked {
   border-radius: 2px solid red;
   padding-left: 40px;
 }
+
+
+#ok-checklist .ok-card-checklist{
+  height: 62px;
+  /* padding-left: 222px; */
+  text-align: center;
+  padding-top: 16px;
+  font-size: 14px;
+  background-color: green;
+  color: white;
+}    
+
+.ok-card-checklist span.checklist-close {
+  /* margin-left: 11px; */
+  padding-left: 19px;
+}
