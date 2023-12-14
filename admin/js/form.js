@@ -125,21 +125,22 @@
 			},
 			
 			success: function(response){ 
-				$('.basicbtn').removeAttr('disabled')
-				console.log(response.redirect_to);
-				
-				if(response.redirect_to){
-					Sweet('success',response.msg);
-				   window.location.href = response.redirect_to;
+				if(response.msg_alert==1){
+					alert('Please ensure that product variation attributes, such as size and color, are added. If these attributes have not been created yet, kindly create them first before adding them to the product.');
+					location.reload();
 				}else{
-				Sweet('success',response);
-				$('.basicbtn').html(basicbtnhtml);
-				$('.ajaxform_with_reset').trigger('reset');
-				var placeholder_image=$('.placeholder_image').val();
-				$('.input_preview').attr('src',placeholder_image);
-			}
-
-				//window.location.href = '/seller/product';
+					$('.basicbtn').removeAttr('disabled')
+					if(response.redirect_to){
+						Sweet('success',response.msg);
+					    window.location.href = response.redirect_to;
+					}else{
+					Sweet('success',response);
+					$('.basicbtn').html(basicbtnhtml);
+					$('.ajaxform_with_reset').trigger('reset');
+					var placeholder_image=$('.placeholder_image').val();
+					$('.input_preview').attr('src',placeholder_image);
+					}
+				}
 			},
 			error: function(xhr, status, error) 
 			{

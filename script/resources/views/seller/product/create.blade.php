@@ -36,6 +36,47 @@
                </div>
                {{-- /right side --}}
             </div>
+
+
+            <div class="row">
+               {{-- left side --}}
+               <div class="col-lg-4">
+                  <strong>{{ __('Price type & Product type') }}</strong>
+                  <p>{{ __('Select price type and product type here') }}</p>
+               </div>
+               {{-- /left side --}}
+               {{-- right side --}}
+               <div class="col-lg-8">
+                  <div class="card card-primary">
+                     <div class="card-body">
+                        <div class="from-group row mb-2">
+                           <label for="" class="col-lg-12">{{ __('Select Product Type') }} : </label>
+                           <div class="col-lg-12">
+                               <select name="categories[]" class="selectric form-control drop_product_type">
+                                  <option disabled="" value="" selected="">{{ __('Select Type') }}</option>
+                                   @foreach($product_type as $row)
+                                   <option value="{{ $row->id }}">{{ $row->name }}</option>
+                                   @endforeach
+                               </select>
+                           </div>
+                        </div>
+
+                        <div class="from-group row mb-2">
+                           <label for="" class="col-lg-12">{{ __('Price Type') }} : </label>
+                           <div class="col-lg-12">
+                              <select name="product_type"  class="form-control product_type ">
+                                 <option value="0">{{ __('Simple Product') }}</option>
+                                 <option value="1">{{ __('Variation Product') }}</option>
+                              </select>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+
+
             <div class="row">
                {{-- left side --}}
                <div class="col-lg-4">
@@ -115,17 +156,7 @@
                               </select>
                            </div>
                         </div>
-                        <div class="from-group row mb-2">
-                            <label for="" class="col-lg-12">{{ __('Select Product Type') }} : </label>
-                            <div class="col-lg-12">
-                                <select name="categories[]" class="selectric form-control drop_product_type">
-                                   <option disabled="" value="" selected="">{{ __('Select Type') }}</option>
-                                    @foreach($product_type as $row)
-                                    <option value="{{ $row->id }}">{{ $row->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                         </div>
+                        
                         {{-- <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Select Product Brand') }} : </label>
                            <div class="col-lg-12">
@@ -173,23 +204,15 @@
              <div class="row">
                {{-- left side --}}
                <div class="col-lg-4">
-                  <strong>{{ __('Price Type') }}</strong>
-                  <p>{{ __('Select Price type form here') }}</p>
+                  <strong>{{ __('Tax') }}</strong>
+                  <p>{{ __('Select tax form here') }}</p>
                </div>
                {{-- /left side --}}
                {{-- right side --}}
                <div class="col-lg-8">
                   <div class="card card-primary">
                      <div class="card-body">
-                        <div class="from-group row mb-2">
-                           <label for="" class="col-lg-12">{{ __('Price Type') }} : </label>
-                           <div class="col-lg-12">
-                              <select name="product_type"  class="form-control product_type ">
-                                 <option value="0">{{ __('Simple Product') }}</option>
-                                 <option value="1">{{ __('Variation Product') }}</option>
-                              </select>
-                           </div>
-                        </div>
+                        
                         <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Tax') }} : </label>
                            <div class="col-lg-12">

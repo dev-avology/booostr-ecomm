@@ -67,6 +67,15 @@ class ProductController extends Controller
         //     return response()->json($errors,401);
         // }
 
+        if ($request->product_type == 1) {
+            $child_attr = Category::where('type','child_attribute')->first();
+            if(empty($child_attr)){
+                return response()->json(['msg'=>'Please add child attribute','msg_alert'=>1]);
+            }
+        }
+
+        
+
         $validated = $request->validate([
             'name' => 'required|max:100',
             'short_description' => 'max:500',
