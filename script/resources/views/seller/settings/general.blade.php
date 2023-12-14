@@ -966,6 +966,7 @@
                                         @php
                                             
                                             $countp = 0;
+                                            $tr='';
                                             
                                             if (!is_array($p)) {
                                                 $p = [];
