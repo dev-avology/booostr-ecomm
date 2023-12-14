@@ -502,7 +502,7 @@
 
 
 
-         <div class="row">
+         <div class="row" id="store-banner-section">
             {{-- left side --}}
             <div class="col-lg-4">
                 <h6>{{ __('Store Banner Image') }}</h6>
@@ -591,7 +591,7 @@
             </div>
             {{-- /right side --}}
          </div>
-         <div class="row">
+         <div class="row" id="address-section">
             {{-- left side --}}
             <div class="col-lg-4">
                 <h6>{{ __('Store address') }}</h6>
@@ -779,7 +779,7 @@
          </div>
 
 
-         <div class="row">
+         <div class="row" id="tax-section">
             {{-- left side --}}
             <div class="col-lg-4">
                 <h6>{{ __('Store Sale Tax Setting') }}</h6>
@@ -806,7 +806,7 @@
          </div>
 
 
-         <div class="row">
+         <div class="row" id="store-shipping-section">
             {{-- left side --}}
             <div class="col-lg-4">
                 <h6>{{ __('Store Shipping Setting') }}</h6>

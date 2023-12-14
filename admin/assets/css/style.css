@@ -4751,3 +4751,86 @@ ul#success {
 .w-100p {
   width: 100%;
 }
+
+.checklist-main{
+  padding: 26px;
+  /* color: #fff; */
+} 
+
+.store-notification .card.checklist-main {
+  background: #ffa426;
+  height: 66px;
+  color: white;
+  padding-top: 16px;
+}
+
+.card .collapsible{
+    margin-top: 12px;
+}
+
+.notification-checklist button.btn.btn-secondary {
+  background: rgb(0, 192, 255);
+  font-weight: 500;
+  font-size: 13px;
+  border-radius: 5px;
+  height: 34px;
+}
+
+.accordion .card .card-header{
+  margin-top: -30px;
+}
+
+#exampleModal .card {
+  margin-bottom: 0px;
+}
+.card-header .collapsed-btn{
+  color: rgb(0, 192, 255);
+  text-decoration: none;
+}
+
+/* input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+    accent-color: green;
+} */
+
+.card .card-header input[type=checkbox], input[type=radio] {
+  box-sizing: border-box;
+  padding: 0;
+  accent-color: green;
+}
+
+.checklist-content-model .modal-header {
+  border-bottom: none;
+  padding-bottom: 5px;
+  background: rgb(0, 192, 255);
+  color: white;
+}
+
+.checklist-content-model .modal-header h5 {
+  font-size: 18px;
+  margin-top: -10px;
+}
+
+.checklist-content-model .modal-header .close {
+  padding: 2rem 1rem;
+  margin: -1rem -1rem -1rem auto;
+  padding-top: 6px;
+}
+
+.checklist-content-model .modal-body {
+  /* padding-top: 15px; */
+  padding-top: 50px;
+}
+.checklist-collapse .card{
+  box-shadow: none !important;
+}
+
+.checklist-collapse .card .card-body {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  /* background: rgb(0, 192, 255); */
+  color: #78828a;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
+  border-radius: 2px solid red;
+  padding-left: 40px;
+}
