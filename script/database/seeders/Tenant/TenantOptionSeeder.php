@@ -196,7 +196,7 @@ class TenantOptionSeeder extends Seeder
         array(
             "id"=>51,
             "key"=>'shipping_method',
-            "value"=>'{"method_type":"flat_rate","label":"Flat Rate","pricing":{"0":{"from":"0.00","to":"25.00","price":"10.00"},"1":{"from":"25.00","to":"75.00","price":"15.00"},"2":{"from":"75.00","to":"125.00","price":"20.00"},"3":{"from":"125.00","to":"0.00","price":"30.00"}},"base_pricing":0}',
+            "value"=>'',
             "autoload" => 0
         )
       );
