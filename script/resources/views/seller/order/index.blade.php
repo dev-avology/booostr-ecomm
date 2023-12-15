@@ -3,6 +3,7 @@
 @section('title','Dashboard')
 
 @section('content')
+
 <section class="section">
     <div class="section-header row">
         <div class="col-sm-12">
@@ -19,6 +20,9 @@
         </div>
     </div>
 </section>
+
+<x-storenotification></x-storenotification>
+
  <div class="card">
     <div class="card-header">
         <h4>{{ __('Orders') }}</h4>

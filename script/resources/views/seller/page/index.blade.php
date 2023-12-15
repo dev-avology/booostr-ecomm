@@ -8,6 +8,8 @@
 @endsection
 
 @section('content')
+<x-storenotification></x-storenotification>
+
 <div class="row">
     <div class="col-12">
       <div class="card">

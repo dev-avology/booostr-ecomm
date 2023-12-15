@@ -7,6 +7,9 @@
 @endsection
 
 @section('content')
+
+<x-storenotification></x-storenotification>
+
 @if(Session::has('error'))
 <div class="row">
     <div class="col-sm-12">

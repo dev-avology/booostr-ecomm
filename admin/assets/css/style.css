@@ -4798,6 +4798,7 @@ input[type="radio"]:checked {
   box-sizing: border-box;
   padding: 0;
   accent-color: green;
+  pointer-events: none;
 }
 
 .checklist-content-model .modal-header {

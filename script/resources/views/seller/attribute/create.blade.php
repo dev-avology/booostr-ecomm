@@ -1,6 +1,7 @@
 @extends('layouts.backend.app')
 
 @section('content')
+
 <section class="section">
     {{-- section title --}}
     <div class="section-header">
@@ -9,6 +10,8 @@
         </a>
         <h1>{{ __('Create Attribute') }}</h1>
     </div>
+    <x-storenotification></x-storenotification>
+
     {{-- /section title --}}
     <div class="row">
         <div class="col-lg-12">

@@ -3,6 +3,7 @@
 @section('title','Dashboard')
 
 @section('content')
+
 <style>
 .error input.form-control {
     border: 1px dashed red;
@@ -16,6 +17,8 @@
         </a> --}}
         <h1>{{ __('Store details') }}</h1>
 </div>
+<x-storenotification></x-storenotification>
+
 {{-- /section title --}}
 <div class="row">
    <div class="col-lg-12">
@@ -844,6 +847,7 @@
 
 
 
+{{-- 
                         <div class="from-group row mb-2">
                             <label for="" class="col-lg-12">{{ __('Regular Shipping Method:') }}
                             </label>
@@ -868,7 +872,34 @@
                                     @endforeach
                                 </select>
                             </div>
+                        </div> --}}
+
+                        <div class="from-group row mb-2">
+                            <label for="" class="col-lg-12">{{ __('Regular Shipping Method:') }}</label>
+                            @php
+                                $shipping_types = ['weight_based' => 'Weight Based', 'per_item' => 'Per Item', 'flat_rate' => 'Flat Rate'];
+                        
+                                $shipping_info = $shipping_method->value ? json_decode($shipping_method->value, true) : null;
+                        
+                                // Check if $shipping_info is not null to avoid errors
+                                $method = $shipping_info ? $shipping_info['method_type'] : '';
+                                $shipping_label = $shipping_info ? $shipping_info['label'] : '';
+                                $shipping_price = $shipping_info ? $shipping_info['pricing'] : '';
+                                $shipping_base_price = $shipping_info ? $shipping_info['base_pricing'] : 0;
+                        
+                                $countp = 1;
+                            @endphp
+                        
+                            <div class="col-lg-12">
+                                <select name="shipping_method" id="shipping_type" class="select2 form-control">
+                                    <option value=""> Choose Shipping Type</option>
+                                    @foreach ($shipping_types as $stype => $label)
+                                        <option @if ($method == $stype) selected @endif value="{{ $stype }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
+                        
 
                         <div class="from-group row mb-2">
                             <label for="" class="col-lg-12">{{ __('Shipping Method Label:') }} </label>

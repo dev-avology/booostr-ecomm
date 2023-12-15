@@ -11,6 +11,9 @@
       </a>
       <h1>{{ __('Edit Tag') }}</h1>
    </div>
+
+   <x-storenotification></x-storenotification>
+
    {{-- /section title --}}
    <div class="row">
       <div class="col-lg-12">

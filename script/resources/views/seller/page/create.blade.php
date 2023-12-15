@@ -11,12 +11,15 @@
 @endsection
 
 @section('content')
+<x-storenotification></x-storenotification>
+
 <div class="row">
   <div class="col-12">
     <div class="card">
       <div class="card-header">
         <h4>{{ __('Add New Page') }}</h4>
       </div>
+      
       <form method="POST" action="{{ route('seller.page.store') }}" enctype="multipart/form-data" class="ajaxform_with_reset">
         @csrf
         <div class="card-body">

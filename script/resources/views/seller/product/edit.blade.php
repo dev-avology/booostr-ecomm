@@ -4,12 +4,17 @@
 @endpush
 
 @section('head')
+
 @include('layouts.backend.partials.headersection',['title'=>'Edit Product - '.$info->title,'prev'=> url('seller/product')])
+<x-storenotification></x-storenotification>
+
 @endsection
+
 
 @extends('seller.product.productmain',['product_id'=>$id])
 
 @section('product_content')
+
 <form class="ajaxform" action="{{ route('seller.product.update',$info->id) }}" method="post">
     @csrf
     @method("PUT")
