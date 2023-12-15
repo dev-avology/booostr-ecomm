@@ -11,6 +11,9 @@
     </div>
     {{-- /section title --}}
 
+    <x-storenotification></x-storenotification>
+
+
     <div class="row">
         <div class="col-lg-12">
          <form class="ajaxform" method="post" action="{{ route('seller.attribute.update',$info->id) }}">

@@ -69,7 +69,7 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
                         <div class="card">
                             <div class="card-header" id="headingNine">
                                 <h2 class="mb-0">
-                                <input type="checkbox" {{ $addressChecked }} disabled>
+                                <input type="checkbox" {{ $addressChecked }} >
                                 <button class="btn btn-link collapsed collapsed-btn" type="button" data-toggle="collapse" data-target="#collapseNine" aria-expanded="false" aria-controls="collapseNine">
                                     {!! $addressOutput !!}
                                 </button>
@@ -86,7 +86,7 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
                         <div class="card">
                             <div class="card-header" id="headingTen">
                                 <h2 class="mb-0">
-                                <input type="checkbox" {{ $taxChecked }} disabled>
+                                <input type="checkbox" {{ $taxChecked }}>
                                 <button class="btn btn-link collapsed collapsed-btn" type="button" data-toggle="collapse" data-target="#collapseTen" aria-expanded="false" aria-controls="collapseTen">
                                     {!! $taxOutput !!}
                                 </button>
@@ -103,7 +103,7 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
                         <div class="card">
                             <div class="card-header" id="headingEleven">
                                 <h2 class="mb-0">
-                                <input type="checkbox" {{ $shippingMethodChecked }} disabled>
+                                <input type="checkbox" {{ $shippingMethodChecked }}>
                                 <button class="btn btn-link collapsed collapsed-btn" type="button" data-toggle="collapse" data-target="#collapseEleven" aria-expanded="false" aria-controls="collapseEleven">
                                     {!! $shippingMethodOutput !!}
                                 </button>
@@ -124,7 +124,7 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
                         <div class="card">
                             <div class="card-header" id="headingTwelve">
                                 <h2 class="mb-0">
-                                <input type="checkbox" {{ $bannerLogoChecked }} disabled>
+                                <input type="checkbox" {{ $bannerLogoChecked }}>
                                 <button class="btn btn-link collapsed collapsed-btn" type="button" data-toggle="collapse" data-target="#collapseTwelve" aria-expanded="false" aria-controls="collapseTwelve">
                                     {!! $bannerLogoOutput !!}
                                 </button>
@@ -141,7 +141,7 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
                         <div class="card">
                         <div class="card-header" id="headingTwo">
                             <h2 class="mb-0">
-                            <input type="checkbox" disabled>
+                            <input type="checkbox">
                             <button class="btn btn-link collapsed collapsed-btn" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
                                 Set store live on profile (launch!)
                             </button>
@@ -158,9 +158,9 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
                         <div class="card">
                         <div class="card-header" id="headingThree">
                             <h2 class="mb-0">
-                            <input type="checkbox" checked disabled>
+                            <input type="checkbox">
                             <button class="btn btn-link collapsed collapsed-btn" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                <del>Review and update</del>
+                                Review and update
                             </button>
                             </h2>
                         </div>
@@ -186,7 +186,7 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
                         <div class="card">
                             <div class="card-header" id="headingSix">
                                 <h2 class="mb-0">
-                                <input type="checkbox" {{ $categoryChecked }} disabled>
+                                <input type="checkbox" {{ $categoryChecked }}>
                                 <button class="btn btn-link collapsed collapsed-btn" type="button" data-toggle="collapse" data-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
                                     {!! $categoryOutput !!}
                                 </button>
@@ -205,7 +205,7 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
                         <div class="card">
                             <div class="card-header" id="headingEight">
                                 <h2 class="mb-0">
-                                <input type="checkbox" {{ $variationProductChecked }} disabled>
+                                <input type="checkbox" {{ $variationProductChecked }}>
                                 <button class="btn btn-link collapsed collapsed-btn" type="button" data-toggle="collapse" data-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
                                     {!! $variationProductOutput !!}
                                 </button>
@@ -221,7 +221,7 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
                         <div class="card">
                             <div class="card-header" id="headingSeven">
                                 <h2 class="mb-0">
-                                <input type="checkbox" {{ $simpleProductChecked }} disabled>
+                                <input type="checkbox" {{ $simpleProductChecked }}>
                                 <button class="btn btn-link collapsed collapsed-btn" type="button" data-toggle="collapse" data-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
                                     {!! $simpleProductOutput !!}
                                 </button>
