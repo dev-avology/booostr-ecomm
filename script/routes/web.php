@@ -297,6 +297,7 @@ Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 
     Route::resource('brand', 'BrandController');
     Route::resource('tag', 'TagController');
     Route::post('add-jquery-tag','TagController@addJqueryTag');
+    Route::post('add-ok-checkist-val','TagController@addOkChecklist');
     Route::post('add-jquery-brand','BrandController@addJqueryBrand');
     Route::resource('orderstatus', 'OrderstatusController');
     Route::resource('coupon', 'CouponController');

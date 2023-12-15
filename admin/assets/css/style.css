@@ -4758,10 +4758,11 @@ ul#success {
 } 
 
 .store-notification .card.checklist-main {
-  background: #ffa426;
+  background: yellow;
   height: 66px;
-  color: white;
+  color: #78828a;
   padding-top: 16px;
+  text-align: center;
 }
 
 .card .collapsible{
