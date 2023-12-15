@@ -721,6 +721,12 @@ function settingLinks(){
 	$terms_page_id['return_policy_id'] = $returnPolicy['id'] ?? '';
 	return $terms_page_id;
 }
+
+function checkListOkVal(){
+	$checklistval=Option::where('key','okCheckListValue')->first() ;
+    $checklistval = $checklistval->value ?? '';
+	return $checklistval;
+}
 	
 
 // 	if($footerLink){

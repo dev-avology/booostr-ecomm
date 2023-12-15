@@ -241,18 +241,21 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
     </div>
   </div>
 
+
 @else
+ 
+    @if(checkListOkVal() != 1)
 
-
-<div class="row" id="ok-checklist">
-    <div class="col-lg-12 col-md-12 col-sm-12">
-      <div class="card card-statistic-2 ok-card-checklist">
-        <!-- Close button -->  
-        <p>Your store is now set up! Way to go. Keep adding products and categories as needed.&nbsp;&nbsp;&nbsp;<span class="checklist-close" style="cursor:pointer;">&#x2716;
-        </span></p>
-      </div>
+    <div class="row" id="ok-checklist">
+        <div class="col-lg-12 col-md-12 col-sm-12">
+        <div class="card card-statistic-2 ok-card-checklist">
+            <!-- Close button -->  
+            <p>Your store is now set up! Way to go. Keep adding products and categories as needed.&nbsp;&nbsp;&nbsp;<span class="checklist-close" style="cursor:pointer;">&#x2716;
+            </span></p>
+        </div>
+        </div>
     </div>
-</div>
+    @endif
 
 @endif
 
@@ -262,7 +265,23 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
 <script>
     $(document).ready(function () {
       $('.checklist-close').on('click', function () {
-        $('#ok-checklist').hide();
+            $.ajax({
+                url: "/seller/add-ok-checkist-val", 
+                type: "POST", 
+                data: {
+                'check_list_val': 1,
+                '_token': "{{csrf_token()}}"
+                },
+                dataType: "json", 
+                success: function(data) {
+                if (data) {
+                    $('#ok-checklist').hide();
+                }
+                },
+                error: function(xhr, status, error) {
+                console.log(error);
+                }
+           });
       });
     });
 </script>

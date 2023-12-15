@@ -5,6 +5,7 @@ namespace App\Http\Controllers\seller;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Models\Option;
 use Str;
 use Auth;
 class TagController extends Controller
@@ -36,6 +37,16 @@ class TagController extends Controller
         $tag->save();
         $tag_id = $tag->id;
         return $tag_id;
+    }
+
+    public function addOkChecklist(Request $request){
+        $checkList = $request->check_list_val ?? '';
+        $optionAdd=new Option;
+        $optionAdd->key = 'okCheckListValue';
+        $optionAdd->value = $checkList;
+        $optionAdd->autoload = 1;
+        $optionAdd->save();
+        return $checkList;
     }
 
     /**
