@@ -41,7 +41,8 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
 <div class="row">
   <div class="col-lg-12 col-md-12 col-sm-12">
     <div class="card card-statistic-2 checklist-main">
-        <p class="checklist-alert-msg">Your store is almost ready to launch! Complete required tasks to start selling online. <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+        <p class="checklist-alert-msg">Your store is almost ready to launch! Complete required tasks to start selling online. <button type="button" class="btn btn-primary" id="checkList"> 
+            {{-- data-toggle="modal" data-target="#exampleModal" --}}
             See Task List
           </button></p>
     </div>
@@ -285,6 +286,11 @@ $variationProductOutput = ($checkListArr['variation_product'] == 1) ? '<del>Add 
       });
     });
 </script>
-
+<script>
+    $("#checkList").on("click",function(){
+      $("#exampleModal").modal("show");
+      $(".modal-backdrop").remove(); 
+    })
+</script>
 @endpush
 
