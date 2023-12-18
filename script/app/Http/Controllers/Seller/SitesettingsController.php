@@ -98,16 +98,17 @@ class SitesettingsController extends Controller
           // $shipping_method=$shipping_method ?? '';
 
           $bannerUrls=Option::where('key','banner_url')->first();
-          $bannerUrlValue=$bannerUrls->value ?? '';
+          $bannerUrlValue= $bannerUrls->value ?? '';
 
           $tax=Option::where('key','tax')->first();
-          $tax = $tax->value ?? 0.00; 
+
+          $tax =  $tax ? $tax->value: 0.00; 
 
           $free_shipping=Option::where('key','free_shipping')->first() ;
           $free_shipping = $free_shipping ? $free_shipping->value : 0;
 
           $min_cart_total=Option::where('key','min_cart_total')->first();
-          $min_cart_total = $min_cart_total ? $min_cart_total->value : 100;
+          $min_cart_total = $min_cart_total ? $min_cart_total->value : 0.00;
 
            return view('seller.settings.general',compact('languages','lat_lang','address','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings',
            'banner_logo','bannerUrlValue'));
