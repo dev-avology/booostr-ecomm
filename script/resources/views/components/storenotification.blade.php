@@ -17,7 +17,8 @@
     $simpleProductChecked = ($checkListArr['simple_product'] == 1) ? 'yes' : 'no';
     
     $variationProductChecked = ($checkListArr['variation_product'] == 1) ? 'yes' : 'no';
-    
+    $currentRoute = request()->route()->getName();
+    // dump($currentRoute)
     @endphp
 
 
@@ -40,7 +41,7 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content checklist-content-model">
             <div class="modal-header">
-              <h5 class="modal-title">Complete required tasks to start selling online</h5>
+              <p class="modal-title">Complete required tasks to start selling online</p>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -56,7 +57,7 @@
                                 <div class="col-12 col-md-6">
                                     <div class="checklist_left_side_style">
                                         
-                                        <h6 class="mb-4 inner_heading_modal_body">Required Task</h6>
+                                        <h6 class="mb-4 inner_heading_modal_body text-center">Required Task</h6>
                                         <ul>
 
                                         @if($addressChecked=='yes')
@@ -107,7 +108,7 @@
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <div class="checklist_right_side_style">
-                                        <h6 class="mb-4 inner_heading_right_side">Suggested Task</h6>
+                                        <h6 class="mb-4 inner_heading_right_side text-center">Suggested Task</h6>
     
                                         <ul>
 
@@ -144,7 +145,7 @@
                                           <li>Add your first product(s)<a href="{{ url('seller/product/create') }}" class="set_banner_btn">Add Product(s)</a></li>  
 
                                           @endif
-                                          
+
                                         </ul>
                                     </div>
                                 </div>
@@ -157,7 +158,7 @@
                                           @if($addressChecked=='yes' && $taxChecked=='yes' && $shippingMethodChecked=='yes' && $bannerLogoChecked=='yes')
                                             <a style="cursor:pointer;" class="store_launch_click ">Make Your Store Live - Launch</a>
                                           @else
-                                          <a style="cursor:pointer;" onclick="alert('Please complete the required checklist before.')" class="">Make Your Store Live - Launch</a>
+                                          <a class="checklist-disable-btn">Complete Required tasks To Launch</a>
                                           @endif  
                                         </div>
                                     </div>
@@ -193,7 +194,18 @@
     @push('script')
     
     <script>
+        
+
         $(document).ready(function () {
+          console.log('$currentRoute');
+
+          @if(($addressChecked=='no' || $taxChecked=='no' || $shippingMethodChecked=='no' || $bannerLogoChecked=='no' ) &&  $currentRoute == 'seller.dashboard')
+            $("#exampleModal").modal("show");
+            $(".modal-backdrop").remove(); 
+           @endif
+
+           
+
           $('.checklist-close').on('click', function () {
                 $.ajax({
                     url: "/seller/add-ok-checkist-val", 

@@ -401,7 +401,16 @@ $(document).on('click','.varition_option_delete',function(){
    $('.add_more_attribute').on('click',function(e){
       
      $('#children_attribute_render_area').html('');  
+
+
+       if(parentAttributes.length == 0){
+         alert('Please ensure that product variation attributes, such as size and color, are added. If these attributes have not been created yet, kindly create them first before adding them to the product.');
+         return ;
+       }
+
+
      if($('.parentattribute').length > 0){
+      console.log($('.parentattribute').length);
         $('.create_variation_product').show();
         $('.add_more_attribute').show();
      }

@@ -4861,11 +4861,14 @@ input[type="radio"]:checked {
 new css */
 
 .checklist_left_side_style ul {
-  padding: 0;
+  padding-left: 45px;
 }
 .checklist_left_side_style ul li {
   list-style: none;
   margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
 }
 .checklist_left_side_style ul li .set_banner_btn {
   margin-left: 15px;
@@ -4890,11 +4893,14 @@ new css */
 
 
 .checklist_right_side_style ul {
-  padding: 0;
+  padding-left:20px;
 }
 .checklist_right_side_style ul li {
   list-style: none;
   margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
 }
 .checklist_right_side_style ul li .set_banner_btn {
   margin-left: 15px;
@@ -4914,7 +4920,7 @@ new css */
   color: red;
 }
 
-.bottom_btn_modal_parent .bottom_modal_btn a {
+.bottom_btn_modal_parent .bottom_modal_btn .store_launch_click {
   width: 240px;
   margin: 0 auto;
   background: #00c0ff;
@@ -4924,6 +4930,27 @@ new css */
   color: #fff!important;
   border-radius: 5px;
   text-decoration: none;
+  cursor:pointer;
+}
+.modal-title {
+  font-weight: 600;
+}
+
+.bottom_btn_modal_parent .bottom_modal_btn .checklist-disable-btn{
+  width: 240px;
+  margin: 0 auto;
+  background-color:#f5f5f5;
+  padding: 8px 14px;
+  text-transform: capitalize;
+  font-weight: 800;
+  color:#e2dede;
+  border-radius: 5px;
+  text-decoration: none;
+  cursor:pointer;
+}
+
+.bottom_btn_modal_parent .bottom_modal_btn .checklist-disable-btn:hover{
+  color:#e2dede;
 }
 
 
@@ -4937,16 +4964,20 @@ new css */
 
 
 
-
-
-
+@media screen and (min-width: 991px)
+{
+  .modal-dialog {
+    max-width:820px!important;
+  }
+}
 
 
 @media screen and (min-width: 767px)
 {
   .modal-dialog {
-    max-width: 764px !important;
+    max-width: 767px;
   }
+ 
 }
 
 
@@ -4960,7 +4991,7 @@ new css */
 }
 
 
-@media screen and (max-width: 767px)
+@media screen and (max-width: 991px)
 {
   .checklist_left_side_style {
     text-align: center;
@@ -4969,5 +5000,27 @@ new css */
   .checklist_right_side_style {
     text-align: center;
     margin-bottom: 25px;
+  }
+  .checklist_right_side_style ul {
+    padding-left:0px;
+  }
+  .checklist_left_side_style ul {
+    padding-left:0px;
+  }
+  .modal-dialog {
+    max-width: 700px;
+  }
+
+}
+
+@media screen and (max-width: 767px)
+{
+
+
+  .checklist_left_side_style ul li{
+    justify-content: left;
+  }
+  .checklist_right_side_style ul li{
+    justify-content: left;
   }
 }

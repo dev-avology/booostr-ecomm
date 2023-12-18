@@ -281,7 +281,7 @@ Route::group(['domain' => env('APP_URL')], function($domain)
 
 
 Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 'middleware' => ['InitializeTenancyByDomain','PreventAccessFromCentralDomains','auth','seller','user','tenantenvironment']], function () {
-    Route::get('/dashboard', 'DashboardController@dashboard');
+    Route::get('/dashboard', 'DashboardController@dashboard')->name('dashboard');
     Route::get('/dashboard/static','DashboardController@staticData');
     Route::get('/dashboard/perfomance/{period}','DashboardController@perfomance');
     Route::get('/dashboard/order-perfomance/{period}','DashboardController@orderPerfomace');
