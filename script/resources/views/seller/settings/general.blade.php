@@ -702,8 +702,8 @@
                         <label for="" class="col-lg-12">{{ __('Default weight unit') }} : </label>
                         <div class="col-lg-12">
                             @php 
-                              $weights = ['OZ, LBS, TONS'];
-                              $weight_type = $weight_type->value??'LBS';
+                            //   $weights = ['OZ, LBS, TONS'];
+                            //   $weight_type = $weight_type?$weight_type->value:'LBS';
                             @endphp
                            {{-- <select disabled  class="form-control selectric" name="weight_type" id="weight_type">
                             @foreach($weights ?? [] as $row)
@@ -720,8 +720,8 @@
                         <label for="" class="col-lg-12">{{ __('Default Measurment  unit') }} : </label>
                         <div class="col-lg-12">
                             @php 
-                              $measurments = ['IN, FT, YDS'];
-                              $measurment_type = $measurment_type->value??'IN';
+                            //   $measurments = ['IN, FT, YDS'];
+                            //   $measurment_type = $measurment_type ? $measurment_type->value:'IN';
                             @endphp
                            {{-- <select disabled  class="form-control selectric" name="measurment_type" id="measurment_type">
                             @foreach($measurments ?? [] as $row)
@@ -838,7 +838,7 @@
                             <div class="col-lg-12">
                                 <div class="input-with-icon">
                                 <i class="fas fa-dollar-sign"></i>
-                                <input type="number" step="any" value="{{ $min_cart_total ?? 100 }}"
+                                <input type="number" step="any" value="{{ $min_cart_total ?? 0.00 }}"
                                     name="min_cart_total" class="form-control" placeholder="0.00">
                                 </div>  
                                 <small>{{ __('Your Minimum Cart total in store currency.') }}</small>
@@ -879,7 +879,7 @@
                             @php
                                 $shipping_types = ['weight_based' => 'Weight Based', 'per_item' => 'Per Item', 'flat_rate' => 'Flat Rate'];
                         
-                                $shipping_info = $shipping_method->value ? json_decode($shipping_method->value, true) : null;
+                                $shipping_info = $shipping_method ? json_decode($shipping_method->value, true) : null;
                         
                                 // Check if $shipping_info is not null to avoid errors
                                 $method = $shipping_info ? $shipping_info['method_type'] : '';
@@ -905,7 +905,7 @@
                             <label for="" class="col-lg-12">{{ __('Shipping Method Label:') }} </label>
 
                             <div class="col-lg-12">
-                                <input type="text" value="{{ $shipping_label ?? '' }}" required
+                                <input type="text" value="{{ $shipping_label ?? '' }}" 
                                     name="shipping_method_label" class="form-control" >
                                 <small>{{ __('Your Shipping Method Label.') }}</small>
                             </div>
@@ -1001,7 +1001,8 @@
                                             
                                             if (!is_array($p)) {
                                                 $p = [];
-                                                $p[] = ['from' => 0, 'to' => 25, 'price' => 10];
+                                                $p[] = ['from' => 0, 'to' => 0, 'price' => 0];
+                                                $tr = 0;
                                             }else{
                                                 $tr = count($p) -1;
                                             }
