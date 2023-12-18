@@ -127,7 +127,6 @@ class SitesettingsController extends Controller
      */
     public function update(Request $request, $id)
     {
-      dd($request->tax);
         if ($id == 'general') {
            $validated = $request->validate([
              //   'store_name' => 'required|max:100',
