@@ -48,7 +48,7 @@ function ImageSize($url,$name){
 
 function getTaxRate(){
 	$tax = get_option('tax');
-  return  $tax != '' ? (float)$tax : 0; 
+	return  $tax != '' ? (float)str_replace('%','',$tax) : 0;
 }
 
 function get_planinfo($key)
@@ -723,6 +723,12 @@ function settingLinks(){
 
 function checkListOkVal(){
 	$checklistval=Option::where('key','okCheckListValue')->first() ;
+    $checklistval = $checklistval->value ?? '';
+	return $checklistval;
+}
+
+function storeLaunch(){
+	$checklistval=Option::where('key','checkListStoreLaunch')->first() ;
     $checklistval = $checklistval->value ?? '';
 	return $checklistval;
 }
