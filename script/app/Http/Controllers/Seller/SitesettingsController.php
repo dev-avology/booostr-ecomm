@@ -491,7 +491,7 @@ class SitesettingsController extends Controller
          $min_cart_total->save();
 
           
-         TenantCacheClear('tax_data');
+         TenantCacheClear('tax');
          TenantCacheClear('shipping_method');
          TenantCacheClear('free_shipping');
          TenantCacheClear('min_cart_total');
