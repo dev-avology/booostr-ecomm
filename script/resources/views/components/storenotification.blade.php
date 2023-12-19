@@ -17,6 +17,7 @@
     $simpleProductChecked = ($checkListArr['simple_product'] == 1) ? 'yes' : 'no';
     
     $variationProductChecked = ($checkListArr['variation_product'] == 1) ? 'yes' : 'no';
+    // dd($variationProductChecked);
     $currentRoute = request()->route()->getName();
     // dump($currentRoute)
     @endphp
@@ -138,7 +139,7 @@
 
                                           @if($simpleProductChecked=='yes')
 
-                                          <li>Add any variant product attributes<span><i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Completed</span></li> 
+                                          <li>Add your first product(s)<span><i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Completed</span></li> 
                                              
                                           @else
                                           
