@@ -389,6 +389,20 @@
    $('.product_type').on('change',function(){
       var type=$(this).val();
       if (type == 1) {
+
+         if(parentAttributes.length == 0){
+            Swal.fire({
+               icon: "warning",
+               title: "WARNING: You Need to Create Attributes First",
+               text: "In order to create variant products, you need to have attributes to select from that have been created in the Attributes section in the left menu. Currently you have not created any Attributes (ie. clothing size, color, shoe size etc.) that can be used by a Variant Product type. You will not be able to add a Variant Product Type until you have attributes created.",
+               footer: '<a href="/seller/attribute">CLICK TO CREATE ATTRIBUTES</a>'
+             });
+          
+            $(this).val(0);
+            return false;
+          }
+
+
          $('.single_product_area').hide();
          $('.variation_product_area').show();
       }
