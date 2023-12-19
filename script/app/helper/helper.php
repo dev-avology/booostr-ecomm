@@ -670,7 +670,7 @@ function userChecklist(){
 
 	$shipping_method=Option::where('key','shipping_method')->first();
 
-	if (isset($shipping_method) && empty($shipping_method->value)) {
+	if (empty($shipping_method->value)) {
 		$checkList['shipping_method'] = 0;
 	} else {
 		$checkList['shipping_method'] = 1;

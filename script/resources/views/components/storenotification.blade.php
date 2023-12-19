@@ -20,12 +20,6 @@
     // dd($variationProductChecked);
     $currentRoute = request()->route()->getName();
 
-    $colorAttr='';
-    
-    if(($addressChecked == 'yes' && $taxChecked == 'yes' && $bannerLogoChecked == 'yes' && $shippingMethodChecked == 'yes') && ($categoryChecked == 'no' || $simpleProductChecked == 'no' || $variationProductChecked == 'no')){
-       $colorAttr = "style=background-color:#ffa426;color:white;";
-    }
-
     @endphp
 
 
@@ -164,8 +158,8 @@
 
                                       @if($addressChecked=='yes' && $taxChecked=='yes' && $shippingMethodChecked=='yes' && $bannerLogoChecked=='yes' && storeLaunch() == '')
                                       <a style="cursor:pointer;" class="store_launch_click ">Make Your Store Live - Launch</a>
-                                      @else
-                                      <a class="checklist-disable-btn">Complete Required tasks To Launch</a>
+                                      @elseif(($addressChecked == 'yes' && $taxChecked == 'yes' && $bannerLogoChecked == 'yes' && $shippingMethodChecked == 'yes') && ($categoryChecked == 'no' || $simpleProductChecked == 'no' || $variationProductChecked == 'no'))
+                                      <p class="checklist-suggested-bottom">Your store is LIVE! Make sure you complete Suggested Tasks to Improve your store.</p>
                                       @endif 
 
                                     </div>
