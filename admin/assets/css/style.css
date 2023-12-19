@@ -4879,7 +4879,8 @@ new css */
   text-transform: capitalize;
   font-size: 12px;
   text-decoration: none;
-  min-width: 92px;
+  min-width: 98px;
+  text-align: center;
 }
 .checklist_left_side_style ul li span {
   margin-left: 15px;
@@ -4952,6 +4953,9 @@ new css */
 
 .bottom_btn_modal_parent .bottom_modal_btn .checklist-disable-btn:hover{
   color:#e2dede;
+}
+.checklist-suggested-bottom{
+  color:#00c0ff;
 }
 
 
