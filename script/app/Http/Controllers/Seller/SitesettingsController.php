@@ -467,8 +467,10 @@ class SitesettingsController extends Controller
                'pricing'=>$request->type_price["'".$shipping_price[$request->shipping_method]."'"],
                'base_pricing'=>$request->base_price["'".$shipping_price[$request->shipping_method]."'"]??0,
 
-            ));
-         }
+                  ));
+               }else{
+                  Option::where('key','shipping_method')->delete();
+               }
 
             $shipping_method->save();
 

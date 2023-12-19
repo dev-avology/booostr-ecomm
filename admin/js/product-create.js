@@ -9,6 +9,14 @@
       var product_type=$(this).val();
      // alert(product_type)
       if (product_type == 1) {
+
+         if(parentAttributes.length == 0){
+            alert('Please ensure that product variation attributes, such as size and color, are added. If these attributes have not been created yet, kindly create them first before adding them to the product.');
+            $(this).val(0);
+            return false;
+          }
+   
+
          $('.single_product_price_area').hide();
          $('.variation_select_area').show();
       }
@@ -401,13 +409,6 @@ $(document).on('click','.varition_option_delete',function(){
    $('.add_more_attribute').on('click',function(e){
       
      $('#children_attribute_render_area').html('');  
-
-
-       if(parentAttributes.length == 0){
-         alert('Please ensure that product variation attributes, such as size and color, are added. If these attributes have not been created yet, kindly create them first before adding them to the product.');
-         return ;
-       }
-
 
      if($('.parentattribute').length > 0){
       console.log($('.parentattribute').length);
