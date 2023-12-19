@@ -19,12 +19,173 @@
     $variationProductChecked = ($checkListArr['variation_product'] == 1) ? 'yes' : 'no';
     // dd($variationProductChecked);
     $currentRoute = request()->route()->getName();
-    // dump($currentRoute)
+
+    $colorAttr='';
+    
+    if(($addressChecked == 'yes' && $taxChecked == 'yes' && $bannerLogoChecked == 'yes' && $shippingMethodChecked == 'yes') && ($categoryChecked == 'no' || $simpleProductChecked == 'no' || $variationProductChecked == 'no')){
+       $colorAttr = "style=background-color:#ffa426;color:white;";
+    }
+
     @endphp
 
 
+@if(($addressChecked == 'yes' && $taxChecked == 'yes' && $bannerLogoChecked == 'yes' && $shippingMethodChecked == 'yes') && ($categoryChecked == 'no' || $simpleProductChecked == 'no' || $variationProductChecked == 'no'))
+
+<div class="row">
+  <div class="col-lg-12 col-md-12 col-sm-12">
+    <div class="card card-statistic-2 checklist-main" style="background-color:#ffa426;color:white;">
+        <p class="checklist-alert-msg">Your store is almost ready to launch! Complete required tasks to start selling online. <button type="button" class="btn btn-primary" id="checkList"> 
+            {{-- data-toggle="modal" data-target="#exampleModal" --}}
+            See Task List
+          </button></p>
+    </div>
+   </div>
+</div>
+
+
+<div class="modal" id="exampleModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content checklist-content-model">
+        <div class="modal-header">
+          <p class="modal-title">Complete required tasks to start selling online</p>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+        
+            <div class="card_modal">
+               {{-- <p class="collapsible">Review and update</p> --}}
+
+                <div class="content">   
+                    <div class="accordion checklist-collapse" id="accordionExample">
+                        <div class="row">
+                            <div class="col-12 col-md-6">
+                                <div class="checklist_left_side_style">
+                                    
+                                    <h6 class="mb-4 inner_heading_modal_body text-center">Required Task</h6>
+                                    <ul>
+
+                                    @if($addressChecked=='yes')
+
+                                      <li>Set your store physical address<span><i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Completed</span></li> 
+
+                                    @else
+
+                                    <li>Set your store physical address<a href="{{ url('seller/site-settings/general/#address-section') }}" class="set_banner_btn">Set Address</a></li> 
+                                    
+                                    @endif
+
+
+                                    @if($taxChecked=='yes')
+
+                                      <li>Set your store sales tax rate<span><i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Completed</span></li> 
+
+                                    @else
+
+                                    <li>Set your store sales tax rate<a href="{{ url('seller/site-settings/general/#tax-section') }}" class="set_banner_btn">Set Sales Tax</a></li> 
+                                    
+                                    @endif
+
+
+                                    @if($shippingMethodChecked=='yes')
+
+                                    <li>Set your store shipping rates<span><i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Completed</span></li> 
+
+                                    @else
+
+                                    <li>Set your store shipping rates<a href="{{ url('seller/site-settings/general/#store-shipping-section') }}" class="set_banner_btn">Set Ship Rates</a></li> 
+                                    
+                                    @endif
+
+
+                                    @if($bannerLogoChecked=='yes')
+
+                                    <li>Set your initial store main banner<span><i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Completed</span></li> 
+
+                                    @else
+
+                                    <li>Set your initial store main banner<a href="{{ url('seller/site-settings/general/#store-banner-section') }}" class="set_banner_btn">Set Banner</a></li> 
+                                    
+                                    @endif
+
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="checklist_right_side_style">
+                                    <h6 class="mb-4 inner_heading_right_side text-center">Suggested Task</h6>
+
+                                    <ul>
+
+                                      @if($categoryChecked=='yes')
+
+                                      <li>Set up your store product categories<span><i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Completed</span></li> 
+                                         
+                                      @else
+
+                                      <li>Set up your store product categories<a href="{{ url('seller/category/create') }}" class="set_banner_btn">Set Categories</a></li>  
+
+                                      @endif
+
+
+
+                                      @if($variationProductChecked=='yes')
+
+                                      <li>Add any variant product attributes<span><i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Completed</span></li> 
+                                         
+                                      @else
+                                      
+                                      <li>Add any variant product attributes<a href="{{ url('seller/attribute/create') }}" class="set_banner_btn">Set Attributes</a></li>  
+
+                                      @endif
+
+
+
+                                      @if($simpleProductChecked=='yes')
+
+                                      <li>Add your first product(s)<span><i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Completed</span></li> 
+                                         
+                                      @else
+                                      
+                                      <li>Add your first product(s)<a href="{{ url('seller/product/create') }}" class="set_banner_btn">Add Product(s)</a></li>  
+
+                                      @endif
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                         
+                        <div class="bottom_btn_modal_parent">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="bottom_modal_btn text-center mt-4">
+
+                                      @if($addressChecked=='yes' && $taxChecked=='yes' && $shippingMethodChecked=='yes' && $bannerLogoChecked=='yes' && storeLaunch() == '')
+                                      <a style="cursor:pointer;" class="store_launch_click ">Make Your Store Live - Launch</a>
+                                      @else
+                                      <a class="checklist-disable-btn">Complete Required tasks To Launch</a>
+                                      @endif 
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>   
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+@endif
+
+
     
-    @if((storeLaunch() != 1) || $checkListArr['address'] != 1 || ($checkListArr['tax'] != 1) || ($checkListArr['banner_logo'] != 1) || ($checkListArr['shipping_method'] != 1))
+    @if($checkListArr['address'] != 1 || ($checkListArr['tax'] != 1) || ($checkListArr['banner_logo'] != 1) || ($checkListArr['shipping_method'] != 1))
     
     <div class="row">
       <div class="col-lg-12 col-md-12 col-sm-12">
@@ -159,7 +320,7 @@
                                           @if($addressChecked=='yes' && $taxChecked=='yes' && $shippingMethodChecked=='yes' && $bannerLogoChecked=='yes')
                                             <a style="cursor:pointer;" class="store_launch_click ">Make Your Store Live - Launch</a>
                                           @else
-                                          <a class="checklist-disable-btn">Complete Required tasks To Launch</a>
+                                           <a class="checklist-disable-btn">Complete Required tasks To Launch</a>
                                           @endif  
                                         </div>
                                     </div>
