@@ -14,7 +14,7 @@
   <div class="col-lg-4 col-md-4 col-sm-12">
     <div class="card card-statistic-2">
       <div class="card-stats">
-        <div class="card-stats-title">{{ __('Order Statistics') }} - <div class="dropdown d-inline">
+        <div class="card-stats-title">{{ __('Store Order Statistics') }} - <div class="dropdown d-inline">
             <a class="font-weight-600 dropdown-toggle" data-toggle="dropdown" href="#" id="orders-month" id="orders-month">{{ Date('F') }}</a>
             <ul class="dropdown-menu dropdown-menu-sm">
               <li class="dropdown-title">{{ __('Select Month') }}</li>
@@ -93,7 +93,8 @@
       </div>
       <div class="card-wrap">
         <div class="card-header">
-          <h4>{{ __('Total Sales Of Earnings') }} - {{ date('Y') }}</h4>
+          <h4>{{ __('Gross Sales') }} - {{ date('Y') }}&nbsp;&nbsp;<i class="fas fa-info-circle" id="tooltip-icon"></i></h4>
+
         </div>
         <div class="card-body" id="sales_of_earnings">
           <img src="{{ asset('uploads/loader.gif') }}">
@@ -412,6 +413,4 @@
 <script src="{{ asset('admin/assets/js/chart.min.js') }}"></script>
 <script src="{{ asset('admin/assets/js/jquery.sparkline.min.js') }}"></script>
 <script src="{{ asset('admin/assets/js/seller.js') }}"></script>
-
-
 @endpush
