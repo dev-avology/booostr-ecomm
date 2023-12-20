@@ -7,13 +7,10 @@ var base_url=$("#base_url").val();
 var site_url=$("#site_url").val();
 var dashboard_static_url=$("#dashboard_static").val();
 
-
 loadStaticData();
-load_perfomace(7);
-
-
+console.log('after static');
 dashboard_order_statics($('#month').val());
-
+load_perfomace(7);
 
 
 function getCurrentOrders() {
@@ -53,6 +50,7 @@ $('.month').on('click',function(e){
 });
 
 function dashboard_order_statics(month) {
+  console.log('dashboard_order_statics');
     var url = $('#dashboard_order_statics').val();
     var gif_url= $('#gif_url').val();
     var html="<img src="+gif_url+">";
@@ -68,18 +66,16 @@ function dashboard_order_statics(month) {
         
 
         success: function(response){ 
-            $('#pending_order').html(amount_format(response.total_pending));
-            $('#completed_order').html(amount_format(response.total_completed));
-            $('#shipping_order').html(amount_format(response.total_processing));
-            $('#total_order').html(amount_format(response.total_orders));
+            $('#pending_order').html((response.total_pending));
+            $('#completed_order').html((response.total_completed));
+            $('#shipping_order').html((response.total_processing));
+            $('#total_order').html((response.total_orders));
         }
     })
 }
 
 function loadStaticData() {
-    var url = dashboard_static_url;
-
-   
+    var url = dashboard_static_url;   
 
     $.ajax({
         type: 'get',
@@ -92,15 +88,15 @@ function loadStaticData() {
 
         success: function(response){ 
 
-            $('#sales_of_earnings').html(amount_format(response.totalEarnings));
-            $('#total_sales').html(amount_format(response.totalSales));
+            $('#sales_of_earnings').html(('$'+response.totalEarnings));
+            $('#total_sales').html((response.totalSales));
             
-            $('#monthly_total_sales').html(amount_format(response.thismonth_sale_amount));
-            $('#today_order').html(amount_format(response.today_orders));
-            $('#today_total_sales').html(amount_format(response.today_sale_amount));
-            $('#last_month_total_sales').html(amount_format(response.lastmonth_sale_amount));
-            $('#last_seven_days_total_sales').html(amount_format(response.lastweek_sale_amount));
-            $('#yesterday_total_sales').html(amount_format(response.yesterday_sale_amount));
+            $('#monthly_total_sales').html(('$'+response.thismonth_sale_amount));
+            $('#today_order').html((response.today_orders));
+            $('#today_total_sales').html(('$'+response.today_sale_amount));
+            $('#last_month_total_sales').html(('$'+response.lastmonth_sale_amount));
+            $('#last_seven_days_total_sales').html(('$'+response.lastweek_sale_amount));
+            $('#yesterday_total_sales').html(('$'+response.yesterday_sale_amount));
             $('.plan_name').html(response.plan_name);
             $('.plan_expire').html(response.will_expired);
             $('.pages').html(response.pages);
@@ -152,7 +148,7 @@ function loadStaticData() {
                   <div class="mt-1">
                     <div class="budget-price">
                       <div class="budget-price-square " style="background-color: ${value.status_color}" data-width="64%"></div>
-                      <div class="budget-price-label">${value.amount}</div>
+                      <div class="budget-price-label">$${value.amount}</div>
                     </div>
                   </div>
                 </div>
@@ -194,7 +190,6 @@ function loadStaticData() {
 }
 
 
-
 function current_pending_orders(data) {
    $('.orderitems').remove();
 
@@ -224,7 +219,7 @@ function current_pending_orders(data) {
                         <a href="${row.url}"><h4>${row.orderid}</h4></a>
                       </div>
                       <div class="card-body">
-                        <h6>Amount: <code>${row.amount}</code><br><br>
+                        <h6>Amount: <code>$${row.amount}</code><br><br>
                         Status: <div style="background-color: ${row.status_color};color: #fff;" class="badge">${row.status}</div>
                         </h6>
                         <h6>Time: <code>${row.time}</code>
@@ -701,6 +696,11 @@ function amount_format(amount,type='name') {
    
     
     return price;
-    
-   
 }
+
+$(document).ready(function() {
+  $('#tooltip-icon').tooltip({
+    title: 'Total Sales is Gross Sales minus discounts, taxes fees & shipping costs. Your cost of goods is still included.',
+    placement: 'top'
+  });
+});

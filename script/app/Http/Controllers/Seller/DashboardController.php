@@ -70,10 +70,10 @@ class DashboardController extends Controller
 
 
 
-        $data['total_orders']=number_format($total_orders, 2);
-        $data['total_pending']=number_format($total_pending, 2);
-        $data['total_completed']=number_format($total_completed, 2);
-        $data['total_processing']=number_format($total_processing, 2);
+        $data['total_orders']=$total_orders;
+        $data['total_pending']=$total_pending;
+        $data['total_completed']=$total_completed;
+        $data['total_processing']=$total_processing;
 
         return response()->json($data);
     }
@@ -132,18 +132,16 @@ class DashboardController extends Controller
         $today=Carbon::today();
 
 
-        $totalEarnings=Order::where('payment_status',1)->where('status_id',1)->whereYear('created_at', '=',$year)->sum('total');
+        $totalEarnings=Order::where('payment_status',1)->whereYear('created_at', '=',$year)->sum('total');
         $totalEarnings=amount_format($totalEarnings);
 
         $totalSales=Order::where('status_id',1)->whereYear('created_at', '=',$year)->count();
-        $totalSales=number_format($totalSales);
 
 
         $today_sale_amount = Order::where('status_id','!=',2)->whereDate('created_at', $today)->sum('total');
         $today_sale_amount=amount_format($today_sale_amount,'sign');
 
         $today_orders = Order::whereDate('created_at', $today)->count();
-        $today_orders=number_format($today_orders);
 
 
         $yesterday_sale_amount = Order::where('status_id','!=',2)->whereDate('created_at', Carbon::yesterday())->sum('total');
@@ -210,10 +208,10 @@ class DashboardController extends Controller
 
 
         $data['totalEarnings']=number_format($totalEarnings, 2);
-        $data['totalSales']=number_format($totalSales, 2);
+        $data['totalSales']=$totalSales;
 
         $data['today_sale_amount']=number_format($today_sale_amount, 2);
-        $data['today_orders']=number_format($today_orders, 2);
+        $data['today_orders']=$today_orders;
         $data['yesterday_sale_amount']=number_format($yesterday_sale_amount, 2);
         $data['lastweek_sale_amount']=number_format($lastweek_sale_amount, 2);
         $data['lastmonth_sale_amount']=number_format($lastmonth_sale_amount, 2);

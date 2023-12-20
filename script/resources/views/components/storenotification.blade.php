@@ -327,9 +327,11 @@
           </div>
         </div>
       </div>
+
+    @endif       
     
     
-     @else
+      @if(($addressChecked == 'yes' && $taxChecked == 'yes' && $bannerLogoChecked == 'yes' && $shippingMethodChecked == 'yes' && $categoryChecked == 'yes' && $simpleProductChecked == 'yes' && $variationProductChecked == 'yes'))
      
         @if(checkListOkVal() != 1)
     
@@ -344,7 +346,7 @@
         </div>
         @endif
     
-    @endif 
+      @endif 
     
     </div>
     @push('script')
@@ -353,7 +355,6 @@
         
 
         $(document).ready(function () {
-          console.log('$currentRoute');
 
           @if(($addressChecked=='no' || $taxChecked=='no' || $shippingMethodChecked=='no' || $bannerLogoChecked=='no' ) &&  $currentRoute == 'seller.dashboard')
             $("#exampleModal").modal("show");
