@@ -256,7 +256,6 @@ class CheckoutController extends Controller
 
             $shipping_price = $shipping_methods['base_pricing'] + Cart::count() * $shipping_methods['pricing'];
 
-
         }else if($shipping_methods['method_type'] == 'weight_based'){
 
             $shipping_price = $shipping_methods['base_pricing'] + Cart::weight() * $shipping_methods['pricing'];
@@ -279,6 +278,8 @@ class CheckoutController extends Controller
 
         }
        }
+
+      
 
         $total =  Cart::total() + $shipping_price;
 

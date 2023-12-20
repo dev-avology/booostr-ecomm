@@ -56,6 +56,10 @@
         <li class="{{ Request::is('seller/tag*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ url('/seller/tag') }}">{{ __('Tags') }}</a>
         </li>
+
+        <li>
+            <a class="nav-link" href="{{ url('/seller/coupon') }}">{{ __('Coupons') }}</a>
+        </li> 
         <!-- <li>
             <a class="nav-link" href="{{ url('/seller/features') }}">{{ __('Product Features') }}</a>
         </li> -->
