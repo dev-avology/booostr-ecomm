@@ -94,6 +94,7 @@ $('#locations').on('change',function(){
        shipping_item
     --------------------------*/
 $(document).on('change','.shipping_item',function(){
+
 	 price=$(this).data('price');
 
 	var shippingD = $(this).data('shippinginfo');
@@ -107,12 +108,13 @@ $(document).on('change','.shipping_item',function(){
 	price = 0;
 
 	}else if(mt == 'per_item'){
+
       var per_item_charge = parseFloat(shippingD.pricing);
-       price = price + cartItems * per_item_charge;
-	   
+       price = parseFloat(price) + cartItems * per_item_charge;
+
 	}else if(mt == 'weight_based'){
 		var per_lb_charge = parseFloat(shippingD.pricing);
-		price = price + cartweight * per_lb_charge;
+		price = parseFloat(price) + cartweight * per_lb_charge;
 
 	}else if(mt == 'flat_rate'){
 
@@ -141,7 +143,6 @@ $(document).on('change','.shipping_item',function(){
 		  }
 	     //	price = parseInt(pricing[0]?.price??0);
 	}
-    console.log(tax);
 
 	$('.shipping_fee').text(amount_format(price));
 

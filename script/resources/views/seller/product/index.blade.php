@@ -88,6 +88,12 @@
                         </tr>
                     </thead>
                     <tbody>
+
+                        {{-- <?php
+                        echo "<pre>";    
+                        print_r($posts);
+
+                        ?> --}}
                         @foreach($posts as $row)
                         <tr id="row{{  $row->id }}">
                             <td>
@@ -99,8 +105,19 @@
 
                                   <td>{{ Str::limit($row->title,20) }} ({{$row->full_id}})</td>
                                   <td class="text-right"><img src="{{ asset($row->media->value ?? 'uploads/default.png') }}" height="50" alt=""></td>
+
+
                                   <td class="text-right">{{ $row->is_variation == 1 ? 'Variations' : 'Simple'  }}</td>
-                                  <td class="text-right">${{$row->price?->price ? number_format($row->price?->price,2) : ''}}{{ $row->is_variation == 1 ? '*' : ''  }}</td>
+
+
+                                  {{-- <td class="text-right">${{$row->price?->price ? number_format($row->price?->price,2) : ''}}{{ $row->is_variation == 1 ? '*' : ''  }}</td> --}}
+
+                                  <td class="text-right" style="{{ $row->price?->price == 0 ? 'font-weight: bold; color: red;' : '' }}">
+                                    ${{ $row->price?->price ? number_format($row->price?->price, 2) : '0.00' }}{{ $row->is_variation == 1 ? '*' : '' }}
+                                  </td>
+                                
+
+                                  
                                   <td class="text-right"><span class="badge badge-{{ $row->status == 1 ? 'success' : 'danger' }}">{{ $row->status == 1 ? 'Active' : 'Disable' }}</span></td>
                                   <td>{{ $row->orders_count }}</td>
                                   <td class="text-right">{{ date('d-m-Y', strtotime($row->created_at)) }}</td>
