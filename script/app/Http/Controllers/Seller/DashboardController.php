@@ -132,7 +132,7 @@ class DashboardController extends Controller
         $today=Carbon::today();
 
 
-        $totalEarnings=Order::where('payment_status',1)->whereYear('created_at', '=',$year)->sum('total');
+        $totalEarnings=Order::where('status_id',1)->whereYear('created_at', '=',$year)->sum('total');
         $totalEarnings=amount_format($totalEarnings);
 
         $totalSales=Order::where('status_id',1)->whereYear('created_at', '=',$year)->count();

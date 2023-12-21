@@ -700,7 +700,7 @@ function amount_format(amount,type='name') {
 
 $(document).ready(function() {
   $('#tooltip-icon').tooltip({
-    title: 'Total Sales is Gross Sales minus discounts, taxes fees & shipping costs. Your cost of goods is still included.',
+    title: 'Gross Sales are your total sales with no fees or shipping charges subtracted.',
     placement: 'top'
   });
 });

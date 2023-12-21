@@ -112,7 +112,7 @@
       </div>
       <div class="card-wrap">
         <div class="card-header">
-          <h4>{{ __('Total Sales') }} - {{ date('Y') }}</h4>
+          <h4>{{ __('Fulfilled Orders') }} - {{ date('Y') }}</h4>
         </div>
         <div class="card-body" id="total_sales">
           <img src="{{ asset('uploads/loader.gif') }}" class="loads">
@@ -173,7 +173,7 @@
   <div class="col-lg-8 col-md-12 col-12 col-sm-12">
     <div class="card card-primary">
       <div class="card-header">
-        <h4 class="card-header-title">{{ __('Sells performance') }}
+        <h4 class="card-header-title">{{ __('Sales Performance') }}
           <img src="{{ asset('uploads/loader.gif') }}" height="20" id="earning_performance">
         </h4>
         <div class="card-header-action">
