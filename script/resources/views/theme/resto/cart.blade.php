@@ -72,7 +72,7 @@
 										</ul>
 										<div class="button">
 											<a href="{{ url('/checkout') }}" class="btn"><i class="icofont-shopping-cart"></i> {{ __('Checkout') }}</a>
-											<a href="{{ url('/products') }}" class="btn primary"><i class="icofont-plus-circle"></i> {{ __('Continue shopping') }}</a>
+											<a href="{{ url('/products') }}" class="btn primary"><i class="icofont-plus-circle"></i> {{ __('Continue shopping3') }}</a>
 										</div>
 									</div>
 								</div>
