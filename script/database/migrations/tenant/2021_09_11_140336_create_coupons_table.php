@@ -25,8 +25,6 @@ class CreateCouponsTable extends Migration
             $table->date('will_expire');
             $table->integer('is_featured')->default(0);
             $table->integer('status')->default(1);
-            $table->string('coupon_for_name')->default(0);
-            $table->integer('coupon_for_id')->default(0);
             $table->timestamps();
         });
     }
