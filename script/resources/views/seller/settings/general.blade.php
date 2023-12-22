@@ -22,7 +22,7 @@
 {{-- /section title --}}
 <div class="row">
    <div class="col-lg-12">
-      <form class="ajaxform" method="post" action="{{ route('seller.site-settings.update','general') }}">
+      <form class="ajaxform_with_reload" method="post" action="{{ route('seller.site-settings.update','general') }}">
                 @csrf
                 @method('PUT')
          <div class="row">

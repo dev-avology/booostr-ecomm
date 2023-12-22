@@ -97,6 +97,9 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
 
     Route::post('apply-coupon-code','CouponController@applyCoupon');
 
+    Route::get('get-coupon-type/{type}','CouponController@getCouponType');
+
+
 
     //ecommerce store customers routes
     Route::group(['prefix'=>'customer'],function(){

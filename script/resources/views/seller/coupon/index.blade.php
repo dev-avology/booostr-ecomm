@@ -30,6 +30,8 @@
                                     <th>{{ __('Start From') }}</th>
                                     <th>{{ __('Will Expire') }}</th>
                                     <th>{{ __('Total Used') }}</th>
+                                    <th>{{ __('Coupon For') }}</th>
+                                    <th>{{ __('Coupon For id') }}</th>
                                     <th>{{ __('Status') }}</th>
                                     <th>{{ __('Action') }}</th>
                                 </tr>
@@ -43,6 +45,8 @@
                                     <td>{{ $row->start_from }}</td>
                                     <td>{{ $row->will_expire }}</td>
                                     <td>change it here</td>
+                                    <td>{{ $row->coupon_for_name }}</td>
+                                    <td>{{ $row->coupon_for_id }}</td>
                                     <td><span class="badge badge-{{ $row->status == 1 ? 'success' : 'warning' }}">{{ $row->status == 1 ? 'Active' : 'Disable' }}</span></td>
                                     <td class="">
                                         <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
