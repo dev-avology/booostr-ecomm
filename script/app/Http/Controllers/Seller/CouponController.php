@@ -72,7 +72,7 @@ class CouponController extends Controller
         $coupon->will_expire=$request->will_expire;
         $coupon->is_featured=$request->is_featured;
         $coupon->coupon_for_name=$request->coupon_for;
-        $coupon->coupon_for_id=$request->coupon_id;
+        $coupon->coupon_for_id=$request->coupon_id??0;
         $coupon->status=$request->status;
 
         $coupon->save();
