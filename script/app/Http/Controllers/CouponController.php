@@ -17,13 +17,17 @@ class CouponController extends Controller
     {
 
         if (Cart::count() == 0) {
-             $errors['errors']['error']='Please add some product in your cart';
-             return response()->json($errors,401);
+            return ['error'=>'count_error','msg' => "Coupon code can't apply"];
         }
+
         Cart::setGlobalDiscount(0);
-        $validated = $request->validate([
-          'coupon_code'=>'required|max:100'
-        ]);
+
+
+        $coupon=Coupon::where('code',$request->coupon_code)->first();
+        if(empty($coupon)){
+            return ['error'=>'not_exit_error','msg' => "Oops this coupon is not available..."];
+        }
+
         $total_amount=str_replace(',','',Cart::total());
         $total_discount=str_replace(',','',Cart::discount());
         $mydate= Carbon::now()->toDateString();
@@ -34,31 +38,74 @@ class CouponController extends Controller
                     ->latest()
                     ->first();
         if ($coupon == null) {
-             $errors['errors']['error']='Oops this coupon is not available...';
-             return response()->json($errors,401);
+             return ['error'=>'not_exit_error','msg' => "Oops this coupon is not available..."];
         }
 
         if ($coupon->is_conditional == 1) {
                 
             if ($total_amount < $coupon->min_amount) {
-                $errors['errors']['error']='The minumum order amount is '.number_format($coupon->min_amount,2).' for this coupon';
-                    return response()->json($errors,401);
+                return ['error'=>'min_amount_error','msg' => 'The minumum order amount is '.number_format($coupon->min_amount,2).' for this coupon'];
            }
         }
 
         $total=str_replace(',','',Cart::total());
 
-        if ($coupon->is_percentage == 1) {
-            $total_amount=$total_amount-$coupon->value;
-            $total_discount=$coupon->value;
+        $cartContent = Cart::content();
+        if($coupon->coupon_for_name == 'product'){
 
+            $product_id = $coupon->coupon_for_id;
+            $exists = $cartContent->contains('id', $product_id);
+            if ($exists) {
+
+                return $this->returnCouponData($coupon,$total);
+
+            } else {
+                return ['error'=>'count_error','msg' => "Coupon code can't apply"];
+            }
+        }elseif($coupon->coupon_for_name == 'all'){
+
+            return $this->returnCouponData($coupon,$total);
+
+        }elseif($coupon->coupon_for_name == 'category'){
+
+            $cartContent = Cart::content();
+            $productIdsInCart = $cartContent->pluck('id')->toArray();
+            $cat_id = $coupon->coupon_for_id;
+
+            $termData = Term::with(['category' => function ($query) use ($cat_id) {
+                $query->where('id', $cat_id);
+            }])
+            ->whereIn('id', $productIdsInCart)
+            ->where('type', 'product')
+            ->whereHas('category', function ($query) use ($cat_id) {
+                $query->where('id', $cat_id);
+            })
+            ->get();
+
+            if ($termData->count() > 0) {
+
+                return $this->returnCouponData($coupon,$total);
+
+            } else {
+                
+                return ['error'=>'count_error','msg' => "Coupon code can't apply"];
+
+            }
+
+        }
+    }
+
+    public function returnCouponData($coupon,$total){
+
+        if ($coupon->is_percentage == 1) {
+        
             $flat_discount=$coupon->value;
             $percent=($total*$flat_discount)/100;
 
             $totalPercentDis = $total-$percent;
             $cartDiscount = [
-               'totalDiscount' => number_format($totalPercentDis, 2),
-               'onlydiscount' => number_format($percent, 2)
+            'totalDiscount' => number_format($totalPercentDis, 2),
+            'onlydiscount' => number_format($percent, 2)
             ];
 
             Session::put('couponDiscount',$cartDiscount);
@@ -67,16 +114,16 @@ class CouponController extends Controller
         }
 
         else{
-           
+        
             $flatTotalDiscount = $total - $coupon->value;
 
             $cartDiscount = [
                 'totalDiscount' => number_format($flatTotalDiscount, 2),
                 'onlydiscount' => number_format($coupon->value, 2)
-             ];
+            ];
 
             Session::put('couponDiscount',$cartDiscount);
-           
+        
             return ['type'=>0,'discountArr' => $cartDiscount];
         }
     }
@@ -92,5 +139,10 @@ class CouponController extends Controller
           
            return response()->json($data);
         }
+    }
+
+    public function removeCouponSession(){
+        Session::forget('couponDiscount');
+        return true;
     }
 }
