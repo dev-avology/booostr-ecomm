@@ -116,12 +116,35 @@
                                     </select>
                                 </div>
                             </div>
-                        <div class="row">
-                           <div class="col-lg-12">
-                              <input type="hidden" name="type" value="{{ $info->type }}">
-                              <button class="btn btn-primary basicbtn" type="submit">{{ __('Save') }}</button>
-                           </div>
-                        </div>
+
+
+                            <div class="from-group row mb-2">
+                                <label for="" class="col-lg-12">{{ __('Coupon For') }} </label>
+                                <div class="col-lg-12">
+                                    <select class="form-control" name="coupon_for" id="coupon_for">
+                                        <option value="all" @if($info->coupon_for_name == 'all') selected @endif>{{ __('All Products and Categories') }}</option>
+                                        <option value="product" @if($info->coupon_for_name == 'product') selected @endif>{{ __('Have Product') }}</option>
+                                        <option value="category" @if($info->coupon_for_name == 'category') selected @endif>{{ __('Have Category') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="from-group row mb-2 hide-all-coupon-value">
+                                <label for="" class="col-lg-12">{{ __('Select coupon for') }} </label>
+                                <div class="col-lg-12">
+                                    <select class="form-control" name="coupon_id" id="coupon_id">
+                                        <option selected disabled>Select</option>
+                                    </select>
+                                </div>
+                            </div>
+
+
+                            <div class="row">
+                            <div class="col-lg-12">
+                                <input type="hidden" name="type" value="{{ $info->type }}">
+                                <button class="btn btn-primary basicbtn" type="submit">{{ __('Save') }}</button>
+                            </div>
+                            </div>
                      </div>
                   </div>
                </div>
@@ -140,5 +163,57 @@
 <script src="{{ asset('admin/plugins/dropzone/components-multiple-upload.js') }}"></script>
 <script src="{{ asset('admin/js/media.js') }}"></script>
 <script src="{{ asset('admin/js/seller.js') }}"></script>
+<script>
+    $(document).ready(function() {
+            var value = '';
+            var coupon_for = $('#coupon_for').val();
+            if(coupon_for == 'all'){
+                $('.hide-all-coupon-value').css('display','none');
+                console.log('ok');
+            }
+            couponCode(coupon_for);
+
+            function couponCode(value){
+               
+                if(value == 'all'){
+                  $('.hide-all-coupon-value').css('display','none');
+                }  
+
+                if(value == 'product' || value == 'category'){
+
+                    $.ajax({
+                    type: "GET",
+                    url: '{{ url("get-coupon-type") }}' + '/' + value,
+                    success: function(data) {
+                        $('#coupon_id').empty();
+                        $('.hide-all-coupon-value').css('display','block');
+
+                        var defaultOptionText = '';
+
+                        $.each(data['term'], function(key, value) {
+                            console.log(data['term']);
+                            if (data['type'] == 'product') {
+                                defaultOptionText = 'Select product';
+                                $('#coupon_id').append('<option value="' + value.id + '">' + value.title + '</option>');
+                            } else if (data['type'] == 'category') {
+                                defaultOptionText = 'Select category';
+                                $('#coupon_id').append('<option value="' + value.id + '">' + value.name + '</option>');
+                            }
+                        });
+
+                        $('#coupon_id').prepend('<option selected disabled>' + defaultOptionText + '</option>');
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+             }
+            }
+
+            $('#coupon_for').change(function() {
+                couponCode($(this).val());
+            });
+      });
+</script>
 @endpush
 

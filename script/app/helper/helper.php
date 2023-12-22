@@ -693,7 +693,7 @@ function userChecklist(){
 		$checkList['category'] = 1;
 	}
 
-	$simple_product = Term::where('type','product')->where('is_variation',0)->first();
+	$simple_product = Term::where('type','product')->first();
 	if (empty($simple_product)) {
 		$checkList['simple_product'] = 0;
 	} else {
@@ -732,7 +732,7 @@ function storeLaunch(){
     $checklistval = $checklistval->value ?? '';
 	return $checklistval;
 }
-	
+
 
 // 	if($footerLink){
 // 		return response()->json(["status" => 'true', "message" => 'Footer link get successfully','data' =>$footerLink]);

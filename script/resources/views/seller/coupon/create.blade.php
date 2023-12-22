@@ -116,9 +116,28 @@
                                             </select>
                                         </div>
                                     </div>
-                                    
-                                    
-                                
+
+                                    <div class="from-group row mb-2">
+                                        <label for="" class="col-lg-12">{{ __('Coupon For') }} </label>
+                                        <div class="col-lg-12">
+                                            <select class="form-control" name="coupon_for" id="coupon_for">
+                                                <option value="all" selected>{{ __('All Products and Categories') }}</option>
+                                                <option value="product">{{ __('Have Product') }}</option>
+                                                <option value="category">{{ __('Have Category') }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="from-group row mb-2 hide-all-coupon-value">
+                                        <label for="" class="col-lg-12">{{ __('Select coupon for') }} </label>
+                                        <div class="col-lg-12">
+                                            <select class="form-control" name="coupon_id" id="coupon_id">
+                                                <option selected disabled>Select</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+
                                     <div class="row">
                                         <div class="col-lg-12">
                                             <button class="btn btn-primary basicbtn" type="submit">{{ __('Save') }}</button>
@@ -142,5 +161,52 @@
 <script src="{{ asset('admin/plugins/dropzone/components-multiple-upload.js') }}"></script>
 <script src="{{ asset('admin/js/media.js') }}"></script>
 <script src="{{ asset('admin/js/seller.js') }}"></script>
+
+<script>
+      $(document).ready(function() {
+            var coupon_for = $('#coupon_for').val();
+            if(coupon_for == 'all'){
+              $('.hide-all-coupon-value').css('display','none');
+            }
+
+            $('#coupon_for').change(function() {
+                var selectedValue = $(this).val();
+
+                if(selectedValue == 'all'){
+                  $('.hide-all-coupon-value').css('display','none');
+                }  
+
+                if(selectedValue == 'product' || selectedValue == 'category'){
+
+                    $.ajax({
+                    type: "GET",
+                    url: '{{ url("get-coupon-type") }}' + '/' + selectedValue,
+                    success: function(data) {
+                        $('#coupon_id').empty();
+                        $('.hide-all-coupon-value').css('display','block');
+
+                        var defaultOptionText = '';
+
+                        $.each(data['term'], function(key, value) {
+                            if (data['type'] == 'product') {
+                                defaultOptionText = 'Select product';
+                                $('#coupon_id').append('<option value="' + value.id + '">' + value.title + '</option>');
+                            } else if (data['type'] == 'category') {
+                                defaultOptionText = 'Select category';
+                                $('#coupon_id').append('<option value="' + value.id + '">' + value.name + '</option>');
+                            }
+                        });
+
+                        $('#coupon_id').prepend('<option selected disabled>' + defaultOptionText + '</option>');
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+
+                }
+            });
+        });
+</script>
 @endpush
 

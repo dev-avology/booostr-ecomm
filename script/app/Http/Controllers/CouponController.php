@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Coupon;
+use App\Models\Term;
+use App\Models\Category;
 use Carbon\Carbon;
 use Auth;
 use Session;
@@ -76,6 +78,19 @@ class CouponController extends Controller
             Session::put('couponDiscount',$cartDiscount);
            
             return ['type'=>0,'discountArr' => $cartDiscount];
+        }
+    }
+
+    public function getCouponType($type){
+        if($type == 'product'){
+           $data['term'] = Term::where('type','product')->get();
+           $data['type'] = "product";
+           return response()->json($data);
+        }else if($type == 'category'){
+           $data['term'] = Category::where('type','category')->get();
+           $data['type'] = "category";
+          
+           return response()->json($data);
         }
     }
 }

@@ -71,7 +71,10 @@ class CouponController extends Controller
         $coupon->start_from=$request->start_from ?? now();
         $coupon->will_expire=$request->will_expire;
         $coupon->is_featured=$request->is_featured;
+        $coupon->coupon_for_name=$request->coupon_for;
+        $coupon->coupon_for_id=$request->coupon_id;
         $coupon->status=$request->status;
+
         $coupon->save();
 
         return response()->json('Coupon Created Successfully...!!!');
@@ -125,6 +128,8 @@ class CouponController extends Controller
         $coupon->start_from=$request->start_from ?? now();
         $coupon->will_expire=$request->will_expire;
         $coupon->is_featured=$request->is_featured;
+        $coupon->coupon_for_name=$request->coupon_for;
+        $coupon->coupon_for_id=$request->coupon_id;
         $coupon->status=$request->status;
         $coupon->save();
 
