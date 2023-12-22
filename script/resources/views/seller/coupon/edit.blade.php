@@ -65,8 +65,8 @@
                                 <label for="" class="col-lg-12">{{ __('Discount Type:') }} </label>
                                 <div class="col-lg-12">
                                     <select class="form-control" name="discount_type" >
-                                        <option value="1" @if($info->discount_type == 1) selected @endif>{{ __('Percentage') }}</option>
-                                        <option value="0" @if($info->discount_type != 1) selected @endif>{{ __('Flat Rate Discount') }}</option>
+                                        <option value="1" @if($info->is_percentage == 1) selected @endif>{{ __('Percentage') }}</option>
+                                        <option value="0" @if($info->is_percentage == 0) selected @endif>{{ __('Flat Rate Discount') }}</option>
                                     </select>
                                 </div>
                             </div>

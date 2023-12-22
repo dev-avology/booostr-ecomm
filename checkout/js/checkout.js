@@ -146,7 +146,7 @@ $(document).on('change','.shipping_item',function(){
 
 	$('.shipping_fee').text(amount_format(price));
 
-	new_total=total+price;
+	new_total=total+price-discount;
 
 	$('.cart_total').text(amount_format(new_total));
 

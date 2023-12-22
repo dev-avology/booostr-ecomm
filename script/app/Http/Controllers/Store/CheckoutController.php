@@ -745,7 +745,9 @@ class CheckoutController extends Controller
 
         }
 
-        $total_amount =  Cart::total() + $request->shipping_price;
+       $discount =  Session::has('couponDiscount') ? Session::get('couponDiscount')['onlydiscount'] : 0;
+
+      $total_amount =  Cart::total() + $request->shipping_price - $discount;
 
        $credit_card_fee = credit_card_fee($total_amount);
 
@@ -757,7 +759,7 @@ class CheckoutController extends Controller
        $productcartdata['cart_shipping_price'] = $request->shipping_price;
        $productcartdata['cart_subtotal'] = Cart::subtotal();
        $productcartdata['cart_tax'] = Cart::tax();
-        $productcartdata['cart_total'] = Cart::total()+ $request->shipping_price;
+        $productcartdata['cart_total'] = Cart::total()+ $request->shipping_price - $discount;
         $productcartdata['cart_credit_card_fee'] = $credit_card_fee;
         $productcartdata['cart_booster_platform_fee'] = $booster_platform_fee;
         $productcartdata['cart_grand_total'] = $total_amount;
