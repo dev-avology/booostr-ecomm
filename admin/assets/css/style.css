@@ -4959,6 +4959,80 @@ new css */
 }
 
 
+.coupon-checkbox-wrapper-6 .tgl {
+  display: none;
+}
+.coupon-checkbox-wrapper-6 .tgl,
+.coupon-checkbox-wrapper-6 .tgl:after,
+.coupon-checkbox-wrapper-6 .tgl:before,
+.coupon-checkbox-wrapper-6 .tgl *,
+.coupon-checkbox-wrapper-6 .tgl *:after,
+.coupon-checkbox-wrapper-6 .tgl *:before,
+.coupon-checkbox-wrapper-6 .tgl + .tgl-btn {
+  box-sizing: border-box;
+}
+.coupon-checkbox-wrapper-6 .tgl::-moz-selection,
+.coupon-checkbox-wrapper-6 .tgl:after::-moz-selection,
+.coupon-checkbox-wrapper-6 .tgl:before::-moz-selection,
+.coupon-checkbox-wrapper-6 .tgl *::-moz-selection,
+.coupon-checkbox-wrapper-6 .tgl *:after::-moz-selection,
+.coupon-checkbox-wrapper-6 .tgl *:before::-moz-selection,
+.coupon-checkbox-wrapper-6 .tgl + .tgl-btn::-moz-selection,
+.coupon-checkbox-wrapper-6 .tgl::selection,
+.coupon-checkbox-wrapper-6 .tgl:after::selection,
+.coupon-checkbox-wrapper-6 .tgl:before::selection,
+.coupon-checkbox-wrapper-6 .tgl *::selection,
+.coupon-checkbox-wrapper-6 .tgl *:after::selection,
+.coupon-checkbox-wrapper-6 .tgl *:before::selection,
+.coupon-checkbox-wrapper-6 .tgl + .tgl-btn::selection {
+  background: none;
+}
+.coupon-checkbox-wrapper-6 .tgl + .tgl-btn {
+  outline: 0;
+  display: block;
+  width: 4em;
+  height: 2em;
+  position: relative;
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+.coupon-checkbox-wrapper-6 .tgl + .tgl-btn:after,
+.coupon-checkbox-wrapper-6 .tgl + .tgl-btn:before {
+  position: relative;
+  display: block;
+  content: "";
+  width: 50%;
+  height: 100%;
+}
+.coupon-checkbox-wrapper-6 .tgl + .tgl-btn:after {
+  left: 0;
+}
+.coupon-checkbox-wrapper-6 .tgl + .tgl-btn:before {
+  display: none;
+}
+.coupon-checkbox-wrapper-6 .tgl:checked + .tgl-btn:after {
+  left: 50%;
+}
+
+.coupon-checkbox-wrapper-6 .tgl-light + .tgl-btn {
+  background: #f0f0f0;
+  border-radius: 2em;
+  padding: 2px;
+  transition: all 0.4s ease;
+}
+.coupon-checkbox-wrapper-6 .tgl-light + .tgl-btn:after {
+  border-radius: 50%;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+.coupon-checkbox-wrapper-6 .tgl-light:checked + .tgl-btn {
+  background: #9FD6AE;
+}
+
+
 
 
 
