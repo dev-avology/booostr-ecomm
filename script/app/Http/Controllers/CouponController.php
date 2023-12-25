@@ -41,7 +41,7 @@ class CouponController extends Controller
              return ['error'=>'not_exit_error','msg' => "Oops this coupon is not available..."];
         }
 
-        if ($coupon->is_conditional == 1) {
+        if ($coupon->min_amount_option == 1) {
                 
             if ($total_amount < $coupon->min_amount) {
                 return ['error'=>'min_amount_error','msg' => 'The minumum order amount is '.number_format($coupon->min_amount,2).' for this coupon'];
@@ -129,6 +129,7 @@ class CouponController extends Controller
     }
 
     public function getCouponType($type){
+
         if($type == 'product'){
            $data['term'] = Term::where('type','product')->get();
            $data['type'] = "product";
