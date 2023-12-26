@@ -82,19 +82,21 @@ class CouponController extends Controller
 
         // $coupon->is_conditional=$request->is_conditional ?? 0;
 
-        if ($request->min_amount_option == 1) {
-            $min_amount=$request->min_amount ?? 0;
-        }
-        else{
-            $min_amount=0;
-        }
+        // if ($request->min_amount_option == 1) {
+        //     $min_amount=$request->min_amount ?? 0;
+        // }
+        // else{
+        //     $min_amount=0;
+        // }
 
-        $coupon->min_amount=$min_amount;
+        $coupon->min_amount=$request->min_amount ?? 0;
         $coupon->min_amount_option=$request->min_amount_option;
 
         // if($request->date_checkbox == 1){
         $coupon->start_from=$request->start_from ?? now();
         $coupon->will_expire=$request->will_expire ?? '';
+
+        $coupon->max_use=$request->max_use ?? 0;
         // }else{
         //     $coupon->date_checkbox=$request->date_checkbox ?? 0;
         //     $coupon->start_from='';
@@ -180,19 +182,22 @@ class CouponController extends Controller
 
         // $coupon->is_conditional=$request->is_conditional ?? 0;
 
-        if ($request->min_amount_option == 1) {
-            $min_amount=$request->min_amount ?? 0;
-        }
-        else{
-            $min_amount=0;
-        }
+        // if ($request->min_amount_option == 1) {
+        //     $min_amount=$request->min_amount ?? 0;
+        // }
+        // else{
+        //     $min_amount=0;
+        // }
 
-        $coupon->min_amount=$min_amount;
+        $coupon->min_amount=$request->min_amount ?? 0;
         $coupon->min_amount_option=$request->min_amount_option;
+        // return ($request->max_use);
 
         // if($request->date_checkbox == 1){
         $coupon->start_from=$request->start_from ?? now();
         $coupon->will_expire=$request->will_expire ?? '';
+        $coupon->max_use=$request->max_use ?? 0;
+
         // }else{
         //     $coupon->date_checkbox=$request->date_checkbox ?? 0;
         //     $coupon->start_from='';
