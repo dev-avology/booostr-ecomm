@@ -15,8 +15,11 @@ class RemoveStartFromAndWillExpireColumnsFromCouponsTable extends Migration
     {
         Schema::table('coupons', function (Blueprint $table) {
             $table->datetime('start_from')->change();
+            $table->string('coupon_for_id')->change();
             $table->datetime('will_expire')->nullable()->change();
-            $table->integer('max_use')->default(0);
+            $table->integer('max_use')->default(0)->change();
+            $table->datetime('will_expire')->nullable()->change();
+
         });
     }
 

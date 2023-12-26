@@ -31,7 +31,7 @@ class CouponController extends Controller
      */
     public function create()
     {
-         abort_if(!getpermission('products'),401);
+        abort_if(!getpermission('products'),401);
         return view("seller.coupon.create");
     }
 
@@ -43,7 +43,7 @@ class CouponController extends Controller
      */
     public function store(Request $request)
     {
-        // return $request->all();
+        return $request->min_amount_option;
 
         abort_if(!getpermission('products'),401);
          if (postlimitcheck() == false) {
@@ -51,10 +51,10 @@ class CouponController extends Controller
             return response()->json($errors,401);
         }
         $validated = $request->validate([
-         'code' => 'required',
-         'code_name' => 'required',
-         'discount_type' => 'required',
-         'start_from' => 'required'
+        'code' => 'required|unique:coupons,code',
+        'code_name' => 'required|unique:coupons,coupon_code_name',
+        'discount_type' => 'required',
+        'start_from' => 'required'
         //  'start_from'=>'required|max:100',
         //  'will_expire'=>'required|max:100',
         ]);
@@ -107,10 +107,10 @@ class CouponController extends Controller
         // $coupon->is_featured=$request->is_featured;
         if($request->coupon_first == 'all'){
             $coupon->coupon_for_name='all';
-            $coupon->coupon_for_id=$request->coupon_id ?? 0;
+            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
         }else {
             $coupon->coupon_for_name=$request->choose_specific_product_or_category ?? '';
-            $coupon->coupon_for_id=$request->coupon_id ?? 0;
+            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
         }
         // $coupon->status=$request->status;
 
@@ -208,10 +208,10 @@ class CouponController extends Controller
         // $coupon->is_featured=$request->is_featured;
         if($request->coupon_first == 'all'){
             $coupon->coupon_for_name='all';
-            $coupon->coupon_for_id=$request->coupon_id ?? 0;
+            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
         }else {
             $coupon->coupon_for_name=$request->choose_specific_product_or_category ?? '';
-            $coupon->coupon_for_id=$request->coupon_id ?? 0;
+            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
         }
         // $coupon->status=$request->status;
 
