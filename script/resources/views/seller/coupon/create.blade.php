@@ -169,7 +169,9 @@
                                         <label for="" class="col-lg-12">{{ __('Condition to qualify:') }} </label>
                                         <div class="col-lg-12">
                                             <select class="form-control" name="min_amount_option" id="min_amount_option">
+
                                                 <option value="0"> Qualify for all </option>
+
                                                 <option value="1">{{ __('Minimum order subtotal amount (in Dollar)') }}</option>
                                                 <option value="2">{{ __('Minimum number of items in cart (all products/categories)') }}</option>
                                             </select>
@@ -192,6 +194,9 @@
                                             <input class="tgl tgl-light" id="max_use_checkbox" type="checkbox"/>
                                         </div>
                                     </div>
+
+
+
 
                                     <div class="from-group row mb-2" id="max_use_value" style="display:none;">
                                         <label for="" class="col-lg-12">{{ __('Add the number of times it can be used:') }} </label>
@@ -340,6 +345,10 @@
 
                 } else if (min_amount_check == 2) {
                     $('#min_amount_val').css('display', 'block');
+                    $('#min_amount_val').css('display', 'block');
+                } else if (min_amount_check == 2) {
+                    $('#min_amount_val').css('display', 'block');
+
                 }else{
                     $('#min_amount_val').css('display', 'none');
                 }
