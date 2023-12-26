@@ -25,11 +25,14 @@
                             <thead>
                                 <tr>
                                      {{-- <th><i class="fa fa-image"></i></th> --}}
-                                    <th>{{ __('Code') }}</th>
+                                    <th>{{ __('Coupon Title') }}</th>
+                                    <th>{{ __('Coupon Code') }}</th>
                                     <th>{{ __('Amount') }}</th>
                                     <th>{{ __('Start From') }}</th>
-                                    {{-- <th>{{ __('Will Expire') }}</th>
-                                    <th>{{ __('Total Used') }}</th> --}}
+                                    <th>{{ __('Will Expire') }}</th>
+                                    <th>{{ __('Total use') }}</th>
+                                    <th>{{ __('Coupon Type') }}</th>
+                                    {{-- <th>{{ __('Total Used') }}</th> --}} 
                                     {{-- <th>{{ __('Coupon For') }}</th>
                                     <th>{{ __('Coupon For id') }}</th>
                                     <th>{{ __('Qualify for') }}</th>
@@ -42,11 +45,22 @@
                                 @foreach($posts as $row)
                                 <tr>
                                     {{-- <td><img src="{{ asset($row->avatar) }}" alt="" height="50"></td> --}}
+                                    <td>{{ $row->coupon_code_name }}</td>
                                     <td>{{ $row->code }}</td>
-                                    <td>{{ $row->value }}</td>
-                                    {{-- <td>{{ $row->start_from }}</td>
-                                    <td>{{ $row->will_expire }}</td> --}}
-                                    <td>{{ $row->start_from ?? ''}}</td>
+                                    @php
+                                        if($row->is_percentage == 1){
+                                             $new_amount = $row->value.'%';
+                                        }else{
+                                            $new_amount = '$'.$row->value.'.00';
+                                        }
+                                    @endphp
+                                    <td>{{ $new_amount }}</td>
+                                    <td>{{ $row->start_from }}</td>
+                                    <td>{{ $row->will_expire === '0000-00-00 00:00:00' ? '-' : $row->will_expire }}</td>
+                                    <td>{{ $row->max_use == '0' ? '-' : $row->max_use }}</td>
+                                    <td>{{ $row->is_percentage == '1' ? 'Percent(%)' : 'Doller($)' }}</td>
+
+                                    {{-- <td>{{ $row->start_from ?? ''}}</td> --}}
                                     {{-- <td>{{ $row->coupon_for_name }}</td>
                                     <td>{{ $row->coupon_for_id }}</td>
                                      @php
