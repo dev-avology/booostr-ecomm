@@ -256,7 +256,6 @@ class CheckoutController extends Controller
 
             $shipping_price = $shipping_methods['base_pricing'] + Cart::count() * $shipping_methods['pricing'];
 
-
         }else if($shipping_methods['method_type'] == 'weight_based'){
 
             $shipping_price = $shipping_methods['base_pricing'] + Cart::weight() * $shipping_methods['pricing'];
@@ -279,6 +278,8 @@ class CheckoutController extends Controller
 
         }
        }
+
+      
 
         $total =  Cart::total() + $shipping_price;
 
@@ -311,8 +312,9 @@ class CheckoutController extends Controller
        $notify_driver='mail';
        $order_settings=get_option('order_settings',true);
 
-       $subtotal = Cart::subtotal();
-
+       // add discount
+        $subtotal = Cart::subtotal();
+     
         $shipping_price = 0;
         $shipping_method_label = '';
         if ($request->order_method == 'delivery' && !empty($request->shipping_method)) {
@@ -360,7 +362,17 @@ class CheckoutController extends Controller
             $order_method = 'pickup';
         }
 
-       $total_amount=str_replace(',','',Cart::total());
+        
+        if (Session::has('couponDiscount')) {
+            $sessionDiscountArr = Session::get('couponDiscount');
+            $total_amount = number_format($sessionDiscountArr['totalDiscount'],2);
+
+        } else {
+            // $subtotal = Cart::subtotal();
+            $total_amount=str_replace(',','',Cart::total());
+        }
+
+
        $total_discount=str_replace(',','',Cart::discount());
 
        $total_amount =  $total_amount + $shipping_price;
@@ -395,8 +407,11 @@ class CheckoutController extends Controller
             };
         }
 
-        $paymentresult= $gateway->namespace::charge_payment($payment_data);
-      //  $paymentresult= ['payment_status'=>4,'payment_id'=>'sffsdf43534'];
+
+        
+
+       $paymentresult= $gateway->namespace::charge_payment($payment_data);
+      //$paymentresult= ['payment_status'=>4,'payment_id'=>'sffsdf43534'];
 
         if($paymentresult['payment_status'] != 4){
             return redirect()->back()->with(["error"=>"Sorry, we couldnt charge your card, please try another card"]);
@@ -584,6 +599,10 @@ class CheckoutController extends Controller
                 $redirect_url = $parts['scheme'] . '://' . $parts['host'] . $parts['path'];
             }
 
+            if(Session::has('couponDiscount')){
+                Session::forget('couponDiscount');
+            }
+
 
             return redirect()->away($redirect_url . '/?tab=thankyou&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
         } catch (\Throwable $th) {
@@ -726,7 +745,9 @@ class CheckoutController extends Controller
 
         }
 
-        $total_amount =  Cart::total() + $request->shipping_price;
+       $discount =  Session::has('couponDiscount') ? Session::get('couponDiscount')['onlydiscount'] : 0;
+
+      $total_amount =  Cart::total() + $request->shipping_price - $discount;
 
        $credit_card_fee = credit_card_fee($total_amount);
 
@@ -738,7 +759,7 @@ class CheckoutController extends Controller
        $productcartdata['cart_shipping_price'] = $request->shipping_price;
        $productcartdata['cart_subtotal'] = Cart::subtotal();
        $productcartdata['cart_tax'] = Cart::tax();
-        $productcartdata['cart_total'] = Cart::total()+ $request->shipping_price;
+        $productcartdata['cart_total'] = Cart::total()+ $request->shipping_price - $discount;
         $productcartdata['cart_credit_card_fee'] = $credit_card_fee;
         $productcartdata['cart_booster_platform_fee'] = $booster_platform_fee;
         $productcartdata['cart_grand_total'] = $total_amount;

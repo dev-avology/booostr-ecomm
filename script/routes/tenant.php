@@ -32,7 +32,7 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
 
     //ecommerce routes for public
     
-    // Route::get('/', 'Store\PageController@home');
+    //Route::get('/', 'Store\PageController@home');
 
     Route::get('/', function(){
         $data = json_decode(tenant()->club_info, true);
@@ -94,6 +94,13 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::get('/order-success','Store\OrderController@success');
     Route::get('/order-fail','Store\OrderController@fail');
     
+
+    Route::post('apply-coupon-code','CouponController@applyCoupon');
+
+    Route::get('get-coupon-type/{type}','CouponController@getCouponType');
+    Route::post('remove-coupon-session','CouponController@removeCouponSession');
+
+
 
     //ecommerce store customers routes
     Route::group(['prefix'=>'customer'],function(){

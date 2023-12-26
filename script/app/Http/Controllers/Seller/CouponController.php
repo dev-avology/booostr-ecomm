@@ -31,7 +31,7 @@ class CouponController extends Controller
      */
     public function create()
     {
-         abort_if(!getpermission('products'),401);
+        abort_if(!getpermission('products'),401);
         return view("seller.coupon.create");
     }
 
@@ -43,35 +43,77 @@ class CouponController extends Controller
      */
     public function store(Request $request)
     {
-          abort_if(!getpermission('products'),401);
+        // return $request->min_amount_option;
+
+        abort_if(!getpermission('products'),401);
          if (postlimitcheck() == false) {
             $errors['errors']['error']='Maximum post limit exceeded';
             return response()->json($errors,401);
         }
         $validated = $request->validate([
-         'coupon_code' => 'required|max:100',
-         'price'=>'required|max:100',
-         'start_from'=>'required|max:100',
-         'will_expire'=>'required|max:100',
+        'code' => 'required|unique:coupons,code',
+        'code_name' => 'required|unique:coupons,coupon_code_name',
+        'discount_type' => 'required',
+        'start_from' => 'required'
+        //  'start_from'=>'required|max:100',
+        //  'will_expire'=>'required|max:100',
         ]);
 
+        if($request->coupon_first == 'specific_product_or_cat'){
+            $validated = $request->validate([
+                'choose_specific_product_or_category' => 'required',
+            ]);
+        }
+
+        if($request->choose_specific_product_or_category == 'product' || $request->choose_specific_product_or_category == 'category'){
+            $validated = $request->validate([
+                'coupon_id' => 'required',
+            ]);
+        }
+
         $coupon=new Coupon;
-        $coupon->avatar=$request->preview ?? null;
-        $coupon->code=$request->coupon_code;
-        $coupon->value=$request->price;
-        $coupon->is_percentage=$request->discount_type;
-        $coupon->is_conditional=$request->is_conditional ?? 0;
-        if ($request->is_conditional == 1) {
-            $min_amount=$request->min_amount ?? 0;
-        }
-        else{
-            $min_amount=0;
-        }
-        $coupon->min_amount=$min_amount;
+        $coupon->code=$request->code;
+        $coupon->coupon_code_name=$request->code_name;
+
+       
+        $coupon->value=$request->price ?? 0;
+        $coupon->is_percentage=$request->discount_type ?? 0;
+        
+
+        // $coupon->is_conditional=$request->is_conditional ?? 0;
+
+        // if ($request->min_amount_option == 1) {
+        //     $min_amount=$request->min_amount ?? 0;
+        // }
+        // else{
+        //     $min_amount=0;
+        // }
+
+        $coupon->min_amount=$request->min_amount ?? 0;
+        $coupon->min_amount_option=$request->min_amount_option;
+
+        // if($request->date_checkbox == 1){
         $coupon->start_from=$request->start_from ?? now();
-        $coupon->will_expire=$request->will_expire;
-        $coupon->is_featured=$request->is_featured;
-        $coupon->status=$request->status;
+        $coupon->will_expire=$request->will_expire ?? '';
+
+        $coupon->max_use=$request->max_use ?? 0;
+        // }else{
+        //     $coupon->date_checkbox=$request->date_checkbox ?? 0;
+        //     $coupon->start_from='';
+        //     $coupon->will_expire='';
+        // }
+
+
+        // $coupon->is_featured=$request->is_featured;
+        if($request->coupon_first == 'all'){
+            $coupon->coupon_for_name='all';
+            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
+        }else {
+            $coupon->coupon_for_name=$request->choose_specific_product_or_category ?? '';
+            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
+        }
+        // $coupon->status=$request->status;
+
         $coupon->save();
 
         return response()->json('Coupon Created Successfully...!!!');
@@ -87,8 +129,11 @@ class CouponController extends Controller
      */
     public function edit($id)
     {
-         abort_if(!getpermission('products'),401);
+        abort_if(!getpermission('products'),401);
         $info= Coupon::findorFail($id);
+
+       
+
         return view("seller.coupon.edit",compact('info'));
     }
 
@@ -100,35 +145,79 @@ class CouponController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
-    {
-         abort_if(!getpermission('products'),401);
-       $validated = $request->validate([
-         'coupon_code' => 'required|max:100',
-         'price'=>'required|max:100',
-         'start_from'=>'required|max:100',
-         'will_expire'=>'required|max:100',
+    {      
+        abort_if(!getpermission('products'),401);
+
+         if (postlimitcheck() == false) {
+            $errors['errors']['error']='Maximum post limit exceeded';
+            return response()->json($errors,401);
+        }
+        $validated = $request->validate([
+         'code' => 'required',
+         'code_name' => 'required',
+         'discount_type' => 'required',
+         'start_from' => 'required'
         ]);
 
-        $coupon= Coupon::findorFail($id);
-        $coupon->avatar=$request->preview ?? null;
-        $coupon->code=$request->coupon_code;
-        $coupon->value=$request->price;
-        $coupon->is_percentage=$request->discount_type;
-        $coupon->is_conditional=$request->is_conditional ?? 0;
-         if ($request->is_conditional == 1) {
-            $min_amount=$request->min_amount ?? 0;
+        if($request->coupon_first == 'specific_product_or_cat'){
+            $validated = $request->validate([
+                'choose_specific_product_or_category' => 'required',
+            ]);
         }
-        else{
-            $min_amount=0;
+
+        if($request->choose_specific_product_or_category == 'product' || $request->choose_specific_product_or_category == 'category'){
+            $validated = $request->validate([
+                'coupon_id' => 'required',
+            ]);
         }
-        $coupon->min_amount=$min_amount;
+
+        $coupon=Coupon::find($id);
+        $coupon->code=$request->code;
+        $coupon->coupon_code_name=$request->code_name;
+
+       
+        $coupon->value=$request->price ?? 0;
+        $coupon->is_percentage=$request->discount_type ?? 0;
+        
+
+        // $coupon->is_conditional=$request->is_conditional ?? 0;
+
+        // if ($request->min_amount_option == 1) {
+        //     $min_amount=$request->min_amount ?? 0;
+        // }
+        // else{
+        //     $min_amount=0;
+        // }
+
+        $coupon->min_amount=$request->min_amount ?? 0;
+        $coupon->min_amount_option=$request->min_amount_option;
+        // return ($request->max_use);
+
+        // if($request->date_checkbox == 1){
         $coupon->start_from=$request->start_from ?? now();
-        $coupon->will_expire=$request->will_expire;
-        $coupon->is_featured=$request->is_featured;
-        $coupon->status=$request->status;
+        $coupon->will_expire=$request->will_expire ?? '';
+        $coupon->max_use=$request->max_use ?? 0;
+
+        // }else{
+        //     $coupon->date_checkbox=$request->date_checkbox ?? 0;
+        //     $coupon->start_from='';
+        //     $coupon->will_expire='';
+        // }
+
+
+        // $coupon->is_featured=$request->is_featured;
+        if($request->coupon_first == 'all'){
+            $coupon->coupon_for_name='all';
+            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
+        }else {
+            $coupon->coupon_for_name=$request->choose_specific_product_or_category ?? '';
+            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
+        }
+        // $coupon->status=$request->status;
+
         $coupon->save();
 
-        return response()->json('Coupon Updated Successfully...!!!');
+       return response()->json('Coupon Updated Successfully...!!!');
     }
 
     /**
@@ -139,7 +228,7 @@ class CouponController extends Controller
      */
     public function destroy($id)
     {
-         abort_if(!getpermission('products'),401);
+        abort_if(!getpermission('products'),401);
         Coupon::destroy($id);
 
         return back();

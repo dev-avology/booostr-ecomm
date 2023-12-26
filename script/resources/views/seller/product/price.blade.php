@@ -22,7 +22,7 @@
       <div class="from-group row mb-2">
          <label for="" class="col-lg-12">{{ __('Price Type') }} : </label>
          <div class="col-lg-12">
-            <select name="product_type"  class="form-control product_type selectric">
+            <select name="product_type"  class="form-control product_type">
             <option value="0" @if($info->is_variation == 0) selected @endif>{{ __('Simple Product') }}</option>
             <option value="1" @if($info->is_variation == 1) selected @endif>{{ __('Variation Product') }}</option>
             </select>

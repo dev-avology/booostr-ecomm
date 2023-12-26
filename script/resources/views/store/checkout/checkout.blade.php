@@ -7,6 +7,51 @@ a.cart-summary > span {
     float: left;
     width: 100%;
 }
+
+/* add coupon code css */
+
+.coupon-main-div {
+    padding-left: 22px;
+}
+
+.apply-c-code .coupon-input-button {
+  display: flex;
+  flex-direction: row;
+  padding: 6px 0px;
+}
+
+.apply-c-code .coupon-input-button .coupon-btn {
+    background-color: #00c0ff;
+    color: white;
+    padding: -17px;
+    /* margin: 7px 1px 27px 42px; */
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    width: 87px;
+    height: 37px;
+    padding-top: 9px;
+    border-radius: 6px!important;
+}
+
+.apply-c-code .coupon-input-button .c-input {
+    width: 224px;
+    height: 42px;
+    margin-top: 7px;
+}
+
+.apply-c-code h5{
+    margin-left: 23px;
+    font-size: 14px;
+}
+
+.coupon-main-div a{
+    color:#00c0ff;
+    font-weight: bold;
+}
+
+
 </style>
 
  <!-- Spinner container -->
@@ -105,6 +150,7 @@ a.cart-summary > span {
                         @csrf
                         <div class="row">
                             <div class="col-lg-8 col-12 col-65 container">
+
                                 <div class="checkout-form  pb-3">
                                     <h3 class="mt-3 mb-1">Billing Address</h3>
                                     <em>Enter your payment method billing information below</em>
@@ -190,7 +236,7 @@ a.cart-summary > span {
                                                 <label> <i class="fa fa-map"></i>{{ __('State') }} <span>*</span></label>
 
 
-                                                <select class="location_input nice-select required" id="location_state"
+                                                <select class="location_input nice-select add-coupon-check required" id="location_state"
                                                         data-shippingf="location_state1" name="billing[state]" data-msg="{{__('Billing State')}}" @if(!empty($customer['state'])) @endif>
                                                     @foreach ($states_data as $key => $val)
                                                         <option @if ($key == $customer['state']) selected @endif
@@ -268,7 +314,7 @@ a.cart-summary > span {
                                         <div class="col-lg-6 col-md-6 col-12 delivery_address_state">
                                             <div class="form-group">
                                                 <label> <i class="fa fa-map"></i>{{ __('State') }} <span>*</span></label>
-                                                <select class="location_input nice-select required" id="location_state1"
+                                                <select class="location_input add-coupon-check2 nice-select required" id="location_state1"
                                                     name="shipping[state]" data-msg="{{__('Shipping State')}}">
                                                     @foreach ($states_data as $key => $val)
                                                         <option @if ($key == $customer['state']) selected @endif
@@ -397,7 +443,21 @@ a.cart-summary > span {
                                         @endif
 
                                         <div class="content">
+                                            <div class="coupon-main-div">
+                                                <div class="apply-c-code">
+                                                    <p id="show_coupon_error" style="display:none;"></p>
+                                                    <div class="coupon-input-button">
+                                                        <input type="text" class="c-input" placeholder="Enter coupon" id="couponInput">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <button type="button" class="btn btn-primary coupon-btn" id="applyCouponBtn">Apply</button>
+
+                                                        <button style="display:none;" type="button" class="btn btn-danger coupon-btn" id="removeCouponBtn">Remove</button>
+                                                    </div>
+                                                
+                                                </div>
+                                            </div>
+                                            
                                             <ul>
+                                               
                                                 <li>{{ __('Subtotal') }}
                                                     <span class="cart_subtotal">
                                                         0.00
@@ -410,6 +470,7 @@ a.cart-summary > span {
                                                 </li>
                                                 <li>(+) {{ __('Delivery fee') }}<span class="shipping_fee">0.00</span>
                                                 </li>
+
 
                                                 <li class="last">{{ __('Total') }}<span
                                                         class="cart_total">0.00</span></li>
@@ -486,6 +547,7 @@ a.cart-summary > span {
         <input type="hidden" id="booster_platform_fee"
             value="{{ booster_club_chagre(Cart::instance('default')->total() + $shipping_price) }}">
         <input type="hidden" id="total" value="{{ Cart::instance('default')->total() }}">
+        <input type="hidden" id="discount" value="{{ Session::has('couponDiscount') ? Session::get('couponDiscount')['onlydiscount'] : 0 }}">
 
         <input type="hidden" id="totalWeight" value="{{ Cart::instance('default')->weight() }}">
         <input type="hidden" id="totalItem" value="{{ Cart::instance('default')->count() }}">
@@ -542,6 +604,23 @@ a.cart-summary > span {
             100% { transform: rotate(360deg); }
         }
     </style>
+
+
+     {{-- <script>
+       $(document).ready(function(){
+            $('.apply-c-code').hide();
+            $("#applyCouponCode").click(function(){
+                $('.apply-c-code').show();
+                $('#hide-coupon-div').html('&nbsp;&nbsp;<i style="color: #00c0ff;">Hide</i>');
+            });
+
+            $("#hide-coupon-div").click(function(){
+                $('.apply-c-code');
+                console.log($('.apply-c-code'));
+                // $('#hide-coupon-div').html('');
+            });
+       });
+     </script> --}}
         <script type="text/javascript">
             "use strict";
 
@@ -556,6 +635,7 @@ a.cart-summary > span {
             var apply_tax_url = "{{ route('checkout.applyTax') }}";
             var store_info = {!! Tenant('club_info') !!};
             var currency_icon = "{{ get_option('currency_data', true)->currency_icon }}";
+            var discount = parseFloat($('#discount').val());
         </script>
         @if ($source_code == 'off')
             <script type="text/javascript" src="{{ asset('theme/disable-source-code.js') }}"></script>
@@ -607,6 +687,187 @@ a.cart-summary > span {
             </script>
         @endif
         <script type="text/javascript" src="{{ asset('checkout/js/google-api.js') }}"></script>
+        <script>
+            $(document).ready(function () {
+                // var cartTotal = '{{Cart::total()}}';
+                if(localStorage.getItem('discount_session') && localStorage.getItem('discount_price_session')){
+                    var localSessionValue = localStorage.getItem('discount_session');
+                    $('.cart_total').text('$'+localSessionValue);
+
+                    var localDiscountPriceSessionValue = localStorage.getItem('discount_price_session');
+
+                    var newLi = $('<li class="discount-cls" style="margin-left: -29px;    margin-top: 16px;color:green">(+) {{ __("Discount") }}<span class="discount-span" style="margin-left: 199px;position: absolute;">-$' + localDiscountPriceSessionValue + '</span></li>');
+
+                    $('.shipping_fee').after(newLi);
+                }
+
+                if(localStorage.getItem('coupon_name')){
+                    var localCouponName = localStorage.getItem('coupon_name');
+                    $('.c-input').val(localCouponName);
+                    $('.c-input').prop('readonly', true);
+                    $('#applyCouponBtn').css('display','none');
+                    $('#removeCouponBtn').css('display','block');
+                }
+
+                $('.submitbtn').click(function(){
+                    if(localStorage.getItem('discount_session') && localStorage.getItem('discount_price_session')){
+                        localStorage.removeItem('discount_session');
+                        localStorage.removeItem('discount_price_session');
+                        localStorage.removeItem('coupon_name');
+                    }
+                })
+
+                $("#removeCouponBtn").click(function () {
+
+
+                    $('#applyCouponBtn').css('display','block');
+                    $(this).css('display','none');
+                    $('.c-input').prop('readonly', false);
+
+                    if(localStorage.getItem('discount_session') && localStorage.getItem('discount_price_session')  && localStorage.getItem('coupon_name')){
+                        localStorage.removeItem('discount_session');
+                        localStorage.removeItem('discount_price_session');
+                        localStorage.removeItem('coupon_name');
+                    }
+                   
+
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+
+                    $.ajax({
+                        url: '/remove-coupon-session',
+                        type: 'POST',
+                        data: {
+                            coupon_code: 1
+                        },
+                        dataType: 'JSON',
+                        success: function (response) {
+                            if(response){
+                                // console.log(response);
+                                // return false;
+                                location.reload();
+                               
+
+                            }
+                        },
+                        error: function (err) {
+                           console.log(err);
+                        },
+                    });
+                  
+                })
+        
+                $("#applyCouponBtn").click(function () {
+                    var couponValue = $("#couponInput").val();
+                   
+        
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+
+                    $.ajax({
+                        url: '/apply-coupon-code',
+                        type: 'POST',
+                        data: {
+                            coupon_code: couponValue
+                        },
+                        dataType: 'JSON',
+                        success: function (response) {
+                            if(response){
+                                // console.log(response);
+                                // return false;
+                                if(response.error == 'count_error'){
+
+                                    $('#show_coupon_error').css({
+                                        'display': 'block',
+                                        'color': 'red',
+                                        'font-size': '13px',
+                                        'margin-right': '31px',
+                                        'text-align': 'center'
+                                    });
+
+                                    $('#show_coupon_error').text(response.msg);
+                                    
+                                    setTimeout(function () {
+                                        $('#show_coupon_error').text();
+                                        $('#show_coupon_error').css('display','none');
+                                    }, 2000);
+
+                                }else if(response.error == 'not_exit_error'){
+                                    
+                                    $('#show_coupon_error').css({
+                                        'display': 'block',
+                                        'color': 'red',
+                                        'font-size': '13px',
+                                        'margin-right': '31px',
+                                        'text-align': 'center'
+                                    });
+
+                                    $('#show_coupon_error').text(response.msg);
+
+                                    setTimeout(function () {
+                                        $('#show_coupon_error').text();
+                                        $('#show_coupon_error').css('display','none');
+                                    }, 2000);
+
+                                }else if(response.error == 'min_amount_error'){
+
+
+                                    $('#show_coupon_error').css({
+                                        'display': 'block',
+                                        'color': 'red',
+                                        'font-size': '13px',
+                                        'margin-right': '31px',
+                                        'text-align': 'center'
+                                    });
+
+                                    $('#show_coupon_error').text(response.msg);
+                                    setTimeout(function () {$('#show_coupon_error').text();
+                                        $('#show_coupon_error').css('display','none');$('#show_coupon_error').text(response.msg);
+                                    }, 2000);
+                                    
+                                }else{
+
+                                    var cartTotal = $('.cart_total').text();
+                                    var priceWithoutDollar = cartTotal.replace('$', '');
+
+                                    var newGrossTotal = priceWithoutDollar - response.discountArr.onlydiscount;
+                                    $('.cart_total').text('$'+newGrossTotal);
+                                    localStorage.setItem('discount_session', newGrossTotal);
+                                    localStorage.setItem('discount_price_session', response.discountArr.onlydiscount);
+                                    localStorage.setItem('coupon_name', couponValue);
+
+                                    $('.c-input').prop('readonly', true);
+                                    $('#applyCouponBtn').css('display','none');
+                                    $('#removeCouponBtn').css('display','block');
+
+                                    var discountFeeValue = response.discountArr.onlydiscount;
+                                
+                                    var newLi = $('<li class="discount-cls" style="margin-left: -29px;    margin-top: 16px;color:green">(+) {{ __("Discount") }}<span class="discount-span" style="margin-left: 199px;position: absolute;">-$' + discountFeeValue + '</span></li>');
+
+                                    $('.shipping_fee').after(newLi);
+
+                                }
+                                // console.log(response.discountArr.totalDiscount);
+
+                            }
+                        },
+                        error: function (err) {
+                           console.log(err);
+                        },
+                    });
+
+                });
+
+
+
+            });
+        </script>
 
     @endpush
     @push('js')

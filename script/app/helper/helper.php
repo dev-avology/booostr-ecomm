@@ -48,7 +48,7 @@ function ImageSize($url,$name){
 
 function getTaxRate(){
 	$tax = get_option('tax');
-  return  $tax != '' ? (float)$tax : 0; 
+	return  $tax != '' ? (float)str_replace('%','',$tax) : 0;
 }
 
 function get_planinfo($key)
@@ -669,9 +669,8 @@ function userChecklist(){
 	}
 
 	$shipping_method=Option::where('key','shipping_method')->first();
-	$shipping_method=$shipping_method->value;
 
-	if (empty($shipping_method)) {
+	if (empty($shipping_method->value)) {
 		$checkList['shipping_method'] = 0;
 	} else {
 		$checkList['shipping_method'] = 1;
@@ -694,7 +693,7 @@ function userChecklist(){
 		$checkList['category'] = 1;
 	}
 
-	$simple_product = Term::where('type','product')->where('is_variation',0)->first();
+	$simple_product = Term::where('type','product')->first();
 	if (empty($simple_product)) {
 		$checkList['simple_product'] = 0;
 	} else {
@@ -727,7 +726,13 @@ function checkListOkVal(){
     $checklistval = $checklistval->value ?? '';
 	return $checklistval;
 }
-	
+
+function storeLaunch(){
+	$checklistval=Option::where('key','checkListStoreLaunch')->first() ;
+    $checklistval = $checklistval->value ?? '';
+	return $checklistval;
+}
+
 
 // 	if($footerLink){
 // 		return response()->json(["status" => 'true', "message" => 'Footer link get successfully','data' =>$footerLink]);

@@ -98,16 +98,17 @@ class SitesettingsController extends Controller
           // $shipping_method=$shipping_method ?? '';
 
           $bannerUrls=Option::where('key','banner_url')->first();
-          $bannerUrlValue=$bannerUrls->value ?? '';
+          $bannerUrlValue= $bannerUrls->value ?? '';
 
           $tax=Option::where('key','tax')->first();
-          $tax = $tax->value ?? 0.00; 
+
+          $tax =  $tax ? $tax->value: 0.00; 
 
           $free_shipping=Option::where('key','free_shipping')->first() ;
           $free_shipping = $free_shipping ? $free_shipping->value : 0;
 
           $min_cart_total=Option::where('key','min_cart_total')->first();
-          $min_cart_total = $min_cart_total ? $min_cart_total->value : 100;
+          $min_cart_total = $min_cart_total ? $min_cart_total->value : 0.00;
 
            return view('seller.settings.general',compact('languages','lat_lang','address','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings',
            'banner_logo','bannerUrlValue'));
@@ -137,14 +138,14 @@ class SitesettingsController extends Controller
             ///    'notification_icon' => 'mimes:png|max:100',
               //  'banner' => 'mimes:png|max:200',
               // 'store_legal_name' => 'required|max:50',
-               'store_legal_phone' => 'required|max:20',
+              // 'store_legal_phone' => 'required|max:20',
               // 'store_legal_email' => 'required|email|max:50',
-               'store_legal_address' => 'required|max:50',
+             //  'store_legal_address' => 'required|max:50',
                // 'store_legal_house' => 'required|max:50',
-               'store_legal_city' => 'required|max:30',
-               'country' => 'required|max:100',
-               'state' => 'required|max:100',
-               'post_code' => 'required|max:50',
+             //  'store_legal_city' => 'required|max:30',
+             //  'country' => 'required|max:100',
+              // 'state' => 'required|max:100',
+            //   'post_code' => 'required|max:50',
               //  'timezone' => 'required|max:50',
                // 'default_language' => 'required|max:50',
                // 'weight_type' => 'required|max:50', 
@@ -287,15 +288,15 @@ class SitesettingsController extends Controller
 
 
 
-           $invoice_info['store_legal_name']=$request->store_legal_name;
-           $invoice_info['store_legal_phone']=$request->store_legal_phone;
-           $invoice_info['store_legal_address']=$request->store_legal_address;
-           $invoice_info['store_legal_house']=$request->store_legal_house;
-           $invoice_info['store_legal_city']=$request->store_legal_city;
-           $invoice_info['country']=$request->country;
-           $invoice_info['state']=$request->state;
-           $invoice_info['post_code']=$request->post_code;
-           $invoice_info['store_legal_email']=$request->store_legal_email;
+           $invoice_info['store_legal_name']=$request->store_legal_name ?? '';
+           $invoice_info['store_legal_phone']=$request->store_legal_phone ?? '';
+           $invoice_info['store_legal_address']=$request->store_legal_address ?? '';
+           $invoice_info['store_legal_house']=$request->store_legal_house ?? '';
+           $invoice_info['store_legal_city']=$request->store_legal_city ?? '';
+           $invoice_info['country']=$request->country ?? '';
+           $invoice_info['state']=$request->state ?? '';
+           $invoice_info['post_code']=$request->post_code ?? '';
+           $invoice_info['store_legal_email']=$request->store_legal_email ?? '';
            
            $invoice_data=Option::where('key','invoice_data')->first();
            if (empty($invoice_data)) {
@@ -362,7 +363,7 @@ class SitesettingsController extends Controller
               $whatsapp_no->key='whatsapp_no';
               $whatsapp_no->autoload=1;
            }
-           $whatsapp_no->value=$request->whatsapp_no;
+           $whatsapp_no->value=$request->whatsapp_no??'';
            $whatsapp_no->save();
 
            
@@ -441,7 +442,7 @@ class SitesettingsController extends Controller
                }
          
 
-               $tax_data->value=$request->tax;
+               $tax_data->value=$request->tax??0.00;
             $tax_data->save();
 
 
@@ -458,14 +459,19 @@ class SitesettingsController extends Controller
                   $shipping_method->key='shipping_method';
                }
          
+               if($request->shipping_method != ''){
 
                $shipping_method->value=json_encode(array(
                'method_type'=>$request->shipping_method,
-               'label'=>$request->shipping_method_label??'Shipping Method Label',
+               'label'=>$request->shipping_method_label??'',
                'pricing'=>$request->type_price["'".$shipping_price[$request->shipping_method]."'"],
                'base_pricing'=>$request->base_price["'".$shipping_price[$request->shipping_method]."'"]??0,
 
-            ));
+                  ));
+               }else{
+                  Option::where('key','shipping_method')->delete();
+               }
+
             $shipping_method->save();
 
 
@@ -487,7 +493,7 @@ class SitesettingsController extends Controller
          $min_cart_total->save();
 
           
-         TenantCacheClear('tax_data');
+         TenantCacheClear('tax');
          TenantCacheClear('shipping_method');
          TenantCacheClear('free_shipping');
          TenantCacheClear('min_cart_total');

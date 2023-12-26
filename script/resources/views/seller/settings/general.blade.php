@@ -22,7 +22,7 @@
 {{-- /section title --}}
 <div class="row">
    <div class="col-lg-12">
-      <form class="ajaxform" method="post" action="{{ route('seller.site-settings.update','general') }}">
+      <form class="ajaxform_with_reload" method="post" action="{{ route('seller.site-settings.update','general') }}">
                 @csrf
                 @method('PUT')
          <div class="row">
@@ -39,7 +39,7 @@
                     <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Store name :') }}  </label>
                         <div class="col-lg-12">
-                            <input type="text" disabled value="{{ $store_name }}"  required="" name="store_name" class="form-control" max="30">
+                            <input type="text" disabled value="{{ $store_name }}" name="store_name" class="form-control" max="30">
                         </div>
                     </div>
                     <div class="from-group row mb-2">
@@ -614,20 +614,20 @@
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Phone') }} : </label>
                         <div class="col-lg-12">
-                            <input type="number"  value="{{ $address['store_legal_phone'] }}" name="store_legal_phone" class="form-control" required>
+                            <input type="number"  value="{{ $address['store_legal_phone'] }}" name="store_legal_phone" class="form-control">
                         </div>
                     </div>
                      <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Email') }} : </label>
                         <div class="col-lg-12">
-                            <input type="email" readonly value="{{ $address['store_legal_email'] }}" name="store_legal_email" class="form-control" required>
+                            <input type="email" readonly value="{{ $address['store_legal_email'] }}" name="store_legal_email" class="form-control">
                         </div>
                     </div>
                     
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('Address') }} : </label>
                         <div class="col-lg-12">
-                            <input type="text" value="{{ $address['store_legal_address'] }}"  name="store_legal_address" class="form-control" required>
+                            <input type="text" value="{{ $address['store_legal_address'] }}"  name="store_legal_address" class="form-control">
                         </div>
                     </div>
                     <div class="from-group row mb-2">
@@ -639,7 +639,7 @@
                     <div class="from-group row mb-2">
                        <label for="" class="col-lg-12">{{ __('City') }} : </label>
                         <div class="col-lg-12">
-                            <input type="text" value="{{ $address['store_legal_city'] }}" name="store_legal_city" class="form-control" required>
+                            <input type="text" value="{{ $address['store_legal_city'] }}" name="store_legal_city" class="form-control">
                         </div>
                     </div>
                     <div class="form-row">
@@ -702,8 +702,8 @@
                         <label for="" class="col-lg-12">{{ __('Default weight unit') }} : </label>
                         <div class="col-lg-12">
                             @php 
-                              $weights = ['OZ, LBS, TONS'];
-                              $weight_type = $weight_type->value??'LBS';
+                            //   $weights = ['OZ, LBS, TONS'];
+                            //   $weight_type = $weight_type?$weight_type->value:'LBS';
                             @endphp
                            {{-- <select disabled  class="form-control selectric" name="weight_type" id="weight_type">
                             @foreach($weights ?? [] as $row)
@@ -720,8 +720,8 @@
                         <label for="" class="col-lg-12">{{ __('Default Measurment  unit') }} : </label>
                         <div class="col-lg-12">
                             @php 
-                              $measurments = ['IN, FT, YDS'];
-                              $measurment_type = $measurment_type->value??'IN';
+                            //   $measurments = ['IN, FT, YDS'];
+                            //   $measurment_type = $measurment_type ? $measurment_type->value:'IN';
                             @endphp
                            {{-- <select disabled  class="form-control selectric" name="measurment_type" id="measurment_type">
                             @foreach($measurments ?? [] as $row)
@@ -838,7 +838,7 @@
                             <div class="col-lg-12">
                                 <div class="input-with-icon">
                                 <i class="fas fa-dollar-sign"></i>
-                                <input type="number" step="any" value="{{ $min_cart_total ?? 100 }}"
+                                <input type="number" step="any" value="{{ $min_cart_total ?? 0.00 }}"
                                     name="min_cart_total" class="form-control" placeholder="0.00">
                                 </div>  
                                 <small>{{ __('Your Minimum Cart total in store currency.') }}</small>
@@ -879,7 +879,7 @@
                             @php
                                 $shipping_types = ['weight_based' => 'Weight Based', 'per_item' => 'Per Item', 'flat_rate' => 'Flat Rate'];
                         
-                                $shipping_info = $shipping_method->value ? json_decode($shipping_method->value, true) : null;
+                                $shipping_info = $shipping_method ? json_decode($shipping_method->value, true) : null;
                         
                                 // Check if $shipping_info is not null to avoid errors
                                 $method = $shipping_info ? $shipping_info['method_type'] : '';
@@ -905,7 +905,7 @@
                             <label for="" class="col-lg-12">{{ __('Shipping Method Label:') }} </label>
 
                             <div class="col-lg-12">
-                                <input type="text" value="{{ $shipping_label ?? '' }}" required
+                                <input type="text" value="{{ $shipping_label ?? '' }}" 
                                     name="shipping_method_label" class="form-control" >
                                 <small>{{ __('Your Shipping Method Label.') }}</small>
                             </div>
@@ -1001,7 +1001,8 @@
                                             
                                             if (!is_array($p)) {
                                                 $p = [];
-                                                $p[] = ['from' => 0, 'to' => 25, 'price' => 10];
+                                                $p[] = ['from' => 0, 'to' => 0, 'price' => 0];
+                                                $tr = 0;
                                             }else{
                                                 $tr = count($p) -1;
                                             }

@@ -49,6 +49,26 @@ class TagController extends Controller
         return $checkList;
     }
 
+    public function checkListStoreLaunch(Request $request){
+
+        $sl = Option::where('key','checkListStoreLaunch')->first();
+        if($sl){
+            $sLaunch=[
+                'key' => 'checkListStoreLaunch',
+                'value' => 1
+            ];
+
+            Option::where('key','checkListStoreLaunch')->update($sLaunch);
+        }
+        $checkList = $request->check_list_val ?? '';
+        $launchSrore=new Option;
+        $launchSrore->key = 'checkListStoreLaunch';
+        $launchSrore->value = $checkList;
+        $launchSrore->autoload = 1;
+        $launchSrore->save();
+        return $checkList;
+    }
+
     /**
      * Show the form for creating a new resource.
      *

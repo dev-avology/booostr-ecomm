@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CouponController;
+// use App\Http\Controllers\Store\CartController
 
 
 /*
@@ -281,7 +283,7 @@ Route::group(['domain' => env('APP_URL')], function($domain)
 
 
 Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 'middleware' => ['InitializeTenancyByDomain','PreventAccessFromCentralDomains','auth','seller','user','tenantenvironment']], function () {
-    Route::get('/dashboard', 'DashboardController@dashboard');
+    Route::get('/dashboard', 'DashboardController@dashboard')->name('dashboard');
     Route::get('/dashboard/static','DashboardController@staticData');
     Route::get('/dashboard/perfomance/{period}','DashboardController@perfomance');
     Route::get('/dashboard/order-perfomance/{period}','DashboardController@orderPerfomace');
@@ -298,9 +300,13 @@ Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 
     Route::resource('tag', 'TagController');
     Route::post('add-jquery-tag','TagController@addJqueryTag');
     Route::post('add-ok-checkist-val','TagController@addOkChecklist');
+    Route::post('checklist-store-launch','TagController@checkListStoreLaunch');
     Route::post('add-jquery-brand','BrandController@addJqueryBrand');
     Route::resource('orderstatus', 'OrderstatusController');
     Route::resource('coupon', 'CouponController');
+    
+    // Route::post('apply-coupon-code','CartController@makediscount')->name('makediscount');
+
     Route::resource('tax', 'TaxController');
     Route::resource('location', 'LocationController');
     Route::resource('shipping', 'ShippingController');
