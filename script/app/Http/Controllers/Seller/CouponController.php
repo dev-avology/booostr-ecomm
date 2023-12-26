@@ -43,7 +43,7 @@ class CouponController extends Controller
      */
     public function store(Request $request)
     {
-        return $request->min_amount_option;
+        // return $request->min_amount_option;
 
         abort_if(!getpermission('products'),401);
          if (postlimitcheck() == false) {
