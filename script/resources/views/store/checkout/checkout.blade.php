@@ -689,6 +689,7 @@ a.cart-summary > span {
         <script type="text/javascript" src="{{ asset('checkout/js/google-api.js') }}"></script>
         <script>
             $(document).ready(function () {
+                // var cartTotal = '{{Cart::total()}}';
                 if(localStorage.getItem('discount_session') && localStorage.getItem('discount_price_session')){
                     var localSessionValue = localStorage.getItem('discount_session');
                     $('.cart_total').text('$'+localSessionValue);

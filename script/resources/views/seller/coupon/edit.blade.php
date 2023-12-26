@@ -118,20 +118,36 @@
                             
 
                             <div class="from-group row mb-2" id="min_amount_area">
-                                <label for="" class="col-lg-12">{{ __('Minimum amount to qualify:') }} </label>
+                                <label for="" class="col-lg-12">{{ __('Condition to qualify:') }} </label>
                                 <div class="col-lg-12">
                                     <select class="form-control" name="min_amount_option" id="min_amount_option">
-                                        <option value="1" {{ $info->min_amount_option === 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
-                                        <option value="0" {{ $info->min_amount_option === 0 ? 'selected' : '' }}>{{ __('No') }}</option>
+                                        <option value="0" {{ $info->min_amount_option == 0 ? 'selected' : '' }}> Qualify for all </option>
+                                        <option value="1" {{ $info->min_amount_option == 1 ? 'selected' : '' }} >{{ __('Minimum order subtotal amount (in Dollar)') }}</option>
+                                        <option value="2" {{ $info->min_amount_option == 2 ? 'selected' : '' }}>{{ __('Minimum number of items in cart (all products/categories)') }}</option>
                                     </select>
 
                                 </div>
                             </div>
 
-                            <div class="from-group row mb-2" id="min_amount_val" style="display:none;">
+                            <div class="from-group row mb-2" id="min_amount_val" @if($info->min_amount_option == 0)style="display:none;" @endif>
                                 <label for="" class="col-lg-12">{{ __('Enter minimum amount:') }} </label>
                                 <div class="col-lg-12">
                                     <input type="number" required="" value="{{$info->min_amount}}" step="any" name="min_amount" class="form-control" placeholder="Enter Min Amount">
+                                </div>
+                            </div>
+
+
+                            <div class="from-group row mb-2">
+                                <label for="" class="col-lg-12">{{ __('Limit Number of times discount can be used:') }} </label>
+                                <div class="col-lg-12">
+                                    <input class="tgl tgl-light" @if($info->max_use > 0) checked @endif id="max_use_checkbox" type="checkbox"/>
+                                </div>
+                            </div>
+
+                            <div class="from-group row mb-2" id="max_use_value" @if($info->max_use == 0) style="display:none;" @endif >
+                                <label for="" class="col-lg-12">{{ __('Add the number of times it can be used:') }} </label>
+                                <div class="col-lg-12">
+                                    <input type="number" name="max_use" value="{{$info->max_use}}" class="form-control" placeholder="Add the number of times it can be used">
                                 </div>
                             </div>
 
@@ -158,7 +174,7 @@
                             <div class="from-group row mb-2" >
                                 <label for="" class="col-lg-12">{{ __('Start From:') }} </label>
                                 <div class="col-lg-12">
-                                    <input type="date" value="{{$info->start_from}}" name="start_from" class="form-control">
+                                    <input type="datetime-local" value="{{$info->start_from}}" name="start_from" class="form-control">
                                 </div>
                             </div>
 
@@ -179,10 +195,9 @@
                                 <div class="from-group row mb-2 coupon-hidden-date" style="display:none;">
                                     <label for="" class="col-lg-12">{{ __('Will Expire:') }} </label>
                                     <div class="col-lg-12">
-                                        <input type="date" value="{{$info->will_expire}}" name="will_expire" class="form-control end_date" >
+                                        <input type="datetime-local" value="{{$info->will_expire}}" name="will_expire" class="form-control end_date" >
                                     </div>
                                 </div>
-                                
 
                                 <div class="row">
                                     <div class="col-lg-12">
@@ -193,9 +208,6 @@
                     </div>
                 </div>
             </div>
-
-
-
             </div>
 
          </form>
@@ -241,6 +253,16 @@
                     $('.hide-all-coupon-value').css('display','none');
             }
         })
+
+
+        $("#max_use_checkbox").change(function () {
+            $("#max_use_value").toggle($(this).is(":checked"));
+            // Set input value to 0 when checkbox is unchecked
+            if (!$(this).is(":checked")) {
+                $("input[name='max_use']").val(0);
+            }
+      
+        });
 
 
         var coupon_first = $('#coupon_first').val();
@@ -290,10 +312,13 @@
 
             function minAmount(minamount){
                 var min_amount_check = minamount;
-                if (min_amount_check == 0) {
-                    $('#min_amount_val').css('display', 'none');
-                } else if (min_amount_check == 1) {
+                if (min_amount_check == 1) {
                     $('#min_amount_val').css('display', 'block');
+                } else if (min_amount_check == 2) {
+                    $('#min_amount_val').css('display', 'block');
+                }else{
+                    $('#min_amount_val').css('display', 'none');
+                    $("input[name='min_amount']").val(0);
                 }
             }
 

@@ -24,14 +24,16 @@
                         <table class="table table-striped table-hover text-center table-borderless">
                             <thead>
                                 <tr>
-                                     <th><i class="fa fa-image"></i></th>
+                                     {{-- <th><i class="fa fa-image"></i></th> --}}
                                     <th>{{ __('Code') }}</th>
                                     <th>{{ __('Amount') }}</th>
                                     <th>{{ __('Start From') }}</th>
-                                    <th>{{ __('Will Expire') }}</th>
-                                    <th>{{ __('Total Used') }}</th>
-                                    <th>{{ __('Coupon For') }}</th>
+                                    {{-- <th>{{ __('Will Expire') }}</th>
+                                    <th>{{ __('Total Used') }}</th> --}}
+                                    {{-- <th>{{ __('Coupon For') }}</th>
                                     <th>{{ __('Coupon For id') }}</th>
+                                    <th>{{ __('Qualify for') }}</th>
+                                    <th>{{ __('Qualify for minimum amount') }}</th> --}}
                                     <th>{{ __('Status') }}</th>
                                     <th>{{ __('Action') }}</th>
                                 </tr>
@@ -39,14 +41,27 @@
                             <tbody>
                                 @foreach($posts as $row)
                                 <tr>
-                                    <td><img src="{{ asset($row->avatar) }}" alt="" height="50"></td>
+                                    {{-- <td><img src="{{ asset($row->avatar) }}" alt="" height="50"></td> --}}
                                     <td>{{ $row->code }}</td>
                                     <td>{{ $row->value }}</td>
-                                    <td>{{ $row->start_from }}</td>
-                                    <td>{{ $row->will_expire }}</td>
-                                    <td>change it here</td>
-                                    <td>{{ $row->coupon_for_name }}</td>
+                                    {{-- <td>{{ $row->start_from }}</td>
+                                    <td>{{ $row->will_expire }}</td> --}}
+                                    <td>{{ $row->start_from ?? ''}}</td>
+                                    {{-- <td>{{ $row->coupon_for_name }}</td>
                                     <td>{{ $row->coupon_for_id }}</td>
+                                     @php
+                                        if($row->min_amount_option == 0){
+                                           $minOption = 'Apply for all';
+                                        }elseif($row->min_amount_option == 1){
+                                           $minOption = 'Minimum order subtotal amount (in Dollar)';
+                                        }elseif($row->min_amount_option == 0){
+                                           $minOption = 'Minimum number of items in cart (all products/categories)';
+                                        }
+                                            
+                                     @endphp
+
+                                    <td>{{ $min_amount_option ?? ''}}</td>
+                                    <td>{{ $row->min_amount ?? ''}}</td> --}}
                                     <td><span class="badge badge-{{ $row->status == 1 ? 'success' : 'warning' }}">{{ $row->status == 1 ? 'Active' : 'Disable' }}</span></td>
                                     <td class="">
                                         <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

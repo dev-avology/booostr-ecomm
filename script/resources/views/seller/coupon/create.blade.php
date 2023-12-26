@@ -139,11 +139,12 @@
                                     </div> --}}
 
                                     <div class="from-group row mb-2" id="min_amount_area">
-                                        <label for="" class="col-lg-12">{{ __('Minimum amount to qualify:') }} </label>
+                                        <label for="" class="col-lg-12">{{ __('Condition to qualify:') }} </label>
                                         <div class="col-lg-12">
                                             <select class="form-control" name="min_amount_option" id="min_amount_option">
-                                                <option value="1">{{ __('Yes') }}</option>
-                                                <option value="0" selected="">{{ __('No') }}</option>
+                                                <option value="0" selected> Qualify for all </option>
+                                                <option value="1">{{ __('Minimum order subtotal amount (in Dollar)') }}</option>
+                                                <option value="2">{{ __('Minimum number of items in cart (all products/categories)') }}</option>
                                             </select>
 
                                         </div>
@@ -156,6 +157,21 @@
                                         </div>
                                     </div>
 
+
+                                    <div class="from-group row mb-2">
+                                        <label for="" class="col-lg-12">{{ __('Limit Number of times discount can be used:') }} </label>
+                                        <div class="col-lg-12">
+                                            <input class="tgl tgl-light" id="max_use_checkbox" type="checkbox"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="from-group row mb-2" id="max_use_value" style="display:none;">
+                                        <label for="" class="col-lg-12">{{ __('Add the number of times it can be used:') }} </label>
+                                        <div class="col-lg-12">
+                                            <input type="number" name="max_use" value="0" class="form-control" placeholder="Add the number of times it can be used">
+                                        </div>
+                                    </div>
+                                    
                             </div>
                         </div>
                     </div>
@@ -176,7 +192,7 @@
                                 <div class="from-group row mb-2" >
                                     <label for="" class="col-lg-12">{{ __('Start From:') }} </label>
                                     <div class="col-lg-12">
-                                        <input type="date" name="start_from" class="form-control" >
+                                        <input type="datetime-local" name="start_from" class="form-control" >
                                     </div>
                                 </div>
 
@@ -194,15 +210,13 @@
                                     </div>
 
 
-                                    
 
                                     <div class="from-group row mb-2 coupon-hidden-date" style="display:none;">
                                         <label for="" class="col-lg-12">{{ __('Will Expire:') }} </label>
                                         <div class="col-lg-12">
-                                            <input type="date" name="will_expire" class="form-control" >
+                                            <input type="datetime-local" name="will_expire" class="form-control" >
                                         </div>
                                     </div>
-                                    
 
                                     <div class="row">
                                         <div class="col-lg-12">
@@ -213,6 +227,8 @@
                         </div>
                     </div>
                 </div>
+
+               
             </form>
         </div>
     </div>
@@ -251,12 +267,18 @@
                 }
             });
 
+            $("#max_use_checkbox").change(function () {
+                $("#max_use_value").toggle($(this).is(":checked"));
+            });
+
             $("#min_amount_option").change(function () {
                 var min_amount_check = $(this).val();
-                if (min_amount_check == 0) {
-                    $('#min_amount_val').css('display', 'none');
-                } else if (min_amount_check == 1) {
+                if (min_amount_check == 1) {
                     $('#min_amount_val').css('display', 'block');
+                } else if (min_amount_check == 2) {
+                    $('#min_amount_val').css('display', 'block');
+                }else{
+                    $('#min_amount_val').css('display', 'none');
                 }
             });
 
