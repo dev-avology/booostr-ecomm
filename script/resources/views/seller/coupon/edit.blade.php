@@ -176,6 +176,21 @@
                                 </div>
                             </div>
 
+
+                            <div class="from-group row mb-2">
+                                <label for="" class="col-lg-12">{{ __('Limit Number of times discount can be used:') }} </label>
+                                <div class="col-lg-12">
+                                    <input class="tgl tgl-light" @if($info->max_use > 0) checked @endif id="max_use_checkbox" type="checkbox"/>
+                                </div>
+                            </div>
+
+                            <div class="from-group row mb-2" id="max_use_value" @if($info->max_use == 0) style="display:none;" @endif >
+                                <label for="" class="col-lg-12">{{ __('Add the number of times it can be used:') }} </label>
+                                <div class="col-lg-12">
+                                    <input type="number" name="max_use" value="{{$info->max_use}}" class="form-control" placeholder="Add the number of times it can be used">
+                                </div>
+                            </div>
+
                     </div>
                 </div>
                 </div>
@@ -243,6 +258,7 @@
                                     <label for="" class="col-lg-12">{{ __('Will Expire:') }} </label>
                                     <div class="col-lg-12">
                                         <input type="datetime-local" value="{{$info->will_expire}}" name="will_expire" class="form-control" >
+
                                     </div>
                                 </div>
 
@@ -433,6 +449,17 @@
                     $('#min_amount_val').css('display', 'block');
                     var iconElement = $('<i class="fas fa-dollar-sign"></i>');
                     $('.input-with-icon input[name="min_amount"]').before(iconElement);
+
+                if (min_amount_check == 1) {
+                    $('#min_amount_val').css('display', 'block');
+                } else if (min_amount_check == 2) {
+                    $('#min_amount_val').css('display', 'block');
+                }else{
+                    $('#min_amount_val').css('display', 'none');
+                    $("input[name='min_amount']").val(0);
+                }
+            }
+
 
                 } else if (min_amount_check == 2) {
                     $('#min_amount_val').css('display', 'block');
