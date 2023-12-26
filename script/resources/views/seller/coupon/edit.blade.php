@@ -45,26 +45,7 @@
                                         </div>
                                     </div>
 
-                                    {{-- <div class="from-group row mb-2" style="display:none;" id="specific-cat-pro">
-                                        <label for="" class="col-lg-12">{{ __('Choose Specific products/Categories') }} </label>
-                                        <div class="col-lg-12">
-                                            <select class="form-control" name="choose_specific_product_or_category" id="coupon_for"> 
-                                                <option value="" selected disabled>{{ __('Choose Specific products') }}</option>
-                                                <option value="product" @if($info->coupon_for_name == 'product') selected @endif>{{ __('Specific products') }}</option>
-                                                <option @if($info->coupon_for_name == 'category') selected @endif value="category">{{ __('Specific categories') }}</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-
-                                    <div class="from-group row mb-2 hide-all-coupon-value" style="display:none;">
-                                        <label for="" class="col-lg-12 choose-specific">Choose Specific products</label>
-                                        <div class="col-lg-12">
-                                            <select class="form-control" name="coupon_id" id="coupon_id" data-selected="{{$info->coupon_for_id??0}}">
-                                                <option disabled>Select</option>
-                                            </select>
-                                        </div>
-                                    </div> --}}
+                                
 
                                     <div class="form-group row mb-2" style="display:none;" id="specific-cat-pro">
                                         <label for="" class="col-lg-12">{{ __('Choose Specific products/Categories') }} </label>
@@ -81,7 +62,7 @@
                                         <label for="" id="specific-label" class="col-lg-12">{{ __('Choose Specific products') }} </label>
                                         <div class="col-lg-12">
                                             <select class="form-control selectpicker" multiple data-live-search="true" data-selected="{{$info->coupon_for_id}}" name="coupon_id[]" id="coupon_id">
-                                                <!-- Remove the 'Select' option as it is not needed for multi-select -->
+                                               
                                             </select>
                                         </div>
                                     </div>
@@ -134,7 +115,7 @@
                             <div class="from-group row mb-2" style="display:none;" id="discount-amount-hide">
                                 <label for="" class="col-lg-12">Discount Amount</label>
                                 <div class="col-lg-12 input-with-icon">
-                                    {{-- <input type="number" required="" value="{{$info->value}}" step="any" name="price" class="form-control" placeholder="Enter percent off or doller off"> --}}
+
 
                                     <input type="text"  value="{{$info->value}}" required="" 
                                    step="any" name="price" class="form-control" id="maskprice" data-inputmask="'mask': '9{0,2}.9{0,3}'" data-mask placeholder="Enter percent off or doller off">
@@ -158,21 +139,6 @@
                                 <div class="col-lg-12 input-with-icon">
                                     <input type="number" value="{{$info->min_amount}}" step="any" name="min_amount" class="form-control" placeholder="Enter Min Amount">
                                     <span class="applied-text" style="font-size:10px;">Applies only to selected products. OR Applies only to selected categories. (depends on if they selected products or categories)</span>
-                                </div>
-                            </div>
-
-
-                            <div class="from-group row mb-2">
-                                <label for="" class="col-lg-12">{{ __('Limit Number of times discount can be used:') }} </label>
-                                <div class="col-lg-12">
-                                    <input class="tgl tgl-light" @if($info->max_use > 0) checked @endif id="max_use_checkbox" type="checkbox"/>
-                                </div>
-                            </div>
-
-                            <div class="from-group row mb-2" id="max_use_value" @if($info->max_use == 0) style="display:none;" @endif >
-                                <label for="" class="col-lg-12">{{ __('Add the number of times it can be used:') }} </label>
-                                <div class="col-lg-12">
-                                    <input type="number" name="max_use" value="{{$info->max_use}}" class="form-control" placeholder="Add the number of times it can be used">
                                 </div>
                             </div>
 
@@ -218,26 +184,6 @@
                                 </div>
                             </div>
 
-                            {{-- <div class="from-group row mb-2">
-                                <label for="" class="col-lg-12">{{ __('Expiration date:') }} </label>
-                                <div class="col-lg-12">
-                                    <div class="coupon-checkbox-wrapper-6">
-                                        <input class="tgl tgl-light" id="cb1-6" type="checkbox"/>
-                                        
-                                        <label class="tgl-btn" for="cb1-6">
-                                    </div>
-                                </div>
-                                <input type="hidden" name="date_checkbox" id="date_checkbox"/>
-                            </div>
-
-
-                            
-                                <div class="from-group row mb-2 coupon-hidden-date" style="display:none;">
-                                    <label for="" class="col-lg-12">{{ __('Will Expire:') }} </label>
-                                    <div class="col-lg-12">
-                                        <input type="datetime-local" value="{{$info->will_expire}}" name="will_expire" class="form-control end_date" >
-                                    </div>
-                                </div> --}}
 
 
                                 <div class="from-group row mb-2">
@@ -257,8 +203,7 @@
                                 <div class="from-group row mb-2 coupon-hidden-date" style="display:none;">
                                     <label for="" class="col-lg-12">{{ __('Will Expire:') }} </label>
                                     <div class="col-lg-12">
-                                        <input type="datetime-local" value="{{$info->will_expire}}" name="will_expire" class="form-control" >
-
+                                        <input type="datetime-local" value=""{{$info->will_expire}} name="will_expire" class="form-control" >
                                     </div>
                                 </div>
 
@@ -348,8 +293,8 @@
         var checkboxValue;
         userDiscount($("#discount_type").val());
         minAmount($("#min_amount_option").val());
-        // discountCheckbox($("#cb1-6"));
-        // $('#cb1-6').prop('checked', true);   
+        discountCheckbox($("#cb1-6"));
+        $('#cb1-6').prop('checked', true);   
         $('.coupon-hidden-date').css('display','block'); 
 
         $('#coupon_first').change(function(){
@@ -392,12 +337,14 @@
         
 
 
-            // $("#cb1-6").change(function () {
-            //     discountCheckbox($("#cb1-6"))
-            // });
+            $("#cb1-6").change(function () {
+                discountCheckbox($("#cb1-6"))
+            });
 
             $("#min_amount_option").change(function () {
                 var min_amount_check = $(this).val();
+
+                console.log(min_amount_check,'ok');
                 minAmount(min_amount_check);
             });
 
@@ -450,17 +397,6 @@
                     var iconElement = $('<i class="fas fa-dollar-sign"></i>');
                     $('.input-with-icon input[name="min_amount"]').before(iconElement);
 
-                if (min_amount_check == 1) {
-                    $('#min_amount_val').css('display', 'block');
-                } else if (min_amount_check == 2) {
-                    $('#min_amount_val').css('display', 'block');
-                }else{
-                    $('#min_amount_val').css('display', 'none');
-                    $("input[name='min_amount']").val(0);
-                }
-            }
-
-
                 } else if (min_amount_check == 2) {
                     $('#min_amount_val').css('display', 'block');
                 }else{
@@ -468,21 +404,21 @@
                 }
             }
 
-            // function discountCheckbox(checkboxValue){
-            //     $(".coupon-hidden-date").toggle(checkboxValue.is(":checked"));
-            //     var isChecked = checkboxValue.is(":checked");
-            //     if(isChecked){
-            //         // $(".coupon-hidden-date input[type='date']").prop('required', isChecked);
-            //         $('#date_checkbox').val(1);
-            //     }else{
-            //         $('#date_checkbox').val(0);
-            //     }
-            // }
+            function discountCheckbox(checkboxValue){
+                $(".coupon-hidden-date").toggle(checkboxValue.is(":checked"));
+                var isChecked = checkboxValue.is(":checked");
+                if(isChecked){
+                    // $(".coupon-hidden-date input[type='date']").prop('required', isChecked);
+                    $('#date_checkbox').val(1);
+                }else{
+                    $('#date_checkbox').val(0);
+                }
+            }
 
 
             function couponCode(value){
                 $('.selectpicker').selectpicker();
-                var selectedValues = value;
+                var selectedValues = value ? value : '';
 
 
                 if (selectedValues && selectedValues.includes('all')) {
@@ -501,7 +437,6 @@
                         type: "GET",
                         url: '{{ url("get-coupon-type") }}' + '/' + selectedValues,
                         success: function(data) {
-                            // $('#coupon_id').empty();
                             console.log(data,'data');
                             $('.hide-all-coupon-value').css('display', 'block');
 
