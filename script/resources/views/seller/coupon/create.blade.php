@@ -155,14 +155,14 @@
                                     
 
                                     <div class="from-group row mb-2" id="min_amount_area">
-                                        <label for="" class="col-lg-12">{{ __('Condition to qualify:') }} </label>
+                                        <label for="" class="col-lg-12">{{ __('Minimum purchase requirements:') }} </label>
                                         <div class="col-lg-12">
                                             <select class="form-control" name="min_amount_option" id="min_amount_option">
 
-                                                <option value="0"> Qualify for all </option>
+                                                <option value="0"> No minimum requirements </option>
 
-                                                <option value="1">{{ __('Minimum order subtotal amount (in Dollar)') }}</option>
-                                                <option value="2">{{ __('Minimum number of items in cart (all products/categories)') }}</option>
+                                                <option value="1">{{ __('Minimum purchase amount ($)') }}</option>
+                                                <option value="2">{{ __('Minimum quantity of items') }}</option>
                                             </select>
                                         </div>
                                     </div>

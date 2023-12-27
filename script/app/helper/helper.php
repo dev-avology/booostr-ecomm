@@ -6,6 +6,13 @@ use Amcoders\Lpress\Lphelper;
 use App\Models\Category;
 use App\Models\Term;
 use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
+
+
+
+function setUSDateFormate($date = ''){
+	return Carbon::parse($date)->format('m-d-Y');
+}
 
 
 

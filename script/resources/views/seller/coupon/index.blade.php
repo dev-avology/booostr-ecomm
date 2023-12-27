@@ -28,23 +28,22 @@
 
                                     <th>{{ __('Coupon Title') }}</th>
                                     <th>{{ __('Coupon Code') }}</th>
-                                    <th>{{ __('Amount') }}</th>
+                                    <th>{{ __('Amount Off') }}</th>
                                     <th>{{ __('Start From') }}</th>
                                     <th>{{ __('Will Expire') }}</th>
-                                    <th>{{ __('Total use') }}</th>
+                                    <th>{{ __('Max Use') }}</th>
+                                    <th>{{ __('Total Use') }}</th>
                                     <th>{{ __('Coupon Type') }}</th>
                                     {{-- <th>{{ __('Total Used') }}</th> --}} 
 
-                                    <th>{{ __('Code') }}</th>
-                                    <th>{{ __('Amount') }}</th>
-                                    <th>{{ __('Start From') }}</th>
+                                
                                     {{-- <th>{{ __('Will Expire') }}</th>
                                     <th>{{ __('Total Used') }}</th> --}}
                                     {{-- <th>{{ __('Coupon For') }}</th>
                                     <th>{{ __('Coupon For id') }}</th>
                                     <th>{{ __('Qualify for') }}</th>
                                     <th>{{ __('Qualify for minimum amount') }}</th> --}}
-                                    <th>{{ __('Status') }}</th>
+                                    {{-- <th>{{ __('Status') }}</th> --}}
                                     <th>{{ __('Action') }}</th>
                                 </tr>
                             </thead>
@@ -62,17 +61,16 @@
                                         }
                                     @endphp
                                     <td>{{ $new_amount }}</td>
-                                    <td>{{ $row->start_from }}</td>
-                                    <td>{{ $row->will_expire === null ? '-' : $row->will_expire }}</td>
-                                    <td>{{ $row->max_use == '0' ? '-' : $row->max_use }}</td>
+                                    <td>{{ setUSDateFormate($row->start_from) }}</td>
+                                    <td>{{ $row->will_expire === null ? 'None' : setUSDateFormate($row->will_expire) }}</td>
+                                    <td>{{ $row->max_use == '0' ? '*' : $row->max_use }}</td>
+                                    <td>{{ $row->used_count}}</td>
                                     <td>{{ $row->is_percentage == '1' ? 'Percent(%)' : 'Doller($)' }}</td>
 
                                     {{-- <td>{{ $row->start_from ?? ''}}</td> --}}
-                                    <td>{{ $row->code }}</td>
-                                    <td>{{ $row->value }}</td>
+                                
                                     {{-- <td>{{ $row->start_from }}</td>
                                     <td>{{ $row->will_expire }}</td> --}}
-                                    <td>{{ $row->start_from ?? ''}}</td>
                                     {{-- <td>{{ $row->coupon_for_name }}</td>
                                     <td>{{ $row->coupon_for_id }}</td>
                                      @php
@@ -88,7 +86,7 @@
 
                                     <td>{{ $min_amount_option ?? ''}}</td>
                                     <td>{{ $row->min_amount ?? ''}}</td> --}}
-                                    <td><span class="badge badge-{{ $row->status == 1 ? 'success' : 'warning' }}">{{ $row->status == 1 ? 'Active' : 'Disable' }}</span></td>
+                                    {{-- <td><span class="badge badge-{{ $row->status == 1 ? 'success' : 'warning' }}">{{ $row->status == 1 ? 'Active' : 'Disable' }}</span></td> --}}
                                     <td class="">
                                         <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             {{ __('Action') }}
