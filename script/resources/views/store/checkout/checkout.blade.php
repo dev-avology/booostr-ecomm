@@ -51,7 +51,10 @@ a.cart-summary > span {
     font-weight: bold;
 }
 
-
+p#show_coupon_error {
+    color: red;
+    background: transparent;
+}
 </style>
 
  <!-- Spinner container -->
@@ -463,6 +466,12 @@ a.cart-summary > span {
                                                         0.00
                                                     </span>
                                                 </li>
+                                                <li>(-) {{ __('Discount') }}
+                                                    <span class="cart_discount">
+                                                        0.00
+                                                    </span>
+                                                </li>
+
                                                 <li>(+) {{ __('Tax') }}
                                                     <span class="cart_tax">
                                                         0.00
@@ -547,7 +556,7 @@ a.cart-summary > span {
         <input type="hidden" id="booster_platform_fee"
             value="{{ booster_club_chagre(Cart::instance('default')->total() + $shipping_price) }}">
         <input type="hidden" id="total" value="{{ Cart::instance('default')->total() }}">
-        <input type="hidden" id="discount" value="{{ Session::has('couponDiscount') ? Session::get('couponDiscount')['onlydiscount'] : 0 }}">
+        <input type="hidden" id="discount" value="{{ Cart::instance('default')->discount() }}">
 
         <input type="hidden" id="totalWeight" value="{{ Cart::instance('default')->weight() }}">
         <input type="hidden" id="totalItem" value="{{ Cart::instance('default')->count() }}">
@@ -687,188 +696,6 @@ a.cart-summary > span {
             </script>
         @endif
         <script type="text/javascript" src="{{ asset('checkout/js/google-api.js') }}"></script>
-        <script>
-            $(document).ready(function () {
-                // var cartTotal = '{{Cart::total()}}';
-                if(localStorage.getItem('discount_session') && localStorage.getItem('discount_price_session')){
-                    var localSessionValue = localStorage.getItem('discount_session');
-                    $('.cart_total').text('$'+localSessionValue);
-
-                    var localDiscountPriceSessionValue = localStorage.getItem('discount_price_session');
-
-                    var newLi = $('<li class="discount-cls" style="margin-left: -29px;    margin-top: 16px;color:green">(+) {{ __("Discount") }}<span class="discount-span" style="margin-left: 199px;position: absolute;">-$' + localDiscountPriceSessionValue + '</span></li>');
-
-                    $('.shipping_fee').after(newLi);
-                }
-
-                if(localStorage.getItem('coupon_name')){
-                    var localCouponName = localStorage.getItem('coupon_name');
-                    $('.c-input').val(localCouponName);
-                    $('.c-input').prop('readonly', true);
-                    $('#applyCouponBtn').css('display','none');
-                    $('#removeCouponBtn').css('display','block');
-                }
-
-                $('.submitbtn').click(function(){
-                    if(localStorage.getItem('discount_session') && localStorage.getItem('discount_price_session')){
-                        localStorage.removeItem('discount_session');
-                        localStorage.removeItem('discount_price_session');
-                        localStorage.removeItem('coupon_name');
-                    }
-                })
-
-                $("#removeCouponBtn").click(function () {
-
-
-                    $('#applyCouponBtn').css('display','block');
-                    $(this).css('display','none');
-                    $('.c-input').prop('readonly', false);
-
-                    if(localStorage.getItem('discount_session') && localStorage.getItem('discount_price_session')  && localStorage.getItem('coupon_name')){
-                        localStorage.removeItem('discount_session');
-                        localStorage.removeItem('discount_price_session');
-                        localStorage.removeItem('coupon_name');
-                    }
-                   
-
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    });
-
-                    $.ajax({
-                        url: '/remove-coupon-session',
-                        type: 'POST',
-                        data: {
-                            coupon_code: 1
-                        },
-                        dataType: 'JSON',
-                        success: function (response) {
-                            if(response){
-                                // console.log(response);
-                                // return false;
-                                location.reload();
-                               
-
-                            }
-                        },
-                        error: function (err) {
-                           console.log(err);
-                        },
-                    });
-                  
-                })
-        
-                $("#applyCouponBtn").click(function () {
-                    var couponValue = $("#couponInput").val();
-                   
-        
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    });
-
-                    $.ajax({
-                        url: '/apply-coupon-code',
-                        type: 'POST',
-                        data: {
-                            coupon_code: couponValue
-                        },
-                        dataType: 'JSON',
-                        success: function (response) {
-                            if(response){
-                                // console.log(response);
-                                // return false;
-                                if(response.error == 'count_error'){
-
-                                    $('#show_coupon_error').css({
-                                        'display': 'block',
-                                        'color': 'red',
-                                        'font-size': '13px',
-                                        'margin-right': '31px',
-                                        'text-align': 'center'
-                                    });
-
-                                    $('#show_coupon_error').text(response.msg);
-                                    
-                                    setTimeout(function () {
-                                        $('#show_coupon_error').text();
-                                        $('#show_coupon_error').css('display','none');
-                                    }, 2000);
-
-                                }else if(response.error == 'not_exit_error'){
-                                    
-                                    $('#show_coupon_error').css({
-                                        'display': 'block',
-                                        'color': 'red',
-                                        'font-size': '13px',
-                                        'margin-right': '31px',
-                                        'text-align': 'center'
-                                    });
-
-                                    $('#show_coupon_error').text(response.msg);
-
-                                    setTimeout(function () {
-                                        $('#show_coupon_error').text();
-                                        $('#show_coupon_error').css('display','none');
-                                    }, 2000);
-
-                                }else if(response.error == 'min_amount_error'){
-
-
-                                    $('#show_coupon_error').css({
-                                        'display': 'block',
-                                        'color': 'red',
-                                        'font-size': '13px',
-                                        'margin-right': '31px',
-                                        'text-align': 'center'
-                                    });
-
-                                    $('#show_coupon_error').text(response.msg);
-                                    setTimeout(function () {$('#show_coupon_error').text();
-                                        $('#show_coupon_error').css('display','none');$('#show_coupon_error').text(response.msg);
-                                    }, 2000);
-                                    
-                                }else{
-
-                                    var cartTotal = $('.cart_total').text();
-                                    var priceWithoutDollar = cartTotal.replace('$', '');
-
-                                    var newGrossTotal = priceWithoutDollar - response.discountArr.onlydiscount;
-                                    $('.cart_total').text('$'+newGrossTotal);
-                                    localStorage.setItem('discount_session', newGrossTotal);
-                                    localStorage.setItem('discount_price_session', response.discountArr.onlydiscount);
-                                    localStorage.setItem('coupon_name', couponValue);
-
-                                    $('.c-input').prop('readonly', true);
-                                    $('#applyCouponBtn').css('display','none');
-                                    $('#removeCouponBtn').css('display','block');
-
-                                    var discountFeeValue = response.discountArr.onlydiscount;
-                                
-                                    var newLi = $('<li class="discount-cls" style="margin-left: -29px;    margin-top: 16px;color:green">(+) {{ __("Discount") }}<span class="discount-span" style="margin-left: 199px;position: absolute;">-$' + discountFeeValue + '</span></li>');
-
-                                    $('.shipping_fee').after(newLi);
-
-                                }
-                                // console.log(response.discountArr.totalDiscount);
-
-                            }
-                        },
-                        error: function (err) {
-                           console.log(err);
-                        },
-                    });
-
-                });
-
-
-
-            });
-        </script>
-
     @endpush
     @push('js')
         <script src="https://js.stripe.com/v3/"></script>

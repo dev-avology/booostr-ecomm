@@ -94,7 +94,7 @@ class CouponController extends Controller
 
         // if($request->date_checkbox == 1){
         $coupon->start_from=$request->start_from ?? now();
-        $coupon->will_expire=$request->will_expire ?? '';
+        $coupon->will_expire=$request->will_expire ?? null;
 
         $coupon->max_use=$request->max_use ?? 0;
         // }else{
@@ -107,10 +107,10 @@ class CouponController extends Controller
         // $coupon->is_featured=$request->is_featured;
         if($request->coupon_first == 'all'){
             $coupon->coupon_for_name='all';
-            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
+            $coupon->coupon_for_id = null;
         }else {
             $coupon->coupon_for_name=$request->choose_specific_product_or_category ?? '';
-            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
+            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? null;
         }
         // $coupon->status=$request->status;
 
@@ -165,11 +165,11 @@ class CouponController extends Controller
             ]);
         }
 
-        if($request->choose_specific_product_or_category == 'product' || $request->choose_specific_product_or_category == 'category'){
-            $validated = $request->validate([
-                'coupon_id' => 'required',
-            ]);
-        }
+        // if($request->choose_specific_product_or_category == 'product' || $request->choose_specific_product_or_category == 'category'){
+        //     $validated = $request->validate([
+        //         'coupon_id' => 'required',
+        //     ]);
+        // }
 
         $coupon=Coupon::find($id);
         $coupon->code=$request->code;
@@ -195,7 +195,7 @@ class CouponController extends Controller
 
         // if($request->date_checkbox == 1){
         $coupon->start_from=$request->start_from ?? now();
-        $coupon->will_expire=$request->will_expire ?? '';
+        $coupon->will_expire=$request->will_expire ?? null;
         $coupon->max_use=$request->max_use ?? 0;
 
         // }else{
@@ -208,10 +208,10 @@ class CouponController extends Controller
         // $coupon->is_featured=$request->is_featured;
         if($request->coupon_first == 'all'){
             $coupon->coupon_for_name='all';
-            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
+            $coupon->coupon_for_id= null;
         }else {
             $coupon->coupon_for_name=$request->choose_specific_product_or_category ?? '';
-            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? 0;
+            $coupon->coupon_for_id=json_encode($request->coupon_id) ?? null;
         }
         // $coupon->status=$request->status;
 
