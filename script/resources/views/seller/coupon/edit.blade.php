@@ -123,12 +123,12 @@
                             
 
                             <div class="from-group row mb-2" id="min_amount_area">
-                                <label for="" class="col-lg-12">{{ __('Condition to qualify:') }} </label>
+                                <label for="" class="col-lg-12">{{ __('Minimum purchase requirements:') }} </label>
                                 <div class="col-lg-12">
                                     <select class="form-control" name="min_amount_option" id="min_amount_option">
-                                        <option value="0" {{ $info->min_amount_option == 0 ? 'selected' : '' }}> Qualify for all </option>
-                                        <option value="1" {{ $info->min_amount_option == 1 ? 'selected' : '' }} >{{ __('Minimum order subtotal amount (in Dollar)') }}</option>
-                                        <option value="2" {{ $info->min_amount_option == 2 ? 'selected' : '' }}>{{ __('Minimum number of items in cart (all products/categories)') }}</option>
+                                        <option value="0" {{ $info->min_amount_option == 0 ? 'selected' : '' }}> No minimum requirements </option>
+                                        <option value="1" {{ $info->min_amount_option == 1 ? 'selected' : '' }} >{{ __('Minimum purchase amount ($)') }}</option>
+                                        <option value="2" {{ $info->min_amount_option == 2 ? 'selected' : '' }}>{{ __('Minimum quantity of items') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -144,14 +144,13 @@
 
 
                             <div class="from-group row mb-2">
-                                <label for="" class="col-lg-12">{{ __('Limit Number of times discount can be used:') }} </label>
-                                <div class="col-lg-12">
+                                <label for="" class="col-lg-7">{{ __('Limit Number of times discount can be used:') }} </label>
+                                <div class="col-lg-4">
                                     <input class="tgl tgl-light" @if($info->max_use > 0) checked @endif id="max_use_checkbox" type="checkbox"/>
                                 </div>
                             </div>
 
                             <div class="from-group row mb-2" id="max_use_value" @if($info->max_use == 0) style="display:none;" @endif >
-                                <label for="" class="col-lg-12">{{ __('Add the number of times it can be used:') }} </label>
                                 <div class="col-lg-12">
                                     <input type="number" name="max_use" value="{{$info->max_use}}" class="form-control" placeholder="Add the number of times it can be used">
                                 </div>
