@@ -147,23 +147,12 @@
                                     <div class="from-group row mb-2" style="display:none;" id="discount-amount-hide">
                                         <label for="" class="col-lg-12">Discount Amount</label>
                                         <div class="col-lg-12 input-with-icon">
-                                           {{-- <i class="fas fa-dollar-sign"></i> --}}
-                                           {{-- <input type="number" required="" value="0" step="any" name="price" class="form-control add-mask" placeholder="Enter percent off or doller off"> --}}
                                          
                                            <input type="text"  required="" value="0" 
-                                           step="any" name="price" class="form-control" id="maskprice" data-inputmask="'mask': '9{0,2}.9{0,3}'" data-mask placeholder="Enter percent off or doller off">
+                                           step="any" name="price" class="form-control" id="maskprice"  placeholder="Enter percent off or doller off">
                                         </div>
                                     </div>
                                     
-                                    {{-- <div class="from-group row mb-2">
-                                        <label for="" class="col-lg-12">{{ __('Is Conditional ?') }} </label>
-                                        <div class="col-lg-12">
-                                            <select class="form-control" name="is_conditional" id="is_conditional">
-                                                <option value="1">{{ __('Yes') }}</option>
-                                                <option value="0" selected="">{{ __('No') }}</option>
-                                            </select>
-                                        </div>
-                                    </div> --}}
 
                                     <div class="from-group row mb-2" id="min_amount_area">
                                         <label for="" class="col-lg-12">{{ __('Condition to qualify:') }} </label>
@@ -181,7 +170,7 @@
                                     <div class="from-group row mb-2" id="min_amount_val" style="display:none;">
                                         <label for="" class="col-lg-12">{{ __('Enter minimum amount:') }} </label>
                                         <div class="col-lg-12 input-with-icon">
-                                            <input type="number" step="any" name="min_amount" class="form-control" placeholder="Enter Min Amount">
+                                            <input type="number" step="any" name="min_amount" class="form-control" placeholder="" id ="min_amount_mask">
                                             <span class="applied-text" style="font-size:10px;">Applies only to selected products. OR Applies only to selected categories. (depends on if they selected products or categories)</span>
                                         </div>
                                        
@@ -284,32 +273,34 @@
 <script>
       $(document).ready(function() {
         Inputmask("9{0,2}.9{0,3}", {
-        placeholder: "5.00", // adjust the placeholder as needed
+        placeholder: "5.00", 
         greedy: true
-      }).mask('#maskprice');
+       }).mask('#maskprice');
 
-        $(document).on('change', '.input-with-icon input[type=number]', function () {
-            // This function will be executed when the input value changes.
+
+      $(document).on('change', '#maskprice', function () {
+        var discountType = $('#discount_type').val();
+        if(discountType==0){
             var inputValue = $(this).val();
-
             inputValue = inputValue.match(/[0-9.]+/g);
-
             if (inputValue === null || inputValue === '') {
                 return;
             }
             $(this).val(parseFloat(inputValue).toFixed(2));
-        });
+        }
+    });
 
-        $(document).on('change', '#maskprice', function () {
-            // This function will be executed when the input value changes.
+    $(document).on('change', '#min_amount_mask', function () {
+        var minAmount = $('#min_amount_option').val();
+        if(minAmount==1){
             var inputValue = $(this).val();
             inputValue = inputValue.match(/[0-9.]+/g);
-
             if (inputValue === null || inputValue === '') {
                 return;
             }
             $(this).val(parseFloat(inputValue).toFixed(2));
-        });
+        }
+    });
 
           $('#coupon_first').change(function(){
             var coupon_first = $(this).val();
@@ -326,7 +317,6 @@
                 var isChecked = $(this).is(":checked");
 
                 if(isChecked){
-                    // $(".coupon-hidden-date input[type='date']").prop('required', isChecked);
                     $('#date_checkbox').val(1);
                 }
             });
@@ -336,19 +326,26 @@
             });
 
             $("#min_amount_option").change(function () {
+                
                 $('.input-with-icon i').remove();
+                var inputValue = $('#min_amount_mask').val();
                 var min_amount_check = $(this).val();
+
                 if (min_amount_check == 1) {
                     $('#min_amount_val').css('display', 'block');
                     var iconElement = $('<i class="fas fa-dollar-sign"></i>');
                     $('.input-with-icon input[name="min_amount"]').before(iconElement);
 
-                } else if (min_amount_check == 2) {
-                    $('#min_amount_val').css('display', 'block');
-                    $('#min_amount_val').css('display', 'block');
-                } else if (min_amount_check == 2) {
-                    $('#min_amount_val').css('display', 'block');
+                    inputValue = inputValue.match(/[0-9.]+/g);
+                    if (inputValue === null || inputValue === '') {
+                        return;
+                    }
+                    $('#min_amount_mask').val(parseFloat(inputValue).toFixed(2)); 
 
+                } else if (min_amount_check == 2) {
+                    $('#min_amount_val').css('display', 'block');
+                    $('#min_amount_val').css('display', 'block');
+                    $('#min_amount_mask').val(inputValue.replace(/\.00$/, ''))
                 }else{
                     $('#min_amount_val').css('display', 'none');
                 }
@@ -356,20 +353,31 @@
 
             $("#discount_type").change(function () {
                 $('.input-with-icon i').remove();
+                var inputValue = $('#maskprice').val();
                 var discount_type = $(this).val();
+
                 if(discount_type==0){
-                    console.log(discount_type,'0');
+
                     $('#discount-amount-hide').css('display','block');
                     $('#discount-amount-hide label').text('Enter discount amount in doller($)');
+
+                    inputValue = inputValue.match(/[0-9.]+/g);
+                    if (inputValue === null || inputValue === '') {
+                        return;
+                    }
+
+                    $('#maskprice').val(parseFloat(inputValue).toFixed(2)); 
 
                     var iconElement = $('<i class="fas fa-dollar-sign"></i>');
                     $('.input-with-icon input[name="price"]').before(iconElement);
 
                 }else if(discount_type==1){
+
                     $('#discount-amount-hide').css('display','block');
                     $('#discount-amount-hide label').text('Enter discount amount in percent(%)');
                     var iconElement = $('<i class="fas fa-percent"></i>');
                     $('.input-with-icon input[name="price"]').before(iconElement);
+                    $('#maskprice').val(inputValue.replace(/\.00$/, ''))
                 }else{
                     $('#discount-amount-hide').css('display','none');
                     $('#discount-amount-hide label').text('');

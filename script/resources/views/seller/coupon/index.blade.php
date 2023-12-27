@@ -63,7 +63,7 @@
                                     @endphp
                                     <td>{{ $new_amount }}</td>
                                     <td>{{ $row->start_from }}</td>
-                                    <td>{{ $row->will_expire === '0000-00-00 00:00:00' ? '-' : $row->will_expire }}</td>
+                                    <td>{{ $row->will_expire === null ? '-' : $row->will_expire }}</td>
                                     <td>{{ $row->max_use == '0' ? '-' : $row->max_use }}</td>
                                     <td>{{ $row->is_percentage == '1' ? 'Percent(%)' : 'Doller($)' }}</td>
 

@@ -1,8 +1,12 @@
 "use strict";
 
-$('.cart_subtotal').text(amount_format(subtotal));
-$('.cart_tax').text(amount_format(tax));
-$('.cart_total').text(amount_format(total));
+// $('.cart_subtotal').text(amount_format(subtotal));
+// $('.cart_tax').text(amount_format(tax));
+// $('.cart_total').text(amount_format(total));
+
+var cartState = {Rsubtotal:subtotal,Rtax:tax,Rshipping:price,Rdiscount:discount};
+
+calculateTotal(cartState);
 
 var loader = $('#page-loader');
 
@@ -17,20 +21,25 @@ var loader = $('#page-loader');
 $('.order_method').on('change',function(){
 
 	if ($(this).val() == 'pickup') {
-    $('.shipping_method_area').hide();
-    $('.delivery_address_area').hide();
-    $('.post_code_area').hide();
-    $('.shipping_fee').hide();
-    $('.map_area').hide();
-    $('.cart_total').text(amount_format(subtotal));
+		$('.shipping_method_area').hide();
+		$('.delivery_address_area').hide();
+		$('.post_code_area').hide();
+		$('.shipping_fee').hide();
+		$('.map_area').hide();
+		//$('.cart_total').text(amount_format(subtotal));
+		cartState.Rtax = 0.00;
+		cartState.Rshipping = 0.00;
+		calculateTotal(cartState);
+
 	}
 	else{
 		$('.shipping_method_area').show();
-    $('.delivery_address_area').show();
-    $('.post_code_area').show();
-    $('.shipping_fee').show();
-    $('.map_area').show();
-    $('.cart_total').text(parseFloat(new_total.toFixed(2)));
+		$('.delivery_address_area').show();
+		$('.post_code_area').show();
+		$('.shipping_fee').show();
+		$('.map_area').show();
+		//$('.cart_total').text(parseFloat(new_total.toFixed(2)));
+		calculateTotal(cartState);
 	}
 });
 
@@ -94,15 +103,23 @@ $('#locations').on('change',function(){
        shipping_item
     --------------------------*/
 $(document).on('change','.shipping_item',function(){
+	calculateShipping();
+});
 
-	 price=$(this).data('price');
 
-	var shippingD = $(this).data('shippinginfo');
+function calculateShipping(){
+
+	var selectedShipping = $('input[name=shipping_method]:checked');
+	
+	 price= selectedShipping.data('price');
+	 
+	var shippingD = selectedShipping.data('shippinginfo');
 	var mt = shippingD.method_type;
 	var cartweight = parseInt($('#totalWeight').val());
 
     var subtotal = $('#subtotal').val();
-
+    var current_subtotal = cartState.Rsubtotal - cartState.Rdiscount;
+	
 	var cartItems = $('#totalItem').val();
 	if(mt == 'free_shipping'){
 	price = 0;
@@ -126,7 +143,7 @@ $(document).on('change','.shipping_item',function(){
 				var from = parseFloat(item.from)??0;
 				var to = parseFloat(item.to)>0? parseFloat(item.to):Number.MAX_VALUE;
 
-				if (subtotal > from && subtotal <= to) {
+				if (current_subtotal > from && current_subtotal <= to) {
 				price = parseFloat(item.price);
 			  }
 			});
@@ -136,21 +153,27 @@ $(document).on('change','.shipping_item',function(){
 			Object.values(pricing).forEach(item => {
 				var from = parseFloat(item.from)??0;
 				var to = parseFloat(item.to)>0? parseFloat(item.to):Number.MAX_VALUE;
-				if (subtotal > from && subtotal <= to) {
+				if (current_subtotal > from && current_subtotal <= to) {
 				  price = parseFloat(item.price);
-			  }
+			    }
 			});
 		  }
 	     //	price = parseInt(pricing[0]?.price??0);
 	}
 
-	$('.shipping_fee').text(amount_format(price));
+	cartState.Rshipping = price;
+	calculateTotal(cartState);
 
-	new_total=total+price-discount;
+	// $('.shipping_fee').text(amount_format(price));
 
-	$('.cart_total').text(amount_format(new_total));
+	// new_total=total+price;
 
-});
+	// $('.cart_total').text(amount_format(new_total));
+
+	// console.log(new_total,'new shipping');
+
+
+}
 
 $(document).on('change','#billing-name,#billing-email,#billing-phone,#location_input,#location_city,#location_state,#billing-country,#post_code',function(){
 
@@ -277,22 +300,77 @@ function shipping_state_change()
 				$('#tax').val(response.cart_tax);
                  
 				tax = response.cart_tax;
-
+                cartState.Rtax= parseFloat(response.cart_tax);
+                calculateTotal(cartState);
 				//$('.cart_subtotal').text(amount_format(response.cart_subtotal));
-				$('.cart_tax').text(amount_format(response.cart_tax));
-				$('.cart_total').text(amount_format(response.cart_total));
+				// $('.cart_tax').text(amount_format(response.cart_tax));
+				// $('.cart_total').text(amount_format(response.cart_total));
 
 				loader.css('display','none');
 
-				//$('.cart_credit_card_fee').text(amount_format(response.cart_credit_card_fee));
-
-				//$('.cart_booster_platform_fee').text(amount_format(response.cart_booster_platform_fee));
-				//$('.cart_grand_total').text(amount_format(response.cart_grand_total));
-			//	$(".shipping_method_area .shipping_method").find(".shipping_item").eq(0).trigger('change');
 			}
 		});
  
  
 }
 console.log('Tax updated');
+}
+
+
+$(document).on('click','#applyCouponBtn',function(){
+	var couponValue = $("#couponInput").val();
+	$('#show_coupon_error').hide();
+
+	$.ajaxSetup({
+		headers: {
+			'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+		}
+	});
+
+	$.ajax({
+		url: '/apply-coupon-code',
+		type: 'POST',
+		data: {
+			coupon_code: couponValue
+		},
+		dataType: 'JSON',
+		success: function (response) {
+			if(response){
+				console.log(response);
+
+				if(response.status == 200){
+					cartState.Rtax = parseFloat(response.result.tax);
+					cartState.Rdiscount = parseFloat(response.result.discount);
+					calculateShipping();
+					calculateTotal(cartState);
+				}
+
+				if(response.status == 422){
+                  $('#show_coupon_error').html(response.msg);
+				  $('#show_coupon_error').show();
+				}
+
+				return false;
+			}
+		},
+		error: function (err) {
+		   console.log(err);
+		},
+	});
+
+});
+
+
+
+function calculateTotal(state = cartState){
+
+	var newtotal = state.Rsubtotal+state.Rshipping+state.Rtax-state.Rdiscount;
+	cartState.Rtotal = newtotal;
+
+	$('.cart_subtotal').text(amount_format(state.Rsubtotal));
+	$('.cart_discount').text(amount_format(state.Rdiscount));
+	$('.shipping_fee').text(amount_format(state.Rshipping));
+	$('.cart_tax').text(amount_format(state.Rtax));
+	$('.cart_total').text(amount_format(newtotal));
+	
 }

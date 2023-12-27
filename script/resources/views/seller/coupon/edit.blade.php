@@ -114,11 +114,10 @@
 
                             <div class="from-group row mb-2" style="display:none;" id="discount-amount-hide">
                                 <label for="" class="col-lg-12">Discount Amount</label>
-                                <div class="col-lg-12 input-with-icon">
-
-
-                                    <input type="text"  value="{{$info->value}}" required="" 
-                                   step="any" name="price" class="form-control" id="maskprice" data-inputmask="'mask': '9{0,2}.9{0,3}'" data-mask placeholder="Enter percent off or doller off">
+                                <div class="col-lg-12 discountAmount input-with-icon">
+                                    <i class="fas "></i>
+                                    <input type="number"  value="{{$info->value}}" required="" 
+                                   step="any" name="price" class="form-control" id="maskprice" placeholder="Enter percent off or doller off">
                                 </div>
                             </div>
                             
@@ -136,8 +135,9 @@
 
                             <div class="from-group row mb-2" id="min_amount_val" @if($info->min_amount_option == 0)style="display:none;" @endif>
                                 <label for="" class="col-lg-12">{{ __('Enter minimum amount:') }} </label>
-                                <div class="col-lg-12 input-with-icon">
-                                    <input type="number" value="{{$info->min_amount}}" step="any" name="min_amount" class="form-control" placeholder="Enter Min Amount">
+                                <div class="col-lg-12 minAmount input-with-icon">
+                                    <i class="fas "></i>
+                                    <input type="number" value="{{$info->min_amount}}" step="any" name="min_amount" id ="min_amount_mask" class="form-control" placeholder="Enter Min Amount">
                                     <span class="applied-text" style="font-size:10px;">Applies only to selected products. OR Applies only to selected categories. (depends on if they selected products or categories)</span>
                                 </div>
                             </div>
@@ -203,7 +203,7 @@
                                 <div class="from-group row mb-2 coupon-hidden-date" style="display:none;">
                                     <label for="" class="col-lg-12">{{ __('Will Expire:') }} </label>
                                     <div class="col-lg-12">
-                                        <input type="datetime-local" value=""{{$info->will_expire}} name="will_expire" class="form-control" >
+                                        <input type="datetime-local" value="{{$info->will_expire}}" name="will_expire" class="form-control" >
                                     </div>
                                 </div>
 
@@ -227,54 +227,56 @@
 
 @push('script')
  <!-- JS Libraies -->
-<script src="{{ asset('admin/plugins/dropzone/dropzone.min.js') }}"></script>
+{{-- <script src="{{ asset('admin/plugins/dropzone/dropzone.min.js') }}"></script> --}}
 <!-- Page Specific JS File -->
-<script src="{{ asset('admin/plugins/dropzone/components-multiple-upload.js') }}"></script>
-<script src="{{ asset('admin/js/media.js') }}"></script>
-<script src="{{ asset('admin/js/seller.js') }}"></script>
+{{-- <script src="{{ asset('admin/plugins/dropzone/components-multiple-upload.js') }}"></script> --}}
+{{-- <script src="{{ asset('admin/js/media.js') }}"></script> --}}
+{{-- <script src="{{ asset('admin/js/seller.js') }}"></script> --}}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@x.x.x/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@x.x.x/dist/js/bootstrap-select.min.js"></script>
 <script>
     $(document).ready(function() {
 
-
-        Inputmask("9{0,2}.9{0,3}", {
-        placeholder: "5.00", // adjust the placeholder as needed
+    Inputmask("9{0,2}.9{0,3}", {
+        placeholder: "5.00", 
         greedy: true
-      }).mask('#maskprice');
+    }).mask('#maskprice');
 
-      $("#cb1-6").change(function () {
-                $(".coupon-hidden-date").toggle($(this).is(":checked"));
-                var isChecked = $(this).is(":checked");
-                if(isChecked){
-                    // $(".coupon-hidden-date input[type='date']").prop('required', isChecked);
-                    $('#date_checkbox').val(1);
-                }
-     });
+    $("#cb1-6").change(function () {
+        $(".coupon-hidden-date").toggle($(this).is(":checked"));
+        var isChecked = $(this).is(":checked");
+        if(isChecked){
+            $('#date_checkbox').val(1);
+        }
+    });
 
-        $(document).on('change', '.input-with-icon input[type=number]', function () {
-            // This function will be executed when the input value changes.
+ 
+    $(document).on('change', '#maskprice', function () {
+        var discountType = $('#discount_type').val();
+        if(discountType==0){
             var inputValue = $(this).val();
-
             inputValue = inputValue.match(/[0-9.]+/g);
-
             if (inputValue === null || inputValue === '') {
                 return;
             }
             $(this).val(parseFloat(inputValue).toFixed(2));
-        });
+        }
+    });
 
-        $(document).on('change', '#maskprice', function () {
-            // This function will be executed when the input value changes.
+    $(document).on('change', '#min_amount_mask', function () {
+        var minAmount = $('#min_amount_option').val();
+        if(minAmount==1){
             var inputValue = $(this).val();
             inputValue = inputValue.match(/[0-9.]+/g);
-
             if (inputValue === null || inputValue === '') {
                 return;
             }
             $(this).val(parseFloat(inputValue).toFixed(2));
-        });
+        }
+    });
+
+    
 
         var value = '';
         var coupon_for = $('#coupon_for').val();
@@ -284,16 +286,31 @@
         }
 
         var initialCouponFor = $('#coupon_for').val();
+        var couponId = $('#coupon_id').val();
 
-        console.log(initialCouponFor,'for');
+        var selectedData = $('#coupon_id').data('selected');
+        if(selectedData.length > 0){
+            console.log(selectedData);
+        }else{
+            console.log('hello');
+        }
         couponCode(initialCouponFor);
+        userDiscount($("#discount_type").val());
+        minAmount($("#min_amount_option").val());
+        discountCheckbox($("#cb1-6"));
+        // if (Array.isArray(couponId) && couponId.length > 0) {
+            
+        //     // $(function() {
+        //     //     couponCode(initialCouponFor);
+        //     // });
+        // } 
+
 
         var discountVal;
         var minamount;
         var checkboxValue;
-        userDiscount($("#discount_type").val());
-        minAmount($("#min_amount_option").val());
-        discountCheckbox($("#cb1-6"));
+       
+
         $('#cb1-6').prop('checked', true);   
         $('.coupon-hidden-date').css('display','block'); 
 
@@ -308,7 +325,7 @@
                         console.log('ok');
                     }
             
-                    couponCode(coupon_for);
+                    // couponCode(coupon_for);
             }else{
                     $('#specific-cat-pro').css('display','none');
                     $('.hide-all-coupon-value').css('display','none');
@@ -357,23 +374,51 @@
 
             function userDiscount(discountVal){
                 var discount_type = discountVal;
+                var inputValue = $('#maskprice').val();
                 
-                $('.input-with-icon i').remove();
-                // var discount_type = $(this).val();
+                var icon =  $('.discountAmount.input-with-icon i');
+           
+            
                 if(discount_type==0){
-                    console.log(discount_type,'0');
+                
                     $('#discount-amount-hide').css('display','block');
                     $('#discount-amount-hide label').text('Enter discount amount in doller($)');
 
-                    var iconElement = $('<i class="fas fa-dollar-sign"></i>');
-                    $('.input-with-icon input[name="price"]').before(iconElement);
+                    inputValue = inputValue.match(/[0-9.]+/g);
+                    if (inputValue === null || inputValue === '') {
+                        return;
+                    }
+
+                    console.log(discountVal,'sssss');
+
+                    $('#maskprice').val(parseFloat(inputValue).toFixed(2)); 
+
+                   // var iconElement = '<i class="fas fa-dollar-sign"></i>';
+
+                   if(icon.hasClass('fa-percent'))
+                     icon.removeClass('fa-percent');
+
+                    icon.addClass('fa-dollar-sign');
+
+                 //   $('.input-with-icon input[name="price"]').before(iconElement);
 
                 }else if(discount_type==1){
+
                     $('#discount-amount-hide').css('display','block');
                     $('#discount-amount-hide label').text('Enter discount amount in percent(%)');
-                    var iconElement = $('<i class="fas fa-percent"></i>');
-                    $('.input-with-icon input[name="price"]').before(iconElement);
+                   
+                   // var iconElement = $('<i class="fas fa-percent"></i>');
+                   // $('.input-with-icon input[name="price"]').before(iconElement);
+                   
+
+                   if(icon.hasClass('fa-dollar-sign'))
+                      icon.removeClass('fa-dollar-sign');
+
+                      icon.addClass('fa-percent');
+
+                    $('#maskprice').val(inputValue.replace(/\.00$/, ''))
                 }else{
+
                     $('#discount-amount-hide').css('display','none');
                     $('#discount-amount-hide label').text('');
                 }
@@ -381,24 +426,32 @@
 
             function minAmount(minamount){
                 var min_amount_check = minamount;
-                // if (min_amount_check == 1) {
-                //     $('#min_amount_val').css('display', 'block');
-                // } else if (min_amount_check == 2) {
-                //     $('#min_amount_val').css('display', 'block');
-                // }else{
-                //     $('#min_amount_val').css('display', 'none');
-                //     $("input[name='min_amount']").val(0);
-                // }
-
-                $('.input-with-icon i').remove();
+                
+                var inputValue = $('#min_amount_mask').val();
+                var icon =  $('.minAmount.input-with-icon i');
+                // $('.minAmount.input-with-icon i').remove();
                 // var min_amount_check = $(this).val();
                 if (min_amount_check == 1) {
                     $('#min_amount_val').css('display', 'block');
-                    var iconElement = $('<i class="fas fa-dollar-sign"></i>');
-                    $('.input-with-icon input[name="min_amount"]').before(iconElement);
+
+                    inputValue = inputValue.match(/[0-9.]+/g);
+                    if (inputValue === null || inputValue === '') {
+                        return;
+                    }
+                    $('#min_amount_mask').val(parseFloat(inputValue).toFixed(2)); 
+
+                    // if(icon.hasClass('fa-percent'))
+                        // icon.removeClass('fa-percent');
+                        icon.addClass('fa-dollar-sign');
+
+                    // var iconElement = $('<i class="fas fa-dollar-sign"></i>');
+                    // $('.input-with-icon input[name="min_amount"]').before(iconElement);
 
                 } else if (min_amount_check == 2) {
+                    // icon.removeClass('fa-percent');
+                    icon.removeClass('fa-dollar-sign');
                     $('#min_amount_val').css('display', 'block');
+                    $('#min_amount_mask').val(inputValue.replace(/\.00$/, ''))
                 }else{
                     $('#min_amount_val').css('display', 'none');
                 }
@@ -418,8 +471,9 @@
 
             function couponCode(value){
                 $('.selectpicker').selectpicker();
-                var selectedValues = value ? value : '';
+                var selectedValues = value ?? '';
 
+                console.log(selectedValues);
 
                 if (selectedValues && selectedValues.includes('all')) {
                     $('.hide-all-coupon-value').css('display', 'none');
@@ -427,12 +481,9 @@
 
                 var selected_id = $('#coupon_id').data('selected');
 
-                var selected_id = selected_id;
-
-                console.log(selectedValues,'ok');
-
                 if (selectedValues || (selectedValues.includes('product') || selectedValues.includes('category'))) {
-                    console.log(selectedValues,'new');
+                   // console.log(selectedValues,'new');
+
                     $.ajax({
                         type: "GET",
                         url: '{{ url("get-coupon-type") }}' + '/' + selectedValues,
@@ -441,23 +492,32 @@
                             $('.hide-all-coupon-value').css('display', 'block');
 
                             var specificLabel = '';
+                            
+                            var options = '';
 
                             $.each(data['term'], function(key, value) {
-                                console.log('ashish');
                                 if (data['type'] == 'product') {
                                     specificLabel = 'Choose specific products';
                                     $('#specific-label').text(specificLabel);
                                     var isSelected = selected_id.includes(value.id.toString());
-                                    $('#coupon_id').append('<option value="' + value.id + '" ' + (isSelected ? 'selected' : '') + '>' + value.title + '</option>');
+                                   
+                                    options += '<option value="' + value.id + '" ' + (isSelected ? 'selected' : '') + '>' + value.title + '</option>';
+                                   
+                                       //$('#coupon_id').append();
+
                                 } else if (data['type'] == 'category') {
                                     specificLabel = 'Choose specific categories';
                                     $('#specific-label').text(specificLabel);
                                     var isSelected = selected_id.includes(value.id.toString());
-                                    $('#coupon_id').append('<option value="' + value.id + '" ' + (isSelected ? 'selected' : '') + '>' + value.name + '</option>');
+                                   
+                                    options += '<option value="' + value.id + '" ' + (isSelected ? 'selected' : '') + '>' + value.name + '</option>';
+
+                                    // $('#coupon_id').append('<option value="' + value.id + '" ' + (isSelected ? 'selected' : '') + '>' + value.name + '</option>');
                                 }
                             });
+                       console.log(options);
+                            $('#coupon_id').html(options);
 
-                            // Refresh Bootstrap Select after updating options
                             $('#coupon_id').selectpicker('refresh');
                         },
                         error: function(error) {
@@ -468,9 +528,11 @@
             }
 
 
+
             $('#coupon_for').change(function() {
                 couponCode($(this).val());
             });
+
       });
 </script>
 @endpush

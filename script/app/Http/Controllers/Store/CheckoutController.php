@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Models\Option;
 use DB;
 use App\Models\Order;
+use App\Models\Coupon;
 use App\Models\Ordermeta;
 use App\Models\Orderstock;
 use Carbon\Carbon;
@@ -363,14 +364,18 @@ class CheckoutController extends Controller
         }
 
         
-        if (Session::has('couponDiscount')) {
-            $sessionDiscountArr = Session::get('couponDiscount');
-            $total_amount = number_format($sessionDiscountArr['totalDiscount'],2);
+        // if (Session::has('couponDiscount')) {
+        //     $sessionDiscountArr = Session::get('couponDiscount');
+        //     $total_amount = number_format($sessionDiscountArr['totalDiscount'],2);
 
-        } else {
-            // $subtotal = Cart::subtotal();
-            $total_amount=str_replace(',','',Cart::total());
-        }
+        // } else {
+        //     // $subtotal = Cart::subtotal();
+        //     $total_amount=str_replace(',','',Cart::total());
+        // }
+
+        
+       $subtotal = Cart::subtotal();
+       $total_amount=str_replace(',','',Cart::total());
 
 
        $total_discount=str_replace(',','',Cart::discount());
@@ -408,8 +413,6 @@ class CheckoutController extends Controller
         }
 
 
-        
-
        $paymentresult= $gateway->namespace::charge_payment($payment_data);
       //$paymentresult= ['payment_status'=>4,'payment_id'=>'sffsdf43534'];
 
@@ -438,12 +441,20 @@ class CheckoutController extends Controller
                 $order->user_id = Auth::id();
             }
 
+            $couponcode = null;
+
+            if(Session::has('couponDiscountCode')){
+                $couponcode = Session::get('couponDiscountCode');
+            }    
+
+
             $notify_driver = 'mail';
 
             $order->getway_id = $gateway->id;
             $order->status_id = 3;
             $order->tax = str_replace(',', '', Cart::tax());
             $order->discount = $total_discount;
+            $order->coupon_code = $couponcode;
             $order->total = $total_amount;
             $order->order_method = $order_method ?? 'delivery';
             $order->notify_driver = $notify_driver;
@@ -451,6 +462,14 @@ class CheckoutController extends Controller
             $order->payment_status =$paymentresult['payment_status'];
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
+
+            
+            if($couponcode != null){
+                $coupon = Coupon::where('code',$couponcode)->first();
+                $coupon->used_count =  $coupon->used_count + 1 ;
+                $coupon->save();
+            }
+
 
             $oder_items = [];
             $total_weight = 0;
@@ -608,7 +627,7 @@ class CheckoutController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
 
-        //   dd($th);
+           dd($th);
           
             return redirect()->away($redirect_url . '/?type=error&message=Oops something wrong while saving order data');
         }
@@ -747,7 +766,7 @@ class CheckoutController extends Controller
 
        $discount =  Session::has('couponDiscount') ? Session::get('couponDiscount')['onlydiscount'] : 0;
 
-      $total_amount =  Cart::total() + $request->shipping_price - $discount;
+      $total_amount =  Cart::total() + $request->shipping_price;
 
        $credit_card_fee = credit_card_fee($total_amount);
 
@@ -759,7 +778,7 @@ class CheckoutController extends Controller
        $productcartdata['cart_shipping_price'] = $request->shipping_price;
        $productcartdata['cart_subtotal'] = Cart::subtotal();
        $productcartdata['cart_tax'] = Cart::tax();
-        $productcartdata['cart_total'] = Cart::total()+ $request->shipping_price - $discount;
+        $productcartdata['cart_total'] = Cart::total()+ $request->shipping_price;
         $productcartdata['cart_credit_card_fee'] = $credit_card_fee;
         $productcartdata['cart_booster_platform_fee'] = $booster_platform_fee;
         $productcartdata['cart_grand_total'] = $total_amount;
