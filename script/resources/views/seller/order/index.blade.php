@@ -78,8 +78,6 @@
                             <th >{{ __('Date') }}</th>
                             <th>{{ __('Customer') }}</th>
                             <th class="text-right">{{ __('total') }}</th>
-                            <th class="text-right">{{ __('Coupon code') }}</th>
-                            <th class="text-right">{{ __('Discount') }}</th>
                             <th>{{ __('Payment') }}</th>
                             <th>{{ __('Fulfillment') }}</th>
                             <th class="text-right">{{ __('Type') }}</th>
@@ -132,10 +130,6 @@
                             <td><a href="{{ route('seller.order.show',$row->id) }}">{{ $row->created_at->format('d-F-Y') }}</a></td>
                             <td>@if($row->user_id !== null)<a href="{{ route('seller.user.show',$row->user_id) }}">{{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}}</a> @else {{ __('Guest User') }} @endif</td>
                             <td >{{ currency_formate($row->total) }}</td>
-
-                            <td>{{ $row->coupon_code ?  $row->coupon_code : 'None'}}</td>
-                            <td>{{ $row->discount ?  $row->discount : 'None'}}</td>
-
                             <td>
                                 @if($row->payment_status==2)
                                 <span class="badge badge-warning">{{ __('Pending') }}</span>
@@ -151,8 +145,6 @@
                                 <span class="badge badge-warning">{{ __('Refunded') }}</span>
                                 @endif
                             </td>
-
-
                             <td>
                                 <span class="badge {{ $row->orderstatus == null ? 'badge-warning' :'' }} text-white" style="background-color: {{ $row->orderstatus->slug  }}">{{ $row->orderstatus->name ?? '' }}</span>
                             </td>

@@ -476,7 +476,7 @@
                     <th style="text-align: right;width: 70%;">
                         <h5
                             style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
-                            Discount:</h5>
+                            Discount @isset($order->coupon_code) ({{ $order->coupon_code }}) @endisset:</h5>
                     </th>
                     <td style="text-align: center;padding-right: 20px;width: 30%;">
                         <p

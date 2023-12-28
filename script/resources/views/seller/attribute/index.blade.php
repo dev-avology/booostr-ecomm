@@ -49,7 +49,11 @@
                                     <div class="dropdown-menu" x-placement="bottom-start">
                                        
                                         <a class="dropdown-item has-icon text-warning" href="{{ route('seller.attribute.edit', $row->id) }}"><i class="fa fa-edit"></i>{{ __('Edit') }}</a>
-                                        <a class="dropdown-item has-icon delete-confirm text-danger" href="javascript:void(0)" data-id="{{$row->id}}"><i class="fa fa-trash"></i>{{ __('Delete') }}</a>
+
+                                        @if(!$attrCheck)
+                                         <a class="dropdown-item has-icon delete-confirm text-danger" href="javascript:void(0)" data-id="{{$row->id}}"><i class="fa fa-trash"></i>{{ __('Delete') }}</a>
+                                        @endif 
+
                                         <!-- Delete Form -->
                                          <form class="d-none" id="delete_form_{{ $row->id }}" action="{{ route('seller.category.destroy', $row->id) }}" method="POST">
                                             @csrf

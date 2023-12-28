@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use DB;
 use App\Models\Category;
+use App\Models\Variationproductoption;
 use Auth;
 class AttributeController extends Controller
 {
@@ -23,8 +24,21 @@ class AttributeController extends Controller
             $posts=$posts->where('name','LIKE','%'.$request->src.'%');
         }
 
+        $catChildAttr = Category::where('type', 'child_attribute')->get()->toArray();
+        $variationCheck = Variationproductoption::all()->pluck('category_id')->toArray();
+
+        $filteredCart = array_filter($catChildAttr, function ($item) use ($variationCheck) {
+            return in_array($item['id'], $variationCheck);
+        });
+
+        $attrCheck=false;
+
+        if(count($filteredCart) > 0){
+            $attrCheck = true;
+        }
+
         $posts=$posts->latest()->paginate(30);
-        return view("seller.attribute.index",compact('posts','request'));
+        return view("seller.attribute.index",compact('posts','request','attrCheck'));
     }
 
     /**
@@ -112,9 +126,23 @@ class AttributeController extends Controller
      */
     public function edit($id)
     {
-       abort_if(!getpermission('products'),401);
+        abort_if(!getpermission('products'),401);
+
+        $catChildAttr = Category::where('type', 'child_attribute')->get()->toArray();
+        $variationCheck = Variationproductoption::all()->pluck('category_id')->toArray();
+
+        $filteredCart = array_filter($catChildAttr, function ($item) use ($variationCheck) {
+            return in_array($item['id'], $variationCheck);
+        });
+
+        $attrCheck=false;
+
+        if(count($filteredCart) > 0){
+            $attrCheck = true;
+        }
+
         $info=Category::where('type','parent_attribute')->with('categories')->findorFail($id);
-        return view("seller.attribute.edit",compact('info'));
+        return view("seller.attribute.edit",compact('info','attrCheck'));
     }
 
     /**

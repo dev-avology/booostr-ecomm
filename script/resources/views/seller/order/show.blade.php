@@ -79,7 +79,7 @@
                         </li>
                         <li class="list-group-item">
                             <div class="row align-items-center">
-                                <div class="col-9 text-right">{{ __('Order Discount') }}</div>
+                                <div class="col-9 text-right">{{ __('Order Discount') }}@isset($info->coupon_code) ({{ $info->coupon_code }}) @endisset</div>
                                 <div class="col-3 text-right"> - {{ currency_formate($info->discount) }} </div>
                             </div>
                         </li>
