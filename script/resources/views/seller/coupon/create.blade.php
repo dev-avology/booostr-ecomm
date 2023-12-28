@@ -99,8 +99,7 @@
                                                 <!-- Remove the 'Select' option as it is not needed for multi-select -->
                                             </select>
                                         </div>
-                                    </div>
-                                    
+                                    </div> 
                             </div>
                         </div>
                     </div>
@@ -179,19 +178,15 @@
                                        
                                     </div>
 
-
                                     <div class="from-group row mb-2">
-                                        <label for="" class="col-lg-12">{{ __('Limit Number of times discount can be used:') }} </label>
-                                        <div class="col-lg-12">
+                                        <label for="" class="col-lg-7">{{ __('Limit Number of times discount can be used:') }} </label>
+                                        <div class="col-lg-4">
                                             <input class="tgl tgl-light" id="max_use_checkbox" type="checkbox"/>
                                         </div>
                                     </div>
 
 
-
-
                                     <div class="from-group row mb-2" id="max_use_value" style="display:none;">
-                                        <label for="" class="col-lg-12">{{ __('Add the number of times it can be used:') }} </label>
                                         <div class="col-lg-12">
                                             <input type="number" name="max_use" value="0" class="form-control" placeholder="Add the number of times it can be used">
                                         </div>

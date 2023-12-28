@@ -35,7 +35,7 @@
 
 
 <li class="menu-header">{{ __('Product Management') }}</li>
-<li class="{{ Request::is('seller/product*') ? 'active' : '' }} {{ Request::is('seller/category*') ? 'active' : '' }} {{ Request::is('seller/brand*') ? 'active' : '' }} {{ Request::is('seller/attribute*') ? 'active' : '' }} {{ Request::is('seller/tag*') ? 'active' : '' }}">
+<li class="{{ Request::is('seller/product*') ? 'active' : '' }} {{ Request::is('seller/category*') ? 'active' : '' }} {{ Request::is('seller/brand*') ? 'active' : '' }} {{ Request::is('seller/attribute*') ? 'active' : '' }} {{ Request::is('seller/tag*') ? 'active' : '' }} {{ Request::is('seller/coupon*') ? 'active' : '' }}">
     <a class="nav-link has-dropdown" href="#">
         <i class="fas fa-box"></i>
         <span>{{ __('Products') }}</span>
@@ -57,7 +57,7 @@
             <a class="nav-link" href="{{ url('/seller/tag') }}">{{ __('Tags') }}</a>
         </li>
 
-        <li>
+        <li class="{{ Request::is('seller/coupon*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ url('/seller/coupon') }}">{{ __('Coupons') }}</a>
         </li> 
         <!-- <li>
