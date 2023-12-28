@@ -98,7 +98,7 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::post('apply-coupon-code','CouponController@applyCoupon');
 
     Route::get('get-coupon-type/{type}','CouponController@getCouponType');
-    Route::post('remove-coupon-session','CouponController@removeCouponSession');
+    Route::get('generate-coupon-code','CouponController@generateCode');
 
 
 

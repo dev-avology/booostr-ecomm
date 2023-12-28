@@ -94,7 +94,7 @@
                             <div class="from-group row mb-2">
                                 <label for="" class="col-lg-12">{{ __('Coupon Code') }} </label>
                                 <div class="col-lg-12">
-                                    <input type="text" value="{{$info->code}}" required name="code" class="form-control" placeholder="Enter Coupon Code">
+                                    <input type="text" value="{{$info->code}}" required name="code" class="form-control" placeholder="Enter Coupon Code" readonly>
                                 </div>
                             </div>
 

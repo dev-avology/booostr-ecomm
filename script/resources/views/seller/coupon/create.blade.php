@@ -127,8 +127,11 @@
 
                                     <div class="from-group row mb-2">
                                         <label for="" class="col-lg-12">{{ __('Coupon Code') }} </label>
-                                        <div class="col-lg-12">
+                                        <div class="col-lg-9">
                                             <input type="text" required name="code" class="form-control" placeholder="Enter Coupon Code">
+                                        </div>
+                                        <div class="col-lg-3 gen-cpn-div">
+                                            <a class="btn btn-primary generate-cpn">Generate code</a>
                                         </div>
                                     </div>
 
@@ -271,211 +274,179 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@x.x.x/dist/js/bootstrap-select.min.js"></script>
 
 <script>
-      $(document).ready(function() {
+
+    $('.generate-cpn').click(function(){
+        $.ajax({
+            type: "GET",
+            url: '{{ url("generate-coupon-code") }}',
+            success: function(response) {
+                if(response.status==200){
+                    $('input[name="code"]').val(response.code);
+                }
+            },
+            error: function(error) {
+            }
+        });
+    })
+
+    $(document).ready(function() {
         Inputmask("9{0,2}.9{0,3}", {
         placeholder: "5.00", 
         greedy: true
-       }).mask('#maskprice');
+        }).mask('#maskprice');
 
 
-      $(document).on('change', '#maskprice', function () {
-        var discountType = $('#discount_type').val();
-        if(discountType==0){
-            var inputValue = $(this).val();
-            inputValue = inputValue.match(/[0-9.]+/g);
-            if (inputValue === null || inputValue === '') {
-                return;
+        $(document).on('change', '#maskprice', function () {
+            var discountType = $('#discount_type').val();
+            if(discountType==0){
+                var inputValue = $(this).val();
+                inputValue = inputValue.match(/[0-9.]+/g);
+                if (inputValue === null || inputValue === '') {
+                    return;
+                }
+                $(this).val(parseFloat(inputValue).toFixed(2));
             }
-            $(this).val(parseFloat(inputValue).toFixed(2));
-        }
-    });
+        });
 
-    $(document).on('change', '#min_amount_mask', function () {
-        var minAmount = $('#min_amount_option').val();
-        if(minAmount==1){
-            var inputValue = $(this).val();
-            inputValue = inputValue.match(/[0-9.]+/g);
-            if (inputValue === null || inputValue === '') {
-                return;
+        $(document).on('change', '#min_amount_mask', function () {
+            var minAmount = $('#min_amount_option').val();
+            if(minAmount==1){
+                var inputValue = $(this).val();
+                inputValue = inputValue.match(/[0-9.]+/g);
+                if (inputValue === null || inputValue === '') {
+                    return;
+                }
+                $(this).val(parseFloat(inputValue).toFixed(2));
             }
-            $(this).val(parseFloat(inputValue).toFixed(2));
-        }
-    });
+        });
 
-          $('#coupon_first').change(function(){
+        $('#coupon_first').change(function(){
             var coupon_first = $(this).val();
             if(coupon_first == 'specific_product_or_cat'){
-                 $('#specific-cat-pro').css('display','block');
+                    $('#specific-cat-pro').css('display','block');
             }else{
-                 $('#specific-cat-pro').css('display','none');
-                 $('.hide-all-coupon-value').css('display','none');
+                    $('#specific-cat-pro').css('display','none');
+                    $('.hide-all-coupon-value').css('display','none');
             }
-          })
+        })
 
-            $("#cb1-6").change(function () {
-                $(".coupon-hidden-date").toggle($(this).is(":checked"));
-                var isChecked = $(this).is(":checked");
+        $("#cb1-6").change(function () {
+            $(".coupon-hidden-date").toggle($(this).is(":checked"));
+            var isChecked = $(this).is(":checked");
 
-                if(isChecked){
-                    $('#date_checkbox').val(1);
+            if(isChecked){
+                $('#date_checkbox').val(1);
+            }
+        });
+
+        $("#max_use_checkbox").change(function () {
+            $("#max_use_value").toggle($(this).is(":checked"));
+        });
+
+        $("#min_amount_option").change(function () {
+            
+            $('.input-with-icon i').remove();
+            var inputValue = $('#min_amount_mask').val();
+            var min_amount_check = $(this).val();
+
+            if (min_amount_check == 1) {
+                $('#min_amount_val').css('display', 'block');
+                var iconElement = $('<i class="fas fa-dollar-sign"></i>');
+                $('.input-with-icon input[name="min_amount"]').before(iconElement);
+
+                inputValue = inputValue.match(/[0-9.]+/g);
+                if (inputValue === null || inputValue === '') {
+                    return;
                 }
-            });
+                $('#min_amount_mask').val(parseFloat(inputValue).toFixed(2)); 
 
-            $("#max_use_checkbox").change(function () {
-                $("#max_use_value").toggle($(this).is(":checked"));
-            });
+            } else if (min_amount_check == 2) {
+                $('#min_amount_val').css('display', 'block');
+                $('#min_amount_val').css('display', 'block');
+                $('#min_amount_mask').val(inputValue.replace(/\.00$/, ''))
+            }else{
+                $('#min_amount_val').css('display', 'none');
+            }
+        });
 
-            $("#min_amount_option").change(function () {
-                
-                $('.input-with-icon i').remove();
-                var inputValue = $('#min_amount_mask').val();
-                var min_amount_check = $(this).val();
+        $("#discount_type").change(function () {
+            $('.input-with-icon i').remove();
+            var inputValue = $('#maskprice').val();
+            var discount_type = $(this).val();
 
-                if (min_amount_check == 1) {
-                    $('#min_amount_val').css('display', 'block');
-                    var iconElement = $('<i class="fas fa-dollar-sign"></i>');
-                    $('.input-with-icon input[name="min_amount"]').before(iconElement);
+            if(discount_type==0){
 
-                    inputValue = inputValue.match(/[0-9.]+/g);
-                    if (inputValue === null || inputValue === '') {
-                        return;
-                    }
-                    $('#min_amount_mask').val(parseFloat(inputValue).toFixed(2)); 
+                $('#discount-amount-hide').css('display','block');
+                $('#discount-amount-hide label').text('Enter discount amount in doller($)');
 
-                } else if (min_amount_check == 2) {
-                    $('#min_amount_val').css('display', 'block');
-                    $('#min_amount_val').css('display', 'block');
-                    $('#min_amount_mask').val(inputValue.replace(/\.00$/, ''))
-                }else{
-                    $('#min_amount_val').css('display', 'none');
+                inputValue = inputValue.match(/[0-9.]+/g);
+                if (inputValue === null || inputValue === '') {
+                    return;
                 }
-            });
 
-            $("#discount_type").change(function () {
-                $('.input-with-icon i').remove();
-                var inputValue = $('#maskprice').val();
-                var discount_type = $(this).val();
+                $('#maskprice').val(parseFloat(inputValue).toFixed(2)); 
 
-                if(discount_type==0){
+                var iconElement = $('<i class="fas fa-dollar-sign"></i>');
+                $('.input-with-icon input[name="price"]').before(iconElement);
 
-                    $('#discount-amount-hide').css('display','block');
-                    $('#discount-amount-hide label').text('Enter discount amount in doller($)');
+            }else if(discount_type==1){
 
-                    inputValue = inputValue.match(/[0-9.]+/g);
-                    if (inputValue === null || inputValue === '') {
-                        return;
-                    }
-
-                    $('#maskprice').val(parseFloat(inputValue).toFixed(2)); 
-
-                    var iconElement = $('<i class="fas fa-dollar-sign"></i>');
-                    $('.input-with-icon input[name="price"]').before(iconElement);
-
-                }else if(discount_type==1){
-
-                    $('#discount-amount-hide').css('display','block');
-                    $('#discount-amount-hide label').text('Enter discount amount in percent(%)');
-                    var iconElement = $('<i class="fas fa-percent"></i>');
-                    $('.input-with-icon input[name="price"]').before(iconElement);
-                    $('#maskprice').val(inputValue.replace(/\.00$/, ''))
-                }else{
-                    $('#discount-amount-hide').css('display','none');
-                    $('#discount-amount-hide label').text('');
-                }
-            });
-
-            // var coupon_for = $('#coupon_for').val();
-            // if(coupon_for == 'all'){
-            //   $('.hide-all-coupon-value').css('display','none');
-            // }
-
-            // $('#coupon_for').change(function() {
-            //     var selectedValue = $(this).val();
-
-            //     if(selectedValue == 'all'){
-            //       $('.hide-all-coupon-value').css('display','none');
-            //     }  
-
-            //     if(selectedValue == 'product' || selectedValue == 'category'){
-
-            //         $.ajax({
-            //         type: "GET",
-            //         url: '{{ url("get-coupon-type") }}' + '/' + selectedValue,
-            //         success: function(data) {
-            //             $('#coupon_id').empty();
-            //             $('.hide-all-coupon-value').css('display','block');
-
-            //             var defaultOptionText = '';
-
-            //             $.each(data['term'], function(key, value) {
-            //                 if (data['type'] == 'product') {
-            //                     defaultOptionText = 'Select product';
-            //                     $('#coupon_id').append('<option value="' + value.id + '">' + value.title + '</option>');
-            //                 } else if (data['type'] == 'category') {
-            //                     defaultOptionText = 'Select category';
-            //                     $('#coupon_id').append('<option value="' + value.id + '">' + value.name + '</option>');
-            //                 }
-            //             });
-
-            //             $('#coupon_id').prepend('<option selected disabled>' + defaultOptionText + '</option>');
-            //         },
-            //         error: function(error) {
-            //             console.log(error);
-            //         }
-            //     });
-
-            //     }
-            // });
+                $('#discount-amount-hide').css('display','block');
+                $('#discount-amount-hide label').text('Enter discount amount in percent(%)');
+                var iconElement = $('<i class="fas fa-percent"></i>');
+                $('.input-with-icon input[name="price"]').before(iconElement);
+                $('#maskprice').val(inputValue.replace(/\.00$/, ''))
+            }else{
+                $('#discount-amount-hide').css('display','none');
+                $('#discount-amount-hide label').text('');
+            }
+        });
 
             // Initialize Bootstrap Select
-            $('.selectpicker').selectpicker();
+        $('.selectpicker').selectpicker();
 
-            $('#coupon_for').change(function() {
-                var selectedValues = $(this).val();
+        $('#coupon_for').change(function() {
+            var selectedValues = $(this).val();
 
-                if (selectedValues && selectedValues.includes('all')) {
-                    $('.hide-all-coupon-value').css('display', 'none');
-                }
+            if (selectedValues && selectedValues.includes('all')) {
+                $('.hide-all-coupon-value').css('display', 'none');
+            }
 
-                if (selectedValues && (selectedValues.includes('product') || selectedValues.includes('category'))) {
-                    $.ajax({
-                        type: "GET",
-                        url: '{{ url("get-coupon-type") }}' + '/' + selectedValues,
-                        success: function(data) {
-                            $('#coupon_id').empty();
-                            $('.hide-all-coupon-value').css('display', 'block');
+            if (selectedValues && (selectedValues.includes('product') || selectedValues.includes('category'))) {
+                $.ajax({
+                    type: "GET",
+                    url: '{{ url("get-coupon-type") }}' + '/' + selectedValues,
+                    success: function(data) {
+                        $('#coupon_id').empty();
+                        $('.hide-all-coupon-value').css('display', 'block');
 
-                            // var defaultOptionText = '';
-                            var specificLabel = '';
+                        // var defaultOptionText = '';
+                        var specificLabel = '';
 
-                            $.each(data['term'], function(key, value) {
-                                if (data['type'] == 'product') {
-                                    // defaultOptionText = 'Select product';
-                                    specificLabel = 'Choose specific products';
-                                    $('#specific-label').text(specificLabel);
-                                    $('#coupon_id').append('<option value="' + value.id + '">' + value.title + '</option>');
-                                } else if (data['type'] == 'category') {
-                                    // defaultOptionText = 'Select category';
-                                    specificLabel = 'Choose specific categories';
-                                    $('#specific-label').text(specificLabel);
-                                    $('#coupon_id').append('<option value="' + value.id + '">' + value.name + '</option>');
-                                }
-                            });
+                        $.each(data['term'], function(key, value) {
+                            if (data['type'] == 'product') {
+                                // defaultOptionText = 'Select product';
+                                specificLabel = 'Choose specific products';
+                                $('#specific-label').text(specificLabel);
+                                $('#coupon_id').append('<option value="' + value.id + '">' + value.title + '</option>');
+                            } else if (data['type'] == 'category') {
+                                // defaultOptionText = 'Select category';
+                                specificLabel = 'Choose specific categories';
+                                $('#specific-label').text(specificLabel);
+                                $('#coupon_id').append('<option value="' + value.id + '">' + value.name + '</option>');
+                            }
+                        });
 
-                            // Refresh Bootstrap Select after updating options
-                            $('#coupon_id').selectpicker('refresh');
-                        },
-                        error: function(error) {
-                            console.log(error);
-                        }
-                    });
-                }
-            });
-
-
-
-            
-        });
+                        // Refresh Bootstrap Select after updating options
+                        $('#coupon_id').selectpicker('refresh');
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+        });     
+    });
 </script>
 @endpush
 
