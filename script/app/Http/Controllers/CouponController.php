@@ -131,8 +131,8 @@ class CouponController extends Controller
         }
     }
 
-    public function removeCouponSession(){
-        Session::forget('couponDiscount');
-        return true;
+    public function generateCode(){
+        $couponCode = getCouponCode();
+        return response()->json(['status' => 200, 'code' => $couponCode]);
     }
 }

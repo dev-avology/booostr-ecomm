@@ -5,13 +5,25 @@ use App\Models\Menu;
 use Amcoders\Lpress\Lphelper;
 use App\Models\Category;
 use App\Models\Term;
+use App\Models\Coupon;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 
 
 function setUSDateFormate($date = ''){
 	return Carbon::parse($date)->format('m-d-Y');
+}
+
+
+function getCouponCode(){
+	$model = new Coupon;
+    $uuid = Str::random(10);
+    while($model->where('code','=',$uuid)->count() > 0 ){
+        $uuid = Str::random(10);
+    }
+    return $uuid;
 }
 
 

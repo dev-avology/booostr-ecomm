@@ -115,10 +115,8 @@ class CouponController extends Controller
         // $coupon->status=$request->status;
 
         $coupon->save();
-
-        return response()->json('Coupon Created Successfully...!!!');
+        return response()->json(['msg'=>'Coupon Created','redirect_to'=>route('seller.coupon.index')]);
     }
-
    
 
     /**

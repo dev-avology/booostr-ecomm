@@ -32,7 +32,7 @@
                                     <th>{{ __('Start From') }}</th>
                                     <th>{{ __('Will Expire') }}</th>
                                     <th>{{ __('Max Use') }}</th>
-                                    <th>{{ __('Total Use') }}</th>
+                                    <th>{{ __('TOTAL # USED') }}</th>
                                     <th>{{ __('Coupon Type') }}</th>
                                     {{-- <th>{{ __('Total Used') }}</th> --}} 
 
@@ -63,7 +63,7 @@
                                     <td>{{ $new_amount }}</td>
                                     <td>{{ setUSDateFormate($row->start_from) }}</td>
                                     <td>{{ $row->will_expire === null ? 'None' : setUSDateFormate($row->will_expire) }}</td>
-                                    <td>{{ $row->max_use == '0' ? '*' : $row->max_use }}</td>
+                                    <td>{{ $row->max_use == '0' ? '∞' : $row->max_use }}</td>
                                     <td>{{ $row->used_count}}</td>
                                     <td>{{ $row->is_percentage == '1' ? 'Percent(%)' : 'Doller($)' }}</td>
 
