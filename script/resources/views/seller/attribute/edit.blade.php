@@ -89,8 +89,12 @@
                                 <input type="text" required name="oldchild[{{$row->id}}]" class="form-control" placeholder="Enter Child Attribute Name" value="{{ $row->name }}">
                             </div>
                             <div class="col-lg-2">
-                                <label for="" class="text-danger">{{ __('Remove') }}</label>
-                                <button type="button" data-id="{{ $key }}"  class="btn btn-danger trash"><i class="fa fa-trash"></i></button>
+                                
+                                @if(!$attrCheck)
+                                  <label for="" class="text-danger">{{ __('Remove') }}</label>
+                                  <button type="button" data-id="{{ $key }}"  class="btn btn-danger trash"><i class="fa fa-trash"></i></button>
+                                @endif 
+                                
                             </div>
                         </div>
                         @endforeach
