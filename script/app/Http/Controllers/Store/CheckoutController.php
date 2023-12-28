@@ -393,7 +393,7 @@ class CheckoutController extends Controller
        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
        //Process Payment
         $gateway_data_info = json_decode($gateway->data);
-        $payment_data['currency']   = $gateway->currency_name ?? 'USD';
+        $payment_data['currency']   = strtoupper($gateway->currency_name) ?? 'USD';
         $payment_data['email']      = $request->email;
         $payment_data['name']       = $request->name;
         $payment_data['phone']      = $request->phone;
