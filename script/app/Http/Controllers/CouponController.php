@@ -108,7 +108,7 @@ class CouponController extends Controller
 
         if ($coupon->min_amount_option == 2) {
 
-            if($cart_count < $coupon->min_amount){
+            if(Cart::count() < $coupon->min_amount){
                 return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order item count is '.number_format($coupon->min_amount,2).' for this coupon'];
             }
         }
