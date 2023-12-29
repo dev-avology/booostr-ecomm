@@ -325,6 +325,18 @@ class ProductController extends Controller
                 }
 
                 !empty($term->categories) ? $term->categories()->sync($cats) : $term->categories()->attach($cats);
+               
+                if($term->is_variation){
+                    $priceCount = Price::where('term_id',$term->term_id)->count();
+
+                        if($priceCount == 0){
+                            $term->status = 0;
+                            $term->save();
+                        }
+                }
+
+               
+               
                 DB::commit();
             } catch (\Throwable $th) {
                 DB::rollback();
@@ -652,7 +664,18 @@ class ProductController extends Controller
     }
 
     public function removeVariationPrice($id){
+        $varPrice =  Price::where('id', $id)->first();
+
         $delete_res = Price::where('id', $id)->delete();
+        
+        $priceCount = Price::where('term_id',$varPrice->term_id)->count();
+
+        if($priceCount == 0){
+            $term = Term::find($varPrice->term_id);
+            $term->status = 0;
+            $term->save();
+        }
+
         if($delete_res){
             return response()->json(['status' => 'success']);
         }
@@ -669,6 +692,16 @@ class ProductController extends Controller
 
             // Delete records in both tables in a single query
             Price::whereIn('id', $priceIds)->delete();
+
+            $priceCount = Price::where('term_id',$productOption->term_id)->count();
+
+            if($priceCount == 0){
+                $term = Term::find($varPrice->term_id);
+                $term->status = 0;
+                $term->save();
+            }
+
+
             $productOption->delete();
             return response()->json(['status' => 'success']);
         }
