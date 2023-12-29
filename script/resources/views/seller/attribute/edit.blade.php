@@ -90,7 +90,7 @@
                             </div>
                             <div class="col-lg-2">
                                 
-                                @if(!$attrCheck)
+                                @if(!$info->addcheck)
                                   <label for="" class="text-danger">{{ __('Remove') }}</label>
                                   <button type="button" data-id="{{ $key }}"  class="btn btn-danger trash"><i class="fa fa-trash"></i></button>
                                 @endif 

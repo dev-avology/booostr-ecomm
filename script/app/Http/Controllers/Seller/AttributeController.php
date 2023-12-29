@@ -17,29 +17,27 @@ class AttributeController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-    {
-      abort_if(!getpermission('products'),401);
-        $posts=Category::where('type','parent_attribute')->with('categories');
-        if ($request->src) {
-            $posts=$posts->where('name','LIKE','%'.$request->src.'%');
-        }
+{
+    abort_if(!getpermission('products'), 401);
 
-        $catChildAttr = Category::where('type', 'child_attribute')->get()->toArray();
-        $variationCheck = Variationproductoption::all()->pluck('category_id')->toArray();
-
-        $filteredCart = array_filter($catChildAttr, function ($item) use ($variationCheck) {
-            return in_array($item['id'], $variationCheck);
-        });
-
-        $attrCheck=false;
-
-        if(count($filteredCart) > 0){
-            $attrCheck = true;
-        }
-
-        $posts=$posts->latest()->paginate(30);
-        return view("seller.attribute.index",compact('posts','request','attrCheck'));
+    $posts = Category::where('type', 'parent_attribute')->with('categories');
+    
+    if ($request->src) {
+        $posts = $posts->where('name', 'LIKE', '%' . $request->src . '%');
     }
+
+    $variationCheck = Variationproductoption::all()->pluck('category_id')->toArray();
+
+    $posts = $posts->latest()->paginate(30);
+
+    foreach($posts as $post){
+        foreach($post->categories as $newCatArr){
+            $post->addcheck = in_array($newCatArr['id'], $variationCheck);
+        }
+    }
+
+    return view("seller.attribute.index", compact('posts', 'request'));
+}
 
     /**
      * Show the form for creating a new resource.
@@ -127,22 +125,13 @@ class AttributeController extends Controller
     public function edit($id)
     {
         abort_if(!getpermission('products'),401);
-
-        $catChildAttr = Category::where('type', 'child_attribute')->get()->toArray();
-        $variationCheck = Variationproductoption::all()->pluck('category_id')->toArray();
-
-        $filteredCart = array_filter($catChildAttr, function ($item) use ($variationCheck) {
-            return in_array($item['id'], $variationCheck);
-        });
-
-        $attrCheck=false;
-
-        if(count($filteredCart) > 0){
-            $attrCheck = true;
-        }
-
         $info=Category::where('type','parent_attribute')->with('categories')->findorFail($id);
-        return view("seller.attribute.edit",compact('info','attrCheck'));
+
+        $variationCheck = Variationproductoption::all()->pluck('category_id')->toArray();
+        foreach($info->categories as $arrCat){
+           $info->addcheck = in_array($arrCat['id'], $variationCheck);
+        }
+        return view("seller.attribute.edit",compact('info'));
     }
 
     /**
