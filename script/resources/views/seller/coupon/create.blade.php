@@ -136,7 +136,7 @@
 
 
                                     <div class="from-group row mb-2">
-                                        <label for="" class="col-lg-12">{{ __('Type:') }} </label>
+                                        <label for="" class="col-lg-12" id="discountTypelable">{{ __('Order Total:') }} </label>
                                         <div class="col-lg-12">
                                             <select class="form-control" name="discount_type" id="discount_type" required>
                                                 <option value="" selected disabled>{{ __('Choose dollar off or percent off') }}</option>
@@ -320,7 +320,9 @@
             var coupon_first = $(this).val();
             if(coupon_first == 'specific_product_or_cat'){
                     $('#specific-cat-pro').css('display','block');
+                    $('#discountTypelable').text('Products/Categories');
             }else{
+                  $('#discountTypelable').text('Order Total');
                     $('#specific-cat-pro').css('display','none');
                     $('.hide-all-coupon-value').css('display','none');
             }
@@ -425,6 +427,15 @@
             if (selectedValues && selectedValues.includes('all')) {
                 $('.hide-all-coupon-value').css('display', 'none');
             }
+    
+            if(selectedValues == 'product'){
+                $('#discountTypelable').text('Products');
+            }else if(selectedValues == 'category'){
+                $('#discountTypelable').text('Categories');
+            }else{
+                $('#discountTypelable').text('Products/Categories');
+            }
+             
 
             if (selectedValues && (selectedValues.includes('product') || selectedValues.includes('category'))) {
                 $.ajax({

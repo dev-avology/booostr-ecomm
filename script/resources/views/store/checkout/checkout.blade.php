@@ -55,6 +55,13 @@ p#show_coupon_error {
     color: red;
     background: transparent;
 }
+
+.checkout-main span.price,.checkout-main span.price span{
+    display: block;
+}
+.checkout-main span.price span.old-price{
+    text-decoration: line-through;
+}
 </style>
 
  <!-- Spinner container -->
@@ -393,9 +400,9 @@ p#show_coupon_error {
                                         <div class="">
                                             <h2>{{ __('CART SUMMARY') }}<span class="price" style="color:black"><i
                                                         class="fa fa-shopping-cart"></i>
-                                                    <b>{{ Cart::instance('default')->countItems() }}</b></span></h2>
+                                                    <b>{{ Cart::count() }}</b></span></h2>
                                             @foreach (Cart::instance('default')->content() as $item)
-                                                <p><a href="#" class="cart-summary"> <img src="{{ $item->options->preview }}"
+                                                <p id="{{$item->rowId}}"><a href="#" class="cart-summary"> <img src="{{ $item->options->preview }}"
                                                             alt="img"><span>{{ $item->name }}</span>
                                                            
 						@php if(count($item->options['options'])){
@@ -421,8 +428,8 @@ p#show_coupon_error {
 						 }						
 						  echo "</span>";	 						
 						 } @endphp
-															</a> <span
-                                                        class="price">{{ get_option('currency_data', true)->currency_icon }}{{ number_format($item->price, 2) }}</span>
+															</a><span>{{$item->qty}} </span> <span
+                                                        class="price"><span>{{ get_option('currency_data', true)->currency_icon }}{{ number_format($item->price*$item->qty, 2) }}</span></span>
                                                 </p>
                                             @endforeach
                                             <hr>
