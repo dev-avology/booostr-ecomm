@@ -337,19 +337,38 @@ $(document).on('click','#applyCouponBtn',function(){
 		success: function (response) {
 			if(response){
 				console.log(response);
+				let data = null;
 
-				if(response.status == 200){
-					cartState.Rtax = parseFloat(response.result.tax);
-					cartState.Rdiscount = parseFloat(response.result.discount);
+				 if(response.status == 422){
+					$('#show_coupon_error').html(response.msg);
+					$('#show_coupon_error').show();
+					 data= response.data;
+				  }else{
+                      data= response.result;
+				  }
+				  console.log(data);
+
+					cartState.Rtax = parseFloat(data.tax);
+					cartState.Rdiscount = parseFloat(data.discount);
+                   
+					if(data.items_on_discount !== 'all'){
+                     let items_on_discount = data.items_on_discount;
+					 let valuesArray = Object.values(items_on_discount);
+					 valuesArray.forEach(function(item){
+						if(item.discount){
+						 let netotal = (parseFloat(item.price) - parseFloat(item.discount)) * parseFloat(item.qty);
+							$('#'+item.rowId+' span.price').html('<span class="old-price">'+amount_format((parseFloat(item.price)*parseFloat(item.qty)))+'</span><span>'+amount_format(netotal)+'</span>');
+    					}else{
+							$('#'+item.rowId+' span.price').html('<span>'+amount_format((parseFloat(item.price)*parseFloat(item.qty)))+'</span>');
+						}
+
+					 })
+					}
+
 					calculateShipping();
 					calculateTotal(cartState);
-				}
 
-				if(response.status == 422){
-                  $('#show_coupon_error').html(response.msg);
-				  $('#show_coupon_error').show();
-				}
-
+			
 				return false;
 			}
 		},

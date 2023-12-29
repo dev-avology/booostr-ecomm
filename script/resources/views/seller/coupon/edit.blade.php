@@ -134,7 +134,7 @@
                             </div>
 
                             <div class="from-group row mb-2" id="min_amount_val" @if($info->min_amount_option == 0)style="display:none;" @endif>
-                                <label for="" class="col-lg-12">{{ __('Enter minimum amount:') }} </label>
+                                <label for="" id="min_amount_label" class="col-lg-12">Enter minimum amount:</label>
                                 <div class="col-lg-12 minAmount input-with-icon">
                                     <i class="fas "></i>
                                     <input type="number" value="{{$info->min_amount}}" step="any" name="min_amount" id ="min_amount_mask" class="form-control" placeholder="Enter Min Amount">
@@ -296,7 +296,7 @@
         couponCode(initialCouponFor);
         userDiscount($("#discount_type").val());
         minAmount($("#min_amount_option").val());
-        discountCheckbox($("#cb1-6"));
+        // discountCheckbox($("#cb1-6"));
         // if (Array.isArray(couponId) && couponId.length > 0) {
             
         //     // $(function() {
@@ -310,8 +310,8 @@
         var checkboxValue;
        
 
-        $('#cb1-6').prop('checked', true);   
-        $('.coupon-hidden-date').css('display','block'); 
+        // $('#cb1-6').prop('checked', true);   
+        // $('.coupon-hidden-date').css('display','block'); 
 
         $('#coupon_first').change(function(){
             var coupon_first = $(this).val();
@@ -424,13 +424,14 @@
             }
 
             function minAmount(minamount){
+                $('#min_amount_label').html();
                 var min_amount_check = minamount;
                 
                 var inputValue = $('#min_amount_mask').val();
                 var icon =  $('.minAmount.input-with-icon i');
-                // $('.minAmount.input-with-icon i').remove();
-                // var min_amount_check = $(this).val();
+               
                 if (min_amount_check == 1) {
+                    $('#min_amount_label').html('Enter minimum amount:');
                     $('#min_amount_val').css('display', 'block');
 
                     inputValue = inputValue.match(/[0-9.]+/g);
@@ -439,15 +440,11 @@
                     }
                     $('#min_amount_mask').val(parseFloat(inputValue).toFixed(2)); 
 
-                    // if(icon.hasClass('fa-percent'))
-                        // icon.removeClass('fa-percent');
-                        icon.addClass('fa-dollar-sign');
-
-                    // var iconElement = $('<i class="fas fa-dollar-sign"></i>');
-                    // $('.input-with-icon input[name="min_amount"]').before(iconElement);
+                    
+                    icon.addClass('fa-dollar-sign');
 
                 } else if (min_amount_check == 2) {
-                    // icon.removeClass('fa-percent');
+                    $('#min_amount_label').html('Enter minimum items:');
                     icon.removeClass('fa-dollar-sign');
                     $('#min_amount_val').css('display', 'block');
                     $('#min_amount_mask').val(inputValue.replace(/\.00$/, ''))
@@ -460,7 +457,6 @@
                 $(".coupon-hidden-date").toggle(checkboxValue.is(":checked"));
                 var isChecked = checkboxValue.is(":checked");
                 if(isChecked){
-                    // $(".coupon-hidden-date input[type='date']").prop('required', isChecked);
                     $('#date_checkbox').val(1);
                 }else{
                     $('#date_checkbox').val(0);
