@@ -130,7 +130,13 @@ class ProductController extends Controller
                 $product_options = [];
                 $product_varitions = [];
 
-                foreach ($request->parentattribute ?? [] as $option) {
+            
+              if( !isset($request->parentattribute)  || !isset($request->childattribute['childrens']) ){
+                $term->status = 0;
+                $term->save();
+              }
+
+                foreach ( $request->parentattribute ?? [] as $option) {
                     $group = Productoption::firstOrNew(['term_id'=>$term->id,'category_id'=>$option]);
                       // $group = Productoption::where('id', $keychild)->first();
                       //  $group->select_type = $request->optionattribute[$option]['select_type'];
@@ -358,6 +364,12 @@ class ProductController extends Controller
                     $product_options = [];
                     $product_varitions = [];
                //dd($request);
+
+
+               if( !isset($request->parentattribute)  || !isset($request->childattribute['childrens']) ){
+                $term->status = 0;
+                $term->save();
+              }
 
                      foreach ($request->parentattribute ?? [] as $option) {
                       $group = Productoption::firstOrNew(['term_id'=>$term->id,'category_id'=>$option]);
