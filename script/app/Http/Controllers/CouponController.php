@@ -100,7 +100,7 @@ class CouponController extends Controller
     private function DiscountCart(Coupon $coupon){
       
         if ($coupon->min_amount_option == 1) {
-            if ($sub_total <= $coupon->min_amount) {
+            if ($sub_total < $coupon->min_amount) {
                 return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order amount is '.number_format($coupon->min_amount,2).' for this coupon'];
            }
         }
@@ -108,7 +108,7 @@ class CouponController extends Controller
 
         if ($coupon->min_amount_option == 2) {
 
-            if(Cart::count() <= $coupon->min_amount){
+            if(Cart::count() < $coupon->min_amount){
                 return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order item count is '.number_format($coupon->min_amount,2).' for this coupon'];
             }
         }
@@ -160,7 +160,7 @@ class CouponController extends Controller
 
 
             if ($coupon->min_amount_option == 1) {
-                if ($filteredSubTotal <= $coupon->min_amount) {
+                if ($filteredSubTotal < $coupon->min_amount) {
                     return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order amount is '.number_format($coupon->min_amount,2).' for this coupon, cart product subtotal:'.number_format($filteredSubTotal)];
                }
             }
@@ -221,7 +221,7 @@ class CouponController extends Controller
 
 
             if ($coupon->min_amount_option == 1) {
-                if ($filteredSubTotal <= $coupon->min_amount) {
+                if ($filteredSubTotal < $coupon->min_amount) {
                     return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order amount is '.number_format($coupon->min_amount,2).' for this coupon'];
                }
             }
