@@ -8,6 +8,17 @@ a.cart-summary > span {
     width: 100%;
 }
 
+p span.title{
+    font-size: 12px;
+}
+
+.attr-variation-style{
+    background: #eeebec;
+    padding: 2px;
+    border-radius: 2px;
+    margin: 0px 2px;
+}
+
 /* add coupon code css */
 
 .coupon-main-div {
@@ -403,32 +414,25 @@ p#show_coupon_error {
                                                     <b>{{ Cart::count() }}</b></span></h2>
                                             @foreach (Cart::instance('default')->content() as $item)
                                                 <p id="{{$item->rowId}}"><a href="#" class="cart-summary"> <img src="{{ $item->options->preview }}"
-                                                            alt="img"><span>{{ $item->name }}</span>
+                                                            alt="img"><span class="title">{{ $item->name }}
                                                            
 						@php if(count($item->options['options'])){
-                          echo "<span class='product-description'>";
+                          echo "<span class='product-description' style='font-size: 9px;display: flow;'>";
 						 foreach($item->options['options'] as $option => $selected_option){
                             $product_options = $selected_option->varitionOptions;
                             foreach($selected_option->varitions as $sel_val){
                                 $cur_opt_name = $product_options->filter(function ($x) use ($sel_val) {
                                 return $x->id == $sel_val->pivot->productoption_id;
                             });
-    						   echo "<strong>".$cur_opt_name->first()->category->name." : </strong>";
-                              echo $sel_val->name;
-                              echo "<br>";
+    						   echo "<strong class='attr-variation-style'>".$sel_val->name."</strong>";
                             }
-                             //dump($selected_option->varitions); 
-						//   echo "<strong>".$option." : </strong>";
-						//   $sel_option = array();
-                        //      foreach($selected_option as $selected){
-						// 		 $sel_option[] = $selected['name'];
-						// 	 }
-                        //     echo implode(',',$sel_option);
-                        //      echo "<br>";							
+                           						
 						 }						
 						  echo "</span>";	 						
 						 } @endphp
-															</a><span>{{$item->qty}} </span> <span
+
+
+															</span></a><span class="d-qty">{{$item->qty}} </span> <span
                                                         class="price"><span>{{ get_option('currency_data', true)->currency_icon }}{{ number_format($item->price*$item->qty, 2) }}</span></span>
                                                 </p>
                                             @endforeach

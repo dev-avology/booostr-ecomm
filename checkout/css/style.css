@@ -146,7 +146,7 @@ body{
         background: #ffffff8c;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        /* justify-content: space-between; */
     }
     .mains-nn {
         margin-bottom: 22px;
@@ -211,6 +211,17 @@ body .checkout-main .btn:hover {
   color:#808080 !important;
 }
 
+
+.carts-right p a {
+width:50%;
+}
+.single-widget p .price {
+width: 25%;
+}
+.single-widget .d-qty{
+width: 25%;
+text-align: center;
+}
     /* Responsive layout */
     @media (max-width: 800px) {
       .checkout-main .row {

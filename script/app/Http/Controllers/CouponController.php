@@ -100,7 +100,7 @@ class CouponController extends Controller
     private function DiscountCart(Coupon $coupon){
       
         if ($coupon->min_amount_option == 1) {
-            if ($sub_total < $coupon->min_amount) {
+            if ($sub_total <= $coupon->min_amount) {
                 return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order amount is '.number_format($coupon->min_amount,2).' for this coupon'];
            }
         }
@@ -108,7 +108,7 @@ class CouponController extends Controller
 
         if ($coupon->min_amount_option == 2) {
 
-            if(Cart::count() < $coupon->min_amount){
+            if(Cart::count() <= $coupon->min_amount){
                 return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order item count is '.number_format($coupon->min_amount,2).' for this coupon'];
             }
         }
@@ -150,21 +150,25 @@ class CouponController extends Controller
                 return $item->price * (int)$item->qty;
             });
         
+            $filteredCount = $filteredCart->sum(function ($item) {
+                return (int)$item->qty;
+            });
 
             if ($filteredCartCount == 0) {
                 return ['status'=>422,'error' => 'count_error', 'msg' => "Coupon code is not valid for your cart"];
             }
 
+
             if ($coupon->min_amount_option == 1) {
-                if ($filteredSubTotal < $coupon->min_amount) {
+                if ($filteredSubTotal <= $coupon->min_amount) {
                     return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order amount is '.number_format($coupon->min_amount,2).' for this coupon, cart product subtotal:'.number_format($filteredSubTotal)];
                }
             }
     
     
             if ($coupon->min_amount_option == 2) {
-    
-                if($filteredCartCount < $coupon->min_amount){
+
+                if((int)$filteredCount <= (int)$coupon->min_amount){
                     return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order item count is '.number_format($coupon->min_amount,2).' for this coupon'];
                 }
             }
@@ -211,15 +215,19 @@ class CouponController extends Controller
                return $item->price * $item->qty;
             });
 
+            $filteredCount = $filteredCart->sum(function ($item) {
+                return (int)$item->qty;
+            });
+
 
             if ($coupon->min_amount_option == 1) {
-                if ($filteredSubTotal < $coupon->min_amount) {
+                if ($filteredSubTotal <= $coupon->min_amount) {
                     return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order amount is '.number_format($coupon->min_amount,2).' for this coupon'];
                }
             }
     
             if ($coupon->min_amount_option == 2) {
-                if($filteredCartCount < $coupon->min_amount){
+                if((int)$filteredCount <= (int)$coupon->min_amount){
                     return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order item count is '.number_format($coupon->min_amount,2).' for this coupon'];
                 }
             } 
