@@ -168,7 +168,7 @@ class CouponController extends Controller
     
             if ($coupon->min_amount_option == 2) {
 
-                if((int)$filteredCount <= (int)$coupon->min_amount){
+                if((int)$filteredCount < (int)$coupon->min_amount){
                     return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order item count is '.number_format($coupon->min_amount,2).' for this coupon'];
                 }
             }
@@ -227,7 +227,7 @@ class CouponController extends Controller
             }
     
             if ($coupon->min_amount_option == 2) {
-                if((int)$filteredCount <= (int)$coupon->min_amount){
+                if((int)$filteredCount < (int)$coupon->min_amount){
                     return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order item count is '.number_format($coupon->min_amount,2).' for this coupon'];
                 }
             } 
