@@ -12,7 +12,9 @@ use App\Models\User;
 use App\Models\Getway;
 use App\Models\Location;
 use App\Models\Order;
+use App\Models\Price;
 use App\Models\Coupon;
+use App\Models\Orderstock;
 use App\Models\Option;
 use Carbon\Carbon;
 use Cart;
@@ -97,102 +99,127 @@ class ProductController extends Controller
 
     public function addtocart(Request $request)
     {
-
         $cartid = !empty($request->header('cartid')) ? $request->header('cartid') : Str::random(10);
         $info = '';
+
         if ($request->id) {
-            $info = Term::where('id', $request->id)
-                ->where('type', 'product')
-                ->where('status', 1)
-                ->with(['excerpt', 'preview'])
-                ->when($request->variation_id, function ($query) use ($request) {
-                    $query->with(['prices' => function ($subQuery) use ($request) {
-                        $subQuery->where('id', $request->variation_id);
-                    }]);
-                })
-                ->first();
+            $info = Term::where('id', $request->id)->where('type', 'product')
+            ->where('status', 1)
+            ->with(['excerpt', 'preview','firstprice'])
+            ->when($request->variation_id, function ($query) use ($request) {
+                $query->with(['prices' => function ($subQuery) use ($request) {
+                    $subQuery->where('id', $request->variation_id);
+                }]);
+            })
+            ->first();
         }
-        // dd($info);
         
         if (empty($info)) {
-            return response()->json(["status" => 0, "message" => 'Oops product not available', "result" => []]);
+            return response()->json(["status" => 0, "message" => 'Oops product not available', "result" => []],404);
         }
         
         Cart::instance($cartid);
         Cart::restore($cartid);
+
+        $cart_content=Cart::instance($cartid)->content();
         
         if ($info->is_variation == 1) {
 
+            $price=$info->prices[0];
+                            
+            $exist_qty=0;
 
-            // $groups = [];
-            // foreach ($request->option ?? [] as $key => $option) {
-            //     $option_values = [];
-            //     foreach ($option as $k => $value) {
-            //         array_push($option_values, $value);
-            //     }
-            //     $group = Productoption::with(array('priceswithcategories' => function ($query) use ($option_values) {
-            //         return $query->whereIn('id', $option_values);
-            //     }))->with('category')->where('id', $key)->first();
-            //     array_push($groups, $group);
-            // }
-            // $final_price = 0;
-            // $final_weight = 0;
-            // $price_option = [];
-            // $priceids = [];
-            // $tax = 1;
-            // foreach ($groups as $key => $row) {
-            //     foreach ($row->priceswithcategories as $key => $value) {
-            //         if ($value->stock_manage == 1) {
-            //             array_push($priceids, $value->id);
-            //         }
-            //         $final_price = $final_price + $value->price;
-            //         $final_weight = $final_weight + $value->weight;
-            //         $tax = $value->tax ?? 1;
-            //         $price_option[$row->category->name][$value->id]['price'] = $value->price;
-            //         $price_option[$row->category->name][$value->id]['sku'] = $value->sku;
-            //         $price_option[$row->category->name][$value->id]['weight'] = $value->weight;
-            //         $price_option[$row->category->name][$value->id]['name'] = $value->category->name;
-            //     }
-            // }
-           $cart_item = Cart::add(
-                ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $info->prices[0]['price'], 'weight' => $info->prices[0]['weight'], 
-                'options' => [
-                    'tax' =>$info->prices[0]['tax'],
-                    'options' => $info->prices, 'sku' => $info->prices[0]['sku'], 'stock' => null, 'price_id' => $info->prices[0]['id'],'short_description'=>($info->excerpt->value ?? ''),
-                    'preview'=>asset($info->preview->value ?? 'uploads/default.png')
-                    ]
-                ]);
+            foreach ($cart_content as $key => $row) {
+                                        
+               if (($row->id == $info->id) && ($row->options->options[0]->id == $price->id)) {
+                   $row_qty=$row->qty ?? 0;
+                   $exist_qty=(int)$row_qty;
+               }
+            }
 
-         if($info->prices[0]['tax'] == 1){
-            $cart_item->setTaxRate(getTaxRate());
-         }
+            $exist_qty=$exist_qty+$request->qty;
+
+            $weight=$price->weight ?? 0;
+
+            $stockCheck = $this->addStockValidation($price,$exist_qty,$cartid);
+            if($stockCheck){
+                return $stockCheck;
+            }
+
+            $existingCartItem = Cart::search(function ($cartItem, $rowId) use ($info, $price) {
+                return $cartItem->id == $info->id;
+            });
+
+            if ($existingCartItem->isNotEmpty()) {
+                $rowId = $existingCartItem->first()->rowId;
+                Cart::update($rowId, $exist_qty);
+            }else{
+                $cart_item = Cart::add(
+                        ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $info->prices[0]['price'], 'weight' => $info->prices[0]['weight'], 
+                        'options' => [
+                            'tax' =>$info->prices[0]['tax'],
+                            'options' => $info->prices, 'sku' => $info->prices[0]['sku'], 'stock' => null, 'price_id' => $info->prices[0]['id'],'short_description'=>($info->excerpt->value ?? ''),
+                            'preview'=>asset($info->preview->value ?? 'uploads/default.png')
+                            ]
+                        ]);
+
+                if($info->prices[0]['tax'] == 1){
+                    $cart_item->setTaxRate(getTaxRate());
+                }
+            }
 
         } else {
-            $price = $info->firstprice;
-            $weight = $price->weight ?? 0;
-            $options = [
-                'sku' => $price->sku,
-                'stock' => $price->qty,
-                'tax'=>$price->tax,
-                'type'=>$price->tax,
-                'options' => [],
-                'short_description'=>($info->excerpt->value ?? ''),
-                'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
-            ];
-            if ($price->stock_manage == 1 && $price->stock_status == 1) {
-                $options['stock'] = $price->qty;
-                $options['price_id'] = [$price->id];
-            } else {
-                $options['stock'] = null;
+
+            $exist_qty=0;
+
+            foreach ($cart_content as $key => $row) {
+               if ($row->id == $info->id) {
+                   $row_qty=$row->qty ?? 0;
+                   $exist_qty=(int)$row_qty;
+               }
             }
-      
-          $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);          
+
+            $exist_qty=$exist_qty+$request->qty;
+
+            $price=$info->firstprice;
+            $weight=$price->weight ?? 0;
+
+            $stockCheck = $this->addStockValidation($price,$exist_qty,$cartid);
+            if($stockCheck){
+                return $stockCheck;
+            }
+
+            $existingCartItem = Cart::search(function ($cartItem, $rowId) use ($info, $price) {
+                return $cartItem->id == $info->id ? $rowId:false;
+            });
+
+            if ($existingCartItem->isNotEmpty()) {
+                $rowId = $existingCartItem->first()->rowId;
+                Cart::update($rowId, $exist_qty);
+            }else{
+                $options = [
+                    'sku' => $price->sku,
+                    'stock' => $price->qty,
+                    'tax'=>$price->tax,
+                    'type'=>$price->tax,
+                    'options' => [],
+                    'short_description'=>($info->excerpt->value ?? ''),
+                    'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
+                ];
+    
+                if ($price->stock_manage == 1 && $price->stock_status == 1) {
+                    $options['stock'] = $price->qty;
+                    $options['price_id'] = [$price->id];
+                } else {
+                    $options['stock'] = null;
+                }
           
-          if($price->tax == 1){
-            $cart_item->setTaxRate(getTaxRate());
-          }
-
-
+              $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);          
+              
+              if($price->tax == 1){
+                $cart_item->setTaxRate(getTaxRate());
+              }
+            }
         }
         try {
             Cart::store($cartid);
@@ -208,18 +235,47 @@ class ProductController extends Controller
         return response()->json(["status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
     }
 
+    public function addStockValidation($price,$exist_qty,$cartid){
+        if ($price->stock_manage == 1) {
+
+            $orderStockSum = Orderstock::where('price_id', $price->id)->sum('qty');
+            $remain_qty = $price->qty-(int)$orderStockSum;
+
+            if ($exist_qty > $price->qty) {
+                Cart::restore($cartid);
+                Cart::store($cartid);
+
+                return response()->json(["status" => false, "message" => 'Maximum stock limit is ('.$price->qty.')'],404);
+            }
+
+            if ($remain_qty < $exist_qty) {
+                Cart::restore($cartid);
+                Cart::store($cartid);
+
+                return response()->json(["status" => false, "message" => 'Stock not available.'],404);
+            }
+        }
+        
+        if (($price->stock_status == 0)) {
+            Cart::restore($cartid);
+            Cart::store($cartid);
+
+            return response()->json(["status" => false, "message" => 'Oops Maximum stock limit exceeded'],404);
+        }
+    }
+
     public function getcart(Request $request)
     {
         $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
         if(empty($cartid)){
-            return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []]);
+            return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []],404);
         }
         //initialize cart
         Cart::instance($cartid);
         //load cart in session
         Cart::restore($cartid);
         if(Cart::content()->isEmpty()){
-            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
+            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
         }
         //resave cart
         try{
@@ -240,18 +296,19 @@ class ProductController extends Controller
     {
         $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
         if(empty($cartid)){
-            return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []]);
+            return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []],404);
         }
         //initialize cart
         Cart::instance($cartid);
         //load cart in session
         Cart::restore($cartid);
         if(Cart::content()->isEmpty()){
-            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
+            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
         }
         $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
             return $cartItem->rowId == $id?$rowId:false;
         });
+
         if($rowid->isNotEmpty()){
             Cart::remove($rowid->first()->rowId);//remove
         }
@@ -273,23 +330,72 @@ class ProductController extends Controller
     {
         $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
         if(empty($cartid)){
-            return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []]);
+            return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []],404);
         }
         Cart::instance($cartid);
         Cart::restore($cartid);
         $id=$request->id;
         if(empty($request->id)||!isset($request->qty)){
-            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
+            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
         }
         if(Cart::content()->isEmpty()){
-            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
+            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
         }
+
+        $cartFilter=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
+            return $cartItem->rowId == $id?$rowId:false;
+        });
+
+        $pId = '';
+
+        if($cartFilter->isNotEmpty()){
+
+            if(!empty($cartFilter->first()->options->options[0]['id'])){
+                $pId = $cartFilter->first()->options->options[0]['id'];
+            }else{
+                $pId = $cartFilter->first()->options['price_id'][0];
+            }
+        }
+
+        $priceData = Price::where('id',$pId)->first();
+
+        if($priceData){
+
+            if ($priceData->stock_manage == 1) {
+                $orderStockSum = Orderstock::where('price_id', $priceData->id)->sum('qty');
+                $remain_qty = $priceData->qty-(int)$orderStockSum;
+    
+                if ($request->qty > $priceData->qty) {
+                    Cart::restore($cartid);
+                    Cart::store($cartid);
+                
+                    return response()->json(["status" => false, "message" => 'Maximum stock limit is ('.$priceData->qty.')'],404);
+                }
+    
+                if ($remain_qty < $request->qty) {
+                    Cart::restore($cartid);
+                    Cart::store($cartid);
+
+                    return response()->json(["status" => false, "message" => 'Stock not available.'],404);
+                }
+            }
+            
+            if ($priceData->stock_status == 0) {
+                Cart::restore($cartid);
+                Cart::store($cartid);
+
+                return response()->json(["status" => false, "message" => 'Oops Maximum stock limit exceeded'],404);
+            }
+        }
+
         $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
             return $cartItem->rowId == $id?$rowId:false;
         });
+        
         if($rowid->isNotEmpty()){
             Cart::update($rowid->first()->rowId, $request->qty);//QTY update
         }
+
         try{
             Cart::store($cartid);
         }catch(Exception $e){

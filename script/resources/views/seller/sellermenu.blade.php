@@ -76,6 +76,14 @@
         </li> -->
     </ul>
 </li>
+
+<li class="menu-header">{{ __('Order Management') }}</li>
+<li class="{{ Request::is('seller/pos*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/pos') }}">
+     <i class="fas fa-cart-plus"></i>
+     <span>{{ __('POS') }}</span>
+ </a>
+</li>
 <?php /*
  <li class="{{ Request::is('seller/review*') ? 'active' : '' }}">
     <a class="nav-link" href="{{ url('/seller/review') }}">
