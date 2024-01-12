@@ -83,32 +83,32 @@ class PosApiController extends Controller
     public function posMakeOrder(Request $request){
 
         $rules = [
-                'total' => 'required|numeric',
-                'subtotal' => 'required|numeric',
-                'tax_amount' => 'required|numeric',
-            
-                'order_method' => 'required|string',
-                'transaction_id' => 'required|string',
+            'total' => 'required|numeric',
+            'subtotal' => 'required|numeric',
+            'tax_amount' => 'required|numeric',
+        
+            'order_method' => 'required|string',
+            'transaction_id' => 'required|string',
 
-                'shipping_method' => 'required',
-                'wpuid'         => 'required',
+            'shipping_method' => 'required',
+            'wpuid'         => 'required',
 
-                'name' => 'required',
-                'email' => 'required',
-                'phone' => 'required',
+            'name' => 'required',
+            'email' => 'required',
+            'phone' => 'required',
 
 
-                'billing' => 'required|array',
-                'billing.*.address' => 'required',
-                'billing.*.city' => 'required',
-                'billing.*.state' => 'required',
-                'billing.*.country' => 'required',
-                'billing.*.post_code' => 'required',
+            'billing' => 'required|array',
+            'billing.*.address' => 'required',
+            'billing.*.city' => 'required',
+            'billing.*.state' => 'required',
+            'billing.*.country' => 'required',
+            'billing.*.post_code' => 'required',
 
-                'order_items' => 'required|array',
-                'order_items.*.term_id' => 'required|integer',
-                'order_items.*.qty' => 'required|integer',
-                'order_items.*.amount' => 'required|numeric',
+            'order_items' => 'required|array',
+            'order_items.*.term_id' => 'required|integer',
+            'order_items.*.qty' => 'required|integer',
+            'order_items.*.amount' => 'required|numeric',
         ];
          
         $validator = Validator::make($request->all(), $rules);

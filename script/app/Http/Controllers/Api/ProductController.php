@@ -236,6 +236,14 @@ class ProductController extends Controller
     }
 
     public function addStockValidation($price,$exist_qty,$cartid){
+
+        $productcartdata['cartid'] = $cartid;
+        $productcartdata['cart_content'] = Cart::content();
+        $productcartdata['cart_subtotal'] = Cart::subtotal();
+        $productcartdata['cart_tax'] = Cart::tax();
+        $productcartdata['cart_total'] = Cart::total();
+        $productcartdata['cart_count'] = Cart::count();
+
         if ($price->stock_manage == 1) {
 
             $orderStockSum = Orderstock::where('price_id', $price->id)->sum('qty');
@@ -245,14 +253,14 @@ class ProductController extends Controller
                 Cart::restore($cartid);
                 Cart::store($cartid);
 
-                return response()->json(["status" => false, "message" => 'Maximum stock limit is ('.$price->qty.')'],404);
+                return response()->json(["status" => 0, "message" => 'Maximum stock limit is ('.$price->qty.')', "result" => $productcartdata],404);
             }
 
             if ($remain_qty < $exist_qty) {
                 Cart::restore($cartid);
                 Cart::store($cartid);
 
-                return response()->json(["status" => false, "message" => 'Stock not available.'],404);
+                return response()->json(["status" => 0, "message" => 'Stock not available.', "result" => $productcartdata],404);
             }
         }
         
@@ -260,7 +268,8 @@ class ProductController extends Controller
             Cart::restore($cartid);
             Cart::store($cartid);
 
-            return response()->json(["status" => false, "message" => 'Oops Maximum stock limit exceeded'],404);
+            return response()->json(["status" => 0, "message" => 'Oops Maximum stock limit exceeded', "result" => $productcartdata],404);
+
         }
     }
 
@@ -360,31 +369,11 @@ class ProductController extends Controller
         $priceData = Price::where('id',$pId)->first();
 
         if($priceData){
-
-            if ($priceData->stock_manage == 1) {
-                $orderStockSum = Orderstock::where('price_id', $priceData->id)->sum('qty');
-                $remain_qty = $priceData->qty-(int)$orderStockSum;
-    
-                if ($request->qty > $priceData->qty) {
-                    Cart::restore($cartid);
-                    Cart::store($cartid);
-                
-                    return response()->json(["status" => false, "message" => 'Maximum stock limit is ('.$priceData->qty.')'],404);
-                }
-    
-                if ($remain_qty < $request->qty) {
-                    Cart::restore($cartid);
-                    Cart::store($cartid);
-
-                    return response()->json(["status" => false, "message" => 'Stock not available.'],404);
-                }
-            }
-            
-            if ($priceData->stock_status == 0) {
-                Cart::restore($cartid);
-                Cart::store($cartid);
-
-                return response()->json(["status" => false, "message" => 'Oops Maximum stock limit exceeded'],404);
+            $reqQunatity = $request->qty;
+            $stockCheck = $this->addStockValidation($priceData,$reqQunatity,$cartid);
+          
+            if($stockCheck){
+                return $stockCheck;
             }
         }
 
@@ -401,6 +390,7 @@ class ProductController extends Controller
         }catch(Exception $e){
             Cart::updatestore($cartid);
         }
+
         $productcartdata['cartid'] = $cartid;
         $productcartdata['cart_content'] = Cart::content();
         $productcartdata['cart_subtotal'] = Cart::subtotal();
@@ -409,6 +399,42 @@ class ProductController extends Controller
         $productcartdata['cart_count'] = Cart::count();
         return response()->json(["status" => true, "message" => 'Cart Updated  Sucessfullly', "result" => $productcartdata]);
     }
+
+    // public function addQtyUpdateStockValidation($priceData,$reqQunatity,$cartid){
+
+    //     $productcartdata['cartid'] = $cartid;
+    //     $productcartdata['cart_content'] = Cart::content();
+    //     $productcartdata['cart_subtotal'] = Cart::subtotal();
+    //     $productcartdata['cart_tax'] = Cart::tax();
+    //     $productcartdata['cart_total'] = Cart::total();
+    //     $productcartdata['cart_count'] = Cart::count();
+
+    //     if ($priceData->stock_manage == 1) {
+    //         $orderStockSum = Orderstock::where('price_id', $priceData->id)->sum('qty');
+    //         $remain_qty = $priceData->qty-(int)$orderStockSum;
+
+    //         if ($reqQunatity > $priceData->qty) {
+    //             Cart::restore($cartid);
+    //             Cart::store($cartid);
+            
+    //             return response()->json(["status" => false, "message" => 'Maximum stock limit is ('.$priceData->qty.')','result'=>$productcartdata],404);
+    //         }
+
+    //         if ($remain_qty < $reqQunatity) {
+    //             Cart::restore($cartid);
+    //             Cart::store($cartid);
+
+    //             return response()->json(["status" => false, "message" => 'Stock not available.','result'=>$productcartdata],404);
+    //         }
+    //     }
+        
+    //     if ($priceData->stock_status == 0) {
+    //         Cart::restore($cartid);
+    //         Cart::store($cartid);
+
+    //         return response()->json(["status" => false, "message" => 'Oops Maximum stock limit exceeded','result'=>$productcartdata],404);
+    //     }
+    // }
 
     public function varidation($id)
     {
