@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Store;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Term;
+use App\Models\Price;
 use App\Models\Category;
 use App\Models\Location;
 use App\Models\Getway;
@@ -484,27 +485,24 @@ class CheckoutController extends Controller
                     'options' => $row->options->options ?? []
                 ]);
 
-            //    dump($row);
-            //    dump($row->options->price_id);
-               if(isset($row->options->price_id)){
-                array_push($priceids, ['order_id' => $order->id, 'price_id' => $row->options->price_id, 'qty' => $row->qty]);
-               }
+            //    if(isset($row->options->price_id)){
+            //     array_push($priceids, ['order_id' => $order->id, 'price_id' => $row->options->price_id, 'qty' => $row->qty]);
+            //    }
 
-                // foreach ($row->options->price_id ?? [] as $key => $r) {
+                if($row->options->options == []){
+                        array_push($priceids, ['order_id' => $order->id, 'price_id' => $row->options->price_id[0], 'qty' => $row->qty]);
+                }else{
+                    foreach ($row->options->options as $optionVal) {
+                        array_push($priceids, ['order_id' => $order->id, 'price_id' => $optionVal->id, 'qty' => (int)$row->qty]);
+                    }
+                }
 
-                //     array_push($priceids, ['order_id' => $order->id, 'price_id' => $r, 'qty' => $row->qty]);
-                // }
-
-               
                 $data['qty'] = $row->qty;
                 $data['amount'] = $row->price;
                 $total_weight = $total_weight + $row->weight;
                 array_push($oder_items, $data);
                 $cartid = $row->instance;
             }
-
-          //  dump($priceids);
-           // dd($oder_items);
 
             $order->orderitems()->insert($oder_items);
 
@@ -626,7 +624,7 @@ class CheckoutController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
 
-        //    dd($th);
+        dd($th);
           
             return redirect()->away($redirect_url . '/?type=error&message=Oops something wrong while saving order data');
         }

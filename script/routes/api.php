@@ -45,6 +45,21 @@ Route::group([
     Route::post('/get_invoice_info','Api\ProductController@getInvoiceInfo');
     Route::get('/get_banner_image','Api\ProductController@getBannerImage');
     Route::get('/get_footer_links','Api\ProductController@getFooterLinks');
+
+
+    // PosApiController
+
+    Route::post('/get_pos_category_list','Api\PosApiController@getPosCategoryList');
+    Route::post('/get_pos_product_list', 'Api\PosApiController@posProductList');
+    Route::post('/cart/pos_add_to_cart', 'Api\PosApiController@posAddToCart');
+    Route::post('/cart/pos_get_cart', 'Api\PosApiController@posGetCart');
+    Route::post('/cart/pos_update_cart', 'Api\PosApiController@posCartQty');
+    Route::post('/cart/pos_remove_from_cart/{id}', 'Api\PosApiController@posRemoveCart');
+    Route::get('/pos-product/{id}', 'Api\PosApiController@posProductDetail');
+    Route::post('/pos-make-order', 'Api\PosApiController@posMakeOrder');
+
+    Route::post('/pos-get-store-details', 'Api\PosApiController@posGetStoreDetails');
+
 });
 
 
