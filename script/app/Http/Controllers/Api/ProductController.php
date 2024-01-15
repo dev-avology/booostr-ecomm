@@ -149,8 +149,8 @@ class ProductController extends Controller
             $existingCartItem = Cart::search(function ($cartItem, $rowId) use ($info, $price) {
                 return $cartItem->id == $info->id;
             });
-
-            if ($existingCartItem->isNotEmpty()) {
+            
+            if ($existingCartItem->isNotEmpty() && (int)$request->variation_id == $existingCartItem->first()->options->options->first()->id) {
                 $rowId = $existingCartItem->first()->rowId;
                 Cart::update($rowId, $exist_qty);
             }else{
