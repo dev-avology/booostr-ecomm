@@ -1653,21 +1653,6 @@ class PosApiController extends Controller
  *     tags={"Store"},
  *     summary="Order info",
  *     operationId="posOrderInfo",
- *     @OA\RequestBody(
- *         required=true,
- *         description="Request body",
- *         @OA\MediaType(
- *             mediaType="application/json",
- *             @OA\Schema(
- *                 type="object",
- *                 @OA\Property(
- *                     property="type",
- *                     type="integer",
- *                     description="Type (required)",
- *                 ),
- *             ),
- *         ),
- *     ),
  *     @OA\Response(
  *         response=200,
  *         description="Order info retrieved successfully.",
