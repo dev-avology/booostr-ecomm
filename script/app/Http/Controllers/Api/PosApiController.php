@@ -13,9 +13,11 @@ use App\Models\Getway;
 use App\Models\Location;
 use App\Models\Order;
 use App\Models\Coupon;
+use App\Models\Price;
 use Cookie;
 use App\Models\Option;
 use Carbon\Carbon;
+use App\Models\Orderstock;
 use Illuminate\Support\Facades\Session;
 use Cart;
 use DB;
@@ -25,6 +27,79 @@ use Exception;
 
 class PosApiController extends Controller
 {
+
+/**
+ * @OA\Post(
+ *     path="/api/storedata/get_pos_category_list",
+ *     tags={"Store"},
+ *     summary="Get POS category list",
+ *     operationId="getPosCategoryList",
+ *     @OA\RequestBody(
+ *         required=false,
+ *         description="No request body for this endpoint",
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Categories list successful response",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *             @OA\Property(
+ *                 property="categories",
+ *                 type="array",
+ *                 description="List of categories",
+ *                 @OA\Items(type="string"),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
+
+
+
 
     public function getPosCategoryList(Request $request){
        $posts = Category::where('type', 'category')->whereNull('category_id')
@@ -43,6 +118,80 @@ class PosApiController extends Controller
 
 
 
+ /**
+ * @OA\Post(
+ *     path="/api/storedata/get_pos_product_list",
+ *     tags={"Store"},
+ *     summary="Get POS product list",
+ *     operationId="posProductList",
+ *     @OA\RequestBody(
+ *         required=false,
+ *         description="No request body for this endpoint",
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Product list successful response",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *             @OA\Property(
+ *                 property="products",
+ *                 type="array",
+ *                 description="List of products",
+ *                 @OA\Items(type="string"),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
+
+
+
+
+
     public function posProductList(Request $request)
     {
        $posts = Term::query()->where('type', 'product')->where('status', 1)
@@ -58,12 +207,87 @@ class PosApiController extends Controller
         return response()->json(["status" => true, "message" => "products", "result" => $posts]);
     }
 
+
+ /**
+ * @OA\Get(
+ *     path="/api/storedata/pos-product/{id}",
+ *     tags={"Store"},
+ *     summary="Get POS product details",
+ *     operationId="getPosProductDetails",
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         description="Product ID",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Product details successful response",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *             @OA\Property(
+ *                 property="product",
+ *                 type="array",
+ *                 description="Product details",
+ *                 @OA\Items(type="string"),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
+
+
     
     public function posProductDetail(Request $request,$id)
     {
         $info=Term::query()->where('type','product')->where('status',1)->whereIn('list_type', [2])->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo')->withCount('reviews')->where('id', $id)->first();
         if(empty($info)){
-            return response()->json(["status" => false, "message" => "sorry, product not found", "result" => []]);
+            return response()->json(["status" => false, "message" => "sorry, product not found", "result" => []],404);
         }
         $medias=json_decode($info->medias->value ?? '');
         $preview=asset($info->preview->value ?? 'uploads/default.png');
@@ -79,6 +303,181 @@ class PosApiController extends Controller
         return response()->json(["status" => true, "message" => "products", "result" =>$info,"galleries"=>$galleries]);
         
     }
+
+
+ /**
+ * @OA\Post(
+ *     path="/api/storedata/pos-make-order",
+ *     tags={"Store"},
+ *     summary="POS Make Order",
+ *     operationId="posMakeOrder",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         description="POS Make Order request body",
+ *         @OA\MediaType(
+ *             mediaType="application/json",
+ *             @OA\Schema(
+ *                 type="object",
+ *                 @OA\Property(
+ *                     property="total",
+ *                     type="number",
+ *                     format="double",
+ *                     description="Total amount (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="subtotal",
+ *                     type="number",
+ *                     format="double",
+ *                     description="Subtotal amount (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="order_method",
+ *                     type="string",
+ *                     description="Order method (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="tax_amount",
+ *                     type="number",
+ *                     format="double",
+ *                     description="Tax amount (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="transaction_id",
+ *                     type="string",
+ *                     description="Transaction ID (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="shipping_method",
+ *                     type="string",
+ *                     description="Shipping method (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="wpuid",
+ *                     type="string",
+ *                     description="WP User ID (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="name",
+ *                     type="string",
+ *                     description="Customer name (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="email",
+ *                     type="string",
+ *                     description="Customer email (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="phone",
+ *                     type="string",
+ *                     description="Customer phone number (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="coupon_code",
+ *                     type="string",
+ *                     description="Coupon code",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="discount",
+ *                     type="string",
+ *                     description="Discount amount",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="order_items",
+ *                     type="array",
+ *                     description="List of order items",
+ *                     @OA\Items(
+ *                         type="object",
+ *                         @OA\Property(property="term_id", type="integer", description="Product term ID (required)"),
+ *                         @OA\Property(property="qty", type="integer", description="Quantity (required)"),
+ *                         @OA\Property(property="amount", type="number", format="double", description="Item amount (required)"),
+ *                         @OA\Property(property="variation_id", type="integer", description="Variation ID"),
+ *                     ),
+ *                 ),
+ *                 @OA\Property(
+ *                     property="billing",
+ *                     type="array",
+ *                     description="Billing address details",
+ *                     @OA\Items(
+ *                         type="object",
+ *                         @OA\Property(property="address", type="string", description="Billing address (required)"),
+ *                         @OA\Property(property="city", type="string", description="Billing city (required)"),
+ *                         @OA\Property(property="state", type="string", description="Billing state (required)"),
+ *                         @OA\Property(property="country", type="string", description="Billing country (required)"),
+ *                         @OA\Property(property="post_code", type="string", description="Billing post code (required)"),
+ *                     ),
+ *                 ),
+ *                 @OA\Property(
+ *                     property="shipping",
+ *                     type="array",
+ *                     description="Shipping address details",
+ *                     @OA\Items(
+ *                         type="object",
+ *                         @OA\Property(property="address", type="string", description="Shipping address (required)"),
+ *                         @OA\Property(property="city", type="string", description="Shipping city (required)"),
+ *                         @OA\Property(property="state", type="string", description="Shipping state (required)"),
+ *                         @OA\Property(property="country", type="string", description="Shipping country (required)"),
+ *                         @OA\Property(property="post_code", type="string", description="Shipping post code (required)"),
+ *                     ),
+ *                 ),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Order created successfully",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="status",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="status",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
+
+
+
 
     public function posMakeOrder(Request $request){
 
@@ -245,6 +644,7 @@ class PosApiController extends Controller
 
             $order->total = $total_amount ?? 0;
             $order->order_method = $order_method ?? 'delivery';
+            $order->order_from = 4;
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $request->transaction_id;
             $order->payment_status = 4;
@@ -407,6 +807,79 @@ class PosApiController extends Controller
         }
     }
 
+ /**
+ * @OA\Post(
+ *     path="/api/storedata/pos-get-store-details",
+ *     tags={"Store"},
+ *     summary="Get POS store details",
+ *     operationId="posGetStoreDetails",
+ *     @OA\RequestBody(
+ *         required=false,
+ *         description="No request body for this endpoint",
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Store details successful response",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *             @OA\Property(
+ *                 property="Store",
+ *                 type="array",
+ *                 description="Store details",
+ *                 @OA\Items(type="string"),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
+
+
+    
+
     public function posGetStoreDetails(Request $request){
         $club_info = tenant_club_info();
 
@@ -519,196 +992,764 @@ class PosApiController extends Controller
         return $response;
     }
 
-    // public function search(Request $request)
-    // {
-    //     $posts = Term::query()
-    //         ->where('type', 'product')
-    //         ->whereIn('list_type', [0,1])
-    //         ->with('media', 'firstprice', 'lastprice')
-    //         ->whereHas('firstprice')
-    //         ->whereHas('lastprice')
-    //         ->where(function ($query) use ($request) {
-    //             $query->where('title', 'like', '%' . $request->keyword . '%')
-    //                 ->orWhere('full_id', 'like', '%' . $request->keyword . '%');
-    //         })->latest()->paginate(100);
+ /**
+ * @OA\Post(
+ *     path="/api/storedata/cart/pos_add_to_cart",
+ *     tags={"Store"},
+ *     summary="POS Add to cart",
+ *     operationId="posAddToCart",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         description="Add to cart request body",
+ *         @OA\MediaType(
+ *             mediaType="application/json",
+ *             @OA\Schema(
+ *                 type="object",
+ *                 @OA\Property(
+ *                     property="id",
+ *                     type="string",
+ *                     description="Product ID (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="qty",
+ *                     type="integer",
+ *                     description="Quantity (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="variation_id",
+ *                     type="string",
+ *                     description="Variation ID (optional)",
+ *                 ),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Product add to cart successfully",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *             @OA\Property(
+ *                 property="Cart",
+ *                 type="array",
+ *                 description="Add to cart",
+ *                 @OA\Items(type="string"),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="cartid",
+ *         in="header",
+ *         required=false,
+ *         description="Cart id",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
 
-    //     return response()->json(["status" => true, "message" => "searched products", "result" => $posts]);
-    // }
 
-    // public function posAddToCart(Request $request)
-    // {
-    //     $cartid = !empty($request->header('cartid')) ? $request->header('cartid') : Str::random(10);
-    //     $info = '';
-    //     if ($request->id) {
-    //         $info = Term::where('id', $request->id)
-    //             ->where('type', 'product')
-    //             ->where('status', 1)
-    //             ->with(['excerpt', 'preview'])
-    //             ->when($request->variation_id, function ($query) use ($request) {
-    //                 $query->with(['prices' => function ($subQuery) use ($request) {
-    //                     $subQuery->where('id', $request->variation_id);
-    //                 }]);
-    //             })
-    //             ->first();
-    //     }
-    //     // dd($info);
+
+
+    public function posAddToCart(Request $request)
+    {
+        $cartid = !empty($request->header('cartid')) ? $request->header('cartid') : Str::random(10);
+        $info = '';
+
+        if ($request->id) {
+            $info = Term::where('id', $request->id)->where('type', 'product')
+            ->where('status', 1)
+            ->with(['excerpt', 'preview','firstprice'])
+            ->when($request->variation_id, function ($query) use ($request) {
+                $query->with(['prices' => function ($subQuery) use ($request) {
+                    $subQuery->where('id', $request->variation_id);
+                }]);
+            })
+            ->first();
+        }
         
-    //     if (empty($info)) {
-    //         return response()->json(["status" => 0, "message" => 'Oops product not available', "result" => []]);
-    //     }
+        if (empty($info)) {
+            return response()->json(["status" => 0, "message" => 'Oops product not available', "result" => []],404);
+        }
         
-    //     Cart::instance($cartid);
-    //     Cart::restore($cartid);
+        Cart::instance($cartid);
+        Cart::restore($cartid);
+
+        $cart_content=Cart::instance($cartid)->content();
         
-    //     if ($info->is_variation == 1) {
-    //        $cart_item = Cart::add(
-    //             ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $info->prices[0]['price'], 'weight' => $info->prices[0]['weight'], 
-    //             'options' => [
-    //                 'tax' =>$info->prices[0]['tax'],
-    //                 'options' => $info->prices, 'sku' => $info->prices[0]['sku'], 'stock' => null, 'price_id' => $info->prices[0]['id'],'short_description'=>($info->excerpt->value ?? ''),
-    //                 'preview'=>asset($info->preview->value ?? 'uploads/default.png')
-    //                 ]
-    //             ]);
+        if ($info->is_variation == 1) {
 
-    //      if($info->prices[0]['tax'] == 1){
-    //         $cart_item->setTaxRate(getTaxRate());
-    //      }
+            $price=$info->prices[0];
+                            
+            $exist_qty=0;
 
-    //     } else {
-    //         $price = $info->firstprice;
-    //         $weight = $price->weight ?? 0;
-    //         $options = [
-    //             'sku' => $price->sku,
-    //             'stock' => $price->qty,
-    //             'tax'=>$price->tax,
-    //             'type'=>$price->tax,
-    //             'options' => [],
-    //             'short_description'=>($info->excerpt->value ?? ''),
-    //             'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
-    //         ];
-    //         if ($price->stock_manage == 1 && $price->stock_status == 1) {
-    //             $options['stock'] = $price->qty;
-    //             $options['price_id'] = [$price->id];
-    //         } else {
-    //             $options['stock'] = null;
-    //         }
-      
-    //       $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);          
+            foreach ($cart_content as $key => $row) {
+                                        
+               if (($row->id == $info->id) && ($row->options->options[0]->id == $price->id)) {
+                   $row_qty=$row->qty ?? 0;
+                   $exist_qty=(int)$row_qty;
+               }
+            }
+
+            $exist_qty=$exist_qty+$request->qty;
+
+            $weight=$price->weight ?? 0;
+
+            $stockCheck = $this->addStockValidation($price,$exist_qty,$cartid);
+            if($stockCheck){
+                return $stockCheck;
+            }
+
+            $existingCartItem = Cart::search(function ($cartItem, $rowId) use ($info, $price) {
+                return $cartItem->id == $info->id;
+            });
+            
+            if ($existingCartItem->isNotEmpty() && (int)$request->variation_id == $existingCartItem->first()->options->options->first()->id) {
+                $rowId = $existingCartItem->first()->rowId;
+                Cart::update($rowId, $exist_qty);
+            }else{
+                $cart_item = Cart::add(
+                        ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $info->prices[0]['price'], 'weight' => $info->prices[0]['weight'], 
+                        'options' => [
+                            'tax' =>$info->prices[0]['tax'],
+                            'options' => $info->prices, 'sku' => $info->prices[0]['sku'], 'stock' => null, 'price_id' => $info->prices[0]['id'],'short_description'=>($info->excerpt->value ?? ''),
+                            'preview'=>asset($info->preview->value ?? 'uploads/default.png')
+                            ]
+                        ]);
+
+                if($info->prices[0]['tax'] == 1){
+                    $cart_item->setTaxRate(getTaxRate());
+                }
+            }
+
+        } else {
+
+            $exist_qty=0;
+
+            foreach ($cart_content as $key => $row) {
+               if ($row->id == $info->id) {
+                   $row_qty=$row->qty ?? 0;
+                   $exist_qty=(int)$row_qty;
+               }
+            }
+
+            $exist_qty=$exist_qty+$request->qty;
+
+            $price=$info->firstprice;
+            $weight=$price->weight ?? 0;
+
+            $stockCheck = $this->addStockValidation($price,$exist_qty,$cartid);
+            if($stockCheck){
+                return $stockCheck;
+            }
+
+            $existingCartItem = Cart::search(function ($cartItem, $rowId) use ($info, $price) {
+                return $cartItem->id == $info->id ? $rowId:false;
+            });
+
+            if ($existingCartItem->isNotEmpty()) {
+                $rowId = $existingCartItem->first()->rowId;
+                Cart::update($rowId, $exist_qty);
+            }else{
+                $options = [
+                    'sku' => $price->sku,
+                    'stock' => $price->qty,
+                    'tax'=>$price->tax,
+                    'type'=>$price->tax,
+                    'options' => [],
+                    'short_description'=>($info->excerpt->value ?? ''),
+                    'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
+                ];
+    
+                if ($price->stock_manage == 1 && $price->stock_status == 1) {
+                    $options['stock'] = $price->qty;
+                    $options['price_id'] = [$price->id];
+                } else {
+                    $options['stock'] = null;
+                }
           
-    //       if($price->tax == 1){
-    //         $cart_item->setTaxRate(getTaxRate());
-    //       }
-    //     }
-    //     try {
-    //         Cart::store($cartid);
-    //     } catch (Exception $e) {
-    //         Cart::updatestore($cartid);
-    //     }
+              $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);          
+              
+              if($price->tax == 1){
+                $cart_item->setTaxRate(getTaxRate());
+              }
+            }
+        }
+        try {
+            Cart::store($cartid);
+        } catch (Exception $e) {
+            Cart::updatestore($cartid);
+        }
+        $productcartdata['cartid'] = $cartid;
+        $productcartdata['cart_content'] = Cart::content();
+        $productcartdata['cart_subtotal'] = Cart::subtotal();
+        $productcartdata['cart_tax'] = Cart::tax();
+        $productcartdata['cart_total'] = Cart::total();
+        $productcartdata['cart_count'] = Cart::count();
+        return response()->json(["status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
+    }
 
-    //     $productcartdata['cartid'] = $cartid;
-    //     $productcartdata['cart_content'] = Cart::content();
-    //     $productcartdata['cart_subtotal'] = Cart::subtotal();
-    //     $productcartdata['cart_tax'] = Cart::tax();
-    //     $productcartdata['cart_total'] = Cart::total();
-    //     $productcartdata['cart_count'] = Cart::count();
-    //     $ctime = 6000;
+    public function addStockValidation($price,$exist_qty,$cartid){
 
-    //     return response()->json(["status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
-    // }
+        $productcartdata['cartid'] = $cartid;
+        $productcartdata['cart_content'] = Cart::content();
+        $productcartdata['cart_subtotal'] = Cart::subtotal();
+        $productcartdata['cart_tax'] = Cart::tax();
+        $productcartdata['cart_total'] = Cart::total();
+        $productcartdata['cart_count'] = Cart::count();
 
-    // public function posGetCart(Request $request)
-    // {
-    //     $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
-    //     if(empty($cartid)){
-    //         return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []]);
-    //     }
-    //     //initialize cart
-    //     Cart::instance($cartid);
-    //     //load cart in session
-    //     Cart::restore($cartid);
-    //     if(Cart::content()->isEmpty()){
-    //         return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
-    //     }
-    //     //resave cart
-    //     try{
-    //         Cart::store($cartid);
-    //     }catch(Exception $e){
-    //         Cart::updatestore($cartid);
-    //     }
-    //     $productcartdata['cartid'] = $cartid;
-    //     $productcartdata['cart_content'] = Cart::content();
-    //     $productcartdata['cart_subtotal'] = Cart::subtotal();
-    //     $productcartdata['cart_tax'] = Cart::tax();
-    //     $productcartdata['cart_total'] = Cart::total();
-    //     $productcartdata['cart_count'] = Cart::count();
-    //     return response()->json(["status" => true, "message" => 'Cart Data', "result" => $productcartdata]);
-    // }
+        if ($price->stock_manage == 1) {
 
-    // public function posRemoveCart(Request $request,$id)
-    // {
-    //     $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
-    //     if(empty($cartid)){
-    //         return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []]);
-    //     }
-    //     //initialize cart
-    //     Cart::instance($cartid);
-    //     //load cart in session
-    //     Cart::restore($cartid);
-    //     if(Cart::content()->isEmpty()){
-    //         return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
-    //     }
-    //     $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
-    //         return $cartItem->rowId == $id?$rowId:false;
-    //     });
-    //     if($rowid->isNotEmpty()){
-    //         Cart::remove($rowid->first()->rowId);//remove
-    //     }
-    //     try{
-    //         Cart::store($cartid);
-    //     }catch(Exception $e){
-    //         Cart::updatestore($cartid);
-    //     }
-    //     $productcartdata['cartid'] = $cartid;
-    //     $productcartdata['cart_content'] = Cart::content();
-    //     $productcartdata['cart_subtotal'] = Cart::subtotal();
-    //     $productcartdata['cart_tax'] = Cart::tax();
-    //     $productcartdata['cart_total'] = Cart::total();
-    //     $productcartdata['cart_count'] = Cart::count();
-    //     return response()->json(["status" => true, "message" => 'Removed From Cart Sucessfullly', "result" => $productcartdata]);
-    // }
+            $orderStockSum = Orderstock::where('price_id', $price->id)->sum('qty');
+            $remain_qty = $price->qty-(int)$orderStockSum;
 
-    // public function posCartQty(Request $request)
-    // {
-    //     $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
-    //     if(empty($cartid)){
-    //         return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []]);
-    //     }
-    //     Cart::instance($cartid);
-    //     Cart::restore($cartid);
-    //     $id=$request->id;
-    //     if(empty($request->id)||!isset($request->qty)){
-    //         return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
-    //     }
-    //     if(Cart::content()->isEmpty()){
-    //         return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []]);
-    //     }
-    //     $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
-    //         return $cartItem->rowId == $id?$rowId:false;
-    //     });
-    //     if($rowid->isNotEmpty()){
-    //         Cart::update($rowid->first()->rowId, $request->qty);//QTY update
-    //     }
-    //     try{
-    //         Cart::store($cartid);
-    //     }catch(Exception $e){
-    //         Cart::updatestore($cartid);
-    //     }
-    //     $productcartdata['cartid'] = $cartid;
-    //     $productcartdata['cart_content'] = Cart::content();
-    //     $productcartdata['cart_subtotal'] = Cart::subtotal();
-    //     $productcartdata['cart_tax'] = Cart::tax();
-    //     $productcartdata['cart_total'] = Cart::total();
-    //     $productcartdata['cart_count'] = Cart::count();
-    //     return response()->json(["status" => true, "message" => 'Cart Updated  Sucessfullly', "result" => $productcartdata]);
-    // }
+            if ($exist_qty > $price->qty) {
+                Cart::restore($cartid);
+                Cart::store($cartid);
+
+                return response()->json(["status" => 0, "message" => 'Maximum stock limit is ('.$price->qty.')', "result" => $productcartdata],404);
+            }
+
+            if ($remain_qty < $exist_qty) {
+                Cart::restore($cartid);
+                Cart::store($cartid);
+
+                return response()->json(["status" => 0, "message" => 'Stock not available.', "result" => $productcartdata],404);
+            }
+        }
+        
+        if (($price->stock_status == 0)) {
+            Cart::restore($cartid);
+            Cart::store($cartid);
+
+            return response()->json(["status" => 0, "message" => 'Oops Maximum stock limit exceeded', "result" => $productcartdata],404);
+
+        }
+    }
+
+ /**
+ * @OA\Post(
+ *     path="/api/storedata/cart/pos_get_cart",
+ *     tags={"Store"},
+ *     summary="POS get cart",
+ *     operationId="posGetCart",
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cart data",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *             @OA\Property(
+ *                 property="Cart",
+ *                 type="array",
+ *                 description="Cart data",
+ *                 @OA\Items(type="string"),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="cartid",
+ *         in="header",
+ *         required=true,
+ *         description="Cart id",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
+
+    public function posGetCart(Request $request)
+    {
+        $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
+        if(empty($cartid)){
+            return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []],404);
+        }
+        //initialize cart
+        Cart::instance($cartid);
+        //load cart in session
+        Cart::restore($cartid);
+        if(Cart::content()->isEmpty()){
+            return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
+        }
+        //resave cart
+        try{
+            Cart::store($cartid);
+        }catch(Exception $e){
+            Cart::updatestore($cartid);
+        }
+        $productcartdata['cartid'] = $cartid;
+        $productcartdata['cart_content'] = Cart::content();
+        $productcartdata['cart_subtotal'] = Cart::subtotal();
+        $productcartdata['cart_tax'] = Cart::tax();
+        $productcartdata['cart_total'] = Cart::total();
+        $productcartdata['cart_count'] = Cart::count();
+        return response()->json(["status" => true, "message" => 'Cart Data', "result" => $productcartdata]);
+    }
+
+
+     /**
+ * @OA\Post(
+ *     path="/api/storedata/cart/pos_remove_from_cart/{id}",
+ *     tags={"Store"},
+ *     summary="Remove cart",
+ *     operationId="posRemoveCart",
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         description="Product ID",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Removed From Cart Sucessfullly",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *             @OA\Property(
+ *                 property="product",
+ *                 type="array",
+ *                 description="Remove cart",
+ *                 @OA\Items(type="string"),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="cartid",
+ *         in="header",
+ *         required=true,
+ *         description="Cart id",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
+
+ public function posRemoveCart(Request $request,$id)
+ {
+    $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
+    if(empty($cartid)){
+        return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []],404);
+    }
+    //initialize cart
+    Cart::instance($cartid);
+    //load cart in session
+    Cart::restore($cartid);
+    if(Cart::content()->isEmpty()){
+        return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
+    }
+    $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
+        return $cartItem->rowId == $id?$rowId:false;
+    });
+
+    if($rowid->isNotEmpty()){
+        Cart::remove($rowid->first()->rowId);//remove
+    }
+    try{
+        Cart::store($cartid);
+    }catch(Exception $e){
+        Cart::updatestore($cartid);
+    }
+    $productcartdata['cartid'] = $cartid;
+    $productcartdata['cart_content'] = Cart::content();
+    $productcartdata['cart_subtotal'] = Cart::subtotal();
+    $productcartdata['cart_tax'] = Cart::tax();
+    $productcartdata['cart_total'] = Cart::total();
+    $productcartdata['cart_count'] = Cart::count();
+    return response()->json(["status" => true, "message" => 'Removed From Cart Sucessfullly', "result" => $productcartdata]);
+ }
+
+
+  /**
+ * @OA\Post(
+ *     path="/api/storedata/cart/pos_update_cart",
+ *     tags={"Store"},
+ *     summary="POS update cart",
+ *     operationId="PosCartQty",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         description="Update cart request body",
+ *         @OA\MediaType(
+ *             mediaType="application/json",
+ *             @OA\Schema(
+ *                 type="object",
+ *                 @OA\Property(
+ *                     property="id",
+ *                     type="string",
+ *                     description="Product ID (required)",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="qty",
+ *                     type="integer",
+ *                     description="Quantity (required)",
+ *                 ),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cart updated.",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *             @OA\Property(
+ *                 property="Cart",
+ *                 type="array",
+ *                 description="Cart updated",
+ *                 @OA\Items(type="string"),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="cartid",
+ *         in="header",
+ *         required=false,
+ *         description="Cart id",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
+
+
+
+ public function PosCartQty(Request $request)
+ {
+     $cartid=!empty($request->header('cartid'))?$request->header('cartid'):"";
+     if(empty($cartid)){
+         return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []],404);
+     }
+     Cart::instance($cartid);
+     Cart::restore($cartid);
+     $id=$request->id;
+     if(empty($request->id)||!isset($request->qty)){
+         return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
+     }
+     if(Cart::content()->isEmpty()){
+         return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
+     }
+
+     $cartFilter=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
+         return $cartItem->rowId == $id?$rowId:false;
+     });
+
+     $pId = '';
+
+     if($cartFilter->isNotEmpty()){
+
+         if(!empty($cartFilter->first()->options->options[0]['id'])){
+             $pId = $cartFilter->first()->options->options[0]['id'];
+         }else{
+             $pId = $cartFilter->first()->options['price_id'][0];
+         }
+     }
+
+     $priceData = Price::where('id',$pId)->first();
+
+     if($priceData){
+         $reqQunatity = $request->qty;
+         $stockCheck = $this->addStockValidation($priceData,$reqQunatity,$cartid);
+       
+         if($stockCheck){
+             return $stockCheck;
+         }
+     }
+
+     $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
+         return $cartItem->rowId == $id?$rowId:false;
+     });
+     
+     if($rowid->isNotEmpty()){
+         Cart::update($rowid->first()->rowId, $request->qty);//QTY update
+     }
+
+     try{
+         Cart::store($cartid);
+     }catch(Exception $e){
+         Cart::updatestore($cartid);
+     }
+
+     $productcartdata['cartid'] = $cartid;
+     $productcartdata['cart_content'] = Cart::content();
+     $productcartdata['cart_subtotal'] = Cart::subtotal();
+     $productcartdata['cart_tax'] = Cart::tax();
+     $productcartdata['cart_total'] = Cart::total();
+     $productcartdata['cart_count'] = Cart::count();
+     return response()->json(["status" => true, "message" => 'Cart Updated Sucessfullly', "result" => $productcartdata]);
+ }
+
+
+ /**
+ * @OA\Post(
+ *     path="/api/storedata/pos-order-info",
+ *     tags={"Store"},
+ *     summary="Order info",
+ *     operationId="posOrderInfo",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         description="Request body",
+ *         @OA\MediaType(
+ *             mediaType="application/json",
+ *             @OA\Schema(
+ *                 type="object",
+ *                 @OA\Property(
+ *                     property="type",
+ *                     type="integer",
+ *                     description="Type (required)",
+ *                 ),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Order info retrieved successfully.",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Success",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
+
+ public function posOrderInfo(Request $request)
+ { 
+    $websiteConditions = [
+        'payment_status' => '1',
+        'order_from' => '1',
+    ];
+
+    $posConditions = [
+        'payment_status' => '1',
+        'order_from' => '4',
+    ];
+
+    $data = [];
+
+    $websiteRevenue = Order::where($websiteConditions)->sum('total');
+    $posRevenue = Order::where($posConditions)->sum('total');
+    $totalRevenue = $websiteRevenue+$posRevenue;
+
+    $website_count = Order::where($websiteConditions)->count();
+    $pos_count = Order::where($posConditions)->count();
+    
+    $data['website_order_revenue'] = $websiteRevenue;
+    $data['pos_order_revenue'] = $posRevenue;
+    $data['total_revenue'] = $totalRevenue;
+    $data['website_order_count'] = $website_count;
+    $data['pos_order_count'] = $pos_count;
+    $data['total_order_count'] = $website_count + $pos_count;
+
+    return response()->json(['error' => false, 'message' => 'Order info retrieved successfully', 'result' => $data]);
+ }
 }
