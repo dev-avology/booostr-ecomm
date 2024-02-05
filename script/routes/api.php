@@ -60,6 +60,8 @@ Route::group([
 
     Route::post('/pos-get-store-details', 'Api\PosApiController@posGetStoreDetails');
 
+    Route::post('/pos-order-info', 'Api\PosApiController@posOrderInfo');
+
 });
 
 
