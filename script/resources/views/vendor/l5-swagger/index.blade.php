@@ -30,8 +30,11 @@
 <body>
 <div id="swagger-ui"></div>
 
-<script src="{{ l5_swagger_asset($documentation, 'swagger-ui-bundle.js') }}"></script>
-<script src="{{ l5_swagger_asset($documentation, 'swagger-ui-standalone-preset.js') }}"></script>
+{{-- <script src="{{ l5_swagger_asset($documentation, 'swagger-ui-bundle.js') }}"></script>
+<script src="{{ l5_swagger_asset($documentation, 'swagger-ui-standalone-preset.js') }}"></script> --}}
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui-standalone-preset.js"></script>
+
 <script>
     window.onload = function() {
         // Build a system
