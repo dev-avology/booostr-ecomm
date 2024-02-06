@@ -56,7 +56,7 @@ class NotifyToUser
 		return true;
 	}
 
-	public static function sendEmail($info, $to=null, $email_identity){
+	public static function sendEmail($info, $to=null, $email_identity=null){
 		    if($email_identity == 'admin'){
 				$currency=get_option('currency_info');
 				$invoice_info=get_option('invoice_data',true);
