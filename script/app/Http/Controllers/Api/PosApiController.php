@@ -32,7 +32,7 @@ class PosApiController extends Controller
  * @OA\Post(
  *     path="/api/storedata/get_pos_category_list",
  *     tags={"Store"},
- *     summary="Get POS category list",
+ *     summary="POS category list",
  *     operationId="getPosCategoryList",
  *     @OA\RequestBody(
  *         required=false,
@@ -122,7 +122,7 @@ class PosApiController extends Controller
  * @OA\Post(
  *     path="/api/storedata/get_pos_product_list",
  *     tags={"Store"},
- *     summary="Get POS product list",
+ *     summary="POS product list",
  *     operationId="posProductList",
  *     @OA\RequestBody(
  *         required=false,
@@ -212,7 +212,7 @@ class PosApiController extends Controller
  * @OA\Get(
  *     path="/api/storedata/pos-product/{id}",
  *     tags={"Store"},
- *     summary="Get POS product details",
+ *     summary="POS product details",
  *     operationId="getPosProductDetails",
  *     @OA\Parameter(
  *         name="id",
@@ -811,7 +811,7 @@ class PosApiController extends Controller
  * @OA\Post(
  *     path="/api/storedata/pos-get-store-details",
  *     tags={"Store"},
- *     summary="Get POS store details",
+ *     summary="POS store details",
  *     operationId="posGetStoreDetails",
  *     @OA\RequestBody(
  *         required=false,
@@ -1375,7 +1375,7 @@ class PosApiController extends Controller
  * @OA\Post(
  *     path="/api/storedata/cart/pos_remove_from_cart/{id}",
  *     tags={"Store"},
- *     summary="Remove cart",
+ *     summary="Pos Remove cart",
  *     operationId="posRemoveCart",
  *     @OA\Parameter(
  *         name="id",
@@ -1651,7 +1651,7 @@ class PosApiController extends Controller
  * @OA\Post(
  *     path="/api/storedata/pos-order-info",
  *     tags={"Store"},
- *     summary="Order info",
+ *     summary="POS Order info",
  *     operationId="posOrderInfo",
  *     @OA\Response(
  *         response=200,
@@ -1737,6 +1737,67 @@ class PosApiController extends Controller
 
     return response()->json(['error' => false, 'message' => 'Order info retrieved successfully', 'result' => $data]);
  }
+
+
+  /**
+ * @OA\Post(
+ *     path="/api/storedata/pos-order-list",
+ *     tags={"Store"},
+ *     summary="POS Order list",
+ *     operationId="posOrderList",
+ *     @OA\Response(
+ *         response=200,
+ *         description="Order list retrieved successfully.",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Success",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
 
  public function posOrderList(Request $request){
     $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta')
