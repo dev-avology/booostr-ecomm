@@ -1737,4 +1737,14 @@ class PosApiController extends Controller
 
     return response()->json(['error' => false, 'message' => 'Order info retrieved successfully', 'result' => $data]);
  }
+
+ public function posOrderList(Request $request){
+    $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta')
+    ->where('order_from', 4)
+    ->get();
+
+    if($info){
+        return response()->json(['error'=>false,'message'=>'Order list fetched successfully','result'=>$info]);
+    }
+ }
 }
