@@ -4803,6 +4803,11 @@ input[type="radio"]:checked {
   pointer-events: none;
 }
 
+.card .card-header .listed-on input[type=checkbox], input[type=radio] {
+  accent-color: green;
+  pointer-events: visible;
+}
+
 .checklist-content-model .modal-header {
   border-bottom: none;
   padding-bottom: 5px;

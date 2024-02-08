@@ -112,7 +112,7 @@
                               </select>
                            </div>
                         </div>
-                        <div class="from-group row mb-2">
+                        <div class="from-group row mb-2 listed-on">
                            <label for="" class="col-lg-12">{{ __('List On') }} : </label>
                            <div class="col-lg-4">
                               <input type="radio" name="list_type" value="0" checked/> All
