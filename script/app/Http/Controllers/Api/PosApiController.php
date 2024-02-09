@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use App\Models\Productoption;
 use App\Models\Category;
 use App\Models\Term;
+use App\Models\Termcategory;
 use App\Models\User;
 use App\Models\Getway;
 use App\Models\Location;
@@ -206,6 +207,100 @@ class PosApiController extends Controller
         $posts = $posts->latest()->paginate(50);
         return response()->json(["status" => true, "message" => "products", "result" => $posts]);
     }
+
+
+
+/**
+ * @OA\Post(
+ *     path="/api/storedata/pos-parent-category-product",
+ *     tags={"Store"},
+ *     summary="POS product list",
+ *     operationId="posParentCategoryProduct",
+ *     @OA\RequestBody(
+ *         required=false,
+ *         description="No request body for this endpoint",
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Product list successful response",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Message from the server",
+ *             ),
+ *             @OA\Property(
+ *                 property="products",
+ *                 type="array",
+ *                 description="List of products",
+ *                 @OA\Items(type="string"),
+ *             ),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 description="Status of the operation",
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 description="Error message",
+ *             ),
+ *         ),
+ *     ),
+ *     security={
+ *         {"bearerAuth": {}},
+ *     },
+ *     @OA\Parameter(
+ *         name="Apitoken",
+ *         in="header",
+ *         required=true,
+ *         description="API Token for authentication",
+ *         @OA\Schema(type="string"),
+ *     ),
+ *     @OA\Parameter(
+ *         name="X-Tenant",
+ *         in="header",
+ *         required=true,
+ *         description="Tenant identifier",
+ *         @OA\Schema(type="string"),
+ *     ),
+ * )
+ */
+
+
+
+
+    public function posParentCategoryProduct(Request $request)
+    {
+        $category = Category::find($request->category_id);
+        $categoryIds = $category->recursiveChildrenIds();
+
+        $termIds = Termcategory::whereIn('category_id', $categoryIds)->pluck('term_id')->toArray();
+    
+        $posts = Term::query()->where('type', 'product')->where('status', 1)
+       ->whereIn('list_type', [2])->whereIn('id', $termIds)->with('media','category','firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
+    
+        $posts = $posts->latest()->paginate(50);
+    
+        return response()->json(["status" => true, "message" => "products", "result" => $posts]);
+    }
+    
+    
+    
+
 
 
  /**

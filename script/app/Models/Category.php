@@ -55,6 +55,22 @@ class Category extends Model
         return $this->childrenCategoriesEcommerce()->with('recursiveChildren');
     }
 
+    public function recursiveChildrenIds()
+    {
+        $ids = [];
+        $this->appendRecursiveChildrenIds($ids);
+        return $ids;
+    }
+
+    protected function appendRecursiveChildrenIds(&$ids)
+    {
+        $ids[] = $this->id;
+
+        foreach ($this->childrenCategories as $child) {
+            $child->appendRecursiveChildrenIds($ids);
+        }
+    }
+
     public function meta()
     {
       return $this->hasOne(Categorymeta::class);
