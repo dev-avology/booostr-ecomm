@@ -204,7 +204,7 @@ class PosApiController extends Controller
             });
         }
 
-        $posts = $posts->latest()->paginate(4);
+        $posts = $posts->latest()->paginate(6);
         return response()->json(["status" => true, "message" => "products", "result" => $posts]);
     }
 
@@ -293,7 +293,7 @@ class PosApiController extends Controller
         $posts = Term::query()->where('type', 'product')->where('status', 1)
        ->whereIn('list_type', [2])->whereIn('id', $termIds)->with('media','category','firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
     
-        $posts = $posts->latest()->paginate(4);
+        $posts = $posts->latest()->paginate(6);
     
         return response()->json(["status" => true, "message" => "products", "result" => $posts]);
     }
