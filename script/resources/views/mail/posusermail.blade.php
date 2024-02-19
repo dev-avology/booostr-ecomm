@@ -117,7 +117,7 @@
                       
                         <span
                             style="font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; margin: 0; padding-left: 20px">Date
-                            Placed:<span style="font-weight: 500;">{{ \Carbon\Carbon::parse($data['created_at'])->format('m/d/Y h:i A') }}</span>
+                            Placed:<span style="font-weight: 500;">{{ \Carbon\Carbon::parse($data['created_at'])->format('m/d/Y h:i A') ?? ""}}</span>
                         </span>
                     </td>
                 </tr>
