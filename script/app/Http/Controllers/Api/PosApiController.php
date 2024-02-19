@@ -1834,26 +1834,47 @@ class PosApiController extends Controller
  }
 
 
-  /**
+/**
  * @OA\Post(
  *     path="/api/storedata/pos-order-list",
  *     tags={"Store"},
  *     summary="POS Order list",
  *     operationId="posOrderList",
+ *     requestBody={
+ *         required=true,
+ *         description="Order list",
+ *         @OA\MediaType(
+ *             mediaType="application/json",
+ *             @OA\Schema(
+ *                 type="object",
+ *                 @OA\Property(
+ *                     property="key",
+ *                     type="string",
+ *                     description="Order key (required)",
+ *                 ),
+ *             ),
+ *         ),
+ *     },
  *     @OA\Response(
  *         response=200,
  *         description="Order list retrieved successfully.",
  *         @OA\JsonContent(
  *             type="object",
  *             @OA\Property(
- *                 property="success",
+ *                 property="error",
  *                 type="boolean",
- *                 description="Success",
+ *                 description="Indicates if an error occurred",
  *             ),
  *             @OA\Property(
  *                 property="message",
  *                 type="string",
  *                 description="Message from the server",
+ *             ),
+ *             @OA\Property(
+ *                 property="result",
+ *                 type="array",
+ *                 description="List of orders",
+ *                 @OA\Items(ref="#/components/schemas/Order"),
  *             ),
  *         ),
  *     ),
@@ -1863,7 +1884,7 @@ class PosApiController extends Controller
  *         @OA\JsonContent(
  *             type="object",
  *             @OA\Property(
- *                 property="success",
+ *                 property="error",
  *                 type="boolean",
  *                 description="Status of the operation",
  *             ),
@@ -1894,13 +1915,27 @@ class PosApiController extends Controller
  * )
  */
 
- public function posOrderList(Request $request){
-    $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta')
-    ->where('order_from', 4)
-    ->get();
 
-    if($info){
-        return response()->json(['error'=>false,'message'=>'Order list fetched successfully','result'=>$info]);
+ public function posOrderList(Request $request){
+    $key = $request->input('key');
+
+    $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta')
+                    ->where('order_from', 4);
+
+    if($key == 'latest'){
+        $info->where('payment_status', 1);
+        $info->orderByDesc('created_at');
+    } elseif ($key == 'complete') {
+        $info->where('payment_status', 1);
     }
- }
+
+    $info = $info->get();
+
+    if($info->isNotEmpty()){
+        return response()->json(['error' => false, 'message' => 'Order list fetched successfully', 'result' => $info]);
+    } else {
+        return response()->json(['error' => true, 'message' => 'No orders found', 'result' => null]);
+    }
+}
+
 }
