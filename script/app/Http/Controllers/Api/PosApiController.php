@@ -1923,6 +1923,7 @@ class PosApiController extends Controller
                     ->where('order_from', 4);
 
     if($key == 'latest'){
+        $info->where('payment_status', 1);
         $info->orderByDesc('created_at');
     } elseif ($key == 'complete') {
         $info->where('payment_status', 1);
