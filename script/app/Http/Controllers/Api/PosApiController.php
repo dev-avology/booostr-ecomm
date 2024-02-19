@@ -1052,6 +1052,7 @@ class PosApiController extends Controller
         $data['min_cart_total'] = $min_cart_total;
 
         $data['Getway'] = Getway::all();
+        $data['tenant_logo'] = env('WP_URL').tenant()->logo;
 
         if($data){
             return response()->json(["status" => true, "message" => 'Store data fetched successfully', "result" => $data]);
