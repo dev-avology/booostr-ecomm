@@ -20,7 +20,9 @@ use App\Models\Option;
 use Carbon\Carbon;
 use App\Models\Orderstock;
 use Illuminate\Support\Facades\Session;
+use App\Mail\PosUserEmail;
 use Cart;
+use Mail;
 use DB;
 use Auth;
 use Validator;
@@ -893,7 +895,7 @@ class PosApiController extends Controller
             // \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
 
             DB::commit();
-            return response()->json(["status" => true, "message" => "Order create successfully."]);
+            return response()->json(["status" => true, "message" => "Order create successfully.",'data'=>$order->id]);
 
          } catch (\Throwable $th) {
             DB::rollback();  
@@ -1937,6 +1939,21 @@ class PosApiController extends Controller
     } else {
         return response()->json(['error' => true, 'message' => 'No orders found', 'result' => null]);
     }
+}
+
+
+public function posEmailSend(Request $request){
+    $jsonData = $request->getContent();
+    if(!empty($jsonData)){
+        $jsonData = json_decode($jsonData, true);
+        $subject="Pos order placed.";
+        $mail = new PosUserEmail($jsonData,$subject);
+        // $to = $jsonData['client_email'];
+        $to = 'ashishyadav9149118@gmail.com';
+        $email = Mail::to($to)->send($mail);
+        return response()->json(['error'=>false,'message'=>'Email sent successfully.']);
+    }
+    return response()->json(['error'=>true,'message'=>'Some thing went wrong.']);
 }
 
 }

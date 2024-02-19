@@ -63,6 +63,7 @@ Route::group([
     Route::post('/pos-order-info', 'Api\PosApiController@posOrderInfo');
     Route::post('/pos-order-list', 'Api\PosApiController@posOrderList');
     Route::post('/pos-parent-category-product', 'Api\PosApiController@posParentCategoryProduct');
+    Route::post('/pos-email-send', 'Api\PosApiController@posEmailSend');
 
 });
 
