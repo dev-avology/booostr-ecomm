@@ -894,8 +894,10 @@ class PosApiController extends Controller
             // \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
             // \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
 
+            $data = ['order_id' => $order->id,'order_date' => $order->created_at];
+
             DB::commit();
-            return response()->json(["status" => true, "message" => "Order create successfully.",'data'=>$order->id]);
+            return response()->json(["status" => true, "message" => "Order create successfully.",'data'=>$data]);
 
          } catch (\Throwable $th) {
             DB::rollback();  
