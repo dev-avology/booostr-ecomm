@@ -1948,8 +1948,8 @@ public function posEmailSend(Request $request){
         $jsonData = json_decode($jsonData, true);
         $subject="Pos order placed.";
         $mail = new PosUserEmail($jsonData,$subject);
-        // $to = $jsonData['client_email'];
-        $to = 'ashishyadav9149118@gmail.com';
+        $to = $jsonData['client_email'];
+        // $to = 'ashishyadav9149118@gmail.com';
         $email = Mail::to($to)->send($mail);
         return response()->json(['error'=>false,'message'=>'Email sent successfully.']);
     }
