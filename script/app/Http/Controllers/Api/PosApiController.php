@@ -1943,9 +1943,10 @@ class PosApiController extends Controller
 
 
 public function posEmailSend(Request $request){
-    $jsonData = $request->getContent();
+    $jsonData = $request->all();
+    // dd($jsonData);
     if(!empty($jsonData)){
-        $jsonData = json_decode($jsonData, true);
+        // $jsonData = json_decode($jsonData, true);
         $subject="Pos order placed.";
         $mail = new PosUserEmail($jsonData,$subject);
         $to = $jsonData['client_email'];
