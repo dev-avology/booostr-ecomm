@@ -79,12 +79,12 @@
                     <tr style="background-color: #535353; width: 100%;" class="border-style br-none">
                         <th style="width:15%;text-align:left;padding: 18px 0 7px 20px;border-collapse:collapse;">
                             <img src="https://booostr.co/wp-content/uploads/2022/03/booostr-logo-long-top-header.png" alt="logo"
-                                    style="width: 100%;max-width: 120px;min-height:84px;border-radius:100px;"/>
+                                    style="width: 120px;border-radius:100px;"/>
                         </th>
                         <th style="width: 85%; padding-right: 20px; border-collapse: collapse;">
                             <h2
                                 style="font-family: 'Nunito', 'Segoe UI', Arial; font-size: 24px; font-weight: normal; text-align: left; text-transform: capitalize; color: #fff; padding-left: 50px;">
-                                Hello Tester Club Store
+                                {{$data['club_name'] ?? ""}}
                             </h2>
                         </th>
                     </tr>
@@ -103,6 +103,23 @@
                         </td>
                     </tr>
                 </tbody>
+            </table>
+
+            <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff;">
+                <tr class="border-style">
+                    <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
+                        class="spac-top spac-btm">
+                        <span
+                            style="font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; margin: 0; padding-left: 20px;">
+                            Name: <span style="font-weight: 500;">{{$data['client_name'] ?? "NA"}}</span>
+                        </span>
+                        <br>
+                        <span
+                            style="font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; margin: 0; padding-left: 20px">
+                            Email: <span style="font-weight: 500;">{{$data['client_email'] ?? "NA"}}</span>
+                        </span>
+                    </td>
+                </tr>
             </table>
 
             <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff;">
@@ -136,13 +153,13 @@
                             Product</td>
 
                         <td class="text-center"
-                            style="font-weight: bold;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
+                            style="padding-left: 35px; text-align: right; font-weight: bold;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
                             Price</td>
                         <td class="text-center"
-                            style="font-weight: bold;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
+                            style="text-align: right; font-weight: bold; font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
                             Qty</td>
                         <td class="text-right"
-                            style="font-weight: bold;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
+                            style="padding-right: 35px; text-align: right; font-weight: bold;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
                             Totals</td>
                     </tr>
 
@@ -152,19 +169,19 @@
 
                     <tr>
                         <td class="text-left"
-                            style="padding-left: 35px;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
+                            style="padding-left: 35px; font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
                             {{ $item['title'] ?? ''}}
                         </td>
                         <td class="text-center"
-                            style="font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
+                            style="text-align: right; font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
                             ${{ number_format($item['firstprice']['price'] ?? 0, 2) }}
                         </td>
                         <td class="text-center"
-                            style="font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
+                            style="text-align: right; font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
                             {{$item['cart_quantity'] ?? 0}}
                         </td>
                         <td class="text-right"
-                            style="font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
+                            style="padding-right: 35px; text-align: right; font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
                             ${{ number_format($item['firstprice']['price']*$item['cart_quantity'] ?? 0, 2) }}
                         </td> 
                     </tr>
@@ -187,8 +204,8 @@
                                 style="font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c; ">
                                 Subtotal:</h5>
                         </th>
-                        <td style="text-align: center;
-                    padding-right: 20px;width: 30%;" class="spac-top">
+                        <td style="text-align: right;
+                    padding-right: 35px;width: 30%;" class="spac-top">
                             <p
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
@@ -203,7 +220,7 @@
                                 style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
                                 Sales Tax ({{$data['tax']}}):</h5>
                         </th>
-                        <td style="text-align: center;padding-right: 20px;width: 30%;">
+                        <td style="text-align: right;padding-right: 35px;width: 30%;">
                             <p
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
@@ -219,7 +236,7 @@
                                 style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
                                 Total:</h5>
                         </th>
-                        <td style="text-align: center;padding-right: 20px;width: 30%;" class="spac-btm">
+                        <td style="text-align: right;padding-right: 35px;width: 30%;" class="spac-btm">
                             <p
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
@@ -240,8 +257,8 @@
                                 style="font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c; ">
                                 Payment Method:</h5>
                         </th>
-                        <td style="text-align: center;
-                    padding-right: 20px;width: 30%;" class="spac-top">
+                        <td style="text-align: right;
+                    padding-right: 35px;width: 30%;" class="spac-top">
                             <p
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
@@ -256,7 +273,7 @@
                                 style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
                                 Amount Tendered:</h5>
                         </th>
-                        <td style="text-align: center;padding-right: 20px;width: 30%;">
+                        <td style="text-align: right;padding-right: 35px;width: 30%;">
                             <p
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
@@ -272,7 +289,7 @@
                                 style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
                                 Change Returned:</h5>
                         </th>
-                        <td style="text-align: center;padding-right: 20px;width: 30%;" class="spac-btm">
+                        <td style="text-align: right;padding-right: 35px;width: 30%;" class="spac-btm">
                             <p
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
@@ -305,7 +322,7 @@
                             </p>
                             <p
                                 style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;    font-weight: 500;">
-                                Hello Tester Club
+                                {{$data['club_name'] ?? ""}}
                             </p>
                         </td>
                     </tr>
@@ -334,7 +351,7 @@
                                 style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 13px;
                             color: #fff;
                             font-weight: 300;">
-                                Hello Tester Club Store</p>
+                                {{$data['club_name'] ?? ""}}</p>
                             <p
                                 style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 14px;
                             color: #fff;
