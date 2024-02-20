@@ -210,6 +210,7 @@
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
                         color: #3c3c3c;
+                        text-align: right;
                         font-size: 16px;font-weight: 500;">
                                 ${{ number_format($data['order_subtotal'] ?? 0, 2) }}</p>
                         </td>
@@ -225,6 +226,7 @@
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
                         color: #3c3c3c;
+                        text-align: right;
                         font-size: 16px;font-weight: 500;">
                                 ${{ number_format($data['order_tax'] ?? 0, 2) }}
                             </p>
@@ -241,6 +243,7 @@
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
                         color: #3c3c3c;
+                        text-align: right;
                         font-size: 16px;font-weight: 500;">
                                 ${{ number_format($data['order_total'] ?? 0, 2) }}
                             </p>
@@ -263,6 +266,7 @@
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
                         color: #3c3c3c;
+                        text-align: right;
                         font-size: 16px;font-weight: 500;">
                                 {{ $data['payment_method'] ?? ''}}</p>
                         </td>
@@ -278,6 +282,7 @@
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
                         color: #3c3c3c;
+                        text-align: right;
                         font-size: 16px;font-weight: 500;">
                                 ${{ number_format($data['payment_details']['tendered_amount'] ?? 0, 2) }}
                             </p>
@@ -294,6 +299,7 @@
                                 style="padding-left: 20px;
                         font-family: 'Nunito', 'Segoe UI', Arial;
                         color: #3c3c3c;
+                        text-align: right;
                         font-size: 16px;font-weight: 500;">
                                 ${{ number_format($data['payment_details']['tendered_amount']-$data['order_total'] ?? 0, 2) }}
                             </p>
