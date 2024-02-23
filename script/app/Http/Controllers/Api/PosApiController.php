@@ -819,7 +819,8 @@ class PosApiController extends Controller
                 $order->shipping()->create([
                     'shipping_price' => $shipping_price,
                     'weight' => $total_weight,
-                    'info' => json_encode($delivery_info)
+                    'info' => json_encode($delivery_info),
+                    'shipping_driver' => 'local',
                 ]);
             }
  
