@@ -791,8 +791,7 @@ class PosApiController extends Controller
             return response()->json(["status" => true, "message" => "Order Successfull.",'data'=>$data]);
             
         } catch (\Throwable $th) {
-            DB::rollback();  
-            dd($th);         
+            DB::rollback();        
             return response()->json(["status" => false, "message" => "Some thing went wrong."],404);
         }
     }
