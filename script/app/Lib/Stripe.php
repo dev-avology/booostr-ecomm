@@ -175,8 +175,8 @@ class Stripe {
                 'amount' => $totalAmount,
                 'currency' =>  $currency_obj,
                 'token' => $token,
-                'onBehalfOf' => $array['stripe_account_id'],
-                'destination'   => $array['stripe_account_id'],
+                'onBehalfOf' => $array['stripe_account_id'] ?? '',
+                'destination'   => $array['stripe_account_id'] ?? '',
                 'applicationFee'=> $applicarionfee,
             ])->send();
             
