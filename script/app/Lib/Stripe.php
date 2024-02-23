@@ -171,14 +171,22 @@ class Stripe {
 
             $applicarionfee = new Money($applicarionfee, $currency_obj);
 
-            $response = $stripe->authorize([
-                'amount' => $totalAmount,
-                'currency' =>  $currency_obj,
-                'token' => $token,
-                'onBehalfOf' => $array['stripe_account_id'] ?? '',
-                'destination'   => $array['stripe_account_id'] ?? '',
-                'applicationFee'=> $applicarionfee,
-            ])->send();
+            if( isset($array['pos']) ){
+                $response = $stripe->authorize([
+                    'amount' => $totalAmount,
+                    'currency' =>  $currency_obj,
+                    'token' => $token,
+                ])->send();
+            }else{
+                $response = $stripe->authorize([
+                    'amount' => $totalAmount,
+                    'currency' =>  $currency_obj,
+                    'token' => $token,
+                    'onBehalfOf' => $array['stripe_account_id'],
+                    'destination'   => $array['stripe_account_id'],
+                    'applicationFee'=> $applicarionfee,
+                ])->send();
+            }
             
         }
         if ($response->isSuccessful()) {
