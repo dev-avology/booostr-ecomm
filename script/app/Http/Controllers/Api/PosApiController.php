@@ -753,8 +753,29 @@ class PosApiController extends Controller
             
             $order->orderitems()->insert($oder_items);
 
-            if (!empty($request->payment_details['card_details']['cardholderName'])) {
-                $customer_info['name'] = $request->payment_details['card_details']['cardholderName'];
+            if ($request->order_method == 'table') {
+                $order->ordertable()->attach($request->table);
+            }
+            if ($request->order_method == 'delivery') {
+                $delivery_info['address'] = $request->shipping[0]['address'].' '. $request->shipping[0]['city'].', '.$request->shipping[0]['state'].', '.$request->shipping[0]['country'];
+
+                $delivery_info['post_code'] = $request->shipping[0]['post_code'];
+
+                $delivery_info['shipping_method'] = $request->shipping_method;
+                $delivery_info['shipping_label'] = $shipping_method_label;
+                $delivery_info['credit_card_fee'] = $credit_card_fee;
+                $delivery_info['booster_platform_fee'] = $booster_platform_fee;
+
+                $order->shipping()->create([
+                    'shipping_price' => $shipping_price,
+                    'weight' => $total_weight,
+                    'info' => json_encode($delivery_info)
+                ]);
+            }
+ 
+            if (!empty($request->name) || !empty($request->email) || !empty($request->phone) || !empty($request->comment)) {
+
+                $customer_info['name'] = $request->name;
                 $customer_info['email'] = $request->email;
                 $customer_info['phone'] = $request->phone;
                 $customer_info['wpuid'] = 0;
@@ -791,8 +812,7 @@ class PosApiController extends Controller
             return response()->json(["status" => true, "message" => "Order Successfull.",'data'=>$data]);
             
         } catch (\Throwable $th) {
-            DB::rollback();  
-            dd($th);         
+            DB::rollback();        
             return response()->json(["status" => false, "message" => "Some thing went wrong."],404);
         }
     }
