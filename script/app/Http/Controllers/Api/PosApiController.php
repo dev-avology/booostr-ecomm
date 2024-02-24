@@ -579,36 +579,7 @@ class PosApiController extends Controller
 
     public function posMakeOrder(Request $request){
 
-        try {
-            $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
-            $gateway_data_info = json_decode($gateway->data);
-
-            Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_publishable_key : $gateway_data_info->publishable_key);
-
-            $token = Token::create([
-                'card' => [
-                    'number' => $request->payment_details['card_details']['cardNumber'],
-                    'exp_month' => substr($request->payment_details['card_details']['expirationDate'], 0, 2),
-                    'exp_year' => substr($request->payment_details['card_details']['expirationDate'], 3, 2),
-                    'cvc' => $request->payment_details['card_details']['cvc'],
-                ],
-            ]);
-            // $token = (object) ['id' => 'tok_1OmtGvGn6XA9j666666NfqOxyi'];
-
-            // $token = Token::create([
-            //     'card' => [
-            //         'number' => '4242424242424242',
-            //         'exp_month' => '02',
-            //         'exp_year' => '25',
-            //         'cvc' => '452',
-            //     ],
-            // ]);
-
-            // return response()->json(["status" => true, "message" => "Order Successful.", "result" => ['token'=>$token->id]]);
-        } catch (InvalidRequestException $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-
+        // Check if the required fields are present
         $rules = [
             'order_total' => 'required|numeric',
             'order_subtotal' => 'required|numeric',
@@ -621,70 +592,86 @@ class PosApiController extends Controller
 
             'items' => 'required|array',
         ];
-         
+        
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json(['message' => 'Required fields are missing'], 422);
         }
 
+
         $subtotal = $request->order_subtotal;
         $total_amount = $request->order_total;
         
         $shipping_price = 0;
         $shipping_method_label = '';
-
-        // $total_discount=str_replace(',','',Cart::discount());
         
-        $total_amount =  $total_amount + $shipping_price;
-        
-        $order_method='pickup';
+        $order_method='delivery';
         $notify_driver='mail';
 
-        // $credit_card_fee = credit_card_fee($total_amount);
         $credit_card_fee = 0.00;
-        // $booster_platform_fee = booster_club_chagre($total_amount);
         $booster_platform_fee = 0.00;
 
-        if( $gateway->test_mode ){
-            $payment_data['test_publishable_key'] = $gateway_data_info->test_publishable_key;
-            $payment_data['test_secret_key'] = $gateway_data_info->test_secret_key;
-        }else{
-            $payment_data['publishable_key'] = $gateway_data_info->publishable_key;
-            $payment_data['secret_key'] = $gateway_data_info->secret_key;
-        }
+        if( $request->payment_method == 'card' ){ // Payment Method: CARD
+            // Generate Stripe Token
+            try {
+                $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+                $gateway_data_info = json_decode($gateway->data);
 
-        $payment_data['currency']   = strtoupper($gateway->currency_name) ?? 'USD';
-        // $payment_data['email']      = $request->email;
-        $payment_data['name']       = $request->payment_details['card_details']['cardholderName'];
-        // $payment_data['phone']      = $request->phone;
-        $payment_data['billName']   = 'Boostr Sale';
-        $payment_data['amount']     = $total_amount;
-        // $payment_data['application_fee_amount']  = $booster_platform_fee;
-        $payment_data['application_fee_amount']  = 0.00;
-        // $payment_data['credit_card_fee']  = $credit_card_fee;
-        $payment_data['credit_card_fee']  = 0.00;
-        $payment_data['test_mode']  = $gateway->test_mode;
-        // $payment_data['charge']     = $gateway->charge ?? 0;
-        $payment_data['charge']     = 0.00;
-        // $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount*$gateway->rate+$gateway->charge ?? 0,2));
-        $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount ?? 0,2));
-        $payment_data['getway_id']  = $gateway->id;
-        $payment_data['stripeToken']=$token->id;
-        $payment_data['pos']=true;
+                Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_publishable_key : $gateway_data_info->publishable_key);
 
-        $paymentresult= $gateway->namespace::charge_payment($payment_data);
-        // $paymentresult= ['payment_status'=>4,'payment_id'=>'ch_9999KFGVOc8S2Ta10txkyYkx', 'transaction_log'=>'{"id":"ch_9999KFGVOc8S2Ta10txkyYkx","object":"charge","amount":4700,"amount_captured":4700,"amount_refunded":4700,"application":null,"application_fee":"fee_1O56PN2cxSrLS5j9AHDdu2QO","application_fee_amount":284,"balance_transaction":"txn_9999KFGVOc8S2Ta10ellEY1M","billing_details":{"address":{"city":null,"country":null,"line1":null,"line2":null,"postal_code":"24242","state":null},"email":null,"name":null,"phone":null},"calculated_statement_descriptor":"BOOOSTR.CO","captured":true,"created":1698237403,"currency":"usd","customer":null,"description":null,"destination":"acct_1L0lG32cxSrLS5j9","dispute":null,"disputed":false,"failure_balance_transaction":null,"failure_code":null,"failure_message":null,"fraud_details":[],"invoice":null,"livemode":false,"metadata":[],"on_behalf_of":"acct_1L0lG32cxSrLS5j9","order":null,"outcome":{"network_status":"approved_by_network","reason":null,"risk_level":"normal","risk_score":37,"seller_message":"Payment complete.","type":"authorized"},"paid":true,"payment_intent":null,"payment_method":"card_1O56KCGVOc8S2Ta1U4Qn16U8","payment_method_details":{"card":{"amount_authorized":4700,"brand":"visa","capture_before":1698842203,"checks":{"address_line1_check":null,"address_postal_code_check":"pass","cvc_check":"pass"},"country":"US","exp_month":2,"exp_year":2042,"extended_authorization":{"status":"disabled"},"fingerprint":"Ac6yIC2uuUHTelfH","funding":"credit","incremental_authorization":{"status":"unavailable"},"installments":null,"last4":"4242","mandate":null,"multicapture":{"status":"unavailable"},"network":"visa","network_token":{"used":false},"overcapture":{"maximum_amount_capturable":4700,"status":"unavailable"},"three_d_secure":null,"wallet":null},"type":"card"},"receipt_email":null,"receipt_number":null,"receipt_url":"https:\/\/pay.stripe.com\/receipts\/payment\/CAcaFwoVYWNjdF8xR2lSZFVHVk9jOFMyVGExKKWa5KkGMgYNjL_yieI6LBbYzpJLT9Rloq-fajDbdmzxbyvERh1ywWaUFzvEfMNLO1Lh9wx1_SejNd_A","refunded":true,"refunds":{"object":"list","data":[{"id":"re_9999KFGVOc8S2Ta106BwZDzZ","object":"refund","amount":4700,"balance_transaction":"txn_9999KFGVOc8S2Ta10f1XmMD0","charge":"ch_9999KFGVOc8S2Ta10txkyYkx","created":1698237731,"currency":"usd","metadata":[],"payment_intent":null,"reason":null,"receipt_number":null,"source_transfer_reversal":null,"status":"succeeded","transfer_reversal":"trr_1O56PXGVOc8S2Ta1dpPe2bFs"}],"has_more":false,"total_count":1,"url":"\/v1\/charges\/ch_9999KFGVOc8S2Ta10txkyYkx\/refunds"},"review":null,"shipping":null,"source":{"id":"card_1O56KCGVOc8S2Ta1U4Qn16U8","object":"card","address_city":null,"address_country":null,"address_line1":null,"address_line1_check":null,"address_line2":null,"address_state":null,"address_zip":"24242","address_zip_check":"pass","brand":"Visa","country":"US","customer":null,"cvc_check":"pass","dynamic_last4":null,"exp_month":2,"exp_year":2042,"fingerprint":"Ac6yIC2uuUHTelfH","funding":"credit","last4":"4242","metadata":[],"name":null,"tokenization_method":null,"wallet":null},"source_transfer":null,"statement_descriptor":null,"statement_descriptor_suffix":null,"status":"succeeded","transfer":"tr_9999KFGVOc8S2Ta103SBiX8j","transfer_data":{"amount":null,"destination":"acct_1L0lG32cxSrLS5j9"},"transfer_group":"group_ch_9999KFGVOc8S2Ta10txkyYkx"}'];
+                $token = Token::create([
+                    'card' => [
+                        'number' => $request->payment_details['card_details']['cardNumber'],
+                        'exp_month' => substr($request->payment_details['card_details']['expirationDate'], 0, 2),
+                        'exp_year' => substr($request->payment_details['card_details']['expirationDate'], 3, 2),
+                        'cvc' => $request->payment_details['card_details']['cvc'],
+                    ],
+                ]);
+            } catch (InvalidRequestException $e) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
 
-        if($paymentresult['payment_status'] != 4){
-            return response()->json(['status' => false, 'message' => 'Sorry, we couldnt charge your card, please try another card'], 200);
-        }
+            // Set Stripe API keys
+            if( $gateway->test_mode ){
+                $payment_data['test_publishable_key'] = $gateway_data_info->test_publishable_key;
+                $payment_data['test_secret_key'] = $gateway_data_info->test_secret_key;
+            }else{
+                $payment_data['publishable_key'] = $gateway_data_info->publishable_key;
+                $payment_data['secret_key'] = $gateway_data_info->secret_key;
+            }
+
+            // Set Payment Data
+            $payment_data['currency']   = strtoupper($gateway->currency_name) ?? 'USD';
+            $payment_data['name']       = $request->payment_details['card_details']['cardholderName'];
+            $payment_data['billName']   = 'Boostr Sale';
+            $payment_data['amount']     = $total_amount;
+            $payment_data['application_fee_amount']  = 0.00;
+            $payment_data['credit_card_fee']  = 0.00;
+            $payment_data['test_mode']  = $gateway->test_mode;
+            $payment_data['charge']     = 0.00;
+            $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount ?? 0,2));
+            $payment_data['getway_id']  = $gateway->id;
+            $payment_data['stripeToken']=$token->id;
+            $payment_data['pos']=true;
+
+            // Charge Payment
+            $paymentresult= $gateway->namespace::charge_payment($payment_data);
+
+            // Return Payment Error Message
+            if($paymentresult['payment_status'] != 4){
+                return response()->json(['status' => false, 'message' => 'Sorry, we couldnt charge your card, please try another card', 'paymentresult'=>$paymentresult], 200);
+            }
+        } else { // Payment Method: CASH
+            $gateway=Getway::where('name','cash')->first();
+        } // Payment Method specific code END
 
         DB::beginTransaction();
-        try {             
+        try {
+            // Insert New Order
             $order = new Order;
             $order->user_id = null;
- 
+
             $notify_driver = 'mail';
 
             $order->getway_id = $gateway->id;
@@ -698,29 +685,27 @@ class PosApiController extends Controller
             $order->order_method = $order_method ?? 'delivery';
             $order->order_from = 5; // 5 for POS
             $order->notify_driver = $notify_driver;
-            $order->transaction_id = $request->transaction_id;
-            $order->payment_status = 4; // Authorized ????
+            $order->transaction_id = $request->payment_method == 'card' ? $paymentresult['payment_id'] : null;
+            $order->payment_status = 4;
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
- 
+
             $oder_items = [];
             $total_weight = 0;
             $priceids = [];
             $cartid = null;
 
+            // Save bought items data
             if($request->items){
 
                 $termIds = collect($request->items)->pluck('id');
-                $terms = Term::all();
                 
                 // Retrieve terms with relationships
-                // return $terms = Term::whereIn('id', [27])
-                // ->where('type', 'product')
-                // ->where('status', 1)
-                // ->with(['excerpt', 'preview', 'firstprice'])
-                // ->get();
-              
-                
+                $terms = Term::whereIn('id', $termIds)
+                ->where('type', 'product')
+                ->with(['excerpt', 'preview', 'firstprice'])
+                ->get();
+                            
                 foreach ($request->items as $item) {
                     $info = $terms->firstWhere('id', $item['id']);
                     
@@ -737,7 +722,7 @@ class PosApiController extends Controller
                     $data['order_id'] = $order->id;
                     $data['term_id'] = $item['id'];
                     $data['info'] = json_encode([
-                        'sku' => $info->firstprice->sku ?? '',
+                        'sku' => $item->firstprice->sku ?? '',
                         'options' => $info->prices[0] ?? []
                     ]);
                     
@@ -753,11 +738,25 @@ class PosApiController extends Controller
             
             $order->orderitems()->insert($oder_items);
 
+            // Add empty delivery data. So we are able to use methods available to capture payment and the order details page does not break, adn to use other order relations functions
+            $delivery_info['address'] = '';
+            $delivery_info['post_code'] = '';
+            $delivery_info['shipping_method'] = '';
+            $delivery_info['shipping_label'] = '';
+            $delivery_info['credit_card_fee'] = $credit_card_fee;
+            $delivery_info['booster_platform_fee'] = $booster_platform_fee;
+            $order->shipping()->create([
+                'shipping_price' => 0.00,
+                'weight' => $total_weight,
+                'info' => json_encode($delivery_info)
+            ]);
+
+            // Save transaction Data
             if (!empty($request->payment_details['card_details']['cardholderName'])) {
                 $customer_info['name'] = $request->payment_details['card_details']['cardholderName'];
                 $customer_info['email'] = $request->email;
                 $customer_info['phone'] = $request->phone;
-                $customer_info['wpuid'] = 0;
+                $customer_info['wpuid'] = null;
                 $customer_info['note'] = $request->comment ?? "";
                 $customer_info['billing'] = $request->billing ?? "";
                 $customer_info['shipping'] = $request->shipping ?? "";
@@ -774,13 +773,13 @@ class PosApiController extends Controller
                 $transcation_log->key = 'transcation_log';
                 $transcation_log->value = json_encode($paymentresult['transaction_log']);
                 $transcation_log->save();
-    
+
                 $order->orderlasttrans()->create([
                     'key' => 'last_transcation_log',
                     'value' => json_encode($paymentresult['transaction_log'])
                 ]);
             }
-            
+
             if (count($priceids) != 0) {
                 $order->orderstockitems()->insert($priceids);
             }
@@ -789,7 +788,6 @@ class PosApiController extends Controller
             
             DB::commit();
             return response()->json(["status" => true, "message" => "Order Successfull.",'data'=>$data]);
-            
         } catch (\Throwable $th) {
             DB::rollback();        
             return response()->json(["status" => false, "message" => "Some thing went wrong."],404);

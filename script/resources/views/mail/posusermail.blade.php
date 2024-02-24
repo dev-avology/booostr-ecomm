@@ -271,40 +271,60 @@
                                 {{ $data['payment_method'] ?? ''}}</p>
                         </td>
                     </tr>
-                    <tr>
-                        <th style="text-align: right;width: 70%;">
-                            <h5
-                                style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
-                                Amount Tendered:</h5>
-                        </th>
-                        <td style="text-align: right;padding-right: 35px;width: 30%;">
-                            <p
-                                style="padding-left: 20px;
-                        font-family: 'Nunito', 'Segoe UI', Arial;
-                        color: #3c3c3c;
-                        text-align: right;
-                        font-size: 16px;font-weight: 500;">
-                                ${{ number_format($data['payment_details']['tendered_amount'] ?? 0, 2) }}
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th style="text-align: right;width: 70%;" class="spac-btm">
-                            <h5
-                                style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
-                                Change Returned:</h5>
-                        </th>
-                        <td style="text-align: right;padding-right: 35px;width: 30%;" class="spac-btm">
-                            <p
-                                style="padding-left: 20px;
-                        font-family: 'Nunito', 'Segoe UI', Arial;
-                        color: #3c3c3c;
-                        text-align: right;
-                        font-size: 16px;font-weight: 500;">
-                                ${{ number_format($data['payment_details']['tendered_amount']-$data['order_total'] ?? 0, 2) }}
-                            </p>
-                        </td>
-                    </tr>
+                    @if ( $data['payment_method'] == 'cash' )
+                        <tr>
+                            <th style="text-align: right;width: 70%;">
+                                <h5
+                                    style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
+                                    Amount Tendered:</h5>
+                            </th>
+                            <td style="text-align: right;padding-right: 35px;width: 30%;">
+                                <p
+                                    style="padding-left: 20px;
+                            font-family: 'Nunito', 'Segoe UI', Arial;
+                            color: #3c3c3c;
+                            text-align: right;
+                            font-size: 16px;font-weight: 500;">
+                                    ${{ number_format($data['payment_details']['tendered_amount'] ?? 0, 2) }}
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: right;width: 70%;" class="spac-btm">
+                                <h5
+                                    style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
+                                    Change Returned:</h5>
+                            </th>
+                            <td style="text-align: right;padding-right: 35px;width: 30%;" class="spac-btm">
+                                <p
+                                    style="padding-left: 20px;
+                            font-family: 'Nunito', 'Segoe UI', Arial;
+                            color: #3c3c3c;
+                            text-align: right;
+                            font-size: 16px;font-weight: 500;">
+                                    ${{ number_format($data['payment_details']['tendered_amount']-$data['order_total'] ?? 0, 2) }}
+                                </p>
+                            </td>
+                        </tr>
+                    @else
+                        <tr>
+                            <th style="text-align: right;width: 70%;">
+                                <h5
+                                    style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
+                                    Card Number:</h5>
+                            </th>
+                            <td style="text-align: right;padding-right: 35px;width: 30%;">
+                                <p
+                                    style="padding-left: 20px;
+                            font-family: 'Nunito', 'Segoe UI', Arial;
+                            color: #3c3c3c;
+                            text-align: right;
+                            font-size: 14px;font-weight: 500;">
+                                    XXXX XXXX XXXX {{ substr($data['payment_details']['card_details']['cardNumber'], -4) }}
+                                </p>
+                            </td>
+                        </tr>
+                    @endif
                 </tbody>
             </table>
 
