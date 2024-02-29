@@ -683,7 +683,7 @@ class PosApiController extends Controller
 
             $order->total = $total_amount ?? 0;
             $order->order_method = $order_method ?? 'delivery';
-            $order->order_from = 5; // 5 for POS
+            $order->order_from = 4; // 4 for POS
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $request->payment_method == 'card' ? $paymentresult['payment_id'] : null;
             $order->payment_status = 4;
@@ -1861,6 +1861,17 @@ public function posEmailSend(Request $request){
         return response()->json(['error'=>false,'message'=>'Email sent successfully.']);
     }
     return response()->json(['error'=>true,'message'=>'Some thing went wrong.']);
+}
+
+public function stipeCardReaderConnectionToken(Request $request) {
+    try {
+        Stripe::setApiKey('sk_test_51O0HZtGn6XA9jaoswlEvwvQIuXHWGYBHqx07Zc9AnUMKRMkPXwaayWg4IzB0MABtf4Ffa09FzUl7yaQOmtMOlZpd00bxrrQw9h');
+        $connectionToken = ConnectionToken::create();
+
+        return response()->json(['error'=>false,'secret'=>$connectionToken->secret]);
+    } catch (InvalidRequestException $e) {
+        return response()->json(['error' => true, 'message' => $e->getMessage()], 200);
+    }
 }
 
 }
