@@ -1832,7 +1832,7 @@ class PosApiController extends Controller
             $termIds = Price::whereIn('id',$priceIds)->pluck('term_id')->toArray();
 
             if(isset($termIds)){
-                $termData = Term::with('medias')->whereIn('id', $termIds)->where('type', 'product')->paginate(20);
+                $termData = Term::with('media')->whereIn('id', $termIds)->where('type', 'product')->paginate(20);
             }   
         }
 
