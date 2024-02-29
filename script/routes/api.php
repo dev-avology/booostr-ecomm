@@ -64,6 +64,7 @@ Route::group([
     Route::post('/pos-order-list', 'Api\PosApiController@posOrderList');
     Route::post('/pos-parent-category-product', 'Api\PosApiController@posParentCategoryProduct');
     Route::post('/pos-email-send', 'Api\PosApiController@posEmailSend');
+    Route::get('/pos-stripe-reader-connection-token', 'Api\PosApiController@stipeCardReaderConnectionToken');
 
 });
 
