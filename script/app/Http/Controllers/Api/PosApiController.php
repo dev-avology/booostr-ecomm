@@ -1809,27 +1809,43 @@ class PosApiController extends Controller
  */
 
 
- public function posOrderList(Request $request){
-    $key = $request->input('key');
+    public function posOrderList(Request $request){
+        $key = $request->input('key');
 
-    $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta')
-                    ->where('order_from', 4);
+        $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta')
+                        ->where('order_from', 4);
 
-    if($key == 'latest'){
-        $info->where('payment_status', 1);
-        $info->orderByDesc('created_at');
-    } elseif ($key == 'complete') {
-        $info->where('payment_status', 1);
+        if($key == 'latest'){
+            $info->where('payment_status', 1)
+                ->orderByDesc('created_at');
+        } elseif ($key == 'complete') {
+            $info->where('payment_status', 1);
+        }
+
+        $priceIds = [];
+        $termData = [];
+
+        $priceIds = Orderstock::select('price_id', DB::raw('COUNT(*) as count'))->groupBy('price_id')->pluck('price_id')->toArray();
+        
+
+        if(isset($priceIds)){
+            $termIds = Price::whereIn('id',$priceIds)->pluck('term_id')->toArray();
+
+            if(isset($termIds)){
+                $termData = Term::whereIn('id', $termIds)->where('type', 'product')->paginate(20);
+            }
+        }
+
+
+        $info = $info->paginate(20);
+
+        if($info->isNotEmpty()){
+            return response()->json(['error' => false, 'message' => 'Order list fetched successfully', 'result' => $info,'heighest_sell_terms' =>$termData]);
+        } else {
+            return response()->json(['error' => true, 'message' => 'No orders found', 'result' => null]);
+        }
     }
 
-    $info = $info->get();
-
-    if($info->isNotEmpty()){
-        return response()->json(['error' => false, 'message' => 'Order list fetched successfully', 'result' => $info]);
-    } else {
-        return response()->json(['error' => true, 'message' => 'No orders found', 'result' => null]);
-    }
-}
 
 
 public function posEmailSend(Request $request){
