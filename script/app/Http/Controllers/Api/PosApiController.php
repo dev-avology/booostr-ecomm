@@ -675,7 +675,7 @@ class PosApiController extends Controller
             $notify_driver = 'mail';
 
             $order->getway_id = $gateway->id;
-            $order->status_id = 1;
+            $order->status_id = $request->payment_method == 'card' ? 3 : 1;
             $order->tax = $request->order_tax ?? 0;
 
             $order->discount = $request->discount ?? 0;
@@ -686,7 +686,7 @@ class PosApiController extends Controller
             $order->order_from = 4; // 4 for POS
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $request->payment_method == 'card' ? $paymentresult['payment_id'] : null;
-            $order->payment_status = 1;
+            $order->payment_status = $request->payment_method == 'card' ? 4 : 1;
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
 
