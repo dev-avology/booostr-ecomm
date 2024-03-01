@@ -683,7 +683,7 @@ class PosApiController extends Controller
 
             $order->total = $total_amount ?? 0;
             $order->order_method = $order_method ?? 'delivery';
-            $order->order_from = 4; // 4 for POS
+            $order->order_from = $request->payment_method == 'card' ? 4 : 5;  // 4 is for card and 5 is for cash
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $request->payment_method == 'card' ? $paymentresult['payment_id'] : null;
             $order->payment_status = $request->payment_method == 'card' ? 4 : 1;
