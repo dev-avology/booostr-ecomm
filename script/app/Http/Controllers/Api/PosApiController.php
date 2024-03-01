@@ -683,7 +683,7 @@ class PosApiController extends Controller
 
             $order->total = $total_amount ?? 0;
             $order->order_method = $order_method ?? 'delivery';
-            $order->order_from = 4; // 4 for POS
+            $order->order_from = $request->payment_method == 'card' ? 4 : 5;  // 4 is for card and 5 is for cash
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $request->payment_method == 'card' ? $paymentresult['payment_id'] : null;
             $order->payment_status = $request->payment_method == 'card' ? 4 : 1;
@@ -1704,7 +1704,7 @@ class PosApiController extends Controller
 
     $posConditions = [
         'payment_status' => '1',
-        'order_from' => '4',
+        'order_from' => ['4', '5'],
     ];
 
     $data = [];
@@ -1813,7 +1813,7 @@ class PosApiController extends Controller
         $key = $request->input('key');
 
         $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta')
-                        ->where('order_from', 4);
+        ->whereIn('order_from', [4, 5]);
 
         if($key == 'latest'){
             $info->where('payment_status', 1)

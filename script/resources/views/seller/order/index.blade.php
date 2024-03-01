@@ -74,6 +74,7 @@
                             <input type="checkbox" class="custom-control-input checkAll" id="selectAll">
                             <label class="custom-control-label checkAll" for="selectAll"></label>
                             </div></th>
+                            <th class="text-left" >{{ __('Order Channel') }}</th>
                             <th class="text-left" >{{ __('Order') }}</th>
                             <th >{{ __('Date') }}</th>
                             <th>{{ __('Customer') }}</th>
@@ -124,6 +125,23 @@
                                     <label class="custom-control-label" for="customCheck{{ $row->id }}"></label>
                                 </div>
                             </td>
+
+                            @if($row->order_from == 4 || $row->order_from == 5)
+
+                            <td class="text-left">
+                                POS(point of sale)
+                            </td>
+
+
+                            @else
+
+                            <td class="text-left">
+                                ECOM(online)
+                            </td>
+
+                            @endif
+
+
                             <td class="text-left">
                                 <a href="{{ route('seller.order.show',$row->id) }}">{{ $row->invoice_no }}</a>
                             </td>
@@ -134,7 +152,16 @@
                                 @if($row->payment_status==2)
                                 <span class="badge badge-warning">{{ __('Pending') }}</span>
                                 @elseif($row->payment_status==1)
-                                <span class="badge badge-success">{{ __('Complete') }}</span>
+
+                                     @if($row->order_from == 4)
+                                        <span class="badge badge-success">{{ __('CC Complete') }}</span>
+                                     @elseif($row->order_from == 5)
+                                        <span class="badge badge-success">{{ __('Cash Complete') }}</span>
+                                     @else
+                                        <span class="badge badge-success">{{ __('Complete') }}</span>
+                                     @endif
+
+
                                 @elseif($row->payment_status==0)
                                 <span class="badge badge-danger">{{ __('Cancel') }}</span> 
                                 @elseif($row->payment_status==3)
@@ -149,7 +176,7 @@
 
 
 
-                                @if($row->order_from == 4)
+                                @if($row->order_from == 4 || $row->order_from == 5)
 
                                 <span class="badge badge-success text-white" style="background-color:#028a74">POS (In Person)</span>
 
