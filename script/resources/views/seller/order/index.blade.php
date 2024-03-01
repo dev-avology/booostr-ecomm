@@ -146,7 +146,20 @@
                                 @endif
                             </td>
                             <td>
+
+
+
+                                @if($row->order_from == 4)
+
+                                <span class="badge badge-success text-white" style="background-color:#028a74">POS (In Person)</span>
+
+                                @else
+
                                 <span class="badge {{ $row->orderstatus == null ? 'badge-warning' :'' }} text-white" style="background-color: {{ $row->orderstatus->slug  }}">{{ $row->orderstatus->name ?? '' }}</span>
+
+                                @endif 
+
+
                             </td>
                             {{-- <td>{{ $row->order_method }}</td> --}}
                             <td> {{$order_type}} </td>
