@@ -1704,7 +1704,7 @@ class PosApiController extends Controller
 
     $posConditions = [
         'payment_status' => '1',
-        'order_from' => '4',
+        'order_from' => ['4', '5'],
     ];
 
     $data = [];
@@ -1813,7 +1813,7 @@ class PosApiController extends Controller
         $key = $request->input('key');
 
         $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta')
-                        ->where('order_from', 4);
+        ->whereIn('order_from', [4, 5]);
 
         if($key == 'latest'){
             $info->where('payment_status', 1)
