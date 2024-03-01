@@ -1848,18 +1848,96 @@ class PosApiController extends Controller
 
 
 public function posEmailSend(Request $request){
-    $jsonData = $request->all();
-    // dd($jsonData);
-    if(!empty($jsonData)){
-        // $jsonData = json_decode($jsonData, true);
+    $orderData = $request->all();
+
+    if(!empty($orderData)){
+
+        $wpuid = $orderData['wpuid'] ?? 0;
+        $club_name = $orderData['club_name'] ?? '';
+        $orderId = $orderData['orderId'] ?? '';
+        $client_name = $orderData['client_name'] ?? '';
+        $client_email = $orderData['client_email'] ?? '';
+        $phone_number = '9149117623';
+
         $subject="Pos order placed.";
-        $mail = new PosUserEmail($jsonData,$subject);
-        $to = $jsonData['client_email'];
-        // $to = 'ashishyadav9149118@gmail.com';
+        $mail = new PosUserEmail($orderData,$subject);
+        $to = $orderData['client_email'] ?? '';
+        // $to = 'ashishyadav.avology@gmail.com';
         $email = Mail::to($to)->send($mail);
-        return response()->json(['error'=>false,'message'=>'Email sent successfully.']);
+
+
+        $club_info = tenant_club_info();
+
+        $name = explode(' ',$client_name);
+
+         $contact_manager_data = array(
+             'first_name' => $name[0],
+             'last_name' => $name[1]??'',
+             'user_id' =>  $wpuid ??0,
+             'phone_number' => $request->phone,					
+             'booster_name' => $name[0],
+             'country' =>   'USA',									
+             'address_1' => 'Test Address Line 1',
+             'address_2' =>  'Test Address Line 2',
+             'city' => 'Alameda',
+             'state' =>  'California',
+             'zip' =>  '94501',													
+             'email' =>  $client_email,                   
+             'booster_id' =>Tenant('club_id'),
+             'booster_level_id' => 4,
+             'contact_tags' => '',
+         );	  
+
+         $user_recipt = [
+             'contact_mgr_data'=>$contact_manager_data,
+             'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
+             'receipt_title'=>$client_name,
+             'receipent_org'=>$club_name.' Store',
+             'category'=>'ecommerce',
+             'user_id' => $wpuid ??0,
+             'club_id' =>Tenant('club_id'),
+             'recurring'=>'one-time',
+             'camp_id'=>$orderId,
+         ];
+
+        $recipt =  $this->send_order_recipts($user_recipt);
+
+        if(isset($recipt)){
+            return response()->json(['error'=>false,'message'=>'Email sent successfully.']);
+        }else{
+            return response()->json(['error'=>true,'message'=>'Some thing went wrong.']);
+        }
     }
     return response()->json(['error'=>true,'message'=>'Some thing went wrong.']);
+}
+
+
+private function send_order_recipts($data){
+
+    $postData = json_encode($data);
+
+    $url = env("WP_API_URL");
+    
+    $url = ($url != '') ? $url.'/user-recipt' : "https://staging3.booostr.co/wp-json/store-api/v1/user-recipt";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+
+    // Check for cURL errors
+    if (curl_errno($ch)) {
+        echo 'cURL error: ' . curl_error($ch);
+    }
+    curl_close($ch);
+    return $response;
 }
 
 }
