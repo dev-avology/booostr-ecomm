@@ -656,10 +656,14 @@ class PosApiController extends Controller
             $payment_data['pos']=true;
 
             // Charge Payment
-            $paymentresult= $gateway->namespace::charge_payment($payment_data);
+            $chargePayment= $gateway->namespace::charge_payment($payment_data);
+            $payment_data['transaction_id'] = $chargePayment['payment_id'];
+
+            // Capture Payment
+            $paymentresult= $gateway->namespace::capture_payment($payment_data);
 
             // Return Payment Error Message
-            if($paymentresult['payment_status'] != 4){
+            if($paymentresult['payment_status'] != 1){
                 return response()->json(['status' => false, 'message' => 'Sorry, we couldnt charge your card, please try another card', 'paymentresult'=>$paymentresult], 200);
             }
         } else { // Payment Method: CASH
@@ -675,7 +679,7 @@ class PosApiController extends Controller
             $notify_driver = 'mail';
 
             $order->getway_id = $gateway->id;
-            $order->status_id = $request->payment_method == 'card' ? 3 : 1;
+            $order->status_id = $request->payment_method == 'card' ? 4 : 1;
             $order->tax = $request->order_tax ?? 0;
 
             $order->discount = $request->discount ?? 0;
@@ -686,8 +690,9 @@ class PosApiController extends Controller
             $order->order_from = $request->payment_method == 'card' ? 4 : 5;  // 4 is for card and 5 is for cash
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $request->payment_method == 'card' ? $paymentresult['payment_id'] : null;
-            $order->payment_status = $request->payment_method == 'card' ? 4 : 1;
+            $order->payment_status = 1;
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
+            $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
 
             $oder_items = [];
