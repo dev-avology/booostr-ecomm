@@ -207,15 +207,15 @@ class DashboardController extends Controller
                 });
 
 
-        $data['totalEarnings']=number_format($totalEarnings, 2);
+        $data['totalEarnings']=number_format(str_replace(',', '', $totalEarnings), 2);
         $data['totalSales']=$totalSales;
 
-        $data['today_sale_amount']=number_format($today_sale_amount, 2);
+        $data['today_sale_amount']=number_format(str_replace(',', '', $today_sale_amount), 2);
         $data['today_orders']=$today_orders;
-        $data['yesterday_sale_amount']=number_format($yesterday_sale_amount, 2);
-        $data['lastweek_sale_amount']=number_format($lastweek_sale_amount, 2);
-        $data['lastmonth_sale_amount']=number_format($lastmonth_sale_amount, 2);
-        $data['thismonth_sale_amount']=number_format($thismonth_sale_amount, 2);
+        $data['yesterday_sale_amount']=number_format(str_replace(',', '', $yesterday_sale_amount), 2);
+        $data['lastweek_sale_amount']=number_format(str_replace(',', '', $lastweek_sale_amount), 2);
+        $data['lastmonth_sale_amount']=number_format(str_replace(',', '', $lastmonth_sale_amount), 2);
+        $data['thismonth_sale_amount']=number_format(str_replace(',', '', $thismonth_sale_amount), 2);
         $data['orders']=$orders;
         $data['current_pending_orders']=$current_pending_orders;
         $data['today_orders_list']=$today_orders_list;
