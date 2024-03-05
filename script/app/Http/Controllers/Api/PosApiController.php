@@ -1864,11 +1864,11 @@ public function posEmailSend(Request $request){
         $client_email = $orderData['client_email'] ?? '';
         $phone_number = '9149117623';
 
-        // $subject="Pos order placed.";
-        // $mail = new PosUserEmail($orderData,$subject);
-        // $to = $orderData['client_email'] ?? '';
-        // // $to = 'ashishyadav.avology@gmail.com';
-        // $email = Mail::to($to)->send($mail);
+        $subject="Pos order placed.";
+        $mail = new PosUserEmail($orderData,$subject);
+        $to = $orderData['client_email'] ?? '';
+        // $to = 'ashishyadav.avology@gmail.com';
+        $email = Mail::to($to)->send($mail);
 
 
         $club_info = tenant_club_info();
@@ -1906,7 +1906,6 @@ public function posEmailSend(Request $request){
          ];
 
         $recipt =  $this->send_order_recipts($user_recipt);
-        dd($recipt);
 
         if(isset($recipt)){
             return response()->json(['error'=>false,'message'=>'Email sent successfully.']);
