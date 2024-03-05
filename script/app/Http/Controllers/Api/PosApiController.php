@@ -1879,7 +1879,7 @@ public function posEmailSend(Request $request){
              'first_name' => $name[0],
              'last_name' => $name[1]??'',
              'user_id' =>  $wpuid ??0,
-             'phone_number' => $request->phone,					
+             'phone_number' => $phone_number,					
              'booster_name' => $name[0],
              'country' =>   'USA',									
              'address_1' => 'Test Address Line 1',
