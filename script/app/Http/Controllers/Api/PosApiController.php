@@ -1859,11 +1859,11 @@ public function posEmailSend(Request $request){
         $client_email = $orderData['client_email'] ?? '';
         $phone_number = '9149117623';
 
-        $subject="Pos order placed.";
-        $mail = new PosUserEmail($orderData,$subject);
-        $to = $orderData['client_email'] ?? '';
-        // $to = 'ashishyadav.avology@gmail.com';
-        $email = Mail::to($to)->send($mail);
+        // $subject="Pos order placed.";
+        // $mail = new PosUserEmail($orderData,$subject);
+        // $to = $orderData['client_email'] ?? '';
+        // // $to = 'ashishyadav.avology@gmail.com';
+        // $email = Mail::to($to)->send($mail);
 
 
         $club_info = tenant_club_info();
@@ -1901,6 +1901,7 @@ public function posEmailSend(Request $request){
          ];
 
         $recipt =  $this->send_order_recipts($user_recipt);
+        dd($recipt);
 
         if(isset($recipt)){
             return response()->json(['error'=>false,'message'=>'Email sent successfully.']);
@@ -1918,7 +1919,7 @@ private function send_order_recipts($data){
 
     $url = env("WP_API_URL");
     
-    $url = ($url != '') ? $url.'/user-recipt' : "https://staging3.booostr.co/wp-json/store-api/v1/user-recipt";
+    $url = ($url != '') ? $url.'/add-pos-contact' : "https://staging3.booostr.co/wp-json/store-api/v1/add-pos-contact";
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
