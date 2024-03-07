@@ -1864,7 +1864,7 @@ public function posEmailSend(Request $request){
         $client_email = $orderData['client_email'] ?? '';
         $phone_number = '9149117623';
 
-        $subject="Pos order placed.";
+        $subject="Receipt for your purchase from ".$orderData['club_name']." on ".$orderData['created_at'];
         $mail = new PosUserEmail($orderData,$subject);
         $to = $orderData['client_email'] ?? '';
         // $to = 'ashishyadav.avology@gmail.com';

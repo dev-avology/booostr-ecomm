@@ -77,11 +77,11 @@
                 <tbody>
 
                     <tr style="background-color: #535353; width: 100%;" class="border-style br-none">
-                        <th style="width:15%;text-align:left;padding: 18px 0 7px 20px;border-collapse:collapse;">
+                        <th style="width:25%;text-align:left;padding: 18px 0 7px 20px;border-collapse:collapse;">
                             <img src="https://booostr.co/wp-content/uploads/2022/03/booostr-logo-long-top-header.png" alt="logo"
-                                    style="width: 120px;border-radius:100px;"/>
+                                    style="width: 150px;border-radius:100px;"/>
                         </th>
-                        <th style="width: 85%; padding-right: 20px; border-collapse: collapse;">
+                        <th style="width: 75%; padding-right: 20px; border-collapse: collapse;">
                             <h2
                                 style="font-family: 'Nunito', 'Segoe UI', Arial; font-size: 24px; font-weight: normal; text-align: left; text-transform: capitalize; color: #fff; padding-left: 50px;">
                                 {{$data['club_name'] ?? ""}}
