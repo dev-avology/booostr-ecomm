@@ -657,6 +657,12 @@ class PosApiController extends Controller
 
             // Charge Payment
             $chargePayment= $gateway->namespace::charge_payment($payment_data);
+            
+            // Return Payment Error Message
+            if($chargePayment['payment_status'] != 1){
+                return response()->json(['status' => false, 'message' => 'Sorry, we couldnt charge your card, please try another card', 'paymentresult'=>$chargePayment], 200);
+            }
+
             $payment_data['transaction_id'] = $chargePayment['payment_id'];
 
             // Capture Payment
@@ -691,8 +697,8 @@ class PosApiController extends Controller
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $request->payment_method == 'card' ? $paymentresult['payment_id'] : null;
             $order->payment_status = 1;
-            $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
-            $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+            $order->placed_at = Carbon::now()->setTimezone($request->timezone);
+            $order->captured_at = Carbon::now()->setTimezone($request->timezone);
             $order->save();
 
             $oder_items = [];
@@ -789,7 +795,7 @@ class PosApiController extends Controller
                 $order->orderstockitems()->insert($priceids);
             }
             
-            $data = ['order_id' => $order->id,'order_date' => $order->created_at];
+            $data = ['order_id' => $order->id,'order_date' => $order->placed_at];
             
             DB::commit();
             return response()->json(["status" => true, "message" => "Order Successfull.",'data'=>$data]);
