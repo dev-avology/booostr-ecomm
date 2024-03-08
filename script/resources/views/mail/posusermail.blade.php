@@ -128,7 +128,7 @@
                         class="spac-top spac-btm">
                         <span
                             style="font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; margin: 0; padding-left: 20px;">
-                            Order #: <span style="font-weight: 500;">{{$data['orderid'] ?? "NA"}}</span>
+                            Order #: <span style="font-weight: 500;">{{$data['orderId'] ?? "NA"}}</span>
                         </span>
                         <br>
                       
