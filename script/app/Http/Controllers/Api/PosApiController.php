@@ -659,7 +659,7 @@ class PosApiController extends Controller
             $chargePayment= $gateway->namespace::charge_payment($payment_data);
             
             // Return Payment Error Message
-            if($chargePayment['payment_status'] != 1){
+            if($chargePayment['payment_status'] != 4){
                 return response()->json(['status' => false, 'message' => 'Sorry, we couldnt charge your card, please try another card', 'paymentresult'=>$chargePayment], 200);
             }
 
@@ -1847,7 +1847,7 @@ class PosApiController extends Controller
             }   
         }
 
-        $info = $info->paginate(20);
+        $info = $info->paginate(15);
 
         if($info->isNotEmpty()){
             return response()->json(['error' => false, 'message' => 'Order list fetched successfully', 'result' => $info,'heighest_sell_terms' =>$termData]);
