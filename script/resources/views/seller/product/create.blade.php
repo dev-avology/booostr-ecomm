@@ -97,9 +97,9 @@
                            </div>
                         </div>
                      <div class="from-group row mb-2">
-                           <label for="" class="col-lg-12">{{ __('Short Description :') }} </label>
+                           <label for="" class="col-lg-12">{{ __('Description :') }} </label>
                            <div class="col-lg-12">
-                              <textarea  name="short_description" maxlength="500" class="form-control h-150"></textarea>
+                              <textarea  name="short_description" class="form-control h-150"></textarea>
                            </div>
                         </div>
                         <div class="from-group row mb-2">
