@@ -32,17 +32,17 @@
             </div>
         </div>
         <div class="from-group row mb-2">
-            <label for="" class="col-lg-12">{{ __('Short Description :') }} </label>
+            <label for="" class="col-lg-12">{{ __('Description :') }} </label>
             <div class="col-lg-12">
-                <textarea name="short_description" maxlength="500" class="form-control h-150">{{ $info->excerpt->value ?? '' }}</textarea>
+                <textarea name="short_description" class="form-control h-150">{{ $info->excerpt->value ?? '' }}</textarea>
             </div>
         </div>
-        <div class="from-group row mb-2">
+        {{-- <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Long Description :') }} </label>
             <div class="col-lg-12">
                 <textarea name="long_description" class="form-control summernote">{{ $info->description->value ?? '' }}</textarea>
             </div>
-        </div>
+        </div> --}}
         <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Select Product Category') }} : </label>
             <div class="col-lg-12">
@@ -75,16 +75,21 @@
                 </select>
             </div>
         </div>
+
+
+
         <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Select Product Tags') }} : </label>
             <div class="col-lg-12">
-                <select name="categories[]" multiple="" class="form-control select2">
+                <select name="categories[]" multiple="" class="form-control select2"  id="mySelect2">
 
                     {{NastedCategoryList('tag',$selected_categories)}}
                 </select>
                 <input type="hidden" name="type" value="general">
             </div>
         </div>
+
+        
 
         <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Select Featured Type') }} : </label>
@@ -129,4 +134,111 @@
 <script src="{{ asset('admin/js/select2.min.js') }}"></script>
 <script src="{{ asset('admin/assets/js/summernote-bs4.js') }}"></script>
 <script src="{{ asset('admin/assets/js/summernote.js') }}"></script>
+
+
+<script src="{{ asset('admin/plugins/dropzone/dropzone.min.js') }}"></script>
+<script src="{{ asset('admin/plugins/dropzone/components-multiple-upload.js') }}"></script>
+
+<script>
+    $(document).ready(function() {
+      $('#mySelect2').select2({
+        tags: true,
+        createTag: function(params) {
+          return {
+            id: params.term,
+            text: params.term,
+            newOption: true // Indicates it's a new option
+          };
+        }
+      });
+    
+      $('#mySelect3').select2({
+        tags: true,
+        createTag: function(params) {
+          return {
+            id: params.term,
+            text: params.term,
+            newOption: true // Indicates it's a new option
+          };
+        }
+      });
+    
+    
+      // get newly added option
+      $('#mySelect2').on('select2:select', function(e) {
+        var selectedOption = e.params.data;
+        if (selectedOption.newOption) {
+          
+          var newOptionText = selectedOption.text;
+          var type = "create_dynamic_option";
+          
+          $.ajax({
+            url: "/seller/add-jquery-tag", 
+            type: "POST", 
+            data: {
+              'tag_name': newOptionText,
+              'type': type,
+              '_token': "{{csrf_token()}}"
+            },
+            dataType: "json", 
+            success: function(data) {
+             //  console.log(data);
+               if (data) {
+                  
+                   var newOptionId = data;
+                   $('#mySelect2').find('option[value="' + newOptionText + '"]').remove();
+                
+                   var newOption = new Option(newOptionText, newOptionId, true, true);
+                   $('#mySelect2').append(newOption);
+               }
+            },
+            error: function(xhr, status, error) {
+              $('#mySelect2').find('option[value="' + newOptionText + '"]').remove();
+            }
+          });
+        }
+      });
+    
+    
+    // get newly added option
+    $('#mySelect3').on('select2:select', function(e) {
+        var selectedOption = e.params.data;
+        if (selectedOption.newOption) {
+         
+          var newOptionText = selectedOption.text;
+          var type = "create_dynamic_option";
+         
+          $.ajax({
+            url: "/seller/add-jquery-brand", 
+            type: "POST", 
+            data: {
+              'brand_name': newOptionText,
+              'type': type,
+              '_token': "{{csrf_token()}}"
+            },
+            dataType: "json", 
+            success: function(data) {
+             //  console.log(data);
+               if (data) {
+                  
+                var newOptionId = data;
+                $('#mySelect3').find('option[value="' + newOptionText + '"]').remove();
+                
+                var newOption = new Option(newOptionText, newOptionId, true, true);
+                $('#mySelect3').append(newOption);
+    
+               }
+            },
+            error: function(xhr, status, error) {
+              $('#mySelect3').find('option[value="' + newOptionText + '"]').remove();
+            }
+          });
+        }
+      });
+    
+    
+    });
+    
+    </script>
+
 @endpush
