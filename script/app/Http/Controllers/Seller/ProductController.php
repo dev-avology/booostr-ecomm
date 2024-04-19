@@ -327,7 +327,7 @@ class ProductController extends Controller
                 !empty($term->categories) ? $term->categories()->sync($cats) : $term->categories()->attach($cats);
                
                 if($term->is_variation){
-                    $priceCount = Price::where('term_id',$term->term_id)->count();
+                    $priceCount = Price::where('term_id',$term->id)->count();
 
                         if($priceCount == 0){
                             $term->status = 0;
@@ -378,7 +378,7 @@ class ProductController extends Controller
                //dd($request);
 
 
-               if( !isset($request->parentattribute)  || !isset($request->childattribute['childrens']) ){
+               if( !isset($request->parentattribute)  || !isset($request->childattribute['priceoption']) ){
                 $term->status = 0;
                 $term->save();
               }
