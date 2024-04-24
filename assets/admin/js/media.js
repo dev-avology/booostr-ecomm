@@ -22,6 +22,20 @@ $('input[name="multi_images[]"]').each(function(i){
 /*----------------------------
         Media Radio Active
       ------------------------------*/
+$('#remove-preview-image').on('click',function(){
+ 
+	let default_preview = 'admin/img/img/placeholder.png';
+    let inputid = $(this).data('inputid');
+    let previewclass = $(this).data('previewclass');
+	
+	$(singlemedia_input_target).val('');
+	$(singlemedia_preview_target).attr('src',default_preview);
+    
+	$(this).parent().addClass('hide');
+
+	return false;
+});
+
 $('.media_radio').on('click',function(e){
 	$('.checkbox').prop("checked", false);
 	checkboxtype="radio";

@@ -163,7 +163,11 @@
       var used_combination = $('#used_combination').val();
       var usedCombination = used_combination.replace(/&quot;/g, '"');
         usedCombination = JSON.parse(usedCombination);
-   
+       var product_type = $('#product_type').val();
+       var product_class = '';
+       if(product_type == '1'){
+         product_class = 'hide weight';      
+       }
        var useedOptions = {};
 
       var selectedOptions = [];
@@ -324,7 +328,7 @@
                            <input type="text" class="form-control" name="${skuname}" value=""/>
                         </div>
                      </div>
-                      <div class="from-group col-lg-6  mb-2">
+                      <div class="from-group col-lg-6  mb-2 ${product_class}">
                         <label for="" >Weight : </label>
                         <div >
                            <input type="number" step="any" class="form-control" name="${weight_name}" value="0"/>

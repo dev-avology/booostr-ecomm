@@ -47,7 +47,6 @@
             <label for="" class="col-lg-12">{{ __('Select Product Category') }} : </label>
             <div class="col-lg-12">
                 <select name="categories[]" multiple="" class="select2 form-control">
-
                     {{NastedCategoryList('category',$selected_categories)}}
                 </select>
             </div>
@@ -58,7 +57,7 @@
                 <select name="categories[]" class="selectric form-control">
                     @if(isset($product_type) && !empty($product_type))
                         @foreach($product_type as $row)
-                        <option value="{{ $row->id }}" @if(in_array($row->id,$selected_categories)) selected @endif>{{ $row->name }}</option>
+                         <option value="{{ $row->id }}" @if(in_array($row->id,$selected_categories)) selected @endif>{{ $row->name }}</option>
                         @endforeach
                         @endif;
                 </select>

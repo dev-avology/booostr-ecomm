@@ -1,5 +1,12 @@
 @push('css')
 <link rel="stylesheet" href="{{ asset('admin/css/select2.min.css') }}">
+
+<style>
+   .hide.weight{
+      display:none;
+   }
+</style>
+
 @endpush
 
 @section('head')
@@ -253,7 +260,7 @@
                                     <input type="text" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][sku]" value="{{ $priceswithcategory->sku }}"/>
                                  </div>
                               </div>
-                              <div class="from-group col-lg-6  mb-2">
+                              <div class="from-group col-lg-6  mb-2 {{ $selected_product_type != "Physical Product" && $info->is_variation == 1  ? 'hide weight' : ''  }}">
                                  <label for="" >{{ __('Weight :') }} </label>
                                  <div >
                                     <input type="number" step="any" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][weight]" value="{{ $priceswithcategory->weight }}"/>

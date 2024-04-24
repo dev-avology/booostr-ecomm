@@ -1,5 +1,10 @@
 @push('css')
 <link rel="stylesheet" href="{{ asset('admin/plugins/dropzone/dropzone.css') }}">
+<style>
+  .hide.weight{
+     display:none;
+  }
+</style>
 @endpush
 
 @section('head')
@@ -23,7 +28,7 @@
         <label for="" class="col-lg-12">{{ __('Featured Image') }} : </label>
         <div class="col-lg-12">
           {{mediasection(['preview'=>$info->media->value ?? '','value'=>$info->media->value ?? ''])}}
-      </div>
+       </div>
      </div>
      <div class="from-group row mb-2">
         <label for="" class="col-lg-12">{{ __('Gallery Images') }} : </label>
@@ -42,6 +47,6 @@
 
 @push('script')
 <script src="{{ asset('admin/plugins/dropzone/dropzone.min.js') }}"></script>
-<script src="{{ asset('admin/js/media.js') }}"></script>
+<script src="{{ asset('admin/js/media.js') }}?ver=12"></script>
 <script src="{{ asset('admin/js/jquery-ui.min.js') }}"></script>
 @endpush
