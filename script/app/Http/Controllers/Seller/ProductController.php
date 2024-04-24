@@ -518,7 +518,7 @@ class ProductController extends Controller
                         $term->media()->update(['value' => $request->preview]);
                     }
                 } else {
-                    if (!empty($term->description)) {
+                    if (!empty($term->media)) {
                         $term->media()->delete();
                     }
                 }
