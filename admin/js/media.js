@@ -23,6 +23,7 @@ $('input[name="multi_images[]"]').each(function(i){
         Media Radio Active
       ------------------------------*/
 $('#remove-preview-image').on('click',function(){
+	console.log('hello test');
 
 	let default_preview = 'admin/img/img/placeholder.png';
 	let inputid = $(this).data('inputid');
@@ -30,6 +31,7 @@ $('#remove-preview-image').on('click',function(){
 
 	$('#'+inputid).val('');
 	$('.'+previewclass).attr('src',default_preview);
+	$('#remove-preview-image').hide();
 
 	return false;
 });
