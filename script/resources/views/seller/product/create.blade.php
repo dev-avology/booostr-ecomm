@@ -4,6 +4,11 @@
 <!-- CSS Libraries -->
 <link rel="stylesheet" href="{{ asset('admin/plugins/dropzone/dropzone.css') }}">
 <link rel="stylesheet" href="{{ asset('admin/css/select2.min.css') }}">
+<style>
+.hide.weight{
+   display:none;
+}
+</style>
 @endpush
 
 @section('title','Dashboard')
@@ -66,7 +71,7 @@
                         <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Price Type') }} : </label>
                            <div class="col-lg-12">
-                              <select name="product_type"  class="form-control product_type ">
+                              <select name="product_type" id="product_type"  class="form-control product_type ">
                                  <option value="0">{{ __('Simple Product') }}</option>
                                  <option value="1">{{ __('Variation Product') }}</option>
                               </select>
@@ -97,9 +102,9 @@
                            </div>
                         </div>
                      <div class="from-group row mb-2">
-                           <label for="" class="col-lg-12">{{ __('Short Description :') }} </label>
+                           <label for="" class="col-lg-12">{{ __('Description :') }} </label>
                            <div class="col-lg-12">
-                              <textarea  name="short_description" maxlength="500" class="form-control h-150"></textarea>
+                              <textarea  name="short_description" class="form-control h-150"></textarea>
                            </div>
                         </div>
                         <div class="from-group row mb-2">
@@ -324,7 +329,7 @@
 <script src="{{ asset('admin/plugins/dropzone/components-multiple-upload.js') }}"></script>
 <script src="{{ asset('admin/js/media.js') }}"></script>
 <script src="{{ asset('admin/js/select2.min.js') }}"></script>
-<script src="{{ asset('admin/js/product-create.js') }}"></script>
+<script src="{{ asset('admin/js/product-create.js') }}?ver=3"></script>
 <script>
 
 $(document).on('change', '.manage_stock', function() {

@@ -78,7 +78,7 @@ class ProductController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|max:100',
-            'short_description' => 'max:500',
+            // 'short_description' => 'max:100000',
         ]);
 
         if ($request->product_type != 1) {
@@ -278,8 +278,8 @@ class ProductController extends Controller
             $validated = $request->validate([
                 'name' => 'required|max:100',
                 'slug' => 'required|max:100',
-                'short_description' => 'max:500',
-                'long_description' => 'max:10000',
+                // 'short_description' => 'max:500',
+                // 'long_description' => 'max:10000',
             ]);
 
 
@@ -327,7 +327,7 @@ class ProductController extends Controller
                 !empty($term->categories) ? $term->categories()->sync($cats) : $term->categories()->attach($cats);
                
                 if($term->is_variation){
-                    $priceCount = Price::where('term_id',$term->term_id)->count();
+                    $priceCount = Price::where('term_id',$term->id)->count();
 
                         if($priceCount == 0){
                             $term->status = 0;
@@ -378,7 +378,7 @@ class ProductController extends Controller
                //dd($request);
 
 
-               if( !isset($request->parentattribute)  || !isset($request->childattribute['childrens']) ){
+               if( !isset($request->parentattribute)  || !isset($request->childattribute['priceoption']) ){
                 $term->status = 0;
                 $term->save();
               }
@@ -518,7 +518,7 @@ class ProductController extends Controller
                         $term->media()->update(['value' => $request->preview]);
                     }
                 } else {
-                    if (!empty($term->description)) {
+                    if (!empty($term->media)) {
                         $term->media()->delete();
                     }
                 }

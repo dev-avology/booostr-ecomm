@@ -48,6 +48,7 @@
                                         {{-- <option value="radio_custom">{{ __('Radio Button (Custom Single Select)') }}</option> --}}
                                         <option value="color_single">{{ __('Color Selector') }}</option>
                                         {{-- <option value="color_multi">{{ __('Color Selector (Multiple Select)') }}</option> --}}
+                                        <option value="select">{{ __('Select Dropdown') }}</option>
                                     </select>
                                 </div>
                             </div>
