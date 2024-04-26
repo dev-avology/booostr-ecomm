@@ -30,6 +30,7 @@ use Validator;
 use Exception;
 use Stripe\Stripe;
 use Stripe\Token;
+use Stripe\Terminal\ConnectionToken;
 
 class PosApiController extends Controller
 {
@@ -1950,5 +1951,14 @@ private function send_order_recipts($data){
     curl_close($ch);
     return $response;
 }
+
+    public function stipeCardReaderConnectionToken(Request $request){
+        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        $gateway_data_info = json_decode($gateway->data);
+
+        Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
+        $connectionToken = ConnectionToken::create();
+        return response()->json(["status" => true, "secret" =>$connectionToken]);
+    }
 
 }
