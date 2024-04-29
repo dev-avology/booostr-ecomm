@@ -378,7 +378,7 @@ class ProductController extends Controller
                //dd($request);
 
 
-               if( !isset($request->parentattribute)  || !isset($request->childattribute['priceoption']) ){
+               if( !isset($request->parentattribute)  || !isset($request->childattribute) ){
                 $term->status = 0;
                 $term->save();
               }
