@@ -65,10 +65,10 @@ Route::group([
     Route::post('/pos-parent-category-product', 'Api\PosApiController@posParentCategoryProduct');
     Route::post('/pos-email-send', 'Api\PosApiController@posEmailSend');
     Route::get('/pos-stripe-reader-connection-token', 'Api\PosApiController@stipeCardReaderConnectionToken');
+    Route::post('/pos-stripe-reader-client-secret', 'Api\PosApiController@stipeCardReaderClientSecret');
+    Route::post('/pos-stripe-reader-capture-payment', 'Api\PosApiController@stipeCardReaderCapturePayment');
 
 });
-
-
 
 Route::group([
     'middleware' => [AvalogyMiddleware::class],
