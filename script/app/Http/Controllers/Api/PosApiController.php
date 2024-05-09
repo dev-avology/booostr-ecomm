@@ -30,6 +30,7 @@ use Validator;
 use Exception;
 use Stripe\Stripe;
 use Stripe\Token;
+use Stripe\PaymentIntent;
 use Stripe\Terminal\ConnectionToken;
 
 class PosApiController extends Controller
@@ -1959,6 +1960,63 @@ private function send_order_recipts($data){
         Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
         $connectionToken = ConnectionToken::create();
         return response()->json(["status" => true, "secret" =>$connectionToken]);
+    }
+
+    public function stipeCardReaderClientSecret(Request $request) {
+        // Check if the required fields are present
+        $rules = [
+            'order_total' => 'required|numeric',
+        ];
+        
+        $validator = Validator::make($request->all(), $rules);
+    
+        if ($validator->fails()) {
+            return response()->json(['message' => 'Incorrect order amount.'], 422);
+        }
+        
+        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        $gateway_data_info = json_decode($gateway->data);
+
+        Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
+        // Stripe::setApiKey("sk_test_51O0HZtGn6XA9jaoswlEvwvQIuXHWGYBHqx07Zc9AnUMKRMkPXwaayWg4IzB0MABtf4Ffa09FzUl7yaQOmtMOlZpd00bxrrQw9h");
+    
+        $intent = PaymentIntent::create([
+                      'amount' => $request->order_total*100,
+                      'currency' => 'usd',
+                      'payment_method_types' => ['card_present'],
+                      'capture_method' => 'automatic',
+                    ]);
+    
+        return response()->json(["status" => true, "client_secret" => $intent->client_secret]);
+    }
+
+    public function stipeCardReaderCapturePayment(Request $request) {
+        // Check if the required fields are present
+        $rules = [
+            'payment_intent_id' => 'required',
+        ];
+        
+        $validator = Validator::make($request->all(), $rules);
+    
+        if ($validator->fails()) {
+            return response()->json(['message' => 'Incorrect payment details provided.'], 422);
+        }
+        
+        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        $gateway_data_info = json_decode($gateway->data);
+
+        Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
+    
+        // $stripe = new \Stripe\StripeClient('sk_test_51O0HZtGn6XA9jaoswlEvwvQIuXHWGYBHqx07Zc9AnUMKRMkPXwaayWg4IzB0MABtf4Ffa09FzUl7yaQOmtMOlZpd00bxrrQw9h');
+    
+        $response = $stripe->paymentIntents->capture($request->payment_intent_id, []);
+
+        if ( $response == 'succeeded' ) {
+            return response()->json(["status" => true, "message" => "Payment Processed Successfully."]);
+        } else{
+            return response()->json(['message' => 'Unable to process your payment'], 422);
+        }
+    
     }
 
 }
