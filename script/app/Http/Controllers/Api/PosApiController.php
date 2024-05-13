@@ -674,6 +674,8 @@ class PosApiController extends Controller
             if($paymentresult['payment_status'] != 1){
                 return response()->json(['status' => false, 'message' => 'Sorry, we couldnt charge your card, please try another card', 'paymentresult'=>$paymentresult], 200);
             }
+        } elseif ( $request->payment_method == 'reader' ) {
+            $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
         } else { // Payment Method: CASH
             $gateway=Getway::where('name','cash')->first();
         } // Payment Method specific code END
@@ -687,7 +689,7 @@ class PosApiController extends Controller
             $notify_driver = 'mail';
 
             $order->getway_id = $gateway->id;
-            $order->status_id = $request->payment_method == 'card' ? 4 : 1;
+            $order->status_id = $request->payment_method == 'card' || $request->payment_method == 'reader' ? 4 : 1;
             $order->tax = $request->order_tax ?? 0;
 
             $order->discount = $request->discount ?? 0;
@@ -695,9 +697,10 @@ class PosApiController extends Controller
 
             $order->total = $total_amount ?? 0;
             $order->order_method = $order_method ?? 'delivery';
-            $order->order_from = $request->payment_method == 'card' ? 4 : 5;  // 4 is for card and 5 is for cash
+            $order->order_from = $request->payment_method == 'card' || $request->payment_method == 'reader' ? 4 : 5;  // 4 is for card and 5 is for cash
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $request->payment_method == 'card' ? $paymentresult['payment_id'] : null;
+            $order->transaction_id = $request->payment_method == 'reader' ? $request->payment_details['charges'][0]['id'] : null;
             $order->payment_status = 1;
             $order->placed_at = Carbon::now()->setTimezone($request->timezone);
             $order->captured_at = Carbon::now()->setTimezone($request->timezone);
@@ -1988,35 +1991,6 @@ private function send_order_recipts($data){
                     ]);
     
         return response()->json(["status" => true, "client_secret" => $intent->client_secret]);
-    }
-
-    public function stipeCardReaderCapturePayment(Request $request) {
-        // Check if the required fields are present
-        $rules = [
-            'payment_intent_id' => 'required',
-        ];
-        
-        $validator = Validator::make($request->all(), $rules);
-    
-        if ($validator->fails()) {
-            return response()->json(['message' => 'Incorrect payment details provided.'], 422);
-        }
-        
-        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
-        $gateway_data_info = json_decode($gateway->data);
-
-        Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
-    
-        // $stripe = new \Stripe\StripeClient('sk_test_51O0HZtGn6XA9jaoswlEvwvQIuXHWGYBHqx07Zc9AnUMKRMkPXwaayWg4IzB0MABtf4Ffa09FzUl7yaQOmtMOlZpd00bxrrQw9h');
-    
-        $response = $stripe->paymentIntents->capture($request->payment_intent_id, []);
-
-        if ( $response == 'succeeded' ) {
-            return response()->json(["status" => true, "message" => "Payment Processed Successfully."]);
-        } else{
-            return response()->json(['message' => 'Unable to process your payment'], 422);
-        }
-    
     }
 
 }
