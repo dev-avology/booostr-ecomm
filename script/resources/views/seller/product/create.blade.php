@@ -28,9 +28,9 @@
             {{-- Featured Image --}}
             <div class="row">
                {{-- left side --}}
-            <div class="col-lg-4">
-                  <strong>{{ __('Featured Image') }}</strong>
-                  <p>{{ __('Upload your product image here') }}</p>
+               <div class="col-lg-4">
+                     <strong>{{ __('Featured Image') }}</strong>
+                     <p>{{ __('Upload your product image here') }}</p>
                </div>
                {{-- /left side --}}
                {{-- right side --}}
@@ -74,6 +74,34 @@
                               <select name="product_type" id="product_type"  class="form-control product_type ">
                                  <option value="0">{{ __('Simple Product') }}</option>
                                  <option value="1">{{ __('Variation Product') }}</option>
+                              </select>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            {{-- right side --}}
+
+            <div class="row">
+               <div class="col-lg-4">
+                  <strong>{{ __('Form Connector') }}</strong>
+                  <p>{{ __('Select form connector') }}</p>
+               </div>
+               {{-- right side --}}
+            
+               <div class="col-lg-8">
+                  <div class="card card-primary">
+                     <div class="card-body">
+                        <div class="from-group row mb-2">
+                           <label for="" class="col-lg-12">{{ __('Form Selector') }} : </label>
+                           <div class="col-lg-12">
+                              <select name="form_type" id="form_type"  class="form-control form_type">
+                                 <option selected disabled>{{ __('Select form selector') }}</option>
+                                 @foreach ($formApiData as $item)
+                                    <option value="{{$item->id}}">{{$item->title}}</option>         
+                                 @endforeach
                               </select>
                            </div>
                         </div>

@@ -65,6 +65,21 @@
              
             </div>
         </div>
+
+        <div class="from-group row mb-2">
+          <label for="" class="col-lg-12">{{ __('Form Selector') }} : </label>
+          <div class="col-lg-12">
+            <?php
+              $formConnectorVal = $info->formType->value ?? '';
+            ?>
+              <select name="form_type" class="selectric form-control">
+                @foreach ($formApiData as $item)
+                  <option value="{{$item->id}}" @if($item->id == $formConnectorVal) selected @endif>{{$item->title}}</option>         
+                @endforeach
+              </select>
+          </div>
+        </div>
+
         <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Select Product Brand') }} : </label>
             <div class="col-lg-12">
