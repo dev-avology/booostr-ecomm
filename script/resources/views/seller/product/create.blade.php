@@ -100,9 +100,10 @@
                               <select name="form_type" id="form_type"  class="form-control form_type">
                                  <option selected disabled>{{ __('Select form selector') }}</option>
                                  @foreach ($formApiData as $item)
-                                    <option value="{{$item->id}}">{{$item->title}}</option>         
+                                    <option data-fields="{{$item->fields}}" value="{{$item->id}}">{{$item->title}}</option>         
                                  @endforeach
                               </select>
+                              <input type="hidden" name="form_fields" id="form_fields">
                            </div>
                         </div>
                      </div>
@@ -376,6 +377,11 @@ $(".drop_product_type").change(function() {
         return;
     }
     $('.product_weight_sec').show();
+});
+
+$('#form_type').on('change', function() {
+    var selectedOption = $(this).find('option:selected');
+    $('#form_fields').val(selectedOption.data('fields'));
 });
 
 

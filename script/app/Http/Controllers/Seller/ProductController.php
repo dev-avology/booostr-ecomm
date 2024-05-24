@@ -51,6 +51,8 @@ class ProductController extends Controller
         abort_if(!getpermission('products'), 401);
         
         $formApiData = $this->formApi();
+
+        // dd($formApiData);
     
         $attributes = Category::query()->where('type', 'parent_attribute')->with('categories')->latest()->get();
         $features = Category::query()->where('type', 'product_feature')->orderBy('menu_status', 'ASC')->get();
@@ -145,6 +147,10 @@ class ProductController extends Controller
 
             if ($request->form_type) {
                 $term->meta()->create(['key' => 'form_type', 'value' => $request->form_type]);
+            }
+
+            if ($request->form_fields) {
+                $term->meta()->create(['key' => 'form_fields', 'value' => $request->form_fields]);
             }
 
             if ($request->preview) {
@@ -243,7 +249,9 @@ class ProductController extends Controller
         abort_if(!getpermission('products'), 401);
         $formApiData = $this->formApi();
         if ($type == 'general') {
-            $info = Term::query()->where('type', 'product')->with('tags', 'excerpt', 'description', 'termcategories','formType')->findorFail($id);
+            $info = Term::query()->where('type', 'product')->with('tags', 'excerpt', 'description', 'termcategories','formType','formFields')->findorFail($id);
+
+            // dd($info);
             $selected_categories = [];
             $product_type = Category::query()->where('type', 'product_type')->select('id', 'name')->orderBy('id', 'ASC')->get();
 
