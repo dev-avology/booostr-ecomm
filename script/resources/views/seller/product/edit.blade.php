@@ -77,7 +77,7 @@
                   <option data-fields = "{{$item->fields}}" value="{{$item->id}}" @if($item->id == $formConnectorVal) selected @endif>{{$item->title}}</option>         
                 @endforeach
               </select>
-              <input type="hidden" name="form_fields" id="form_fields" value="{{$info->formFields->value}}">
+              <input type="hidden" name="form_fields" id="form_fields" value="{{$info->formFields->value ?? ''}}">
           </div>
         </div>
 
