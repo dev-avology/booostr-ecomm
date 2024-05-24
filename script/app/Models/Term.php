@@ -108,6 +108,18 @@ class Term extends Model
     {
         return $this->hasOne(Termmeta::class, 'term_id')->where('key', 'seo');
     }
+
+
+    public function formType()
+    {
+        return $this->hasOne(Termmeta::class, 'term_id')->where('key', 'form_type');
+    }
+
+    public function formFields()
+    {
+        return $this->hasOne(Termmeta::class, 'term_id')->where('key', 'form_fields');
+    }
+
     public function discount()
     {
         return $this->hasOne(Discount::class, 'term_id');

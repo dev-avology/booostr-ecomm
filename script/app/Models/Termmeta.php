@@ -14,6 +14,5 @@ class Termmeta extends Model
      protected $fillable = [
         'key',
         'value'
-        
     ];
 }

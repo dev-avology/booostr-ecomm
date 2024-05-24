@@ -65,6 +65,22 @@
              
             </div>
         </div>
+
+        <div class="from-group row mb-2">
+          <label for="" class="col-lg-12">{{ __('Form Selector') }} : </label>
+          <div class="col-lg-12">
+            <?php
+              $formConnectorVal = $info->formType->value ?? '';
+            ?>
+              <select name="form_type" class="selectric form-control" id="form_type">
+                @foreach ($formApiData as $item)
+                  <option data-fields = "{{$item->fields}}" value="{{$item->id}}" @if($item->id == $formConnectorVal) selected @endif>{{$item->title}}</option>         
+                @endforeach
+              </select>
+              <input type="hidden" name="form_fields" id="form_fields" value="{{$info->formFields->value}}">
+          </div>
+        </div>
+
         <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Select Product Brand') }} : </label>
             <div class="col-lg-12">
@@ -140,6 +156,12 @@
 
 <script>
     $(document).ready(function() {
+      $('#form_type').on('change', function() {
+          var selectedOption = $(this).find('option:selected');
+          console.log(selectedOption);
+          $('#form_fields').val(selectedOption.data('fields'));
+      });
+
       $('#mySelect2').select2({
         tags: true,
         createTag: function(params) {

@@ -16,6 +16,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ProductImport;
 use Auth;
 use Error;
+use Google\Service\NetworkManagement\RerunConnectivityTestRequest;
+use GuzzleHttp\Client;
 
 class ProductController extends Controller
 {
@@ -27,6 +29,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         abort_if(!getpermission('products'), 401);
+       
         $posts = Term::query()->where('type', 'product')->with('media', 'price')->withCount('orders');
         if (!empty($request->src) && !empty($request->type)) {
             $posts = $posts->where($request->type, 'LIKE', '%' . $request->src . '%');
@@ -46,11 +49,16 @@ class ProductController extends Controller
     public function create()
     {
         abort_if(!getpermission('products'), 401);
+        
+        $formApiData = $this->formApi();
+
+        // dd($formApiData);
+    
         $attributes = Category::query()->where('type', 'parent_attribute')->with('categories')->latest()->get();
         $features = Category::query()->where('type', 'product_feature')->orderBy('menu_status', 'ASC')->get();
         $product_type = Category::query()->where('type', 'product_type')->orderBy('id', 'ASC')->get();
 
-        return view("seller.product.create", compact('attributes', 'features', 'product_type'));
+        return view("seller.product.create", compact('attributes', 'features', 'product_type','formApiData'));
     }
 
     /**
@@ -59,6 +67,36 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+     
+    public function formApi(){
+        // $club_id = (int)Tenant('club_id');
+        $club_id = 36115;
+        $url = "https://staging3.booostr.co/wp-json/store-api/v1/get-store-form/?club_id=".$club_id;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+        $response = curl_exec($ch);
+        
+        $forms = [];
+        if (curl_errno($ch)) {
+            echo 'cURL error: ' . curl_error($ch);
+        } else {
+            $responseData = json_decode($response, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $forms = $responseData['forms'];
+            } else {
+                echo 'JSON decoding error: ' . json_last_error_msg();
+            }
+        }
+        curl_close($ch);
+
+        $forms = json_decode($forms) ?? [];
+        return $forms; 
+    } 
+
+
     public function store(Request $request)
     {
         abort_if(!getpermission('products'), 401);
@@ -105,6 +143,14 @@ class ProductController extends Controller
 
             if ($request->short_description) {
                 $term->meta()->create(['key' => 'excerpt', 'value' => $request->short_description]);
+            }
+
+            if ($request->form_type) {
+                $term->meta()->create(['key' => 'form_type', 'value' => $request->form_type]);
+            }
+
+            if ($request->form_fields) {
+                $term->meta()->create(['key' => 'form_fields', 'value' => $request->form_fields]);
             }
 
             if ($request->preview) {
@@ -201,18 +247,20 @@ class ProductController extends Controller
     public function edit($id, $type = "general")
     {
         abort_if(!getpermission('products'), 401);
+        $formApiData = $this->formApi();
         if ($type == 'general') {
-            $info = Term::query()->where('type', 'product')->with('tags', 'excerpt', 'description', 'termcategories')->findorFail($id);
+            $info = Term::query()->where('type', 'product')->with('tags', 'excerpt', 'description', 'termcategories','formType','formFields')->findorFail($id);
+
+            // dd($info);
             $selected_categories = [];
             $product_type = Category::query()->where('type', 'product_type')->select('id', 'name')->orderBy('id', 'ASC')->get();
 
             foreach ($info->termcategories as $key => $value) {
-
                 array_push($selected_categories, $value->category_id);
             }
             $features = Category::query()->where('type', 'product_feature')->orderBy('menu_status', 'ASC')->get();
 
-            return view("seller.product.edit", compact('info','product_type', 'selected_categories', 'features', 'id'));
+            return view("seller.product.edit", compact('info','product_type', 'selected_categories', 'features', 'id','formApiData'));
         }
 
         if ($type == 'price') {
@@ -304,6 +352,22 @@ class ProductController extends Controller
                         $term->excerpt()->delete();
                     }
                 }
+
+                if ($request->form_type) {
+                    if (empty($term->formType)) {
+                        
+                        $term->formType()->create(['key' => 'form_type', 'value' => $request->form_type]);
+                    } else {
+                       
+                        $term->formType()->update(['value' => $request->form_type]);
+                    }
+                } else {
+                    if (!empty($term->formType)) {
+                        $term->formType()->delete();
+                    }
+                }
+
+                
 
                 if ($request->long_description) {
                     if (empty($term->description)) {
