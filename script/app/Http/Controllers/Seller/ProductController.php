@@ -69,8 +69,8 @@ class ProductController extends Controller
      */
      
     public function formApi(){
-        $club_id = (int)Tenant('club_id');
-        // $club_id = 36115;
+        // $club_id = (int)Tenant('club_id');
+        $club_id = 36115;
         $url = "https://staging3.booostr.co/wp-json/store-api/v1/get-store-form/?club_id=".$club_id;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -321,6 +321,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // dd($request->form_fields);
         abort_if(!getpermission('products'), 401);
         if ($request->type == 'general') {
             $validated = $request->validate([
@@ -364,6 +365,21 @@ class ProductController extends Controller
                 } else {
                     if (!empty($term->formType)) {
                         $term->formType()->delete();
+                    }
+                }
+
+
+                if ($request->form_fields) {
+                    if (empty($term->formFields)) {
+                        
+                        $term->formFields()->create(['key' => 'form_fields', 'value' => $request->form_fields]);
+                    } else {
+                       
+                        $term->formFields()->update(['value' => $request->form_fields]);
+                    }
+                } else {
+                    if (!empty($term->formFields)) {
+                        $term->formFields()->delete();
                     }
                 }
 
