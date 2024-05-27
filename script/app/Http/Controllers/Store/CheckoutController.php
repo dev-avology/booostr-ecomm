@@ -77,6 +77,7 @@ class CheckoutController extends Controller
 
     public function redirect_to_checkout(Request $request,$cartid,$redirect_url='/')
     {
+        dd($cartid);
         if(isset($request->formData) && !empty($request->formData)){
             $formData = new ProductForm();
             $formData->cart_id = $cartid;
