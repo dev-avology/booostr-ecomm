@@ -818,7 +818,6 @@ class ProductController extends Controller
 
     public function addProductForm(Request $request)
     {
-        return $request['form_data'];
         $alreadyForm = ProductForm::where('cart_id', $request->cart_id)
             ->where('product_id', $request->product_id)
             ->where('form_id', $request->form_id)
