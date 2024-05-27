@@ -16,6 +16,7 @@ use App\Models\Price;
 use App\Models\Coupon;
 use App\Models\Orderstock;
 use App\Models\Option;
+use App\Models\ProductForm;
 use Carbon\Carbon;
 use Cart;
 use DB;
@@ -813,5 +814,15 @@ class ProductController extends Controller
           }else{
             return response()->json(["status" => 'false', "message" => 'Something went wrong']);
         }
+    }
+
+    public function addProductForm(Request $request){
+        return $request->all();
+        $formData = new ProductForm();
+        $formData->cart_id = $request->cart_id;
+        $formData->product_id = $request->product_id;
+        $formData->form_data = $request->formData;
+        $formData->save();
+        
     }
 }
