@@ -76,6 +76,7 @@ class CheckoutController extends Controller
 
     public function redirect_to_checkout(Request $request,$cartid,$redirect_url='/')
     {
+        dd($request->formData);
         if (empty($cartid)) {
             return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Oops something went wrong']);
         }
