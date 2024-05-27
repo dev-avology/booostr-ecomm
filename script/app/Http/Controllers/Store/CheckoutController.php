@@ -26,6 +26,7 @@ use App\Models\Option;
 use DB;
 use App\Models\Order;
 use App\Models\Coupon;
+use App\Models\ProductForm;
 use App\Models\Ordermeta;
 use App\Models\Orderstock;
 use Carbon\Carbon;
@@ -76,8 +77,13 @@ class CheckoutController extends Controller
 
     public function redirect_to_checkout(Request $request,$cartid,$redirect_url='/')
     {
-        print_r($request->formData);
-        dd('dd');
+        if(isset($request->formData) && !empty($request->formData)){
+            $formData = new ProductForm();
+            $formData->cart_id = $cartid;
+            $formData->form_data = $request->formData;
+            $formData->save();
+        }
+        
         if (empty($cartid)) {
             return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Oops something went wrong']);
         }
