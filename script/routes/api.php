@@ -46,6 +46,9 @@ Route::group([
     Route::get('/get_banner_image','Api\ProductController@getBannerImage');
     Route::get('/get_footer_links','Api\ProductController@getFooterLinks');
 
+    Route::post('/add_product_form','Api\ProductController@addProductForm');
+
+
 
     // PosApiController
 
