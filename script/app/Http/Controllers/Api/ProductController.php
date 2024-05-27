@@ -816,21 +816,27 @@ class ProductController extends Controller
         }
     }
 
-    public function addProductForm(Request $request){
+    public function addProductForm(Request $request)
+    {
+        $alreadyForm = ProductForm::where('cart_id', $request->cart_id)
+            ->where('product_id', $request->product_id)
+            ->where('form_id', $request->form_id)
+            ->first();
 
-        $alreadyForm = ProductForm::where('cart_id',$request->cart_id)->where('product_id',$request->product_id)->where('form_id',$request->form_id)->get();
+        if ($alreadyForm === null) {
+            $formData = ProductForm::create([
+                'cart_id' => $request->cart_id,
+                'product_id' => $request->product_id,
+                'form_data' => json_encode($request->formData),
+                'form_id' => $request->form_id,
+            ]);
 
-        if(empty($alreadyForm)){
-            $formData = new ProductForm();
-            $formData->cart_id = $request->cart_id;
-            $formData->product_id = $request->product_id;
-            $formData->form_data = $request->formData;
-            $formData->form_id = $request->form_id;
-            $formData->save();
-            $msg = array('status' => true,'message' => 'Form data added successfully');
-        }else{
-            $msg = array('status' => false,'message' => 'Cant added');
+            $msg = ['status' => true, 'message' => 'Form data added successfully'];
+        } else {
+            $msg = ['status' => false, 'message' => 'Cannot add, form data already exists'];
         }
+
         return response()->json($msg);
     }
+
 }
