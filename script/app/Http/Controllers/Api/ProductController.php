@@ -817,12 +817,20 @@ class ProductController extends Controller
     }
 
     public function addProductForm(Request $request){
-        return $request->all();
-        $formData = new ProductForm();
-        $formData->cart_id = $request->cart_id;
-        $formData->product_id = $request->product_id;
-        $formData->form_data = $request->formData;
-        $formData->save();
-        
+
+        $alreadyForm = ProductForm::where('cart_id',$request->cart_id)->where('product_id',$request->product_id)->where('form_id',$request->form_id)->get();
+
+        if(empty($alreadyForm)){
+            $formData = new ProductForm();
+            $formData->cart_id = $request->cart_id;
+            $formData->product_id = $request->product_id;
+            $formData->form_data = $request->formData;
+            $formData->form_id = $request->form_id;
+            $formData->save();
+            $msg = array('status' => true,'message' => 'Form data added successfully');
+        }else{
+            $msg = array('status' => false,'message' => 'Cant added');
+        }
+        return response()->json($msg);
     }
 }
