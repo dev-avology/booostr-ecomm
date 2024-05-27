@@ -12,7 +12,9 @@ class ProductForm extends Model
     protected $table = "product_form";
     protected $fillable = [
       'cart_id',
-      'form_data'
+      'form_data',
+      'form_id',
+      'product_id'
   ];
 
 
