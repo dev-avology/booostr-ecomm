@@ -464,7 +464,8 @@ class OrderController extends Controller
         }
         curl_close($ch);
         //Log::info($response);
-       // dd($response);
+        dump("=========ONLINE=============");
+        dd($response);
         return $response;
     }
 
@@ -535,10 +536,6 @@ class OrderController extends Controller
 
     $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
 
-    // $financial_manager = env("WP_fINITIAL_MANAGER_URL");
-    // $url = ($financial_manager != '') ? $financial_manager : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
-
-
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
@@ -557,7 +554,8 @@ class OrderController extends Controller
     }
     curl_close($ch);
     //Log::info($response);
-  
+    dump("=========POS=============");
+    dd($response);
     return $response;
 }
 
