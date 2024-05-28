@@ -301,9 +301,10 @@ class CheckoutController extends Controller
     {
 
         $data = $this->syncFormData('ASzk38DJRZ','0000004',Tenant('club_id'));
-
-
         dd($data);
+
+
+        // dd($data);
         $redirect_url=Session::has('redirect_url')?Session::get('redirect_url'):'https://www.boostr.co';
         if(Cart::content()->isEmpty()){
             return redirect()->away($redirect_url.'/?type=error&message=Oops Your cart is empty');
@@ -673,13 +674,15 @@ class CheckoutController extends Controller
         curl_close($ch);
     
         $form_res = '';
+
+        return $server_output;
     
         // if ($server_output !== false) {
         //     $form_res = json_decode($server_output, true);
         // }
     
         // Return or process the form response as needed
-        return $server_output;
+        // print_r() $server_output;
     }
     
 
