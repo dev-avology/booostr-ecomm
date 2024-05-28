@@ -752,6 +752,7 @@ class PosApiController extends Controller
                 }
             }
             
+
             $order->orderitems()->insert($oder_items);
 
             // Add empty delivery data. So we are able to use methods available to capture payment and the order details page does not break, adn to use other order relations functions
@@ -809,6 +810,103 @@ class PosApiController extends Controller
             return response()->json(["status" => false, "message" => "Some thing went wrong."],404);
         }
     }
+
+
+
+    public function post_order_data($order,$post_type = 'capture'){
+
+            $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
+            $qty = $order->orderitems[0]['qty'];
+            $product_amount = $order->orderitems[0]['amount'];
+            $sub_total = $product_amount*$qty;
+            $sales_tax = $order->tax;
+            $order_total = $order->total;
+        
+            if(isset($order->ordermeta)){
+
+                $ordermeta=json_decode($order->ordermeta->value ?? '',true);
+                
+                $name = explode(' ',$ordermeta['name']);
+        }
+
+            
+
+            //$jsonString = $order->shippingwithinfo['info'];
+
+            $jsonString = $order->shippingwithinfo['info'];
+            // Decode the JSON string into a PHP array
+            $shipping_data = json_decode($jsonString, true);
+
+            $credit_card_fee = $shipping_data['credit_card_fee'];
+            $booster_platform_fee = $shipping_data['booster_platform_fee'];
+            $processing_fees = $credit_card_fee+$booster_platform_fee;
+
+            $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
+
+            $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
+
+
+
+            $postData = json_encode([
+            'category_type'=> 'Booostr Ecommerce',
+            'booster_id' =>Tenant('club_id'),
+            'coaid'=>41,
+            'contactname'=>$ordermeta['name']??'Guest User',
+            //'memo'=>'Booostr Ecommerce',
+            'user_id' => 0,
+            'revenue_name'=>'4-850 Booostr Ecommerce',
+            'transaction_type'=>'I',
+            'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
+            'net_revenue'=>$net_recieved_amount,
+            'transaction_amount'=>$order_total,
+            'expense_category'=>'Revenue',
+            'receipts_issued'=> 'Yes',
+            'status'=>1,
+            'donor_name'=>$ordermeta['name']??'Guest User'.' (POS Order)',
+            'created'=>$order->placed_at,
+            'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
+            'invoicenumber'=>$order->invoice_no,
+            'invoicreatedate'=>$order->placed_at,
+            'invoiceprocessingfee'=>$processing_fees,
+            'invoicesalestax'=> $sales_tax,
+            'invoiceopt'=>$order->invoice_no,
+            'deposite_date'=>$order->captured_at,
+            'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
+            'record_type' => $post_type,
+        ]);
+
+
+        $url = env("WP_API_URL");
+
+        $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
+
+
+        // $financial_manager = env("WP_fINITIAL_MANAGER_URL");
+        // $url = ($financial_manager != '') ? $financial_manager : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
+
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+
+        // Check for cURL errors
+        if (curl_errno($ch)) {
+            echo 'cURL error: ' . curl_error($ch);
+        }
+        curl_close($ch);
+        //Log::info($response);
+        // dd($response);
+        return $response;
+  }
+
 
  /**
  * @OA\Post(
