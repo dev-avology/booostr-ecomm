@@ -818,29 +818,12 @@ class ProductController extends Controller
 
     public function addProductForm(Request $request)
     {
-
-        return response()->json($request->form_data);
-        die;
-
-        if ($request->hasFile('upload_file')) {
-            $file = $request->file('upload_file');
-            $fileName = time() . '_' . $file->getClientOriginalName(); // Unique file name
-            $path = $file->move(public_path('uploads'), $fileName); 
-            return $path;
-        }
-
         $alreadyForm = ProductForm::where('cart_id', $request->cart_id)
             ->where('product_id', $request->product_id)
             ->where('form_id', $request->form_id)
             ->first();
 
         if ($alreadyForm === null) {
-
-            // if ($request->hasFile('upload_file')) {
-            //     $file = $request->file('upload_file');
-            //     $path = $file->store('wpproductform', 'public'); // Store the file in the public disk
-            //     \Log::info($path);
-            // }
 
             $formData = ProductForm::create([
                 'cart_id' => $request->cart_id,
