@@ -483,8 +483,6 @@ class OrderController extends Controller
             $ordermeta=json_decode($order->ordermeta->value ?? '',true);
             
             $name = explode(' ',$ordermeta['name']);
-        }else{
-            dd($order->shippingwithinfo['info']);
         }
 
         
@@ -533,6 +531,7 @@ class OrderController extends Controller
         'record_type' => $post_type,
     ]);
 
+    dd($postData);
 
     $url = env("WP_API_URL");
 
