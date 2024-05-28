@@ -827,8 +827,6 @@ class PosApiController extends Controller
             if(isset($order->ordermeta)){
 
                 $ordermeta=json_decode($order->ordermeta->value ?? '',true);
-                
-                $name = explode(' ',$ordermeta['name']);
         }
 
             
@@ -853,7 +851,7 @@ class PosApiController extends Controller
             'category_type'=> 'Booostr Ecommerce',
             'booster_id' =>Tenant('club_id'),
             'coaid'=>41,
-            'contactname'=>$ordermeta['name']??'Guest User',
+            'contactname'=>isset($ordermeta['name'])?$ordermeta['name']:'Guest User',
             //'memo'=>'Booostr Ecommerce',
             'user_id' => 0,
             'revenue_name'=>'4-850 Booostr Ecommerce',
@@ -864,7 +862,7 @@ class PosApiController extends Controller
             'expense_category'=>'Revenue',
             'receipts_issued'=> 'Yes',
             'status'=>1,
-            'donor_name'=>$ordermeta['name'].' (POS Order)'??'Guest User'.' (POS Order)',
+            'donor_name'=>isset($ordermeta['name'])? $ordermeta['name'].' (POS Order)':'Guest User'.' (POS Order)',
             'created'=>$order->placed_at,
             'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
             'invoicenumber'=>$order->invoice_no,

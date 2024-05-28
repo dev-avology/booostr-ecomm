@@ -465,8 +465,8 @@ class OrderController extends Controller
         }
         curl_close($ch);
         //Log::info($response);
-        dump("=========ONLINE=============");
-        dd($response);
+      //  dump("=========ONLINE=============");
+      //  dd($response);
         return $response;
     }
 
@@ -553,8 +553,8 @@ class OrderController extends Controller
     }
     curl_close($ch);
     //Log::info($response);
-    dump("=========POS=============");
-    dd($response);
+   // dump("=========POS=============");
+   // dd($response);
     return $response;
 }
 
