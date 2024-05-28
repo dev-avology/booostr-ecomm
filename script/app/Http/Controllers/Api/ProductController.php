@@ -821,8 +821,9 @@ class ProductController extends Controller
 
         if ($request->hasFile('upload_file')) {
             $file = $request->file('upload_file');
-            $path = $file->store('wpproductform', 'public'); // Store the file in the public disk
-           return $path;
+            $fileName = time() . '_' . $file->getClientOriginalName(); // Unique file name
+            $path = $file->move(public_path('uploads'), $fileName); 
+            return $path;
         }
 
         $alreadyForm = ProductForm::where('cart_id', $request->cart_id)
