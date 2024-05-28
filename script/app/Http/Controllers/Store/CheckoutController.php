@@ -414,12 +414,12 @@ class CheckoutController extends Controller
             };
         }
 
-       $paymentresult= $gateway->namespace::charge_payment($payment_data);
+    //    $paymentresult= $gateway->namespace::charge_payment($payment_data);
       //$paymentresult= ['payment_status'=>4,'payment_id'=>'sffsdf43534'];
 
-        if($paymentresult['payment_status'] != 4){
-            return redirect()->back()->with(["error"=>"Sorry, we couldnt charge your card, please try another card"]);
-        }
+        // if($paymentresult['payment_status'] != 4){
+        //     return redirect()->back()->with(["error"=>"Sorry, we couldnt charge your card, please try another card"]);
+        // }
 
         DB::beginTransaction();
         try {
@@ -462,13 +462,13 @@ class CheckoutController extends Controller
             $order->transaction_id = $paymentresult['payment_id'];
             $order->payment_status =$paymentresult['payment_status'];
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
-            $order->save();
+            // $order->save();
 
             
             if($couponcode != null){
                 $coupon = Coupon::where('code',$couponcode)->first();
                 $coupon->used_count =  $coupon->used_count + 1 ;
-                $coupon->save();
+                // $coupon->save();
             }
 
 
@@ -505,10 +505,10 @@ class CheckoutController extends Controller
                 $cartid = $row->instance;
             }
 
-            $order->orderitems()->insert($oder_items);
+            // $order->orderitems()->insert($oder_items);
 
             if ($request->order_method == 'table') {
-                $order->ordertable()->attach($request->table);
+                // $order->ordertable()->attach($request->table);
             }
             if ($request->order_method == 'delivery') {
                 $delivery_info['address'] = $request->shipping['address'].' '. $request->shipping['city'].', '.$request->shipping['state'].', '.$request->shipping['country'];
@@ -540,16 +540,16 @@ class CheckoutController extends Controller
                 $customer_info['credit_card_fee'] = $credit_card_fee;
                 $customer_info['booster_platform_fee'] = $booster_platform_fee;
 
-                $order->ordermeta()->create([
-                    'key' => 'orderinfo',
-                    'value' => json_encode($customer_info)
-                ]);
+                // $order->ordermeta()->create([
+                //     'key' => 'orderinfo',
+                //     'value' => json_encode($customer_info)
+                // ]);
 
                 $transcation_log = new Ordermeta;
                 $transcation_log->order_id = $order->id;
                 $transcation_log->key = 'transcation_log';
                 $transcation_log->value = json_encode($paymentresult['transaction_log']);
-                $transcation_log->save();
+                // $transcation_log->save();
     
                 $order->orderlasttrans()->create([
                     'key' => 'last_transcation_log',
@@ -601,16 +601,17 @@ class CheckoutController extends Controller
                 'camp_id'=>$order->invoice_no,
             ];
 
-           $recipt =  $this->send_order_recipt($user_recipt);
+        //    $recipt =  $this->send_order_recipt($user_recipt);
 
-            \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
-            \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
+            // \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
+            // \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
 
             if(Session::has('cart') && $cartid != null){
 
-                $this->syncFormData($cartid,$order->id,Tenant('club_id'));
+                // $this->syncFormData($cartid,$order->id,Tenant('club_id'));
+                $this->syncFormData('ASzk38DJRZ','0000004',Tenant('club_id'));
 
-                Cart::destroy($cartid);
+                // Cart::destroy($cartid);
             }
 
             $parts = parse_url($redirect_url);
@@ -624,7 +625,7 @@ class CheckoutController extends Controller
             }
 
 
-            return redirect()->away($redirect_url . '/?tab=thankyou&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
+            // return redirect()->away($redirect_url . '/?tab=thankyou&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
         } catch (\Throwable $th) {
             DB::rollback();
 
