@@ -862,7 +862,7 @@ class PosApiController extends Controller
             'expense_category'=>'Revenue',
             'receipts_issued'=> 'Yes',
             'status'=>1,
-            'donor_name'=>$ordermeta['name']??'Guest User'.' (POS Order)',
+            'donor_name'=>$ordermeta['name'].' (POS Order)'??'Guest User'.' (POS Order)',
             'created'=>$order->placed_at,
             'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
             'invoicenumber'=>$order->invoice_no,

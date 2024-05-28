@@ -479,7 +479,6 @@ class OrderController extends Controller
         $order_total = $order->total;
     
         if(isset($order->ordermeta)){
-
             $ordermeta=json_decode($order->ordermeta->value ?? '',true);
             
             $name = explode(' ',$ordermeta['name']);
@@ -518,7 +517,7 @@ class OrderController extends Controller
         'expense_category'=>'Revenue',
         'receipts_issued'=> 'Yes',
         'status'=>1,
-        'donor_name'=>$ordermeta['name']??'Guest User'.' (POS Order)',
+        'donor_name'=>$ordermeta['name'].' (POS Order)'??'Guest User'.' (POS Order)',
         'created'=>$order->placed_at,
         'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
         'invoicenumber'=>$order->invoice_no,
@@ -531,11 +530,10 @@ class OrderController extends Controller
         'record_type' => $post_type,
     ]);
 
-
+   
     $url = env("WP_API_URL");
 
     $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
-    $url = "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
 
     // $financial_manager = env("WP_fINITIAL_MANAGER_URL");
     // $url = ($financial_manager != '') ? $financial_manager : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
@@ -559,7 +557,7 @@ class OrderController extends Controller
     }
     curl_close($ch);
     //Log::info($response);
-    // dd($response);
+  
     return $response;
 }
 
