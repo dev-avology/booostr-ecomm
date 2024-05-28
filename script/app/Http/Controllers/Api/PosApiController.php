@@ -802,7 +802,9 @@ class PosApiController extends Controller
             }
             
             $data = ['order_id' => $order->id,'order_date' => $order->placed_at];
-            
+
+            $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($order->id);
+            $this->post_order_data_pos($order);
             DB::commit();
             return response()->json(["status" => true, "message" => "Order Successfull.",'data'=>$data]);
         } catch (\Throwable $th) {
@@ -813,7 +815,7 @@ class PosApiController extends Controller
 
 
 
-    public function post_order_data($order,$post_type = 'capture'){
+    public function post_order_data_pos($order,$post_type = 'capture'){
 
             $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
             $qty = $order->orderitems[0]['qty'];
