@@ -558,9 +558,7 @@ class OrderController extends Controller
     }
     curl_close($ch);
     //Log::info($response);
-    dump("==========================");
-     dd($response);
-
+  
     return $response;
 }
 
