@@ -530,8 +530,7 @@ class OrderController extends Controller
         'record_type' => $post_type,
     ]);
 
-    dd($postData);
-
+   
     $url = env("WP_API_URL");
 
     $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
@@ -559,7 +558,7 @@ class OrderController extends Controller
     }
     curl_close($ch);
     //Log::info($response);
-    // dd($response);
+     dd($response);
     return $response;
 }
 
