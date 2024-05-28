@@ -819,7 +819,7 @@ class ProductController extends Controller
     public function addProductForm(Request $request)
     {
 
-        echo $request->form_data;
+        return response()->json($request->form_data);
         die;
 
         if ($request->hasFile('upload_file')) {
@@ -836,11 +836,11 @@ class ProductController extends Controller
 
         if ($alreadyForm === null) {
 
-            if ($request->hasFile('upload_file')) {
-                $file = $request->file('upload_file');
-                $path = $file->store('wpproductform', 'public'); // Store the file in the public disk
-                \Log::info($path);
-            }
+            // if ($request->hasFile('upload_file')) {
+            //     $file = $request->file('upload_file');
+            //     $path = $file->store('wpproductform', 'public'); // Store the file in the public disk
+            //     \Log::info($path);
+            // }
 
             $formData = ProductForm::create([
                 'cart_id' => $request->cart_id,
