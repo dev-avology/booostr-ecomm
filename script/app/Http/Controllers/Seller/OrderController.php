@@ -212,7 +212,7 @@ class OrderController extends Controller
                  $this->post_order_data_POS($info);
                }else{
                 $this->post_order_data($info);
-               }
+               
 
                 $shippingArray = [
                     'shipping_driver' => $request->shipping_service ?? $request->chooseTracking,
@@ -262,6 +262,7 @@ class OrderController extends Controller
                 if (count($deletable_ids) != 0) {
                     Orderstock::whereIn('id',$deletable_ids)->delete();
                 } 
+             }
             }
         }
 
