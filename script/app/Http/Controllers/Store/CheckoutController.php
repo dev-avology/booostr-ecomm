@@ -300,7 +300,7 @@ class CheckoutController extends Controller
     public function makeOrder(Request $request)
     {
 
-        $data = $this->syncFormData('ASzk38DJRZ','0000004');
+        $data = $this->syncFormData('ASzk38DJRZ','0000004',Tenant('club_id'));
         dd($data);
 
 
@@ -644,45 +644,50 @@ class CheckoutController extends Controller
 
 
     public function syncFormData($cartid, $orderId){
-        // Fetch product form data from the database
-        $productFormData = ProductForm::where('cart_id', $cartid)->get()->toArray();
+        $productFormData = ProductForm::where('cart_id', $cartid)->get();
+
+        $formData = [];
     
-        // Prepare data to be sent in the POST request
-        $data = [
-            'orderId' => $orderId,
-            'formDATA' => $productFormData
-        ];
+        foreach($productFormData as $form){
+            $formData[$form->form_id] = array(
+                'data'=>$form->form_data,
+                'product_id'=>$form->product_id,
+                'order_id'=>$orderId
+            );
+            $formData['booostr_id'] = $form->club_id;
+        }
+        $jsonData = json_encode($formData);
     
-        // Convert data to a URL-encoded query string
-        $postData = http_build_query($data);
-    
-        // Initialize cURL
         $ch = curl_init();
     
         // Set cURL options
         curl_setopt($ch, CURLOPT_URL, "https://staging3.booostr.co/wp-json/store-api/v1/sync-store-form-data/");
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/x-www-form-urlencoded',
-            'Content-Length: ' . strlen($postData))
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($jsonData))
         );
     
-        // Disable SSL verification (not recommended for production)
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     
-        // Execute cURL request and get the response
         $server_output = curl_exec($ch);
     
-        // Close cURL
         curl_close($ch);
     
-        // Return the server output
+        $form_res = '';
+
         return $server_output;
-    }
     
+        // if ($server_output !== false) {
+        //     $form_res = json_decode($server_output, true);
+        // }
+    
+        // Return or process the form response as needed
+        // print_r() $server_output;
+    }
     
 
 
