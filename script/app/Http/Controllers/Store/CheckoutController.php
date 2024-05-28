@@ -648,7 +648,8 @@ class CheckoutController extends Controller
                 $formData[$form->form_id] = array(
                     'data'=>$form->form_data,
                     'product_id'=>$form->product_id,
-                    'order_id'=>$orderId
+                    'order_id'=>$orderId,
+                    'booostr_id'=>$form->club_id
                 );
             }
 
