@@ -881,7 +881,7 @@ class PosApiController extends Controller
         $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
 
         $url = "https://booostr.co/wp-json/store-api/v1/financial-manager-pos";
-        
+
         // $financial_manager = env("WP_fINITIAL_MANAGER_URL");
         // $url = ($financial_manager != '') ? $financial_manager : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
 
@@ -904,7 +904,7 @@ class PosApiController extends Controller
         }
         curl_close($ch);
         //Log::info($response);
-        // dd($response);
+         dd($response);
         return $response;
   }
 
