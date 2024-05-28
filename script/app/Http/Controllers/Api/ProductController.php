@@ -828,7 +828,7 @@ class ProductController extends Controller
             $formData = ProductForm::create([
                 'cart_id' => $request->cart_id,
                 'product_id' => $request->product_id,
-                'form_data' => json_encode($request->form_data),
+                'form_data' => $request->form_data,
                 'form_id' => $request->form_id,
                 'club_id' => $request->club_id
             ]);

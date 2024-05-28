@@ -608,7 +608,7 @@ class CheckoutController extends Controller
 
             if(Session::has('cart') && $cartid != null){
 
-                $this->syncFormData($cartid,$order->id,);
+                $this->syncFormData($cartid,$order->id,Tenant('club_id'));
 
                 Cart::destroy($cartid);
             }
@@ -637,7 +637,7 @@ class CheckoutController extends Controller
     }
 
 
-    public function syncFormData($cartid, $orderId){
+    public function syncFormData($cartid, $orderId,$tenant_id){
         $productFormData = ProductForm::where('cart_id', $cartid)->get();
 
         if(isset($productFormData) && !empty($productFormData)){
@@ -650,8 +650,8 @@ class CheckoutController extends Controller
                     'product_id'=>$form->product_id,
                     'order_id'=>$orderId
                 );
-                $formData['booostr_id'] = $form->club_id;
             }
+            $formData['booostr_id'] = $tenant_id;
             $jsonData = json_encode($formData);
         
             $ch = curl_init();
