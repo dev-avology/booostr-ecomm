@@ -637,7 +637,7 @@ class CheckoutController extends Controller
     }
 
 
-    public function syncFormData($cartid, $orderId,$tenant_id){
+    public function syncFormData($cartid, $orderId,$club_id){
         $productFormData = ProductForm::where('cart_id', $cartid)->get();
 
         if(isset($productFormData) && !empty($productFormData)){
@@ -651,7 +651,8 @@ class CheckoutController extends Controller
                     'order_id'=>$orderId
                 );
             }
-            $formData['booostr_id'] = $tenant_id;
+
+            $formData['booostr_id'] = $club_id;
             $jsonData = json_encode($formData);
         
             $ch = curl_init();
