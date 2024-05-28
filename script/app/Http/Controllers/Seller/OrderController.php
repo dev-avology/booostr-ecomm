@@ -269,7 +269,6 @@ class OrderController extends Controller
            DB::commit();
         } catch (\Throwable $th) {
             DB::rollback();
-            dd($th);
             $errors['errors']['error']='Oops something wrong';
             return response()->json($errors,401);
         } 
