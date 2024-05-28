@@ -611,7 +611,7 @@ class CheckoutController extends Controller
                 // $this->syncFormData($cartid,$order->id,Tenant('club_id'));
                 $this->syncFormData('ASzk38DJRZ','0000004',Tenant('club_id'));
 
-                Cart::destroy($cartid);
+                // Cart::destroy($cartid);
             }
 
             $parts = parse_url($redirect_url);
@@ -625,7 +625,7 @@ class CheckoutController extends Controller
             }
 
 
-            return redirect()->away($redirect_url . '/?tab=thankyou&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
+            // return redirect()->away($redirect_url . '/?tab=thankyou&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
         } catch (\Throwable $th) {
             DB::rollback();
 
