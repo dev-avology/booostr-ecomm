@@ -459,8 +459,8 @@ class CheckoutController extends Controller
             $order->total = $total_amount;
             $order->order_method = $order_method ?? 'delivery';
             $order->notify_driver = $notify_driver;
-            $order->transaction_id = $paymentresult['payment_id'];
-            $order->payment_status =$paymentresult['payment_status'];
+            // $order->transaction_id = $paymentresult['payment_id'];
+            // $order->payment_status =$paymentresult['payment_status'];
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             // $order->save();
 
@@ -548,12 +548,12 @@ class CheckoutController extends Controller
                 $transcation_log = new Ordermeta;
                 $transcation_log->order_id = $order->id;
                 $transcation_log->key = 'transcation_log';
-                $transcation_log->value = json_encode($paymentresult['transaction_log']);
+                // $transcation_log->value = json_encode($paymentresult['transaction_log']);
                 // $transcation_log->save();
     
                 $order->orderlasttrans()->create([
                     'key' => 'last_transcation_log',
-                    'value' => json_encode($paymentresult['transaction_log'])
+                    // 'value' => json_encode($paymentresult['transaction_log'])
                 ]);
             }
 
