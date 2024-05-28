@@ -212,7 +212,7 @@ class OrderController extends Controller
                  $this->post_order_data_POS($info);
                }else{
                 $this->post_order_data($info);
-               }
+               
 
                 $shippingArray = [
                     'shipping_driver' => $request->shipping_service ?? $request->chooseTracking,
@@ -262,6 +262,7 @@ class OrderController extends Controller
                 if (count($deletable_ids) != 0) {
                     Orderstock::whereIn('id',$deletable_ids)->delete();
                 } 
+             }
             }
         }
 
@@ -464,7 +465,8 @@ class OrderController extends Controller
         }
         curl_close($ch);
         //Log::info($response);
-       // dd($response);
+      //  dump("=========ONLINE=============");
+      //  dd($response);
         return $response;
     }
 
@@ -480,8 +482,6 @@ class OrderController extends Controller
     
         if(isset($order->ordermeta)){
             $ordermeta=json_decode($order->ordermeta->value ?? '',true);
-            
-            $name = explode(' ',$ordermeta['name']);
         }
 
         
@@ -506,7 +506,7 @@ class OrderController extends Controller
         'category_type'=> 'Booostr Ecommerce',
         'booster_id' =>Tenant('club_id'),
         'coaid'=>41,
-        'contactname'=>$ordermeta['name']??'Guest User',
+        'contactname'=>isset($ordermeta['name'])?$ordermeta['name']:'Guest User',
         //'memo'=>'Booostr Ecommerce',
         'user_id' => 0,
         'revenue_name'=>'4-850 Booostr Ecommerce',
@@ -517,7 +517,7 @@ class OrderController extends Controller
         'expense_category'=>'Revenue',
         'receipts_issued'=> 'Yes',
         'status'=>1,
-        'donor_name'=>$ordermeta['name'].' (POS Order)'??'Guest User'.' (POS Order)',
+        'donor_name'=>isset($ordermeta['name'])? $ordermeta['name'].' (POS Order)':'Guest User'.' (POS Order)',
         'created'=>$order->placed_at,
         'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
         'invoicenumber'=>$order->invoice_no,
@@ -534,10 +534,6 @@ class OrderController extends Controller
     $url = env("WP_API_URL");
 
     $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
-
-    // $financial_manager = env("WP_fINITIAL_MANAGER_URL");
-    // $url = ($financial_manager != '') ? $financial_manager : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
-
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -557,7 +553,8 @@ class OrderController extends Controller
     }
     curl_close($ch);
     //Log::info($response);
-  
+   // dump("=========POS=============");
+   // dd($response);
     return $response;
 }
 
