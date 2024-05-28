@@ -845,7 +845,7 @@ class PosApiController extends Controller
 
             $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 
-
+            $gateway=Getway::find($order->getway_id);
 
             $postData = json_encode([
             'category_type'=> 'Booostr Ecommerce',
@@ -865,6 +865,7 @@ class PosApiController extends Controller
             'donor_name'=>isset($ordermeta['name'])? $ordermeta['name'].' (POS Order)':'Guest User'.' (POS Order)',
             'created'=>$order->placed_at,
             'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
+            'payement_method'=>($gateway->name == 'cash') ? 0 : 3,
             'invoicenumber'=>$order->invoice_no,
             'invoicreatedate'=>$order->placed_at,
             'invoiceprocessingfee'=>$processing_fees,

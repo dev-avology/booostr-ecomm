@@ -364,6 +364,8 @@ class OrderController extends Controller
         
         $name = explode(' ',$ordermeta['name']);
 
+        $gateway=Getway::find($order->getway_id);
+
          $contact_manager_data = array(
 									'first_name' => $name[0],
 									'last_name' => $name[1]??'',
@@ -418,6 +420,7 @@ class OrderController extends Controller
         'donor_name'=>$ordermeta['name'].' (Online Order)',
         'created'=>$order->placed_at,
         'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
+        'payement_method'=>($gateway->name == 'cash') ? 0 : 3,
         'invoicenumber'=>$order->invoice_no,
         'invoicreatedate'=>$order->placed_at,
         'invoiceprocessingfee'=>$processing_fees,
@@ -484,7 +487,8 @@ class OrderController extends Controller
             $ordermeta=json_decode($order->ordermeta->value ?? '',true);
         }
 
-        
+        $gateway=Getway::find($order->getway_id);
+
 
         //$jsonString = $order->shippingwithinfo['info'];
 
@@ -520,6 +524,7 @@ class OrderController extends Controller
         'donor_name'=>isset($ordermeta['name'])? $ordermeta['name'].' (POS Order)':'Guest User'.' (POS Order)',
         'created'=>$order->placed_at,
         'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
+        'payement_method'=>($gateway->name == 'cash') ? 0 : 3,
         'invoicenumber'=>$order->invoice_no,
         'invoicreatedate'=>$order->placed_at,
         'invoiceprocessingfee'=>$processing_fees,
