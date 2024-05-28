@@ -479,10 +479,12 @@ class OrderController extends Controller
         $order_total = $order->total;
     
         if(isset($order->ordermeta)){
-
+            dd($order->ordermeta);
             $ordermeta=json_decode($order->ordermeta->value ?? '',true);
             
             $name = explode(' ',$ordermeta['name']);
+        }else{
+            dd($order->shippingwithinfo['info']);
         }
 
         
