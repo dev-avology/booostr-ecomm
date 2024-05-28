@@ -300,7 +300,7 @@ class CheckoutController extends Controller
     public function makeOrder(Request $request)
     {
 
-        $data = $this->syncFormData('ASzk38DJRZ','0000004',Tenant('club_id'));
+        $data = $this->syncFormData('ASzk38DJRZ','0000004');
         dd($data);
 
 
