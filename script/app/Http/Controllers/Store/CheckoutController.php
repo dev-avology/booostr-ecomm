@@ -643,17 +643,16 @@ class CheckoutController extends Controller
         if(isset($productFormData) && !empty($productFormData)){
 
             $formData = [];
-        
+            $club_id = $tenantId;
             foreach($productFormData as $form){
                 $formData[$form->form_id] = array(
                     'data'=>$form->form_data,
                     'product_id'=>$form->product_id,
                     'order_id'=>$orderId,
-                    'booostr_id'=>$form->club_id
                 );
             }
+            $formData['booostr_id'] = $club_id;
 
-            $formData['booostr_id'] = $tenantId;
 
             $jsonData = json_encode($formData);
         
