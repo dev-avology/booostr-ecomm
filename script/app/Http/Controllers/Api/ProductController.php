@@ -830,6 +830,7 @@ class ProductController extends Controller
                 'product_id' => $request->product_id,
                 'form_data' => json_encode($request->form_data),
                 'form_id' => $request->form_id,
+                'club_id' => $request->club_id
             ]);
 
             $msg = ['status' => true, 'message' => 'Form data added successfully'];
