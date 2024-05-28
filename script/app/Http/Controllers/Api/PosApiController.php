@@ -804,7 +804,7 @@ class PosApiController extends Controller
             $data = ['order_id' => $order->id,'order_date' => $order->placed_at];
 
             $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($order->id);
-            $this->post_order_data_pos($order);
+              $this->post_order_data_pos($order);
             DB::commit();
             return response()->json(["status" => true, "message" => "Order Successfull.",'data'=>$data]);
         } catch (\Throwable $th) {
@@ -845,7 +845,7 @@ class PosApiController extends Controller
 
             $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 
-
+            $gateway=Getway::find($order->getway_id);
 
             $postData = json_encode([
             'category_type'=> 'Booostr Ecommerce',
@@ -865,6 +865,7 @@ class PosApiController extends Controller
             'donor_name'=>isset($ordermeta['name'])? $ordermeta['name'].' (POS Order)':'Guest User'.' (POS Order)',
             'created'=>$order->placed_at,
             'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
+            'payement_method'=>($gateway->name == 'cash') ? 0 : 3,
             'invoicenumber'=>$order->invoice_no,
             'invoicreatedate'=>$order->placed_at,
             'invoiceprocessingfee'=>$processing_fees,
@@ -878,8 +879,10 @@ class PosApiController extends Controller
 
         $url = env("WP_API_URL");
 
-        $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
+      //  $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
+        $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager";
 
+       // $url = "https://booostr.co/wp-json/store-api/v1/financial-manager-pos";
 
         // $financial_manager = env("WP_fINITIAL_MANAGER_URL");
         // $url = ($financial_manager != '') ? $financial_manager : "https://staging3.booostr.co/wp-json/ec/v1/financial-manager";
