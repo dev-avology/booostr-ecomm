@@ -644,6 +644,7 @@ class CheckoutController extends Controller
 
     public function syncFormData($cartid, $orderId){
         $productFormData = ProductForm::where('cart_id', $cartid)->get();
+        // return $productFormData;
     
         $data = [
             'orderId' => $orderId,
@@ -673,12 +674,12 @@ class CheckoutController extends Controller
     
         $form_res = '';
     
-        if ($server_output !== false) {
-            $form_res = json_decode($server_output, true);
-        }
+        // if ($server_output !== false) {
+        //     $form_res = json_decode($server_output, true);
+        // }
     
         // Return or process the form response as needed
-        return $form_res;
+        return $server_output;
     }
     
 
