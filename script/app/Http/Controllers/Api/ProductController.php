@@ -819,7 +819,7 @@ class ProductController extends Controller
     public function addProductForm(Request $request)
     {
 
-        return $request->upload_file;
+        dd($request);
 
         if ($request->hasFile('upload_file')) {
             $file = $request->file('upload_file');
