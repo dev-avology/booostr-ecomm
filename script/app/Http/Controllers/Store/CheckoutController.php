@@ -607,6 +607,9 @@ class CheckoutController extends Controller
             \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
 
             if(Session::has('cart') && $cartid != null){
+
+                $this->syncFormData($cartid,$order->id,Tenant('club_id'));
+
                 Cart::destroy($cartid);
             }
 
@@ -632,6 +635,48 @@ class CheckoutController extends Controller
         return redirect()->away($redirect_url);
 
     }
+
+
+    public function syncFormData($cartid, $orderId,$club_id){
+        $productFormData = ProductForm::where('cart_id', $cartid)->get();
+    
+        $data = [
+            'orderId' => $orderId,
+            'formDATA' => $productFormData,
+            'club_id' => $club_id
+        ];
+    
+        $jsonData = json_encode($data);
+    
+        $ch = curl_init();
+    
+        // Set cURL options
+        curl_setopt($ch, CURLOPT_URL, "https://staging3.booostr.co/wp-json/store-api/v1/sync-store-form-data/");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($jsonData))
+        );
+    
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    
+        $server_output = curl_exec($ch);
+    
+        curl_close($ch);
+    
+        $form_res = '';
+    
+        if ($server_output !== false) {
+            $form_res = json_decode($server_output, true);
+        }
+    
+        // Return or process the form response as needed
+        return $form_res;
+    }
+    
 
 
 
