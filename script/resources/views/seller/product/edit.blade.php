@@ -67,13 +67,13 @@
         </div>
 
         <div class="from-group row mb-2">
-          <label for="" class="col-lg-12">{{ __('Form Selector') }} : </label>
+          <label for="" class="col-lg-12">{{ __('Select a form to connect (optional)') }} : </label>
           <div class="col-lg-12">
             <?php
               $formConnectorVal = $info->formType->value ?? '';
             ?>
               <select name="form_type" class="selectric form-control" id="form_type">
-                <option selected disabled>{{ __('Select form selector') }}</option>
+                <option selected disabled>{{ __('Choose a form to connect to this product') }}</option>
                 @foreach ($formApiData as $item)
                   <option data-fields = "{{$item->fields}}" value="{{$item->id}}" @if($item->id == $formConnectorVal) selected @endif>{{$item->title}}</option>         
                 @endforeach
