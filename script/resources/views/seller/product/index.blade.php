@@ -106,8 +106,11 @@
                                   <td>{{ Str::limit($row->title,20) }} ({{$row->full_id}})</td>
                                   <td class="text-right"><img src="{{ asset($row->media->value ?? 'uploads/default.png') }}" height="50" alt=""></td>
 
-
-                                  <td class="text-right">{{ $row->is_variation == 1 ? 'Variations' : 'Simple'  }}</td>
+                                  @if(isset($row->formType) && !empty($row->formType))
+                                    <td class="text-right">Linked Form</td>
+                                  @else
+                                    <td class="text-right">{{ $row->is_variation == 1 ? 'Variations' : 'Simple'  }}</td>
+                                  @endif
 
 
                                   {{-- <td class="text-right">${{$row->price?->price ? number_format($row->price?->price,2) : ''}}{{ $row->is_variation == 1 ? '*' : ''  }}</td> --}}

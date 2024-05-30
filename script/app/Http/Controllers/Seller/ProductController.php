@@ -30,7 +30,7 @@ class ProductController extends Controller
     {
         abort_if(!getpermission('products'), 401);
        
-        $posts = Term::query()->where('type', 'product')->with('media', 'price')->withCount('orders');
+        $posts = Term::query()->where('type', 'product')->with('media', 'price','formType')->withCount('orders');
         if (!empty($request->src) && !empty($request->type)) {
             $posts = $posts->where($request->type, 'LIKE', '%' . $request->src . '%');
         }
