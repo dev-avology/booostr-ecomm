@@ -628,7 +628,7 @@ class CheckoutController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
 
-        dd($th);
+        //dd($th);
           
             return redirect()->away($redirect_url . '/?type=error&message=Oops something wrong while saving order data');
         }
@@ -646,7 +646,7 @@ class CheckoutController extends Controller
         
             foreach($productFormData as $form){
                 $formData[$form->form_id] = array(
-                    'data'=>$form->form_data,
+                    'data'=>str_replace("ORDERID",$orderId,$form->form_data),
                     'product_id'=>$form->product_id,
                     'order_id'=>$orderId
                 );
@@ -655,10 +655,15 @@ class CheckoutController extends Controller
 
             $jsonData = json_encode($formData);
         
+            $url = env("WP_CLUB_URL");
+        
+            $url = ($url != '') ? $url."wp-json/store-api/v1/sync-store-form-data/": "https://staging3.booostr.co/wp-json/store-api/v1/sync-store-form-data/";
+    
+
             $ch = curl_init();
         
             // Set cURL options
-            curl_setopt($ch, CURLOPT_URL, "https://staging3.booostr.co/wp-json/store-api/v1/sync-store-form-data/");
+            curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
