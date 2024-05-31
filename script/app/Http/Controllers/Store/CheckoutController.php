@@ -645,8 +645,12 @@ class CheckoutController extends Controller
             $formData = [];
         
             foreach($productFormData as $form){
+
+                $data = unserialize($form->form_data);
+                $data['order_id'] = $orderId;
+
                 $formData[$form->form_id] = array(
-                    'data'=>str_replace("ORDERID",$orderId,$form->form_data),
+                    'data'=>serialize($data),
                     'product_id'=>$form->product_id,
                     'order_id'=>$orderId
                 );
