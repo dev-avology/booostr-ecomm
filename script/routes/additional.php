@@ -6,6 +6,7 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
 
 
 //**======================== Payment Gateway Route Group for merchant ====================**//
+/*
 Route::group(['domain' => env('APP_URL'),'middleware' => ['auth', 'web']], function () {
     Route::get('/payment/paypal', '\App\Lib\Paypal@status');
     Route::post('/stripe/payment', '\App\Lib\Stripe@status')->name('stripe.payment');
@@ -62,3 +63,4 @@ Route::group(['middleware' => ['web','InitializeTenancyByDomain','PreventAccessF
     Route::post('partner/payu/status', '\App\Lib\Payu@status')->name('merchant.payu.status');
 });
 
+*/

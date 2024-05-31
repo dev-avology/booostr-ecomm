@@ -31,7 +31,7 @@ Route::get('/close-store-maneger', function(){
     return redirect(env('APP_URL').'/login');
 });
 
-
+/*
 
 // Match my own domain
 Route::group(['domain' => env('APP_URL')], function($domain)
@@ -439,5 +439,5 @@ Route::group(['prefix'=>'rider', 'as' => 'rider.', 'namespace' => 'Rider','middl
 
 
 
-
+*/
 
