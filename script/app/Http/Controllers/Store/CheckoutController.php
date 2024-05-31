@@ -660,7 +660,7 @@ class CheckoutController extends Controller
                 );
                 $formData['booostr_id'] = $form->club_id;
             }
-dd($formData);
+
             $jsonData = json_encode($formData);
         
             $url = env("WP_CLUB_URL");
