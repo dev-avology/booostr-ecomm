@@ -140,6 +140,10 @@ class CheckoutController extends Controller
         $customer = Session::get('customer_data');
        }   
 
+
+       $this->syncFormData($cartid, 4324);
+
+
         Cart::instance($cartid);
         //load cart in session
         Cart::checkout_restore($cartid);
@@ -656,7 +660,7 @@ class CheckoutController extends Controller
                 );
                 $formData['booostr_id'] = $form->club_id;
             }
-
+dd($formData);
             $jsonData = json_encode($formData);
         
             $url = env("WP_CLUB_URL");
