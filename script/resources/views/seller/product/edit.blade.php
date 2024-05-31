@@ -73,10 +73,12 @@
               $formConnectorVal = $info->formType->value ?? '';
             ?>
               <select name="form_type" class="selectric form-control" id="form_type">
-                <option selected >{{ __('No form to connect to this product') }}</option>
-                @foreach ($formApiData as $item)
-                  <option data-fields = "{{$item->fields}}" value="{{$item->id}}" @if($item->id == $formConnectorVal) selected @endif>{{$item->title}}</option>         
-                @endforeach
+              <option value="0" @if($formConnectorVal == '' ) selected @endif >{{ __('No form to connect to this product') }}</option>
+                @if($formApiData)
+                  @foreach ($formApiData as $item)
+                    <option data-fields = "{{$item->fields}}" value="{{$item->id}}" @if($item->id == $formConnectorVal) selected @endif>{{$item->title}}</option>         
+                  @endforeach
+                @endif
               </select>
               <input type="hidden" name="form_fields" id="form_fields" value="{{$info->formFields->value ?? ''}}">
           </div>

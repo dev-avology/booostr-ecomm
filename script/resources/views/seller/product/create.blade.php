@@ -99,9 +99,11 @@
                            <div class="col-lg-12">
                               <select name="form_type" id="form_type"  class="form-control form_type">
                                  <option selected >{{ __('No form to connect to this product') }}</option>
-                                 @foreach ($formApiData as $item)
-                                    <option data-fields="{{$item->fields}}" value="{{$item->id}}">{{$item->title}}</option>         
-                                 @endforeach
+                                 @if($formApiData)
+                                    @foreach ($formApiData as $item)
+                                       <option data-fields="{{$item->fields}}" value="{{$item->id}}">{{$item->title}}</option>         
+                                    @endforeach
+                                 @endif
                               </select>
                               <input type="hidden" name="form_fields" id="form_fields">
                            </div>
