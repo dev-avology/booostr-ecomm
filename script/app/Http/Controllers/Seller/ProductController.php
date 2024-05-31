@@ -90,7 +90,7 @@ class ProductController extends Controller
         } else {
             $responseData = json_decode($response, true);
             if (json_last_error() === JSON_ERROR_NONE) {
-                $forms = $responseData['forms'];
+                $forms = isset($responseData['forms'])?$responseData['forms']:[];
             } else {
                 echo 'JSON decoding error: ' . json_last_error_msg();
             }
