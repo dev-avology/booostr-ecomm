@@ -141,7 +141,7 @@ class CheckoutController extends Controller
        }   
 
 
-       $this->syncFormData($cartid, 4324);
+       //$this->syncFormData($cartid, 4324);
 
 
         Cart::instance($cartid);
