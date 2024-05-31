@@ -1,8 +1,36 @@
-<IfModule mod_rewrite.c>
-    <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
-    </IfModule>
+# <IfModule mod_rewrite.c>
+#     <IfModule mod_negotiation.c>
+#         Options -MultiViews -Indexes
+#     </IfModule>
 
+#     RewriteEngine On
+
+#     # Handle Authorization Header
+#     RewriteCond %{HTTP:Authorization} .
+#     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+#     # Redirect Trailing Slashes If Not A Folder...
+#     RewriteCond %{REQUEST_FILENAME} !-d
+#     RewriteCond %{REQUEST_URI} (.+)/$
+#     RewriteRule ^ %1 [L,R=301]
+
+#     # Handle Front Controller...
+#     RewriteCond %{REQUEST_FILENAME} !-d
+#     RewriteCond %{REQUEST_FILENAME} !-f
+#     RewriteRule ^ index.php [L]
+#      # Disable Directory listing
+# Options -Indexes
+
+# # block files which needs to be hidden, specify .example extension of the file
+# <Files ~ "\.(env|config.js|md|gitignore|gitattributes|lock)$">
+#     Order allow,deny
+#     Deny from all
+# </Files>
+
+# </IfModule>
+
+<IfModule mod_rewrite.c>
+    Options -MultiViews -Indexes
     RewriteEngine On
 
     # Handle Authorization Header
@@ -18,13 +46,12 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
-     # Disable Directory listing
-Options -Indexes
 
-# block files which needs to be hidden, specify .example extension of the file
-<Files ~ "\.(env|config.js|md|gitignore|gitattributes|lock)$">
-    Order allow,deny
-    Deny from all
-</Files>
+    # Disable Directory listing
+    Options -Indexes
 
+    # Block files which need to be hidden, specify .example extension of the file
+    <FilesMatch "\.(env|json|config\.js|md|gitignore|gitattributes|lock)$">
+        Require all denied
+    </FilesMatch>
 </IfModule>
