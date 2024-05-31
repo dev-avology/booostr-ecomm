@@ -107,7 +107,7 @@
                                   <td class="text-right"><img src="{{ asset($row->media->value ?? 'uploads/default.png') }}" height="50" alt=""></td>
 
                                   @if(isset($row->formType) && !empty($row->formType))
-                                    <td class="text-right">Linked Form</td>
+                                    <td class="text-right">{{ $row->is_variation == 1 ? 'Variations' : 'Simple'  }} + <span style="font-size:12px;">Linked Form</span></td>
                                   @else
                                     <td class="text-right">{{ $row->is_variation == 1 ? 'Variations' : 'Simple'  }}</td>
                                   @endif
