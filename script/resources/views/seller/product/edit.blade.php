@@ -73,7 +73,7 @@
               $formConnectorVal = $info->formType->value ?? '';
             ?>
               <select name="form_type" class="selectric form-control" id="form_type">
-                <option selected disabled>{{ __('Choose a form to connect to this product') }}</option>
+                <option selected >{{ __('No form to connect to this product') }}</option>
                 @foreach ($formApiData as $item)
                   <option data-fields = "{{$item->fields}}" value="{{$item->id}}" @if($item->id == $formConnectorVal) selected @endif>{{$item->title}}</option>         
                 @endforeach
