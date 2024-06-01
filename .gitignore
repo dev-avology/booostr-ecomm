@@ -1,4 +1,5 @@
 .env
+.user.ini
 **/*/.DS_Store
 storage/
 storage
