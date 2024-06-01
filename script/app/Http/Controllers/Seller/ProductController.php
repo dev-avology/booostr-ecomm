@@ -71,7 +71,12 @@ class ProductController extends Controller
     public function formApi(){
         $club_id = (int)Tenant('club_id');
         // $club_id = 36115;
-        $url = "https://staging3.booostr.co/wp-json/store-api/v1/get-store-form/?club_id=".$club_id;
+      //  $url = "https://staging3.booostr.co/wp-json/store-api/v1/get-store-form/?club_id=".$club_id;
+
+        $url = env("WP_CLUB_URL");
+        
+        $url = ($url != '') ? $url."wp-json/store-api/v1/get-store-form/?club_id=".$club_id : "https://staging3.booostr.co/wp-json/store-api/v1/get-store-form/?club_id=".$club_id;
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -85,14 +90,14 @@ class ProductController extends Controller
         } else {
             $responseData = json_decode($response, true);
             if (json_last_error() === JSON_ERROR_NONE) {
-                $forms = $responseData['forms'];
+                $forms = isset($responseData['forms'])?$responseData['forms']: [];
             } else {
                 echo 'JSON decoding error: ' . json_last_error_msg();
             }
         }
         curl_close($ch);
 
-        $forms = json_decode($forms) ?? [];
+        $forms = is_array($forms) ? []: json_decode($forms);
         return $forms; 
     } 
 

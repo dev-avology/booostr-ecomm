@@ -14,7 +14,7 @@ class ChangeFormDataInProductFormTable extends Migration
     public function up()
     {
         Schema::table('product_form', function (Blueprint $table) {
-            $table->string('form_data')->nullable()->change();
+            $table->text('form_data')->nullable()->change();
         });
     }
 
@@ -26,7 +26,7 @@ class ChangeFormDataInProductFormTable extends Migration
     public function down()
     {
         Schema::table('product_form', function (Blueprint $table) {
-            $table->string('form_data')->nullable()->change();
+            $table->text('form_data')->nullable()->change();
         });
     }
 }
