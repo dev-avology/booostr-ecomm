@@ -4,6 +4,8 @@
 <!-- CSS Libraries -->
 <link rel="stylesheet" href="{{ asset('admin/plugins/dropzone/dropzone.css') }}">
 <link rel="stylesheet" href="{{ asset('admin/css/select2.min.css') }}">
+<link rel="stylesheet" href="{{ asset('admin/assets/css/summernote/summernote-bs4.css') }}">
+
 <style>
 .hide.weight{
    display:none;
@@ -135,7 +137,7 @@
                      <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Description :') }} </label>
                            <div class="col-lg-12">
-                              <textarea  name="short_description" class="form-control h-150"></textarea>
+                              <textarea  name="short_description" class="form-control h-150 summernote"></textarea>
                            </div>
                         </div>
                         <div class="from-group row mb-2">
@@ -354,6 +356,8 @@
 @endsection
 
 @push('script')
+  <script src="{{ asset('admin/assets/js/summernote-bs4.js') }}"></script>
+  <script src="{{ asset('admin/assets/js/summernote.js') }}"></script>
  <!-- JS Libraies -->
 <script src="{{ asset('admin/plugins/dropzone/dropzone.min.js') }}"></script>
 <!-- Page Specific JS File -->

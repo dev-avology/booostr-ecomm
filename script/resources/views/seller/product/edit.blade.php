@@ -34,7 +34,7 @@
         <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Description :') }} </label>
             <div class="col-lg-12">
-                <textarea name="short_description" class="form-control h-150">{{ $info->excerpt->value ?? '' }}</textarea>
+                <textarea name="short_description" class="form-control h-150 summernote">{{ $info->excerpt->value ?? '' }}</textarea>
             </div>
         </div>
         {{-- <div class="from-group row mb-2">
