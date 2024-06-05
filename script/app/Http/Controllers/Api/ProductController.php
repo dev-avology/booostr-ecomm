@@ -123,6 +123,7 @@ class ProductController extends Controller
         
         if(isset($request->formData) && $request->formData != ''){
             $fdata = json_encode($request->formData);
+            $fArrayData = $request->formData;
             $FormFlag = true;
         }else{
             $FormFlag = false;
@@ -176,8 +177,24 @@ class ProductController extends Controller
                         'formData'=>($FormFlag)?$fdata:''    
                         ]);
 
+
+
                 if($info->prices[0]['tax'] == 1){
                     $cart_item->setTaxRate(getTaxRate());
+                }
+
+                if($FormFlag){
+
+                    $fArrayData = $request->formData;
+    
+                    ProductForm::create([
+                        'cart_id' => $cartid,
+                        'product_id' => $info->id,
+                        'form_data' => serialize($request->formData),
+                        'form_id' => $fArrayData['formid'],
+                        'club_id' => $fArrayData['booostr_id'],
+                        'rowid' => $cart_item->rowId,
+                    ]);
                 }
             }
 
@@ -230,11 +247,32 @@ class ProductController extends Controller
           
               $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options,'formData'=>($FormFlag)?$fdata:'']);          
               
+
+             
+
               if($price->tax == 1){
                 $cart_item->setTaxRate(getTaxRate());
               }
+
+
+              if($FormFlag){
+
+                $fArrayData = $request->formData;
+
+                ProductForm::create([
+                    'cart_id' => $cartid,
+                    'product_id' => $info->id,
+                    'form_data' => serialize($request->formData),
+                    'form_id' => $fArrayData['formid'],
+                    'club_id' => $fArrayData['booostr_id'],
+                    'rowid' => $cart_item->rowId,
+                ]);
+
+              }
+
             }
         }
+      //  dd($cart_item->rowId);
         try {
             Cart::store($cartid);
         } catch (Exception $e) {
@@ -334,6 +372,9 @@ class ProductController extends Controller
 
         if($rowid->isNotEmpty()){
             Cart::remove($rowid->first()->rowId);//remove
+            if($rowid->first()->formData != ''){
+                ProductForm::where('rowid',$rowid->first()->rowId)->delete();
+            }
         }
         try{
             Cart::store($cartid);
@@ -805,16 +846,16 @@ class ProductController extends Controller
       $banner_title = Option::where('key','banner_title')->first();
       $banner_button_text = Option::where('key','banner_button_text')->first();
       $banner_button_url = Option::where('key','banner_url')->first();
-    //   $banner['banner_title'] = $banner_title->value ?? '';
-    //   $banner['banner_button_text'] = $banner_button_text->value ?? '';
-    //   $banner['banner_button_url'] = $banner_button_url->value ?? '';
+        //   $banner['banner_title'] = $banner_title->value ?? '';
+        //   $banner['banner_button_text'] = $banner_button_text->value ?? '';
+        //   $banner['banner_button_url'] = $banner_button_url->value ?? '';
       $banner['banner_url'] = $banner_button_url->value ?? '';
       if($banner){
           return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$banner]);
         }else{
             return response()->json(["status" => 'false', "message" => 'Something went wrong']);
         }
-    }
+      }
 
     public function getFooterLinks(){
         $footerLink = Term::where('type', 'page')->get();
