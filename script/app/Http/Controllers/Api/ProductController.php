@@ -258,7 +258,7 @@ class ProductController extends Controller
               if($FormFlag){
 
                 $fArrayData = $request->formData;
-
+                dd($fArrayData);
                 ProductForm::create([
                     'cart_id' => $cartid,
                     'product_id' => $info->id,
