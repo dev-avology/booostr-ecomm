@@ -185,12 +185,12 @@ class ProductController extends Controller
 
                 if($FormFlag){
 
-                    $fArrayData = $request->formData;
-    
+                    //$fArrayData = $request->formData;
+                    $fArrayData = json_decode($request->formData);
                     ProductForm::create([
                         'cart_id' => $cartid,
                         'product_id' => $info->id,
-                        'form_data' => serialize($request->formData),
+                        'form_data' => serialize($fArrayData),
                         'form_id' => $fArrayData['formid'],
                         'club_id' => $fArrayData['booostr_id'],
                         'rowid' => $cart_item->rowId,
@@ -257,12 +257,11 @@ class ProductController extends Controller
 
               if($FormFlag){
 
-                $fArrayData = $request->formData;
-                dd($fArrayData);
+                $fArrayData = json_decode($request->formData);
                 ProductForm::create([
                     'cart_id' => $cartid,
                     'product_id' => $info->id,
-                    'form_data' => serialize($request->formData),
+                    'form_data' => serialize($fArrayData),
                     'form_id' => $fArrayData['formid'],
                     'club_id' => $fArrayData['booostr_id'],
                     'rowid' => $cart_item->rowId,
