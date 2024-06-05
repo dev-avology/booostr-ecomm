@@ -257,7 +257,7 @@ class ProductController extends Controller
 
               if($FormFlag){
 
-                $fArrayData = json_decode($request->formData);
+                $fArrayData = json_decode(stripslashes($request->formData));
                 ProductForm::create([
                     'cart_id' => $cartid,
                     'product_id' => $info->id,
