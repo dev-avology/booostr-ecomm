@@ -141,8 +141,9 @@ class CheckoutController extends Controller
        }   
 
 
-       //$this->syncFormData($cartid, 4324);
+      $sata = $this->syncFormData('HQjnYclZmO', 138);
 
+      dd($sata);
 
         Cart::instance($cartid);
         //load cart in session
@@ -689,7 +690,7 @@ class CheckoutController extends Controller
         
             $form_res = '';
     
-            return $server_output;
+            return $jsonData;
         }
 
     }
