@@ -281,7 +281,7 @@ class ProductController extends Controller
         $productcartdata['cart_tax'] = Cart::tax();
         $productcartdata['cart_total'] = Cart::total();
         $productcartdata['cart_count'] = Cart::count();
-        return response()->json(["status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
+        return response()->json(["rowid"=>$cart_item->rowId,"cart_item"=>$cart_item,"status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
     }
 
     public function addStockValidation($price,$exist_qty,$cartid){
