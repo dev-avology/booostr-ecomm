@@ -122,8 +122,7 @@ class ProductController extends Controller
         
         
         if(isset($request->formData) && $request->formData != ''){
-            $fdata = json_encode($request->formData);
-            $fArrayData = $request->formData;
+            $fdata = $request->formData;
             $FormFlag = true;
         }else{
             $FormFlag = false;
@@ -185,14 +184,13 @@ class ProductController extends Controller
 
                 if($FormFlag){
 
-                    //$fArrayData = $request->formData;
-                    $fArrayData = json_decode(stripslashes($request->formData));
+                    $fArrayData = $request->formData;
                     ProductForm::create([
                         'cart_id' => $cartid,
                         'product_id' => $info->id,
                         'form_data' => serialize($fArrayData),
-                        'form_id' => $fArrayData->formid,
-                        'club_id' => $fArrayData->booostr_id,
+                        'form_id' => $fArrayData['formid'],
+                        'club_id' => $fArrayData['booostr_id'],
                         'rowid' => $cart_item->rowId,
                     ]);
                 }
