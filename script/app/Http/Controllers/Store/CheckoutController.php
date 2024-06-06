@@ -143,7 +143,7 @@ class CheckoutController extends Controller
 
       $sata = $this->syncFormData('HQjnYclZmO', 138);
 
-      dd($sata);
+      dd(json_decode($sata,true));
 
         Cart::instance($cartid);
         //load cart in session
