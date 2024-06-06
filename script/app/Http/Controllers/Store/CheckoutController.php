@@ -141,7 +141,7 @@ class CheckoutController extends Controller
        }   
 
 
-      $sata = $this->syncFormData('HQjnYclZmO', 138);
+     // $sata = $this->syncFormData('HQjnYclZmO', 138);
 
      // dd(json_decode($sata,true));
 
