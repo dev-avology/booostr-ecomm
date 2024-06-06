@@ -143,7 +143,7 @@ class CheckoutController extends Controller
 
       $sata = $this->syncFormData('HQjnYclZmO', 138);
 
-      dd(json_decode($sata,true));
+     // dd(json_decode($sata,true));
 
         Cart::instance($cartid);
         //load cart in session
@@ -647,20 +647,26 @@ class CheckoutController extends Controller
 
         if(isset($productFormData) && !empty($productFormData)){
 
-            $formData = [];
+            $server_output = [];
         
             foreach($productFormData as $form){
-
+                $formData = [];
                 $data = unserialize($form->form_data);
                 $data['order_id'] = $orderId;
 
-                $formData[$form->form_id] = array(
-                    'data'=>serialize($data),
-                    'product_id'=>$form->product_id,
-                    'order_id'=>$orderId
-                );
+                // $formData[$form->form_id] = array(
+                //     'data'=>serialize($data),
+                //     'product_id'=>$form->product_id,
+                //     'order_id'=>$orderId
+                // );
+                $formData['form_id'] = $form->form_id;
+                $formData['data'] = serialize($data);
+                $formData['product_id'] = $form->product_id;
                 $formData['booostr_id'] = $form->club_id;
-            }
+                $formData['order_id'] = $orderId;
+           
+
+            
 
             $jsonData = json_encode($formData);
         
@@ -684,13 +690,14 @@ class CheckoutController extends Controller
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         
-            $server_output = curl_exec($ch);
+            $server_output[] = curl_exec($ch);
         
             curl_close($ch);
-        
+
+        }
             $form_res = '';
     
-            return $jsonData;
+            return $server_output;
         }
 
     }
