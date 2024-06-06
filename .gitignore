@@ -5,5 +5,7 @@ storage/
 storage
 uploads/store_logo/*
 script/vendor
+booostr.club
+booostr.club/
 !script/vendor/omnipay/stripe/
 !script/vendor/bumbummen99/

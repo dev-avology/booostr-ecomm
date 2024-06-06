@@ -100,6 +100,7 @@ class ProductController extends Controller
 
     public function addtocart(Request $request)
     {
+
         $cartid = !empty($request->header('cartid')) ? $request->header('cartid') : Str::random(10);
         $info = '';
 
@@ -119,6 +120,15 @@ class ProductController extends Controller
             return response()->json(["status" => 0, "message" => 'Oops product not available', "result" => []],404);
         }
         
+        
+        if(isset($request->formData) && $request->formData != ''){
+            $fdata = $request->formData;
+            $FormFlag = true;
+        }else{
+            $FormFlag = false;
+        }
+
+
         Cart::instance($cartid);
         Cart::restore($cartid);
 
@@ -132,7 +142,7 @@ class ProductController extends Controller
 
             foreach ($cart_content as $key => $row) {
                                         
-               if (($row->id == $info->id) && ($row->options->options[0]->id == $price->id)) {
+               if (($row->id == $info->id) && ($row->options->options[0]->id == $price->id) && !$FormFlag) {
                    $row_qty=$row->qty ?? 0;
                    $exist_qty=(int)$row_qty;
                }
@@ -151,7 +161,8 @@ class ProductController extends Controller
                 return $cartItem->id == $info->id;
             });
             
-            if ($existingCartItem->isNotEmpty() && (int)$request->variation_id == $existingCartItem->first()->options->options->first()->id) {
+            if ($existingCartItem->isNotEmpty() && (int)$request->variation_id == $existingCartItem->first()->options->options->first()->id && !$FormFlag) {
+
                 $rowId = $existingCartItem->first()->rowId;
                 Cart::update($rowId, $exist_qty);
             }else{
@@ -161,11 +172,27 @@ class ProductController extends Controller
                             'tax' =>$info->prices[0]['tax'],
                             'options' => $info->prices, 'sku' => $info->prices[0]['sku'], 'stock' => null, 'price_id' => $info->prices[0]['id'],'short_description'=>($info->excerpt->value ?? ''),
                             'preview'=>asset($info->preview->value ?? 'uploads/default.png')
-                            ]
+                        ],
+                        'formData'=>($FormFlag)?$fdata:''    
                         ]);
+
+
 
                 if($info->prices[0]['tax'] == 1){
                     $cart_item->setTaxRate(getTaxRate());
+                }
+
+                if($FormFlag){
+
+                    $fArrayData = $request->formData;
+                    ProductForm::create([
+                        'cart_id' => $cartid,
+                        'product_id' => $info->id,
+                        'form_data' => serialize($fArrayData),
+                        'form_id' => $fArrayData['formid'],
+                        'club_id' => $fArrayData['booostr_id'],
+                        'rowid' => $cart_item->rowId,
+                    ]);
                 }
             }
 
@@ -174,7 +201,7 @@ class ProductController extends Controller
             $exist_qty=0;
 
             foreach ($cart_content as $key => $row) {
-               if ($row->id == $info->id) {
+               if ($row->id == $info->id && !$FormFlag) {
                    $row_qty=$row->qty ?? 0;
                    $exist_qty=(int)$row_qty;
                }
@@ -194,7 +221,8 @@ class ProductController extends Controller
                 return $cartItem->id == $info->id ? $rowId:false;
             });
 
-            if ($existingCartItem->isNotEmpty()) {
+            if ($existingCartItem->isNotEmpty() && !$FormFlag) {
+           
                 $rowId = $existingCartItem->first()->rowId;
                 Cart::update($rowId, $exist_qty);
             }else{
@@ -215,13 +243,33 @@ class ProductController extends Controller
                     $options['stock'] = null;
                 }
           
-              $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);          
+              $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options,'formData'=>($FormFlag)?$fdata:'']);          
               
+
+             
+
               if($price->tax == 1){
                 $cart_item->setTaxRate(getTaxRate());
               }
+
+
+              if($FormFlag){
+
+                $fArrayData = $request->formData;
+                ProductForm::create([
+                    'cart_id' => $cartid,
+                    'product_id' => $info->id,
+                    'form_data' => serialize($fArrayData),
+                    'form_id' => $fArrayData['formid'],
+                    'club_id' => $fArrayData['booostr_id'],
+                    'rowid' => $cart_item->rowId,
+                ]);
+
+              }
+
             }
         }
+      //  dd($cart_item->rowId);
         try {
             Cart::store($cartid);
         } catch (Exception $e) {
@@ -233,7 +281,7 @@ class ProductController extends Controller
         $productcartdata['cart_tax'] = Cart::tax();
         $productcartdata['cart_total'] = Cart::total();
         $productcartdata['cart_count'] = Cart::count();
-        return response()->json(["status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
+        return response()->json(["rowid"=>$cart_item->rowId,"cart_item"=>$cart_item,"status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
     }
 
     public function addStockValidation($price,$exist_qty,$cartid){
@@ -321,6 +369,9 @@ class ProductController extends Controller
 
         if($rowid->isNotEmpty()){
             Cart::remove($rowid->first()->rowId);//remove
+            if($rowid->first()->formData != ''){
+                ProductForm::where('rowid',$rowid->first()->rowId)->delete();
+            }
         }
         try{
             Cart::store($cartid);
@@ -792,16 +843,16 @@ class ProductController extends Controller
       $banner_title = Option::where('key','banner_title')->first();
       $banner_button_text = Option::where('key','banner_button_text')->first();
       $banner_button_url = Option::where('key','banner_url')->first();
-    //   $banner['banner_title'] = $banner_title->value ?? '';
-    //   $banner['banner_button_text'] = $banner_button_text->value ?? '';
-    //   $banner['banner_button_url'] = $banner_button_url->value ?? '';
+        //   $banner['banner_title'] = $banner_title->value ?? '';
+        //   $banner['banner_button_text'] = $banner_button_text->value ?? '';
+        //   $banner['banner_button_url'] = $banner_button_url->value ?? '';
       $banner['banner_url'] = $banner_button_url->value ?? '';
       if($banner){
           return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$banner]);
         }else{
             return response()->json(["status" => 'false', "message" => 'Something went wrong']);
         }
-    }
+      }
 
     public function getFooterLinks(){
         $footerLink = Term::where('type', 'page')->get();
