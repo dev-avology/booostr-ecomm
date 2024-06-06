@@ -694,7 +694,7 @@ class CheckoutController extends Controller
         
             curl_close($ch);
 
-            ProductForm::find($form->id)->delete();
+            ProductForm::where('id',$form->id)->delete();
 
         }
             $form_res = '';
