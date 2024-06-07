@@ -663,12 +663,13 @@ class CheckoutController extends Controller
                 //     'product_id'=>$form->product_id,
                 //     'order_id'=>$orderId
                 // );
-                
+
                 $formData['form_id'] = $form->form_id;
                 $formData['data'] = serialize($data);
                 $formData['product_id'] = $form->product_id;
                 $formData['booostr_id'] = $form->club_id;
                 $formData['order_id'] = $orderId;
+                $formData['product_title'] =$info->title;
            
                 
 
