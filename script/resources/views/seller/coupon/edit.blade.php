@@ -237,10 +237,10 @@
 <script>
     $(document).ready(function() {
 
-    Inputmask("9{0,2}.9{0,3}", {
-        placeholder: "5.00", 
-        greedy: true
-    }).mask('#maskprice');
+    // Inputmask("9{0,2}.9{0,3}", {
+    //     placeholder: "5.00", 
+    //     greedy: true
+    // }).mask('#maskprice');
 
     $("#cb1-6").change(function () {
         $(".coupon-hidden-date").toggle($(this).is(":checked"));
