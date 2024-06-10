@@ -15,7 +15,8 @@ class ProductForm extends Model
       'form_data',
       'form_id',
       'product_id',
-      'club_id'
+      'club_id',
+      'rowid'
   ];
 
 

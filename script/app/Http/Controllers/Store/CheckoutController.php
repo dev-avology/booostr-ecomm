@@ -128,7 +128,7 @@ class CheckoutController extends Controller
         if(Session::has('redirect_url')){
             $redirect_url=Session::get('redirect_url');
         }else{
-            $redirect_url = str_replace('{slash}','/',$redirect_url);
+            $redirect_url = str_replace('slash','/',$redirect_url);
             $redirect_url=!empty(base64_decode($redirect_url))?base64_decode($redirect_url):"/";
             Session::put('redirect_url',$redirect_url);
         }
@@ -141,8 +141,9 @@ class CheckoutController extends Controller
        }   
 
 
-       //$this->syncFormData($cartid, 4324);
+     // $sata = $this->syncFormData('HQjnYclZmO', 138);
 
+     // dd(json_decode($sata,true));
 
         Cart::instance($cartid);
         //load cart in session
@@ -646,20 +647,31 @@ class CheckoutController extends Controller
 
         if(isset($productFormData) && !empty($productFormData)){
 
-            $formData = [];
+            $server_output = [];
         
             foreach($productFormData as $form){
-
+                $formData = [];
                 $data = unserialize($form->form_data);
                 $data['order_id'] = $orderId;
 
-                $formData[$form->form_id] = array(
-                    'data'=>serialize($data),
-                    'product_id'=>$form->product_id,
-                    'order_id'=>$orderId
-                );
+
+                $info = Term::find($form->product_id);
+                $data['product_title'] = $info->title;
+
+                // $formData[$form->form_id] = array(
+                //     'data'=>serialize($data),
+                //     'product_id'=>$form->product_id,
+                //     'order_id'=>$orderId
+                // );
+
+                $formData['form_id'] = $form->form_id;
+                $formData['data'] = serialize($data);
+                $formData['product_id'] = $form->product_id;
                 $formData['booostr_id'] = $form->club_id;
-            }
+                $formData['order_id'] = $orderId;
+                $formData['product_title'] =$info->title;
+           
+                
 
             $jsonData = json_encode($formData);
         
@@ -683,10 +695,13 @@ class CheckoutController extends Controller
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         
-            $server_output = curl_exec($ch);
+            $server_output[] = curl_exec($ch);
         
             curl_close($ch);
-        
+
+            ProductForm::find($form->id)->delete();
+
+        }
             $form_res = '';
     
             return $server_output;

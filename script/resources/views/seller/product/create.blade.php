@@ -100,7 +100,7 @@
                            <label for="" class="col-lg-12">{{ __('Select a form to connect (optional)') }} : </label>
                            <div class="col-lg-12">
                               <select name="form_type" id="form_type"  class="form-control form_type">
-                                 <option selected >{{ __('No form to connect to this product') }}</option>
+                                 <option value="0" selected >{{ __('No form to connect to this product') }}</option>
                                  @if($formApiData)
                                     @foreach ($formApiData as $item)
                                        <option data-fields="{{$item->fields}}" value="{{$item->id}}">{{$item->title}}</option>         
