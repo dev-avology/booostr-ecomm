@@ -286,17 +286,19 @@
     })
 
     $(document).ready(function() {
-        Inputmask("9{0,2}.9{0,3}", {
-        placeholder: "5.00", 
-        greedy: true
-        }).mask('#maskprice');
+        // Inputmask("9{0,2}.9{0,3}", {
+        // placeholder: "5.00", 
+        // greedy: true
+        // }).mask('#maskprice');
 
 
         $(document).on('change', '#maskprice', function () {
             var discountType = $('#discount_type').val();
             if(discountType==0){
                 var inputValue = $(this).val();
+
                 inputValue = inputValue.match(/[0-9.]+/g);
+
                 if (inputValue === null || inputValue === '') {
                     return;
                 }
@@ -308,7 +310,9 @@
             var minAmount = $('#min_amount_option').val();
             if(minAmount==1){
                 var inputValue = $(this).val();
+
                 inputValue = inputValue.match(/[0-9.]+/g);
+
                 if (inputValue === null || inputValue === '') {
                     return;
                 }
@@ -357,7 +361,8 @@
                 // var iconElement = $('<i class="fas fa-dollar-sign"></i>');
                 // $('.input-with-icon input[name="min_amount"]').before(iconElement);
 
-                inputValue = inputValue.match(/[0-9.]+/g);
+              //  inputValue = inputValue.match(/[0-9.]+/g);
+
                 if (inputValue === null || inputValue === '') {
                     return;
                 }
@@ -367,7 +372,9 @@
                 icon.removeClass('fa-dollar-sign');
                 $('#min_amount_val').css('display', 'block');
                 $('#min_amount_val').css('display', 'block');
-                $('#min_amount_mask').val(inputValue.replace(/\.00$/, ''))
+                
+                //$('#min_amount_mask').val(inputValue.replace(/\.00$/, ''))
+
             }else{
                 $('#min_amount_val').css('display', 'none');
             }
@@ -385,7 +392,8 @@
                 $('#discount-amount-hide').css('display','block');
                 $('#discount-amount-hide label').text('Enter discount amount in doller($)');
 
-                inputValue = inputValue.match(/[0-9.]+/g);
+              //  inputValue = inputValue.match(/[0-9.]+/g);
+
                 if (inputValue === null || inputValue === '') {
                     return;
                 }
@@ -411,7 +419,8 @@
 
                 icon.addClass('fa-percent');
 
-                $('#maskprice').val(inputValue.replace(/\.00$/, ''))
+               // $('#maskprice').val(inputValue.replace(/\.00$/, ''))
+
             }else{
                 $('#discount-amount-hide').css('display','none');
                 $('#discount-amount-hide label').text('');
