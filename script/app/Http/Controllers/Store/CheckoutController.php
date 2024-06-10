@@ -128,7 +128,7 @@ class CheckoutController extends Controller
         if(Session::has('redirect_url')){
             $redirect_url=Session::get('redirect_url');
         }else{
-            $redirect_url = str_replace('{slash}','/',$redirect_url);
+            $redirect_url = str_replace('slash','/',$redirect_url);
             $redirect_url=!empty(base64_decode($redirect_url))?base64_decode($redirect_url):"/";
             Session::put('redirect_url',$redirect_url);
         }
