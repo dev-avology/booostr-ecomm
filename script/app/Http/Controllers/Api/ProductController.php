@@ -702,7 +702,6 @@ class ProductController extends Controller
     }
 
     public function getInvoiceInfo(Request $request){
-        try {   
         $info = Order::with('orderlasttrans','orderitems','shippingwithinfo','ordermeta')->find($request->invoice_no);
        
     if($info){
@@ -836,13 +835,6 @@ class ProductController extends Controller
             return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$order_data]);
         }else{
             return response()->json(["status" => 'false', "message" => 'Something went wrong']);
-        }
-
-        }catch (\Throwable $th) {
-            DB::rollback();
-            dd($th);
-            $errors['errors']['error'] = 'Oops something wrong';
-            return response()->json(["status" => 0, "message" => 'Oops something wrong', "result" => $errors], 401);
         }
     }
 
