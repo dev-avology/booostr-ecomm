@@ -81,17 +81,24 @@ class CheckoutController extends Controller
             return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Oops something went wrong']);
         }
         $domain=tenant('domain');
-        $customer=[
-            "name"=>($request->name??""),
-            "email"=>($request->email),
-            "phone"=>($request->phone??""),
-            "address"=>($request->address??""),
-            "city"=>($request->city??""),
-            "state"=>($request->state??""),
-            "country"=>($request->country??""),
-            "zip"=>($request->zip??""),
-            "wpuid"=>($request->wpuid??"")
-        ];
+        if($request->has('guest')){
+            $customer=[
+                "guest"=>($request->guest??"")
+            ];
+        }else{
+            $customer=[
+                "name"=>($request->name??""),
+                "email"=>($request->email),
+                "phone"=>($request->phone??""),
+                "address"=>($request->address??""),
+                "city"=>($request->city??""),
+                "state"=>($request->state??""),
+                "country"=>($request->country??""),
+                "zip"=>($request->zip??""),
+                "wpuid"=>($request->wpuid??"")
+            ];
+        }
+
         return redirect()->to("//".$domain->domain.'/direct_checkout/'.$cartid.'/'.$redirect_url.'/?'.http_build_query($customer));
 
     }
@@ -105,6 +112,7 @@ class CheckoutController extends Controller
         //  if ($validator->fails()) {
         //     return redirect()->away($redirect_url.'/?type=error&message='.$validator->errors()->first());
         // }
+
         $customer=[
             "name"=>($request->name??""),
             "email"=>($request->email),
@@ -116,6 +124,12 @@ class CheckoutController extends Controller
             "zip"=>($request->zip??""),
             "wpuid"=>($request->wpuid??"")
         ];
+
+        if($request->has('guest')){
+            $customer["guest"]=($request->guest??"");
+        }
+         
+        
 
         Session::put('customer_data',$customer);
 
@@ -141,9 +155,9 @@ class CheckoutController extends Controller
        }   
 
 
-     // $sata = $this->syncFormData('HQjnYclZmO', 138);
+        // $sata = $this->syncFormData('HQjnYclZmO', 138);
 
-     // dd(json_decode($sata,true));
+        // dd(json_decode($sata,true));
 
         Cart::instance($cartid);
         //load cart in session
@@ -156,7 +170,7 @@ class CheckoutController extends Controller
         $address = explode(',',$club_info['address']);
         $store_state = trim($address[count($address)-2]);
 
-        if($customer['state'] == '' || $store_state != trim($customer['state'])){
+        if(isset($customer['state']) && ($customer['state'] == '' || $store_state != trim($customer['state']))){
             $tax = 0;
             Cart::setGlobalTax($tax);
         }else{
@@ -177,8 +191,7 @@ class CheckoutController extends Controller
         $order_settings=get_option('order_settings',true);
         if ($order_settings->shipping_amount_type != 'distance') {
             $locations=Location::where([['status',1]])->whereHas('shippings')->with('shippings')->get();
-        }
-        else{
+        }else{
             $locations=[];
         }
         $getways=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
@@ -305,6 +318,7 @@ class CheckoutController extends Controller
     public function makeOrder(Request $request)
     {
         $redirect_url=Session::has('redirect_url')?Session::get('redirect_url'):'https://www.boostr.co';
+
         if(Cart::content()->isEmpty()){
             return redirect()->away($redirect_url.'/?type=error&message=Oops Your cart is empty');
         }
@@ -348,19 +362,19 @@ class CheckoutController extends Controller
             }else if($shippingDetails['method_type'] == 'flat_rate'){
 
 
-             if(is_array($shippingDetails['pricing'])){
-                 foreach($shippingDetails['pricing'] as $index){
-    
+                if(is_array($shippingDetails['pricing'])){
+                    foreach($shippingDetails['pricing'] as $index){
+        
 
-                  $from = (float)$index['from']??0;
-                  $to = (float) $index['to'] > 0 ?(float) $index['to']: PHP_INT_MAX;
+                    $from = (float)$index['from']??0;
+                    $to = (float) $index['to'] > 0 ?(float) $index['to']: PHP_INT_MAX;
 
-                    if($subtotal > $from && $subtotal <= $to){
-                        $shipping_price = (float)$index['price'];
-                        $shipping_method_label = $shippingDetails['label'];
+                        if($subtotal > $from && $subtotal <= $to){
+                            $shipping_price = (float)$index['price'];
+                            $shipping_method_label = $shippingDetails['label'];
+                        }
                     }
-                 }
-             }
+                }
 
             }
 
@@ -428,7 +442,7 @@ class CheckoutController extends Controller
 
         DB::beginTransaction();
         try {
-            if (Auth::check() == false) {
+            if (Auth::check() == false && !$request->has('guest')) {
                 $user = User::firstOrNew(['email' => $request->email]);
                 if (!$user->id) {
                     $user->name = $request->name;
@@ -625,7 +639,9 @@ class CheckoutController extends Controller
             }
 
             if(Session::has('couponDiscount')){
-                Session::forget('couponDiscount');
+                Session::forget('couponDiscoun
+                
+                t');
             }
 
 
@@ -836,7 +852,6 @@ class CheckoutController extends Controller
                    }
                 });
             }
-
         }
 
        $discount =  Session::has('couponDiscount') ? Session::get('couponDiscount')['onlydiscount'] : 0;
