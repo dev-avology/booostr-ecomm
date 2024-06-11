@@ -550,7 +550,9 @@ p#show_coupon_error {
                             </div>
                         </div>
                         <input type="hidden" name="wpuid" value="{{ $customer['wpuid'] }}">
-
+                        @if(isset($customer['guest']) && $customer['guest'] != '')
+                          <input type="hidden" name="guest" value="1">
+                        @endif
                     </form>
                 @else
                     <div class="alert alert-danger" role="alert">
@@ -571,7 +573,6 @@ p#show_coupon_error {
 
         <input type="hidden" id="totalWeight" value="{{ Cart::instance('default')->weight() }}">
         <input type="hidden" id="totalItem" value="{{ Cart::instance('default')->count() }}">
-
 
         <input type="hidden" id="latitude" value="{{ tenant('lat') }}">
         <input type="hidden" id="longitude" value="{{ tenant('long') }}">
