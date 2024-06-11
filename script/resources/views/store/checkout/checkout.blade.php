@@ -550,7 +550,7 @@ p#show_coupon_error {
                             </div>
                         </div>
                         <input type="hidden" name="wpuid" value="{{ $customer['wpuid'] }}">
-                        @if($customer['wpuid'] != '')
+                        @if(isset($customer['guest']) && $customer['guest'] != '')
                           <input type="hidden" name="guest" value="1">
                         @endif
                     </form>
