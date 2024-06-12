@@ -309,7 +309,7 @@ class ProductController extends Controller
                 Cart::restore($cartid);
                 Cart::store($cartid);
 
-                return response()->json(["status" => 0, "message" => 'Stock not available.', "result" => $productcartdata],404);
+                return response()->json(["status" => 0,"stock_status"=>0, "message" => 'Stock not available.', "result" => $productcartdata],404);
             }
         }
         
