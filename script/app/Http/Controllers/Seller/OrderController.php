@@ -326,7 +326,7 @@ class OrderController extends Controller
 
         if ($paymentresult['payment_status'] == '1') {
             $order->payment_status = 1;
-            $order->status_id = 4;
+            $order->status_id = 3;
             $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
 
