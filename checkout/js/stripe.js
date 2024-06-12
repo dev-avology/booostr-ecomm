@@ -150,15 +150,25 @@ form.addEventListener('submit', function(event) {
 
   var errorMsgContainer = document.getElementById('error-msg');
   var fieldErrors = fieldvalidation();
-
+  var name = form.querySelector('#billing-name');
   // if (fieldErrors.length) {
   //   displayErrors(errorMsgContainer, fieldErrors);
   //   return;
   // }
 
+
+  var additionalData = {
+    name: name ? name.value : undefined,
+  };
+
+
   errorMsgContainer.innerHTML = '';
 
-  stripe.createToken(cardNumberElement).then(function(result) {
+
+
+
+
+  stripe.createToken(cardNumberElement,additionalData).then(function(result) {
 
     if(fieldErrors.length || savedErrors.length){
       console.log(fieldErrors,savedErrors);
