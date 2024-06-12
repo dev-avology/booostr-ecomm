@@ -146,7 +146,15 @@
                                 <a href="{{ route('seller.order.show',$row->id) }}">{{ $row->invoice_no }}</a>
                             </td>
                             <td><a href="{{ route('seller.order.show',$row->id) }}">{{ $row->created_at->format('d-F-Y') }}</a></td>
-                            <td>@if($row->user_id == null && ($row->order_from != 4 || $row->order_from != 5) ) {{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}}  @else @if($row->user_id !== null)<a href="{{ route('seller.user.show',$row->user_id) }}">{{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}}</a> @else {{ __('Guest User') }} @endif @endif</td>
+                            <td>
+                               @if($row->user_id == null && $row->order_from == 1  )
+                                 {{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}} 
+                                @elseif($row->user_id !== null)
+                                 <a href="{{ route('seller.user.show',$row->user_id) }}">{{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}}</a>
+                                @else 
+                                 {{ __('Guest User') }}
+                                @endif 
+                            </td>
                             <td >{{ currency_formate($row->total) }}</td>
                             <td>
                                 @if($row->payment_status==2)
