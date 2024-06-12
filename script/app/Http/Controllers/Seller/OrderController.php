@@ -75,6 +75,8 @@ class OrderController extends Controller
         $info=Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule','ordertable')->findorFail($id);
         $ordermeta=json_decode($info->ordermeta->value ?? '');
         $order_status=Category::where([['type','status'],['status',1]])->where('id','!=',3)->orderBy('featured','ASC')->get();
+        $product_type = Category::where('type', 'product_type')->select('id','slug', 'name')->orderBy('id', 'ASC')->get();
+        
         if ($info->order_method == 'delivery') {
            $riders=User::where('role_id',5)->latest()->get();
         }
@@ -84,7 +86,7 @@ class OrderController extends Controller
 
         // dd($info);
         
-        return view('seller.order.show',compact('info','ordermeta','order_status','riders'));
+        return view('seller.order.show',compact('info','ordermeta','order_status','riders','product_type'));
     }
 
     /**
@@ -246,8 +248,7 @@ class OrderController extends Controller
                     if ($order_stock >= $current_stock) {
                         $new_stock=0;
                         $stock_status=0;
-                    }
-                    else{
+                    }else{
                         $new_stock=$current_stock-$order_stock;
                         $stock_status=1;
                     }
