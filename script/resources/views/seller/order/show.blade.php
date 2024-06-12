@@ -30,6 +30,16 @@
                         </li>
                         @php $subtotal = 0; @endphp
                         @foreach ($info->orderitems ?? [] as $row)
+                            @php
+                            $p_types = $product_type->pluck('id')->flatten()->toArray();
+                            $selected_product_type = [];
+
+                            foreach ($row->term->termcategories as $key => $value) {
+                                    if(in_array($value->category_id,$p_types))
+                                        array_push($selected_product_type, $value->category_id);
+                                }
+                            @endphp    
+
                             <li class="list-group-item">
                                 <div class="row align-items-center">
                                     <div class="col-6">
@@ -71,10 +81,21 @@
                             </li>
                         @endforeach
 
+                        @php
+                          $order_type = 'Goods'; 
+                          if(count($selected_product_type) == 1){
+                               if(!in_array(52,$selected_product_type)){
+                                $order_type = 'Digital'; 
+                               }
+                          }elseif(count($selected_product_type) > 1){
+                                $order_type = 'Mixed'; 
+                          }
+                        @endphp  
+                        
                         <li class="list-group-item">
                             <div class="row align-items-center">
                                 <div class="col-9 text-right">{{ __('SubTotal') }}</div>
-                                <div class="col-3 text-right"> {{ currency_formate($subtotal) }} </div>
+                                <div class="col-3 text-right"> {{ currency_formate($subtotal) }} {{$order_type}}</div>
                             </div>
                         </li>
                         <li class="list-group-item">
@@ -197,7 +218,7 @@
 
                                 <div class="col-sm-4">
                                     <div class="form-group text-left">
-                                        <label>Select Order Status</label>
+                                        <label>Select Order Status </label>
                                         <select class="form-control selectric" id="mainSelect" name="status" required="">
                                             <option value=""><b>{{ __('Select Order Status') }}</b></option>
                                             @foreach ($order_status ?? [] as $row)
@@ -208,12 +229,13 @@
                                         </select>
                                     </div>
                                 </div>
-@php
-$shipping_servics = ['FedEx','UPS','US Postal Service'];
-@endphp
-                                <div class="col-sm-4" id="hiddenChooseTracking" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;" @endif>
+                                @php
+                                $shipping_servics = ['FedEx','UPS','US Postal Service'];
+                                if($order_type != 'Digital'){
+                                @endphp
+                              <div class="col-sm-4" id="hiddenChooseTracking {{$order_type}}" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;" @endif>
                                     <div class="form-group text-left">
-                                        <label>Select shipping service</label>
+                                        <label>Select shipping service </label>
                                         <select class="form-control selectric" id="chooseTracking" name="chooseTracking">
                                             <option value="" selected><b>{{ __('Select option') }}</b></option>
                                             <option value="FedEx" @if ($info->shippingwithinfo->shipping_driver == 'FedEx') selected="" @endif>{{ __('FedEx') }}</option>
@@ -223,21 +245,6 @@ $shipping_servics = ['FedEx','UPS','US Postal Service'];
                                         </select>
                                     </div>
                                 </div>
-
-								{{-- <div class="col-sm-3" id="hiddenChooseTracking" style="display:none;">
-                                    <div class="form-group">
-                                        <label style="text-align: left;">Select shipping service</label>
-                                        <select class="form-control selectric" id="chooseTracking" name="chooseTracking">
-                                            <option value="" selected><b style="text-align: left;">{{ __('Select option') }}</b></option>
-                                            <option value="FedEx" @if ($info->shippingwithinfo->shipping_driver == 'FedEx') selected="" @endif>{{ __('FedEx') }}</option>
-                                            <option value="UPS" @if ($info->shippingwithinfo->shipping_driver == 'UPS') selected="" @endif><b style="text-align: left;">{{ __('UPS') }}</b></option>
-                                            <option value="US Postal Service" @if ($info->shippingwithinfo->shipping_driver == 'US Postal Service') selected="" @endif><b style="text-align: left;">{{ __('US Postal Service') }}</b></option>
-                                            <option value="Other" @if ($info->shippingwithinfo->shipping_drivers == 'Other') selected="" @endif><b style="text-align: left;">{{ __('Other') }}</b></option>
-                                        </select>
-                                    </div>
-                                </div> --}}
-                                
-                                
                                 <div class="col-sm-3" id="hide_shipping_service" @if($info->shippingwithinfo->shipping_driver == 'local' || $info->shippingwithinfo->shipping_driver == 'FedEx' || $info->shippingwithinfo->shipping_driver == 'UPS' || $info->shippingwithinfo->shipping_driver == 'US Postal Service')style="display:none;"@endif>
 									<div class="form-group text-left">
 										<label>Enter shipping service</label>
@@ -251,9 +258,10 @@ $shipping_servics = ['FedEx','UPS','US Postal Service'];
 										<input type="text" value="{{$info->shippingwithinfo->tracking_no}}" class="form-control" name="tacking_number" id="tacking_number" id="tacking_number">
 									</div>
 								</div>
-
-								
-
+							@php 
+                                }
+                            @endphp
+              
 
                             </div>
                             <div class="form-group">
