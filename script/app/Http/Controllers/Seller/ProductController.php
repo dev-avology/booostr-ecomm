@@ -34,7 +34,10 @@ class ProductController extends Controller
         if (!empty($request->src) && !empty($request->type)) {
             $posts = $posts->where($request->type, 'LIKE', '%' . $request->src . '%');
         }
-        $posts = $posts->latest()->paginate(20);
+
+        $selected_per_page = request()->get('per_page', 10);
+
+        $posts = $posts->orderBy('order','asc')->paginate($selected_per_page);
 
         $type = $request->type ?? '';
 
@@ -902,5 +905,14 @@ class ProductController extends Controller
 
     }
 
+    public function updateproductOrder(Request $request){
+        
+        $data = $request->get('data');
 
+        foreach($data as $key=>$val){
+            Term::find($val)->update(['order'=>$key]);
+        }
+
+        return response()->json(["status" => true, "message" => "product list successfully", "result" => $data]);
+    }
 }
