@@ -295,8 +295,9 @@ class ProductController extends Controller
 
         if ($price->stock_manage == 1) {
 
-            $orderStockSum = Orderstock::where('price_id', $price->id)->sum('qty');
-            $remain_qty = $price->qty-(int)$orderStockSum;
+            //$orderStockSum = Orderstock::where('price_id', $price->id)->sum('qty');
+           // $remain_qty = $price->qty-(int)$orderStockSum;
+            $remain_qty = $price->qty;
 
             if ($exist_qty > $price->qty) {
                 Cart::restore($cartid);
