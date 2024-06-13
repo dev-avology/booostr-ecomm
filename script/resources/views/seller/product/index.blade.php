@@ -33,6 +33,25 @@
         <div class="float-right">
             <form>
                 <div class="input-group mb-2">
+                    @php
+                        $per_page_options = [10, 20, 50, 100, 200, 500];
+                        $selected_per_page = request()->get('per_page', 10);
+                    @endphp
+
+                    <select class="form-control" name="per_page" id="per_page" onchange="this.form.submit()">
+                        @foreach($per_page_options as $per)
+                            <option value="{{ $per }}" {{ $selected_per_page == $per ? 'selected' : '' }}>
+                                Per page {{ $per }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </form>
+        </div>
+
+        <div class="float-right">
+            <form>
+                <div class="input-group mb-2">
 
                     <input type="text" id="src" class="form-control" placeholder="Search..." required="" name="src" autocomplete="off" value="{{ $request->src ?? '' }}">
                     <select class="form-control selectric" name="type" id="type">
@@ -67,7 +86,7 @@
 
             </div>
             <div class="table-responsive custom-table">
-                <table class="table">
+                <table class="table" id="table-2">
                     <thead>
                         <tr>
                             <th class="am-select">
@@ -88,14 +107,8 @@
                         </tr>
                     </thead>
                     <tbody>
-
-                        {{-- <?php
-                        echo "<pre>";    
-                        print_r($posts);
-
-                        ?> --}}
                         @foreach($posts as $row)
-                        <tr id="row{{  $row->id }}">
+                        <tr id="{{  $row->id }}">
                             <td>
                                 <div class="custom-control custom-checkbox">
                                     <input type="checkbox" name="ids[]" class="custom-control-input" id="customCheck{{ $row->id }}" value="{{ $row->id }}">
@@ -131,6 +144,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                <div class="result">&nbsp;</div>
             </form>
             {{ $posts->appends($request->all())->links('vendor.pagination.bootstrap-4') }}
         </div>
@@ -174,6 +188,54 @@
 </div>
 </div>
 </section>
+
 @endsection
 
+@push('script')
+<script src="{{ asset('admin/js/jquery.tablednd.js') }}"></script>
 
+<script>
+$(document).ready(function() {
+    $("#table-2").tableDnD({
+        onDragClass: "myDragClass",
+        onDrop: function(table, row) {
+            var rows = table.tBodies[0].rows;
+            var debugStr = "Row dropped was " + row.id + ". New order: ";
+            var list = []; 
+
+            for (var i = 0; i < rows.length; i++) {
+                list.push(rows[i].id);
+                debugStr += rows[i].id + " ";
+            }
+            
+            console.log(list);
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $.ajax({
+                type: 'POST',
+                url: "product-order-update", // Replace with your URL
+                data: JSON.stringify({ data: list }),
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                success: function(response) {
+                    console.log('Order updated successfully');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Failed to update order: ' + error);
+                }
+            });
+
+            $(table).parent().find('.result').text(debugStr);
+        },
+        onDragStart: function(table, row) {
+            $(table).parent().find('.result').text("Started dragging row " + row.id);
+        }
+    });
+});
+</script>
+@endpush

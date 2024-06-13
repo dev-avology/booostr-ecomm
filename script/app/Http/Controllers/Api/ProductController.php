@@ -56,7 +56,7 @@ class ProductController extends Controller
                 return $query->where('category_id', $request->category);
             });
         }
-        $posts = $posts->latest()->paginate(50);
+        $posts = $posts->orderBy('order','desc')->paginate(50);
         return response()->json(["status" => true, "message" => "products", "result" => $posts]);
     }
 
