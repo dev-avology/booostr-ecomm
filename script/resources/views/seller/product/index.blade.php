@@ -144,7 +144,7 @@
                         @endforeach
                     </tbody>
                 </table>
-                <div class="result">&nbsp;</div>
+                <!--div class="result">&nbsp;</div-->
             </form>
             {{ $posts->appends($request->all())->links('vendor.pagination.bootstrap-4') }}
         </div>
