@@ -26,6 +26,7 @@ class Term extends Model
      */
     protected $fillable = [
         'full_id',
+        'order'
     ];
 
     public static function boot()
