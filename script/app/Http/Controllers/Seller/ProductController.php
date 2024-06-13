@@ -37,7 +37,7 @@ class ProductController extends Controller
 
         $selected_per_page = request()->get('per_page', 10);
 
-        $posts = $posts->latest()->paginate($selected_per_page);
+        $posts = $posts->orderBy('order','desc')->paginate($selected_per_page);
 
         $type = $request->type ?? '';
 
