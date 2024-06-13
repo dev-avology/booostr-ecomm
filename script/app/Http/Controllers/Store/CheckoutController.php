@@ -625,6 +625,27 @@ class CheckoutController extends Controller
             \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
             \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
 
+            $prices=Orderstock::where('order_id',$order->id)->whereHas('price')->with('price')->get();
+            foreach ($prices as $key => $row) {
+                $current_stock=$row->price->qty;
+                $order_stock=$row->qty;
+
+                if ($order_stock >= $current_stock) {
+                    $new_stock=0;
+                    $stock_status=0;
+                }else{
+                    $new_stock=$current_stock-$order_stock;
+                    $stock_status=1;
+                }
+                $price_row=Price::find($row->price_id);
+                if (!empty($price_row)) {
+                    $price_row->qty=$new_stock;
+                    $price_row->stock_status=$stock_status;
+                    $price_row->save();
+                }
+               // array_push($deletable_ids,$row->id);
+            }
+
             if(Session::has('cart') && $cartid != null){
 
                 $this->syncFormData($cartid,$order->id);
@@ -639,9 +660,7 @@ class CheckoutController extends Controller
             }
 
             if(Session::has('couponDiscount')){
-                Session::forget('couponDiscoun
-                
-                t');
+                Session::forget('couponDiscount');
             }
 
 
