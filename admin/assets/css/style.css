@@ -5077,7 +5077,11 @@ a.btn.btn-primary.generate-cpn {
 }
 
 
-
+.myDragClass {
+  background: #eee;
+  /* box-sizing: content-box; */
+  box-shadow: 0px 2px 18px 0px rgba(0, 0, 0, 0.5);
+}
 
 
 
