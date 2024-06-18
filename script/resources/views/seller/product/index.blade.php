@@ -89,7 +89,6 @@
                 <table class="table" id="table-2">
                     <thead>
                         <tr>
-                        <th>Drag Row</th>
                             <th class="am-select">
                                 <div class="custom-control custom-checkbox">
                                     <input type="checkbox" class="custom-control-input checkAll" id="selectAll">
@@ -110,7 +109,6 @@
                     <tbody>
                         @foreach($posts as $row)
                         <tr id="data-{{  $row->id }}">
-                        <td><i class="fa fa-bars"></i></td>
                             <td>
                                 <div class="custom-control custom-checkbox">
                                     <input type="checkbox" name="ids[]" class="custom-control-input" id="customCheck{{ $row->id }}" value="{{ $row->id }}">
