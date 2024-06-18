@@ -89,6 +89,7 @@
                 <table class="table" id="table-2">
                     <thead>
                         <tr>
+                        <th>Drag Row</th>
                             <th class="am-select">
                                 <div class="custom-control custom-checkbox">
                                     <input type="checkbox" class="custom-control-input checkAll" id="selectAll">
@@ -108,7 +109,8 @@
                     </thead>
                     <tbody>
                         @foreach($posts as $row)
-                        <tr id="{{  $row->id }}">
+                        <tr id="data-{{  $row->id }}">
+                        <td><i class="fa fa-bars"></i></td>
                             <td>
                                 <div class="custom-control custom-checkbox">
                                     <input type="checkbox" name="ids[]" class="custom-control-input" id="customCheck{{ $row->id }}" value="{{ $row->id }}">
@@ -192,50 +194,45 @@
 @endsection
 
 @push('script')
-<script src="{{ asset('admin/js/jquery.tablednd.js') }}"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+
 
 <script>
-$(document).ready(function() {
-    $("#table-2").tableDnD({
-        onDragClass: "myDragClass",
-        onDrop: function(table, row) {
-            var rows = table.tBodies[0].rows;
-            var debugStr = "Row dropped was " + row.id + ". New order: ";
-            var list = []; 
-
-            for (var i = 0; i < rows.length; i++) {
-                list.push(rows[i].id);
-                debugStr += rows[i].id + " ";
-            }
-            
-            console.log(list);
-
-            $.ajaxSetup({
+  $(function() {
+    $("#table-2 tbody").sortable({
+      cursor: "move",
+      placeholder: "ui-state-highlight",
+      update: function (event, ui) {
+        var data = $(this).sortable('serialize');
+         console.log(data);
+         
+         $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
 
-            $.ajax({
-                type: 'POST',
-                url: "product-order-update", // Replace with your URL
-                data: JSON.stringify({ data: list }),
-                dataType: 'json',
-                contentType: 'application/json; charset=utf-8',
-                success: function(response) {
-                    console.log('Order updated successfully');
-                },
-                error: function(xhr, status, error) {
-                    console.error('Failed to update order: ' + error);
-                }
-            });
+         $.ajax({
+            data: data,
+            type: 'POST',
+            url: 'product-order-update'
+        });
+      },
+      helper: function(e, tr)
+      {
+        var $originals = tr.children();
+        var $helper = tr.clone();
+        $helper.children().each(function(index)
+        {
+            //console.log(index);
 
-            $(table).parent().find('.result').text(debugStr);
-        },
-        onDragStart: function(table, row) {
-            $(table).parent().find('.result').text("Started dragging row " + row.id);
-        }
-    });
-});
+        // Set helper cell sizes to match the original sizes
+        $(this).width($originals.eq(index).width());
+        });
+        return $helper;
+      }
+    }).disableSelection();
+  });
 </script>
 @endpush
