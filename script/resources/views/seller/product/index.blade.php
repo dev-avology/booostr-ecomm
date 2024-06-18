@@ -196,7 +196,13 @@
 @push('script')
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
 <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
-
+<style>
+.ui-sortable-helper td{
+    padding: 0 25px;
+    height: 60px;
+    vertical-align: middle;
+}
+</style>
 
 <script>
   $(function() {
@@ -206,7 +212,7 @@
       update: function (event, ui) {
         var data = $(this).sortable('serialize');
          console.log(data);
-         
+
          $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -227,8 +233,15 @@
         {
             //console.log(index);
 
-        // Set helper cell sizes to match the original sizes
-        $(this).width($originals.eq(index).width());
+      //  Set helper cell sizes to match the original sizes
+
+       $(this).width($originals.eq(index).width());
+       $(this).css('padding',$originals.eq(index).css('padding'));
+       $(this).css('height',$originals.eq(index).css('height'));
+       $(this).css('vertical-align',$originals.eq(index).css('vertical-align'));
+
+        console.log($originals.eq(index).css('padding'),$originals.eq(index).css('height'),$originals.eq(index).css('vertical-align'));
+
         });
         return $helper;
       }
