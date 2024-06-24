@@ -618,6 +618,7 @@ class CheckoutController extends Controller
                 'club_id' =>Tenant('club_id'),
                 'recurring'=>'one-time',
                 'camp_id'=>$order->invoice_no,
+                'order_total'=>$order->total,
             ];
 
            $recipt =  $this->send_order_recipt($user_recipt);
