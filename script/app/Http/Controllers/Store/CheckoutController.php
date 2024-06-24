@@ -668,7 +668,7 @@ class CheckoutController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
 
-        //dd($th);
+        dd($th);
           
             return redirect()->away($redirect_url . '/?type=error&message=Oops something wrong while saving order data');
         }
