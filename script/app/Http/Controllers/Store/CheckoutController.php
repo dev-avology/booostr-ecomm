@@ -603,7 +603,7 @@ class CheckoutController extends Controller
                 'email' =>  $request->email,                   
                 'booster_id' =>Tenant('club_id'),
                 'booster_level_id' => 4,
-                'contact_tags' => '',
+                'contact_tags' => 'online store customer',
             );	  
 
 

@@ -2002,7 +2002,7 @@ public function posEmailSend(Request $request){
              'email' =>  $client_email,                   
              'booster_id' =>Tenant('club_id'),
              'booster_level_id' => 4,
-             'contact_tags' => '',
+             'contact_tags' => 'POS store customer',
          );	  
 
          $user_recipt = [
