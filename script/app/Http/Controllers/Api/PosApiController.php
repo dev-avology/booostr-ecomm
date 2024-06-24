@@ -2015,6 +2015,7 @@ public function posEmailSend(Request $request){
              'club_id' =>Tenant('club_id'),
              'recurring'=>'one-time',
              'camp_id'=>$orderId,
+             'order_total'=>$order->total,
          ];
 
         $recipt =  $this->send_order_recipts($user_recipt);
