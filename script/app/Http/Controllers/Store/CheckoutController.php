@@ -767,7 +767,7 @@ class CheckoutController extends Controller
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $response = curl_exec($ch);
-
+dd($response);
         // Check for cURL errors
         if (curl_errno($ch)) {
             echo 'cURL error: ' . curl_error($ch);
