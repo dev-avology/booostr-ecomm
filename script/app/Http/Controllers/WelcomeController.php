@@ -75,8 +75,19 @@ class WelcomeController extends Controller
             $name = !empty($ordermeta->name) ? explode(' ',$ordermeta->name) : '' ;
             if($order->order_from == 4 || $order->order_from == 5){
                 $customer_tag = 'POS store customer';
+                $country = $ordermeta->billing->country??'USA';
+                $address = $ordermeta->billing->address??'Test Address Line 1';
+                $city = $ordermeta->billing->city??'Alameda';
+                $state = $ordermeta->billing->state??'California';
+                $post_code = $ordermeta->billing->post_code??'94501';
             }else{
                 $customer_tag = 'online store customer';
+
+                $country = $ordermeta->billing->country??'';
+                $address = $ordermeta->billing->address??'';
+                $city = $ordermeta->billing->city??'';
+                $state = $ordermeta->billing->state??'';
+                $post_code = $ordermeta->billing->post_code??'';
             }
 
             $contact_manager_data = array(
@@ -85,20 +96,33 @@ class WelcomeController extends Controller
                 'user_id' =>  !empty($ordermeta->wpuid) ? (int)$ordermeta->wpuid:0,
                 'phone_number' => $ordermeta->phone??'',					
                 'booster_name' => $name[0]??'',
-                'country' =>   $ordermeta->billing->country??'',									
-                'address_1' => $ordermeta->billing->address??'',
+                'country' =>   $country,									
+                'address_1' => $address,
                 'address_2' =>  '',
-                'city' => $ordermeta->billing->city??'',
-                'state' => $ordermeta->billing->state??'',
-                'zip' =>  $ordermeta->billing->post_code??'',												
+                'city' => $city,
+                'state' => $state,
+                'zip' =>  $post_code,												
                 'email' =>  $ordermeta->email??'',                   
                 'booster_id' =>Tenant('club_id'),
                 'booster_level_id' => 4,
                 'customer_tag' => $customer_tag,
             );	 
+            $user_recipt = [
+                'contact_mgr_data'=>$contact_manager_data,
+                'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
+                'receipt_title'=>$ordermeta->name,
+                'receipent_org'=>$club_info['club_name'].' Store',
+                'category'=>'ecommerce',
+                'user_id' =>  !empty($ordermeta->wpuid) ? (int)$ordermeta->wpuid:0,
+                'club_id' =>Tenant('club_id'),
+                'recurring'=>'one-time',
+                'camp_id'=>$order->invoice_no,
+                'order_total'=>$order->total,
+            ];
+
             dump("======Order Metadata=======");
             dump($order);
-           dump($contact_manager_data);
+           dump($user_recipt);
          }else{
             dump("======Order No Metadata=========");
          }
