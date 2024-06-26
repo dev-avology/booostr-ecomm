@@ -31,7 +31,7 @@ class WelcomeController extends Controller
                 $name = !empty($ordermeta->name) ? explode(' ',$ordermeta->name) : '' ;
             
                 $contact_manager_data = array(
-                    'first_name' => $name[0],
+                    'first_name' => $name[0]??'',
                     'last_name' => $name[1]??'',
                     'user_id' =>  (int)$ordermeta->wpuid ??0,
                     'phone_number' => $ordermeta->phone??'',					
