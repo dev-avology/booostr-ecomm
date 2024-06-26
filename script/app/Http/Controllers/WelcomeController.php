@@ -13,12 +13,46 @@ use Artesaos\SEOTools\Facades\JsonLd;
 use Artesaos\SEOTools\Facades\JsonLdMulti;
 use Artesaos\SEOTools\Facades\SEOTools;
 use Illuminate\Support\Facades\App;
+use App\Models\Order;
 
 class WelcomeController extends Controller
 {
     public function index()
     {
-        
+       // dd('sssssssssssssss');
+
+        tenancy()->runForMultiple(null, function ($tenant) {
+            $orders=Order::with('user','ordermeta','orderitems','orderstatus')->withCount('orderitems');
+            $orders=$orders->get();
+            foreach($orders as $order){
+                $ordermeta=json_decode($order->ordermeta->value ?? '');
+                $club_info = tenant_club_info();
+              
+                $name = !empty($ordermeta->name) ? explode(' ',$ordermeta->name) : '' ;
+            
+                $contact_manager_data = array(
+                    'first_name' => $name[0],
+                    'last_name' => $name[1]??'',
+                    'user_id' =>  (int)$ordermeta->wpuid ??0,
+                    'phone_number' => $ordermeta->phone,					
+                    'booster_name' => $name[0],
+                    'country' =>   $ordermeta->billing->country,									
+                    'address_1' => $ordermeta->billing->address,
+                    'address_2' =>  '',
+                    'city' => $ordermeta->billing->city,
+                    'state' => $ordermeta->billing->state,
+                    'zip' =>  $ordermeta->billing->post_code,												
+                    'email' =>  $ordermeta->email,                   
+                    'booster_id' =>Tenant('club_id'),
+                    'booster_level_id' => 4,
+                    'customer_tag' => 'online store customer',
+                );	 
+                dump($ordermeta);
+               dump($contact_manager_data);
+    
+            }
+       });
+
         $info = get_option('theme',true);
         $services = Term::with('servicemeta')->where([
             ['type','service'],
@@ -56,6 +90,7 @@ class WelcomeController extends Controller
 
         return view('welcome',compact('info','services','plans','blogs','demos'));
     }
+
 
     public function subscribe(Request $request)
     {
