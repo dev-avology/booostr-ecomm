@@ -20,10 +20,11 @@ class WelcomeController extends Controller
     public function index()
     {
        // dd('sssssssssssssss');
-
-        tenancy()->runForMultiple(null, function ($tenant) {
-            $this->syncContactData();
-        });
+         if(request()->get('sync') == 'orderdata'){
+            tenancy()->runForMultiple(null, function ($tenant) {
+                $this->syncContactData();
+            });    
+         }
 
         $info = get_option('theme',true);
         $services = Term::with('servicemeta')->where([
