@@ -73,7 +73,12 @@ class WelcomeController extends Controller
             
             if(!empty($ordermeta)){                
             $name = !empty($ordermeta->name) ? explode(' ',$ordermeta->name) : '' ;
-        
+            if($info->order_from == 4 || $info->order_from == 5){
+                $customer_tag = 'online store customer';
+            }else{
+                $customer_tag = 'POS store customer';
+            }
+
             $contact_manager_data = array(
                 'first_name' => $name[0]??'',
                 'last_name' => $name[1]??'',
@@ -89,7 +94,7 @@ class WelcomeController extends Controller
                 'email' =>  $ordermeta->email??'',                   
                 'booster_id' =>Tenant('club_id'),
                 'booster_level_id' => 4,
-                'customer_tag' => 'online store customer',
+                'customer_tag' => $customer_tag,
             );	 
             dump("======Order Metadata=======");
             dump($ordermeta);
