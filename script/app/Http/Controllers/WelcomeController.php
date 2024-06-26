@@ -74,9 +74,9 @@ class WelcomeController extends Controller
             if(!empty($ordermeta)){                
             $name = !empty($ordermeta->name) ? explode(' ',$ordermeta->name) : '' ;
             if($order->order_from == 4 || $order->order_from == 5){
-                $customer_tag = 'online store customer';
-            }else{
                 $customer_tag = 'POS store customer';
+            }else{
+                $customer_tag = 'online store customer';
             }
 
             $contact_manager_data = array(
