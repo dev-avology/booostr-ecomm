@@ -14,6 +14,7 @@ use Artesaos\SEOTools\Facades\JsonLdMulti;
 use Artesaos\SEOTools\Facades\SEOTools;
 use Illuminate\Support\Facades\App;
 use App\Models\Order;
+use Carbon\Carbon;
 
 class WelcomeController extends Controller
 {
