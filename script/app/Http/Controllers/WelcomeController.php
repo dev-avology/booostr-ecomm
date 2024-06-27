@@ -84,6 +84,7 @@ class WelcomeController extends Controller
                 $state = $ordermeta->billing->state??'California';
                 $post_code = $ordermeta->billing->post_code??'94501';
                 $donor_name = isset($ordermeta->name)? $ordermeta->name.' (POS Order)':'Guest User'.' (POS Order)';
+                $receipt_title = isset($ordermeta->name)? $ordermeta->name:'Guest User';
             }else{
                 $customer_tag = 'online store customer';
 
@@ -93,6 +94,7 @@ class WelcomeController extends Controller
                 $state = $ordermeta->billing->state??'';
                 $post_code = $ordermeta->billing->post_code??'';
                 $donor_name = isset($ordermeta->name)? $ordermeta->name.' (Online Order)':'Guest User'.' (Online Order)';
+                $receipt_title = isset($ordermeta->name)? $ordermeta->name:'Guest User';
 
             }
 
@@ -119,7 +121,7 @@ class WelcomeController extends Controller
             );	 
             $user_recipt = [
                 'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
-                'receipt_title'=>$ordermeta->name,
+                'receipt_title'=>$receipt_title,
                 'receipent_org'=>$club_info['club_name'].' Store',
                 'category'=>'ecommerce',
                 'user_id' =>  !empty($ordermeta->wpuid) ? (int)$ordermeta->wpuid:0,
