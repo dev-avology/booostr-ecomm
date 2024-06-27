@@ -142,6 +142,11 @@ class WelcomeController extends Controller
     
             $gateway=Getway::find($order->getway_id);
     
+            if($gateway && $gateway->name == 'cash'){
+                $gateway_name = 0;
+            }else{
+                $gateway_name = 3;
+            }
     
             //$jsonString = $order->shippingwithinfo['info'];
     
@@ -176,7 +181,7 @@ class WelcomeController extends Controller
             'donor_name'=>$donor_name,
             'created'=>$order->placed_at,
             'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
-            'payement_method'=>($gateway->name == 'cash') ? 0 : 3,
+            'payement_method'=> $gateway_name,
             'invoicenumber'=>$order->invoice_no,
             'invoicreatedate'=>$order->placed_at,
             'invoiceprocessingfee'=>$processing_fees,
