@@ -121,7 +121,32 @@ class WelcomeController extends Controller
                 'order_total'=>$order->total,
             ];
 
+
+            $url = env("WP_API_URL");
+
+            // $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
+             $url = ($url != '') ? $url.'/user-recipt-sync' : "https://staging3.booostr.co/wp-json/store-api/v1/user-recipt-sync";
+         
+             $ch = curl_init();
+             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
+             curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
+             curl_setopt($ch, CURLOPT_URL, $url);
+             curl_setopt($ch, CURLOPT_POST, 1);
+             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($user_recipt)); // Encode data as URL-encoded 
+             curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+         
+             $response = curl_exec($ch);
+         
+             // Check for cURL errors
+             if (curl_errno($ch)) {
+                 echo 'cURL error: ' . curl_error($ch);
+             }
+             curl_close($ch);
+            
             dump("======Order Metadata=======");
+            dump($response);
             dump($order);
            dump($user_recipt);
          }else{
