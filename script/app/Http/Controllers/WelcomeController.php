@@ -80,7 +80,7 @@ class WelcomeController extends Controller
                 $city = $ordermeta->billing->city??'Alameda';
                 $state = $ordermeta->billing->state??'California';
                 $post_code = $ordermeta->billing->post_code??'94501';
-                $donor_name = isset($ordermeta['name'])? $ordermeta['name'].' (POS Order)':'Guest User'.' (POS Order)';
+                $donor_name = isset($ordermeta->name)? $ordermeta->name.' (POS Order)':'Guest User'.' (POS Order)';
             }else{
                 $customer_tag = 'online store customer';
 
@@ -89,7 +89,7 @@ class WelcomeController extends Controller
                 $city = $ordermeta->billing->city??'';
                 $state = $ordermeta->billing->state??'';
                 $post_code = $ordermeta->billing->post_code??'';
-                $donor_name = isset($ordermeta['name'])? $ordermeta['name'].' (Online Order)':'Guest User'.' (Online Order)';
+                $donor_name = isset($ordermeta->name)? $ordermeta->name.' (Online Order)':'Guest User'.' (Online Order)';
 
             }
 
