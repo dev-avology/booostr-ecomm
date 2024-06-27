@@ -172,7 +172,7 @@ class WelcomeController extends Controller
             'expense_category'=>'Revenue',
             'receipts_issued'=> 'Yes',
             'status'=>1,
-            'donor_name'=>$ordermeta['name'].' (Online Order)',
+            'donor_name'=>$donor_name,
             'created'=>$order->placed_at,
             'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
             'payement_method'=>($gateway->name == 'cash') ? 0 : 3,
@@ -182,8 +182,8 @@ class WelcomeController extends Controller
             'invoicesalestax'=> $sales_tax,
             'invoiceopt'=>$order->invoice_no,
             'deposite_date'=>$order->captured_at,
-            'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
-            'record_type' => $post_type,
+            'transfer_refund_date'=> ($order->refunded_at != null) ? $order->refunded_at : null,
+            'record_type' => ($order->refunded_at != null) ? 'refund' : 'capture',
           ]);
 
 
