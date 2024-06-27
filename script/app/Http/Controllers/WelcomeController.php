@@ -15,6 +15,7 @@ use Artesaos\SEOTools\Facades\SEOTools;
 use Illuminate\Support\Facades\App;
 use App\Models\Order;
 use Carbon\Carbon;
+use App\Models\Getway;
 
 class WelcomeController extends Controller
 {
@@ -69,6 +70,8 @@ class WelcomeController extends Controller
         $orders=Order::with('user','ordermeta','orderitems','orderstatus')->withCount('orderitems');
         $orders=$orders->get();
         foreach($orders as $order){
+
+            
             $ordermeta=json_decode($order->ordermeta->value ?? '');
             $club_info = tenant_club_info();
             
@@ -109,7 +112,7 @@ class WelcomeController extends Controller
                 'city' => $city,
                 'state' => $state,
                 'zip' =>  $post_code,												
-                'email' =>  $ordermeta->email??'',                   
+                'email' =>  !empty($ordermeta->email) ? $ordermeta->email:'',                   
                 'booster_id' =>Tenant('club_id'),
                 'booster_level_id' => 4,
                 'customer_tag' => $customer_tag,
@@ -129,9 +132,7 @@ class WelcomeController extends Controller
 
 
             $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
-            $qty = $order->orderitems[0]['qty'];
-            $product_amount = $order->orderitems[0]['amount'];
-            $sub_total = $product_amount*$qty;
+           
             $sales_tax = $order->tax;
             $order_total = $order->total;
         
@@ -212,7 +213,7 @@ class WelcomeController extends Controller
              curl_close($ch);
             
             dump("======Order Metadata=======");
-            dump($response);
+           // dump($response);
             dump($order);
            dump($user_recipt);
          }else{
