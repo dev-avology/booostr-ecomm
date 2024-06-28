@@ -226,6 +226,11 @@ class WelcomeController extends Controller
              curl_close($ch);
             
             dump("======Order Metadata=======");
+            dump([
+                'contact_mgr_data'=>$contact_manager_data,
+                'user_recipt'=>$user_recipt,
+                'ftd_data'=> $fpostData,
+            ]);
             dump($response);
             //dump($order);
            //dump($user_recipt);
