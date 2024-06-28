@@ -188,7 +188,7 @@ class WelcomeController extends Controller
             'invoiceprocessingfee'=>$processing_fees,
             'invoicesalestax'=> $sales_tax,
             'invoiceopt'=>$order->invoice_no,
-            'deposite_date'=>$order->captured_at,
+            'deposite_date'=>($order->captured_at != null) ? $order->captured_at : $order->placed_at,
             'transfer_refund_date'=> ($order->refunded_at != null) ? $order->refunded_at : null,
             'record_type' => ($order->refunded_at != null) ? 'refund' : 'capture',
           ];
