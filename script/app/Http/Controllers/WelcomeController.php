@@ -164,9 +164,8 @@ class WelcomeController extends Controller
     
             $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 
-            $postData = json_encode(['contact_mgr_data'=>$contact_manager_data,
-            'user_recipt'=>$user_recipt,
-            'category_type'=> 'Booostr Ecommerce',
+            if($order->status_id == 1){
+            $fpostData = ['category_type'=> 'Booostr Ecommerce',
             'booster_id' =>Tenant('club_id'),
             'coaid'=>41,
             'contactname'=>$ordermeta['name'],
@@ -192,9 +191,16 @@ class WelcomeController extends Controller
             'deposite_date'=>$order->captured_at,
             'transfer_refund_date'=> ($order->refunded_at != null) ? $order->refunded_at : null,
             'record_type' => ($order->refunded_at != null) ? 'refund' : 'capture',
+          ];
+        }else{
+            $fpostData = [];
+        }
+
+          $fpostData = json_encode([
+            'contact_mgr_data'=>$contact_manager_data,
+            'user_recipt'=>$user_recipt,
+            'ftd_data'=> $fpostData,
           ]);
-
-
 
             $url = env("WP_API_URL");
 
@@ -220,9 +226,9 @@ class WelcomeController extends Controller
              curl_close($ch);
             
             dump("======Order Metadata=======");
-           // dump($response);
-            dump($order);
-           dump($user_recipt);
+            dump($response);
+            //dump($order);
+           //dump($user_recipt);
          }else{
             dump("======Order No Metadata=========");
          }
