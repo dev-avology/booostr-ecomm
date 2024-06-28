@@ -104,7 +104,7 @@ class SyncfinitialsRecordWP extends Command
                 'customer_tag' => $customer_tag,
             );	 
             $user_recipt = [
-                'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
+                'receipts_date'=>$order->placed_at,
                 'receipt_title'=>$receipt_title,
                 'receipent_org'=>$club_info['club_name'].' Store',
                 'category'=>'ecommerce',
