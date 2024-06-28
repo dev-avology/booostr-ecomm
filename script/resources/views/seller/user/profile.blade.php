@@ -105,7 +105,9 @@
                             </table>
                         </div>
                         <div class="float-right">
-                            {{ $user->user_orders()->paginate(20)->links() }}
+                            <!-- {{ $user->user_orders()->paginate(20)->links() }} -->
+                            {{ $user->user_orders()->paginate(20)->links('vendor.pagination.bootstrap-4') }}
+
                         </div>
                     </div>
                 </div>
