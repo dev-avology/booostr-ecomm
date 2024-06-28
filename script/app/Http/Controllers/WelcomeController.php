@@ -196,7 +196,7 @@ class WelcomeController extends Controller
             $fpostData = [];
         }
 
-          $fpostData = json_encode([
+          $postData = json_encode([
             'contact_mgr_data'=>$contact_manager_data,
             'user_recipt'=>$user_recipt,
             'ftd_data'=> $fpostData,
