@@ -28,11 +28,13 @@
                                 </div>
                             </div>
                         </li>
-                        @php $subtotal = 0; @endphp
+                        @php 
+                        $subtotal = 0; 
+                        $selected_product_type = [];
+                        @endphp
                         @foreach ($info->orderitems ?? [] as $row)
                             @php
                             $p_types = $product_type->pluck('id')->flatten()->toArray();
-                            $selected_product_type = [];
 
                             foreach ($row->term->termcategories as $key => $value) {
                                     if(in_array($value->category_id,$p_types))

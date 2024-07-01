@@ -2002,7 +2002,7 @@ public function posEmailSend(Request $request){
              'email' =>  $client_email,                   
              'booster_id' =>Tenant('club_id'),
              'booster_level_id' => 4,
-             'contact_tags' => '',
+             'customer_tag' => 'POS store customer',
          );	  
 
          $user_recipt = [
@@ -2015,6 +2015,7 @@ public function posEmailSend(Request $request){
              'club_id' =>Tenant('club_id'),
              'recurring'=>'one-time',
              'camp_id'=>$orderId,
+             'order_total'=>$order->total,
          ];
 
         $recipt =  $this->send_order_recipts($user_recipt);

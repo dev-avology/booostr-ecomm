@@ -13,12 +13,15 @@ use Artesaos\SEOTools\Facades\JsonLd;
 use Artesaos\SEOTools\Facades\JsonLdMulti;
 use Artesaos\SEOTools\Facades\SEOTools;
 use Illuminate\Support\Facades\App;
+use App\Models\Order;
+use Carbon\Carbon;
+use App\Models\Getway;
 
 class WelcomeController extends Controller
 {
     public function index()
     {
-        
+       
         $info = get_option('theme',true);
         $services = Term::with('servicemeta')->where([
             ['type','service'],

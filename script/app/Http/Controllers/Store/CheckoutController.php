@@ -603,7 +603,7 @@ class CheckoutController extends Controller
                 'email' =>  $request->email,                   
                 'booster_id' =>Tenant('club_id'),
                 'booster_level_id' => 4,
-                'contact_tags' => '',
+                'customer_tag' => 'online store customer',
             );	  
 
 
@@ -618,6 +618,7 @@ class CheckoutController extends Controller
                 'club_id' =>Tenant('club_id'),
                 'recurring'=>'one-time',
                 'camp_id'=>$order->invoice_no,
+                'order_total'=>$order->total,
             ];
 
            $recipt =  $this->send_order_recipt($user_recipt);
@@ -767,6 +768,8 @@ class CheckoutController extends Controller
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $response = curl_exec($ch);
+
+         //dd($response);
 
         // Check for cURL errors
         if (curl_errno($ch)) {
