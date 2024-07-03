@@ -88,6 +88,10 @@ class SyncfinitialsRecordWP extends Command
               $name = '' ;
             }
 
+            $item_count = $order->orderitems->count();
+
+            if($item_count > 0){
+
             $contact_manager_data = array(
                 'first_name' => $name[0]??'',
                 'last_name' => $name[1]??'',
@@ -232,10 +236,10 @@ class SyncfinitialsRecordWP extends Command
             dump($response);
             //dump($order);
            //dump($user_recipt);
-        //  }else{
-        //     dump("======Order No Metadata=========");
-        //     dump("======".$order->id."=========");
-        //  }
+         }else{
+            dump("======Order No Metadata=========");
+            dump("======".$order->id."=========");
+         }
 
         }
     }
