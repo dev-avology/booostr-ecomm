@@ -83,7 +83,7 @@ class SyncfinitialsRecordWP extends Command
             }
 
             if(!empty($ordermeta)){                
-            $name = !empty($ordermeta->name) ? explode(' ',$ordermeta->name) : '' ;
+                $name = !empty($ordermeta->name) ? explode(' ',$ordermeta->name) : '' ;
             }else{
               $name = '' ;
             }
@@ -165,7 +165,7 @@ class SyncfinitialsRecordWP extends Command
                 $fpostData = ['category_type'=> 'Booostr Ecommerce',
                 'booster_id' =>Tenant('club_id'),
                 'coaid'=>41,
-                'contactname'=>$ordermeta['name'],
+                'contactname'=>isset($ordermeta['name']) ? $ordermeta['name'] : '',
                 //'memo'=>'Booostr Ecommerce',
                 'user_id' =>  $ordermeta['wpuid']??0,
                 'revenue_name'=>'4-850 Booostr Ecommerce',
