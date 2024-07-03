@@ -1981,7 +1981,8 @@ public function posEmailSend(Request $request){
         $to = $orderData['client_email'] ?? '';
         // $to = 'ashishyadav.avology@gmail.com';
         $email = Mail::to($to)->send($mail);
-
+         
+        $orders=Order::with('user','ordermeta','orderitems','orderstatus')->where('id',$orderId)->get();
 
         $club_info = tenant_club_info();
 
@@ -2005,6 +2006,12 @@ public function posEmailSend(Request $request){
              'customer_tag' => 'POS store customer',
          );	  
 
+         $subtotal = 0;
+            
+         foreach ($order->orderitems ?? [] as $row){
+             $subtotal = $subtotal + $row->amount*$row->qty;
+         }
+
          $user_recipt = [
              'contact_mgr_data'=>$contact_manager_data,
              'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
@@ -2016,6 +2023,7 @@ public function posEmailSend(Request $request){
              'recurring'=>'one-time',
              'camp_id'=>$orderId,
              'order_total'=>$order->total,
+             'order_subtotal'=>$subtotal,
          ];
 
         $recipt =  $this->send_order_recipts($user_recipt);

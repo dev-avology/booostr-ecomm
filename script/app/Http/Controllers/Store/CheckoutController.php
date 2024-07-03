@@ -606,7 +606,11 @@ class CheckoutController extends Controller
                 'customer_tag' => 'online store customer',
             );	  
 
-
+            $subtotal = 0;
+            
+            foreach ($order->orderitems ?? [] as $row){
+                $subtotal = $subtotal + $row->amount*$row->qty;
+            }
 
             $user_recipt = [
                 'contact_mgr_data'=>$contact_manager_data,
@@ -619,6 +623,7 @@ class CheckoutController extends Controller
                 'recurring'=>'one-time',
                 'camp_id'=>$order->invoice_no,
                 'order_total'=>$order->total,
+                'order_subtotal'=>$subtotal,
             ];
 
            $recipt =  $this->send_order_recipt($user_recipt);
