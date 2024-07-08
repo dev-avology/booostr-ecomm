@@ -83,8 +83,14 @@ class SyncfinitialsRecordWP extends Command
             }
 
             if(!empty($ordermeta)){                
-            $name = !empty($ordermeta->name) ? explode(' ',$ordermeta->name) : '' ;
-           
+                $name = !empty($ordermeta->name) ? explode(' ',$ordermeta->name) : '' ;
+            }else{
+              $name = '' ;
+            }
+
+            $item_count = $order->orderitems->count();
+
+            if($item_count > 0){
 
             $contact_manager_data = array(
                 'first_name' => $name[0]??'',
@@ -102,7 +108,14 @@ class SyncfinitialsRecordWP extends Command
                 'booster_id' =>Tenant('club_id'),
                 'booster_level_id' => 4,
                 'customer_tag' => $customer_tag,
-            );	 
+            );
+            
+            $subtotal = 0;
+            
+            foreach ($order->orderitems ?? [] as $row){
+                $subtotal = $subtotal + $row->amount*$row->qty;
+            }
+
             $user_recipt = [
                 'receipts_date'=>$order->placed_at,
                 'receipt_title'=>$receipt_title,
@@ -113,6 +126,7 @@ class SyncfinitialsRecordWP extends Command
                 'recurring'=>'one-time',
                 'camp_id'=>$order->invoice_no,
                 'order_total'=>$order->total,
+                'order_subtotal'=>$subtotal,
             ];
 
 
@@ -133,6 +147,8 @@ class SyncfinitialsRecordWP extends Command
             }else{
                 $gateway_name = 3;
             }
+
+            
     
             //$jsonString = $order->shippingwithinfo['info'];
     
@@ -149,33 +165,35 @@ class SyncfinitialsRecordWP extends Command
             $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 
             if($order->status_id == 1){
-            $fpostData = ['category_type'=> 'Booostr Ecommerce',
-            'booster_id' =>Tenant('club_id'),
-            'coaid'=>41,
-            'contactname'=>$ordermeta['name'],
-            //'memo'=>'Booostr Ecommerce',
-            'user_id' =>  $ordermeta['wpuid']??0,
-            'revenue_name'=>'4-850 Booostr Ecommerce',
-            'transaction_type'=>'I',
-            'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
-            'net_revenue'=>$net_recieved_amount,
-            'transaction_amount'=>$order_total,
-            'expense_category'=>'Revenue',
-            'receipts_issued'=> 'Yes',
-            'status'=>1,
-            'donor_name'=>$donor_name,
-            'created'=>$order->placed_at,
-            'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
-            'payement_method'=> $gateway_name,
-            'invoicenumber'=>$order->invoice_no,
-            'invoicreatedate'=>$order->placed_at,
-            'invoiceprocessingfee'=>$processing_fees,
-            'invoicesalestax'=> $sales_tax,
-            'invoiceopt'=>$order->invoice_no,
-            'deposite_date'=>($order->captured_at != null) ? $order->captured_at : $order->placed_at,
-            'transfer_refund_date'=> ($order->refunded_at != null) ? $order->refunded_at : null,
-            'record_type' => ($order->refunded_at != null) ? 'refund' : 'capture',
-          ];
+
+                $fpostData = ['category_type'=> 'Booostr Ecommerce',
+                'booster_id' =>Tenant('club_id'),
+                'coaid'=>41,
+                'contactname'=>isset($ordermeta['name']) ? $ordermeta['name'] : '',
+                //'memo'=>'Booostr Ecommerce',
+                'user_id' =>  $ordermeta['wpuid']??0,
+                'revenue_name'=>'4-850 Booostr Ecommerce',
+                'transaction_type'=>'I',
+                'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
+                'net_revenue'=>$net_recieved_amount,
+                'transaction_amount'=>$order_total,
+                'expense_category'=>'Revenue',
+                'receipts_issued'=> 'Yes',
+                'status'=>1,
+                'donor_name'=>$donor_name,
+                'created'=>$order->placed_at,
+                'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
+                'payement_method'=> $gateway_name,
+                'invoicenumber'=>$order->invoice_no,
+                'invoicreatedate'=>$order->placed_at,
+                'invoiceprocessingfee'=>$processing_fees,
+                'invoicesalestax'=> $sales_tax,
+                'invoiceopt'=>$order->invoice_no,
+                'deposite_date'=>($order->captured_at != null) ? $order->captured_at : $order->placed_at,
+                'transfer_refund_date'=> ($order->refunded_at != null) ? $order->refunded_at : null,
+                'record_type' => ($order->refunded_at != null) ? 'refund' : 'capture',
+            ];
+
         }else{
             $fpostData = [];
         }
