@@ -82,6 +82,27 @@ class ProductController extends Controller
         
     }
 
+    public function productDetailBySlug(Request $request,$id)
+    {
+        $info=Term::query()->where('type','product')->where('status',1)->whereIn('list_type', [0,1])->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo','formType')->withCount('reviews')->where('slug', $id)->first();
+        if(empty($info)){
+            return response()->json(["status" => false, "message" => "sorry, product not found", "result" => []]);
+        }
+        $medias=json_decode($info->medias->value ?? '');
+        $preview=asset($info->preview->value ?? 'uploads/default.png');
+        $galleries=[];
+        array_push($galleries,$preview);
+
+        foreach($medias ?? [] as $row){
+            array_push($galleries,asset($row));
+        }
+        unset($info->medias);
+        unset($info->preview);
+        $info->gallery=$galleries;
+        return response()->json(["status" => true, "message" => "products", "result" =>$info,"galleries"=>$galleries]);
+        
+    }
+
     public function search(Request $request)
     {
         $posts = Term::query()
