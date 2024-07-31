@@ -35,6 +35,7 @@ Route::group([
     Route::get('/categories', 'Api\ProductController@categoryList');
     Route::get('/products', 'Api\ProductController@productList');
     Route::get('/product/{id}', 'Api\ProductController@productDetail');
+    Route::get('/productbyslug/{id}', 'Api\ProductController@productDetailBySlug');
     Route::post('/product/search', 'Api\ProductController@search');
     Route::get('/cart/getcart', 'Api\ProductController@getcart');
     Route::post('/cart/add_to_cart', 'Api\ProductController@addtocart');
