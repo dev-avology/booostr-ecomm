@@ -350,6 +350,12 @@ class ProductController extends Controller
         if(empty($cartid)){
             return response()->json(["status" => 0, "message" => 'Oops cart not found', "result" => []],404);
         }
+
+        $tax = get_option('tax');
+        if ($tax == null) {
+            $tax = 0;
+        }
+
         //initialize cart
         Cart::instance($cartid);
         //load cart in session
@@ -367,6 +373,7 @@ class ProductController extends Controller
         $productcartdata['cart_content'] = Cart::content();
         $productcartdata['cart_subtotal'] = Cart::subtotal();
         $productcartdata['cart_tax'] = Cart::tax();
+        $productcartdata['cart_tax_per'] = $tax;
         $productcartdata['cart_total'] = Cart::total();
         $productcartdata['cart_count'] = Cart::count();
         return response()->json(["status" => true, "message" => 'Cart Data', "result" => $productcartdata]);
@@ -474,41 +481,6 @@ class ProductController extends Controller
         return response()->json(["status" => true, "message" => 'Cart Updated  Sucessfullly', "result" => $productcartdata]);
     }
 
-    // public function addQtyUpdateStockValidation($priceData,$reqQunatity,$cartid){
-
-    //     $productcartdata['cartid'] = $cartid;
-    //     $productcartdata['cart_content'] = Cart::content();
-    //     $productcartdata['cart_subtotal'] = Cart::subtotal();
-    //     $productcartdata['cart_tax'] = Cart::tax();
-    //     $productcartdata['cart_total'] = Cart::total();
-    //     $productcartdata['cart_count'] = Cart::count();
-
-    //     if ($priceData->stock_manage == 1) {
-    //         $orderStockSum = Orderstock::where('price_id', $priceData->id)->sum('qty');
-    //         $remain_qty = $priceData->qty-(int)$orderStockSum;
-
-    //         if ($reqQunatity > $priceData->qty) {
-    //             Cart::restore($cartid);
-    //             Cart::store($cartid);
-            
-    //             return response()->json(["status" => false, "message" => 'Maximum stock limit is ('.$priceData->qty.')','result'=>$productcartdata],404);
-    //         }
-
-    //         if ($remain_qty < $reqQunatity) {
-    //             Cart::restore($cartid);
-    //             Cart::store($cartid);
-
-    //             return response()->json(["status" => false, "message" => 'Stock not available.','result'=>$productcartdata],404);
-    //         }
-    //     }
-        
-    //     if ($priceData->stock_status == 0) {
-    //         Cart::restore($cartid);
-    //         Cart::store($cartid);
-
-    //         return response()->json(["status" => false, "message" => 'Oops Maximum stock limit exceeded','result'=>$productcartdata],404);
-    //     }
-    // }
 
     public function varidation($id)
     {
@@ -726,138 +698,138 @@ class ProductController extends Controller
     public function getInvoiceInfo(Request $request){
         $info = Order::with('orderlasttrans','orderitems','shippingwithinfo','ordermeta')->find($request->invoice_no);
        
-    if($info){
-        $shipping_method = json_decode($info->shippingwithinfo->info ?? '');
+        if($info){
+            $shipping_method = json_decode($info->shippingwithinfo->info ?? '');
 
-        $shipping_details = ['shipping_driver' => $info->shippingwithinfo->shipping_driver,'tracking_no' => $info->shippingwithinfo->tracking_no,'shipping_method' => $shipping_method->shipping_label == 'Free Shipping' ? $shipping_method->shipping_label : $shipping_method->shipping_label .' Shipping'];
+            $shipping_details = ['shipping_driver' => $info->shippingwithinfo->shipping_driver,'tracking_no' => $info->shippingwithinfo->tracking_no,'shipping_method' => $shipping_method->shipping_label == 'Free Shipping' ? $shipping_method->shipping_label : $shipping_method->shipping_label .' Shipping'];
 
-        $orderlasttrans=json_decode($info->orderlasttrans->value ?? '');
-        $timestamp = $orderlasttrans->created ?? '';
+            $orderlasttrans=json_decode($info->orderlasttrans->value ?? '');
+            $timestamp = $orderlasttrans->created ?? '';
 
-        $createdAt = Carbon::parse($info->placed_at)->format('m/d/Y h:i A');
+            $createdAt = Carbon::parse($info->placed_at)->format('m/d/Y h:i A');
 
-        $amount_refunded = $orderlasttrans->amount_refunded;
-        $lastdigit = $orderlasttrans->source->last4;
-        $card_number = str_pad($lastdigit, 16, "*", STR_PAD_LEFT);
-        $order_data = [];
-        $ordermeta=json_decode($info->ordermeta->value ?? '');
+            $amount_refunded = $orderlasttrans->amount_refunded;
+            $lastdigit = $orderlasttrans->source->last4;
+            $card_number = str_pad($lastdigit, 16, "*", STR_PAD_LEFT);
+            $order_data = [];
+            $ordermeta=json_decode($info->ordermeta->value ?? '');
 
-        $billing_name = $ordermeta->name;
-        $billing_email = $ordermeta->email;
-        $billing_phone = $ordermeta->phone;
+            $billing_name = $ordermeta->name;
+            $billing_email = $ordermeta->email;
+            $billing_phone = $ordermeta->phone;
 
-        $billing_add = $ordermeta->billing->address;
-        $billing_city = $ordermeta->billing->city;
-        $billing_state = $ordermeta->billing->state;
-        $billing_country = $ordermeta->billing->country;
-        $billing_post_code = $ordermeta->billing->post_code;
+            $billing_add = $ordermeta->billing->address;
+            $billing_city = $ordermeta->billing->city;
+            $billing_state = $ordermeta->billing->state;
+            $billing_country = $ordermeta->billing->country;
+            $billing_post_code = $ordermeta->billing->post_code;
 
-        $new_billing_address = $billing_name . '<br>' . $billing_add . '<br>' . $billing_city . ', ' . $billing_state . ' ' . $billing_post_code . '<br>' . $billing_country . '<br>' . $billing_phone . '<br>' . $billing_email;
-        $order_data['billing_address'] = $new_billing_address;
+            $new_billing_address = $billing_name . '<br>' . $billing_add . '<br>' . $billing_city . ', ' . $billing_state . ' ' . $billing_post_code . '<br>' . $billing_country . '<br>' . $billing_phone . '<br>' . $billing_email;
+            $order_data['billing_address'] = $new_billing_address;
 
-        $shippping_name = $ordermeta->shipping->name;
-        $shippping_phone = $ordermeta->shipping->phone;
-        $shippping_address = $ordermeta->shipping->address;
-        $shippping_city = $ordermeta->shipping->city;
-        $shippping_state = $ordermeta->shipping->state;
-        $shippping_country = $ordermeta->shipping->country;
-        $shippping_post_code = $ordermeta->shipping->post_code;
+            $shippping_name = $ordermeta->shipping->name;
+            $shippping_phone = $ordermeta->shipping->phone;
+            $shippping_address = $ordermeta->shipping->address;
+            $shippping_city = $ordermeta->shipping->city;
+            $shippping_state = $ordermeta->shipping->state;
+            $shippping_country = $ordermeta->shipping->country;
+            $shippping_post_code = $ordermeta->shipping->post_code;
 
-        $new_shiiping_address = $shippping_name . '<br>' . $shippping_address . '<br>' . $shippping_city . ', ' . $shippping_state . ' ' . $shippping_post_code . '<br>' . $shippping_country . '<br>' . $shippping_phone . '<br>' . $billing_email;
+            $new_shiiping_address = $shippping_name . '<br>' . $shippping_address . '<br>' . $shippping_city . ', ' . $shippping_state . ' ' . $shippping_post_code . '<br>' . $shippping_country . '<br>' . $shippping_phone . '<br>' . $billing_email;
 
-        $order_data['shipping_address'] = $new_shiiping_address;
-        $order_data['amount_refunded'] = currency_formate($amount_refunded/100??0);
-        $order_data['invoice_no'] = $info->invoice_no;
+            $order_data['shipping_address'] = $new_shiiping_address;
+            $order_data['amount_refunded'] = currency_formate($amount_refunded/100??0);
+            $order_data['invoice_no'] = $info->invoice_no;
 
-        if ($info->payment_status == '1') {
-            $authorized = 'Paid';
-        } elseif ($info->payment_status == '4') {
-            $authorized = 'Authorized';
-        } elseif ($info->payment_status == '5') {
-            $authorized = 'Refunded';
-        }
+            if ($info->payment_status == '1') {
+                $authorized = 'Paid';
+            } elseif ($info->payment_status == '4') {
+                $authorized = 'Authorized';
+            } elseif ($info->payment_status == '5') {
+                $authorized = 'Refunded';
+            }
 
-        $order_data['payment_status'] = $authorized;
-        $payment_information = ['status' => $authorized,'card' => $card_number,'name' => $billing_name, 'amount' => currency_formate($info->total)];
-        $order_data['payment_card_info'] = $payment_information;
-
-
-        $items = [];
-        $subtotal = 0; 
-        foreach ($info->orderitems ?? [] as $row){
-            $product_name = []; 
-            $variations = json_decode($row->info);
-            $options = $variations->options ?? [];
-            $product_name['name'] = $row->term->title ;
-                foreach ($options ?? [] as $key => $item){
-
-                    $product_options = $item->varition_options;
-                    foreach($item->varitions as $sel_val){
-                       
-                       $cur_opt_name = array_filter($product_options,function ($x) use ($sel_val) {
-                            return $x->id == $sel_val->pivot->productoption_id;
-                        } );
+            $order_data['payment_status'] = $authorized;
+            $payment_information = ['status' => $authorized,'card' => $card_number,'name' => $billing_name, 'amount' => currency_formate($info->total)];
+            $order_data['payment_card_info'] = $payment_information;
 
 
-                        $product_name['name'] .= '<br><strong>'.reset($cur_opt_name)->category->name.': </strong>'.$sel_val->name;
+            $items = [];
+            $subtotal = 0; 
+            foreach ($info->orderitems ?? [] as $row){
+                $product_name = []; 
+                $variations = json_decode($row->info);
+                $options = $variations->options ?? [];
+                $product_name['name'] = $row->term->title ;
+                    foreach ($options ?? [] as $key => $item){
+
+                        $product_options = $item->varition_options;
+                        foreach($item->varitions as $sel_val){
+                        
+                        $cur_opt_name = array_filter($product_options,function ($x) use ($sel_val) {
+                                return $x->id == $sel_val->pivot->productoption_id;
+                            } );
+
+
+                            $product_name['name'] .= '<br><strong>'.reset($cur_opt_name)->category->name.': </strong>'.$sel_val->name;
+                        }
                     }
-                }
-                              
-                $product_name['amount'] = currency_formate($row->amount) ;
-            
-                $product_name['qty'] = $row->qty ;
-            
-                $product_name['total'] =  currency_formate($row->amount * $row->qty) ;
-            $subtotal = $subtotal + $row->amount*$row->qty; 
-            $items[] = $product_name;
-        }
+                                
+                    $product_name['amount'] = currency_formate($row->amount) ;
+                
+                    $product_name['qty'] = $row->qty ;
+                
+                    $product_name['total'] =  currency_formate($row->amount * $row->qty) ;
+                $subtotal = $subtotal + $row->amount*$row->qty; 
+                $items[] = $product_name;
+            }
 
-        $order_data['sub_total'] = currency_formate($subtotal ?? 0) ;
-        $order_data['discount'] = '-'.currency_formate($info->discount);
-        $order_data['tax'] = currency_formate($info->tax);
-        $order_data['created_at'] = $createdAt;
-        $club_info = tenant()->club_info;
+            $order_data['sub_total'] = currency_formate($subtotal ?? 0) ;
+            $order_data['discount'] = '-'.currency_formate($info->discount);
+            $order_data['tax'] = currency_formate($info->tax);
+            $order_data['created_at'] = $createdAt;
+            $club_info = tenant()->club_info;
 
-        $club_email=json_decode($club_info ?? '');
-        $order_data['club_email'] = $club_email->club_email;
+            $club_email=json_decode($club_info ?? '');
+            $order_data['club_email'] = $club_email->club_email;
 
-        $shipping_price=$info->shippingwithinfo->shipping_price ?? 0;
-        $order_data['shipping_price'] = currency_formate($shipping_price); 
-        $order_data['grand_total'] = currency_formate($info->total); 
-        $order_data['product_list'] = $items;
-        $order_data['shipping_details'] = $shipping_details;
+            $shipping_price=$info->shippingwithinfo->shipping_price ?? 0;
+            $order_data['shipping_price'] = currency_formate($shipping_price); 
+            $order_data['grand_total'] = currency_formate($info->total); 
+            $order_data['product_list'] = $items;
+            $order_data['shipping_details'] = $shipping_details;
 
-        $address = [];
+            $address = [];
 
-        $club_address=Option::where('key','invoice_data')->first();
+            $club_address=Option::where('key','invoice_data')->first();
 
-        $decode_address=json_decode($club_address->value);
+            $decode_address=json_decode($club_address->value);
 
-        $address['store_legal_name'] = $decode_address->store_legal_name ?? '';
-        $address['store_legal_phone'] = $decode_address->store_legal_phone ?? '';
-        $address['store_legal_house'] = $decode_address->store_legal_house ?? '';
-        $address['store_legal_address'] = $decode_address->store_legal_address ?? '';
+            $address['store_legal_name'] = $decode_address->store_legal_name ?? '';
+            $address['store_legal_phone'] = $decode_address->store_legal_phone ?? '';
+            $address['store_legal_house'] = $decode_address->store_legal_house ?? '';
+            $address['store_legal_address'] = $decode_address->store_legal_address ?? '';
 
-        $address['store_legal_city'] = $decode_address->store_legal_city ?? '';
-        $address['country'] = $decode_address->country ?? '';
-        $address['state'] = $decode_address->state ?? '';
-        $address['post_code'] = $decode_address->post_code ?? '';
-        $address['store_legal_email'] = $decode_address->store_legal_email ?? '';
+            $address['store_legal_city'] = $decode_address->store_legal_city ?? '';
+            $address['country'] = $decode_address->country ?? '';
+            $address['state'] = $decode_address->state ?? '';
+            $address['post_code'] = $decode_address->post_code ?? '';
+            $address['store_legal_email'] = $decode_address->store_legal_email ?? '';
 
-        $club_info = tenant()->club_info;
+            $club_info = tenant()->club_info;
 
-        $club_info=json_decode($club_info ?? '');
+            $club_info=json_decode($club_info ?? '');
 
-        $address['club_url'] = $club_info->club_url;
+            $address['club_url'] = $club_info->club_url;
 
-        $order_data['club_address'] = $address ?? '';
+            $order_data['club_address'] = $address ?? '';
 
-              
-    
-            return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$order_data]);
-        }else{
-            return response()->json(["status" => 'false', "message" => 'Something went wrong']);
-        }
+                
+        
+                return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$order_data]);
+            }else{
+                return response()->json(["status" => 'false', "message" => 'Something went wrong']);
+            }
     }
 
     public function getBannerImage(Request $request){
