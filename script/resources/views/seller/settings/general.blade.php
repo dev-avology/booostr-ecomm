@@ -560,7 +560,7 @@
                             <input type="text" name="banner_button_url" value="{{$banner_button_url->value ?? ''}}" class="form-control">
                         </div> --}}
                        
-                        <label for="" class="col-lg-12 py-4">{{ __('Banner Image:') }} (Width: 875px & Height: 250px)</label>
+                        <label for="" class="col-lg-12 py-4">{{ __('Banner Image:') }} (Suggested Dimensions: 875px WIDE 250px HIGH)</label>
                         <div class="col-lg-12">
                             <input type="file" name="banner" class="form-control" accept=".png,.jpeg,.jpg" >
                         </div>
