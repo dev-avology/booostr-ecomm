@@ -83,22 +83,27 @@
             <div class="col-lg-7">
                 <div class="card">
                     <div class="card-body child_row">
-                        @foreach($info->categories as $key => $row)
-                        <div class="from-group row mb-2 attribute-value childs child{{ $key }}">
-                            <div class="col-lg-10">
-                                <label for="" class="d-block">{{ __('Name:') }} </label>
-                                <input type="text" required name="oldchild[{{$row->id}}]" class="form-control" placeholder="Enter Child Attribute Name" value="{{ $row->name }}">
+                        
+                        <div id="dynamic-list" class="sortable-list">
+                            @foreach($info->categories as $key => $row)
+                            <div id="item-{{ $row->id }}" data-id="{{ $row->id }}" class="sortable-item">
+                                <div class="from-group row mb-2 attribute-value childs child{{ $key }}">
+                                    <div class="col-lg-10">
+                                        <label for="" class="d-block">{{ __('Name:') }} </label>
+                                        <input type="text" required name="oldchild[{{$row->id}}]" class="form-control" placeholder="Enter Child Attribute Name" value="{{ $row->name }}">
+                                    </div>
+                                    <div class="col-lg-2">
+                                        
+                                        @if(!$info->addcheck)
+                                        <label for="" class="text-danger">{{ __('Remove') }}</label>
+                                        <button type="button" data-id="{{ $key }}"  class="btn btn-danger trash"><i class="fa fa-trash"></i></button>
+                                        @endif 
+                                        
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-lg-2">
-                                
-                                @if(!$info->addcheck)
-                                  <label for="" class="text-danger">{{ __('Remove') }}</label>
-                                  <button type="button" data-id="{{ $key }}"  class="btn btn-danger trash"><i class="fa fa-trash"></i></button>
-                                @endif 
-                                
-                            </div>
+                            @endforeach
                         </div>
-                        @endforeach
                     </div>
                     <div class="card-footer">
                         <div class="from-group row mb-2 attribute-value">
@@ -124,5 +129,35 @@
 
 var total={{ $info->categories->count() }};
 </script>
+
 <script src="{{ asset('admin/js/attribute-edit.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-sortablejs@latest/jquery-sortable.js"></script>
+<script>
+
+   (function($){
+    $(document).ready(function() {
+        $('#dynamic-list').sortable({
+            item: '.sortable-item',
+            connectWith: '.sortable-list',
+            update: function(event, ui) {
+                var changedList = this.id;
+                var order = $(this).sortable('toArray', { attribute: 'data-id' });
+                var positions = order.join(';');
+
+                console.log({
+                    id: changedList,
+                    positions: positions
+                });
+            }
+        }).disableSelection(); 
+    });
+          
+   })(jQuery);
+</script>
+
 @endpush
+
+

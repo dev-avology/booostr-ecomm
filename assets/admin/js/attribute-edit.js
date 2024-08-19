@@ -24,3 +24,4 @@ $(document).on('click','.trash',function() {
 	var id= $(this).data('id');
 	$('.child'+id).remove()
 });
+
