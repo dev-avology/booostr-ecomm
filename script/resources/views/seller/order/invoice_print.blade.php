@@ -23,6 +23,7 @@
                                 <div class="col-lg-6">
                                     @php
                                         $info = get_option('invoice_data',true) ?? '';
+                                        $club_info = tenant_club_info();
                                     @endphp
                                     <div class="invoice-bill-form">
                                         <h5><strong>{{ __('BILL FROM:') }}</strong></h5>
@@ -119,20 +120,20 @@
                                         <table class="table">
                                             <tr>
                                                 <td>SUBTOTAL</td>
-                                                <td>{{ currency_formate($subtotal) }}</td>
+                                                <td style="text-align: right;">{{ currency_formate($subtotal) }}</td>
                                             </tr>
                                             @php  $shipping_price = $order->shippingwithinfo->shipping_price ?? 0; @endphp
                                             <tr>
-                                                <th>Shipping Fee</th>
-                                                <th>{{ currency_formate($shipping_price) }}</th>
+                                                <td>Shipping Fee</td>
+                                                <td style="text-align: right;">{{ currency_formate($shipping_price) }}</td>
                                             </tr>
                                             <tr>
-                                                <th>TAX</th>
-                                                <th>{{ currency_formate($order->tax) }}</th>
+                                                <td>TAX</td>
+                                                <td style="text-align: right;">{{ currency_formate($order->tax) }}</td>
                                             </tr>
                                             <tr>
                                                 <th>TOTAL</th>
-                                                <th>{{ currency_formate($order->total) }}</th>
+                                                <th style="text-align: right;">{{ currency_formate($order->total) }}</th>
                                             </tr>
                                         </table>
                                     </div>
@@ -143,7 +144,7 @@
                             <div class="text-center">
                                 <div class="invoice-footer-content">
                                     <img src="{{ asset('uploads/'.tenant('uid').'/logo.png') }}" alt="">
-                                    <p>Invoice Powered by <a href="{{ url('/') }}">{{ $info->store_legal_name ?? '' }}</a></p>
+                                    <p><a href="{{$club_info['club_url'] }}" target="_blank">{{ $info->store_legal_name ?? '' }}</a> store -  Powered by <a href="{{ explode('co/',$club_info['club_url'])[0] }}co" target="_blank">Booostr</a>.</p>
                                 </div>
                             </div>
                         </div>
