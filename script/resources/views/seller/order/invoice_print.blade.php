@@ -23,9 +23,10 @@
                                 <div class="col-lg-6">
                                     @php
                                         $info = get_option('invoice_data',true) ?? '';
+                                        $club_info = tenant_club_info();
                                     @endphp
                                     <div class="invoice-bill-form">
-                                        <h5><strong>{{ __('BILL FORM:') }}</strong></h5>
+                                        <h5><strong>{{ __('BILL FROM:') }}</strong></h5>
                                         <div class="store-name">
                                             <h2>{{ $info->store_legal_name ?? '' }}</h2>
                                             <p>{{ $info->store_legal_house ?? '' }}, {{ $info->store_legal_address ?? '' }} <br>{{ $info->store_legal_city ?? '' }}</p>
@@ -50,7 +51,10 @@
                                     <div class="invoice-bill-form">
                                         <h5><strong>BILL TO:</strong></h5>
                                         <div class="store-name">
-                                            <h2>{{ $order->user->name ?? '' }}</h2>
+                                            <!-- <h2>{{ $order->user->name ?? '' }}</h2> -->
+                                             @if($order->ordermeta->key == 'orderinfo')
+                                              <h2> {{json_decode($order->ordermeta->value)->name ?? ''}}</h2>
+                                             @endif
                                             <p>{{ json_decode($order->shippingwithinfo->info)->address }}, {{-- $order->shippingwithinfo->location->name --}}</p>
                                             <p>Postal Code: {{ json_decode($order->shippingwithinfo->info)->post_code }}</p>
                                         </div>
@@ -72,7 +76,7 @@
                                             </tr>
                                             <tr>
                                                 <th>TOTAL AMOUNT</th>
-                                                <th>{{ get_option('currency_data',true)->currency_icon }}{{ $order->total }}</th>
+                                                <th>{{currency_formate($order->total) }}</th>
                                             </tr>
                                         </table>
                                     </div>
@@ -90,13 +94,15 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                @php $subtotal = 0 ; @endphp
                                     @foreach ($order->orderitems as $item)
                                     <tr>
                                         <td>{{ $item->term->title }}</td>
                                         <td>{{ $item->qty }}</td>
-                                        <td>{{ get_option('currency_data',true)->currency_icon }}{{ $item->amount }}</td>
-                                        <td>{{ get_option('currency_data',true)->currency_icon }}{{ $item->amount * $item->qty }}</td>
+                                        <td>{{currency_formate($item->amount) }}</td>
+                                        <td>{{ currency_formate($item->amount * $item->qty) }}</td>
                                     </tr>
+                                    @php $subtotal = $subtotal + $item->amount*$item->qty; @endphp
                                     @endforeach
                                 </tbody>
                             </table>
@@ -114,11 +120,20 @@
                                         <table class="table">
                                             <tr>
                                                 <td>SUBTOTAL</td>
-                                                <td>{{ get_option('currency_data',true)->currency_icon }}{{ $order->total }}</td>
+                                                <td style="text-align: right;">{{ currency_formate($subtotal) }}</td>
+                                            </tr>
+                                            @php  $shipping_price = $order->shippingwithinfo->shipping_price ?? 0; @endphp
+                                            <tr>
+                                                <td>Shipping Fee</td>
+                                                <td style="text-align: right;">{{ currency_formate($shipping_price) }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>TAX</td>
+                                                <td style="text-align: right;">{{ currency_formate($order->tax) }}</td>
                                             </tr>
                                             <tr>
                                                 <th>TOTAL</th>
-                                                <th>{{ get_option('currency_data',true)->currency_icon }}{{ $order->total }}</th>
+                                                <th style="text-align: right;">{{ currency_formate($order->total) }}</th>
                                             </tr>
                                         </table>
                                     </div>
@@ -129,7 +144,7 @@
                             <div class="text-center">
                                 <div class="invoice-footer-content">
                                     <img src="{{ asset('uploads/'.tenant('uid').'/logo.png') }}" alt="">
-                                    <p>Invoice Powered by <a href="{{ url('/') }}">{{ $info->store_legal_name ?? '' }}</a></p>
+                                    <p><a href="{{$club_info['club_url'] }}" target="_blank">{{ $info->store_legal_name ?? '' }}</a> store -  Powered by <a href="{{ explode('co/',$club_info['club_url'])[0] }}co" target="_blank">Booostr</a>.</p>
                                 </div>
                             </div>
                         </div>
