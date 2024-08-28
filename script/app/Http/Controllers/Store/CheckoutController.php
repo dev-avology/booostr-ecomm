@@ -146,12 +146,16 @@ class CheckoutController extends Controller
             $redirect_url=!empty(base64_decode($redirect_url))?base64_decode($redirect_url):"/";
             Session::put('redirect_url',$redirect_url);
         }
+
         if(Session::has('cartid')){
             Session::put('cartid',$cartid);
         }
 
        if(Session::has('customer_data')){
         $customer = Session::get('customer_data');
+       }else{
+         $redirect_url = str_replace('cart','store',$redirect_url);
+         return redirect()->away($redirect_url);
        }   
 
 
