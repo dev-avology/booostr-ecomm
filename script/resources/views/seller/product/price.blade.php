@@ -138,6 +138,11 @@
                            <option value="{{ $row->category_id }}"  class="parentAttr{{ $row->id }}" data-parentname="{{ $row->name }}" data-short="{{ $key }}" data-childattributes="{{ $row->categorywithchild->categories }}">{{ $row->categorywithchild->name ?? '' }}</option>
                         </select>
                      </div>
+
+
+                     @php
+                     $row->categorywithchild->categories = $row->categorywithchild->categories->sortby('position')
+                     @endphp
                      <div class="col-lg-6 from-group">
                         <label for="" >{{ __('Select Attribute Values :') }} </label>
                         <select required  class="form-control select2 childattribute childattribute{{$key}} multi-select" multiple="">

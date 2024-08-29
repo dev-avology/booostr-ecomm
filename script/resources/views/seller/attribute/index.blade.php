@@ -38,6 +38,9 @@
                                   <td>{{ $row->name }}</td>
                                   <td>{{ ucfirst(str_replace('_',' ',$row->slug)) }}</td>
                                   <td>
+                                    @php  
+                                    $row->categories = $row->categories->sortby('position');
+                                    @endphp
                                     @foreach($row->categories ?? [] as $r)
                                     <div class="badge badge-success ">{{ $r->name }}</div>
                                    @endforeach
