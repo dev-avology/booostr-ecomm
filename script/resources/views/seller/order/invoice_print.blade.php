@@ -68,15 +68,15 @@
                                         <table class="table">
                                             <tr>
                                                 <td>INVOICE#</td>
-                                                <td>{{ $order->invoice_no }}</td>
+                                                <td style="text-align: right;">{{ $order->invoice_no }}</td>
                                             </tr>
                                             <tr>
                                                 <td>INVOICE DATE</td>
-                                                <td>{{ Carbon\Carbon::parse($order->created_at)->isoFormat('ll') }}</td>
+                                                <td style="text-align: right;">{{ Carbon\Carbon::parse($order->created_at)->isoFormat('ll') }}</td>
                                             </tr>
                                             <tr>
                                                 <th>TOTAL AMOUNT</th>
-                                                <th>{{currency_formate($order->total) }}</th>
+                                                <th style="text-align: right;">{{currency_formate($order->total) }}</th>
                                             </tr>
                                         </table>
                                     </div>
@@ -90,7 +90,7 @@
                                         <th>Item</th>
                                         <th>Quantity</th>
                                         <th>Unit Cost</th>
-                                        <th>Line Total</th>
+                                        <th style="text-align: right;">Line Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -100,7 +100,7 @@
                                         <td>{{ $item->term->title }}</td>
                                         <td>{{ $item->qty }}</td>
                                         <td>{{currency_formate($item->amount) }}</td>
-                                        <td>{{ currency_formate($item->amount * $item->qty) }}</td>
+                                        <td style="text-align: right;">{{ currency_formate($item->amount * $item->qty) }}</td>
                                     </tr>
                                     @php $subtotal = $subtotal + $item->amount*$item->qty; @endphp
                                     @endforeach
