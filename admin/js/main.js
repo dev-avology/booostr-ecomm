@@ -4,7 +4,7 @@
   /*----------------------------
         Comment reply box scrollbar Active
       ------------------------------*/
-    $(".comment-reply-box").niceScroll({cursorcolor:"#5b7798"}); 
+   // $(".comment-reply-box").niceScroll({cursorcolor:"#5b7798"}); 
 
     
   /*----------------------------

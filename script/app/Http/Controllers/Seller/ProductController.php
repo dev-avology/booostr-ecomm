@@ -273,8 +273,15 @@ class ProductController extends Controller
 
         if ($type == 'price') {
             $info = Term::query()->where('type', 'product')->with('price','prices', 'productoptionwithcategories', 'termcategories')->findorFail($id);
-            $attributes = Category::query()->where('type', 'parent_attribute')->with('categories')->latest()->get();
-            $product_type = Category::query()->where('type', 'product_type')->select('id', 'name')->orderBy('id', 'ASC')->get();
+        //    $attributes = Category::query()->where('type', 'parent_attribute')->with('categories')->latest()->get();
+        $attributes = Category::query()
+        ->where('type', 'parent_attribute')
+        ->with(['categories' => function ($query) {
+            $query->orderBy('position');
+        }])
+        ->latest()
+        ->get();
+        $product_type = Category::query()->where('type', 'product_type')->select('id', 'name')->orderBy('id', 'ASC')->get();
 
             $selected_categories = [];
             foreach ($info->termcategories as $key => $value) {

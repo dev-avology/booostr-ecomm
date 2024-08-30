@@ -157,22 +157,37 @@ class AttributeController extends Controller
         $parent->featured=$request->featured;
         $parent->save();
        
-        $oldchilids=[];
-        
+        // $oldchilids=[];
+        // foreach ($request->oldchild ?? [] as $key => $row) {
+        //     $oldchild= Category::findorFail($key);
+        //     $oldchild->name=$row;
+        //     $oldchild->save();
+        //     array_push($oldchilids, $oldchild->id);
+        // }
+
+        $oldchilids = [];
+        $childPositions = $request->child_ids ?? [];
+        $swapped = array_flip($childPositions);
         foreach ($request->oldchild ?? [] as $key => $row) {
-            $oldchild= Category::findorFail($key);
-            $oldchild->name=$row;
-            $oldchild->save();
-            array_push($oldchilids, $oldchild->id);
+            foreach ($row as $position => $name) {
+                $oldchild = Category::findOrFail($key);
+                $oldchild->name = $name;
+                $oldchild->position = $swapped[$position];
+                $oldchild->save();
+                array_push($oldchilids, $oldchild->id);
+
+            }
         }
 
 
+   
         if ($request->newchild) {
             $childs=[];
             foreach ($request->newchild ?? [] as $key => $row) {
                 if (!empty($row)) {
                     $arr['name']=$row;
                     $arr['slug']=$row;
+                    $arr['position']= $key;
                     $arr['type']='child_attribute';
                     $arr['category_id']=$parent->id;
                     array_push($childs, $arr);
