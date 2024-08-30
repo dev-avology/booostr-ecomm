@@ -39,9 +39,24 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
-                                    <div class="shopify-logo">
+                                    <!--<div class="shopify-logo">
                                         <img class="img-fluid" src="{{ asset('uploads/'.tenant('uid').'/logo.png') }}" alt="">
-                                    </div>
+                                    </div>-->
+									@if($order->ordermeta->key == 'orderinfo')
+									  <div class="invoice-bill-form">
+                                        <h5><strong>{{ __('BILL TO:') }}</strong></h5>
+                                        <div class="store-name">
+            						      @php $orderinfo = json_decode($order->ordermeta->value) @endphp   
+                                            <h2>{{ $orderinfo->name ?? '' }}</h2>
+                                            <p>{{ $orderinfo->billing->address ?? '' }}<br>{{ $orderinfo->billing->city ?? '' }}, {{ $orderinfo->billing->state ?? '' }}</p>
+                                            <p>Postal Code: {{ $orderinfo->billing->post_code ?? '' }}</p>
+                                            <p>{{ $orderinfo->billing->country ?? '' }}</p>
+                                        </div>
+                                        <div class="store-email">
+                                            <p>{{ $orderinfo->email ?? '' }}</p>
+                                        </div>
+                                      </div>
+									@endif
                                 </div>
                             </div>
                         </div>
@@ -49,16 +64,15 @@
                             <div class="row">
                                 <div class="col-lg-6">
                                     <div class="invoice-bill-form">
-                                        <h5><strong>BILL TO:</strong></h5>
-                                        <div class="store-name">
-                                            <!-- <h2>{{ $order->user->name ?? '' }}</h2> -->
-                                             @if($order->ordermeta->key == 'orderinfo')
-                                              <h2> {{json_decode($order->ordermeta->value)->name ?? ''}}</h2>
-                                             @endif
-                                            <p>{{ json_decode($order->shippingwithinfo->info)->address }}, {{-- $order->shippingwithinfo->location->name --}}</p>
-                                            <p>Postal Code: {{ json_decode($order->shippingwithinfo->info)->post_code }}</p>
-                                        </div>
-                                        <div class="store-email">
+                                        <h5><strong>SHIP TO:</strong></h5>
+                                     
+										<div class="store-name">
+                                            <h2>{{ $orderinfo->shipping->name ?? '' }}</h2>
+                                            <p>{{ $orderinfo->shipping->address ?? '' }}<br>{{ $orderinfo->shipping->city ?? '' }}, {{ $orderinfo->shipping->state ?? '' }}</p>
+                                            <p>Postal Code: {{ $orderinfo->shipping->post_code ?? '' }}</p>
+                                            <p>{{ $orderinfo->shipping->country ?? '' }}</p>
+                                        </div>	
+										<div class="store-email">
                                             <p>{{ $order->user->email ?? '' }}</p>
                                         </div>
                                     </div>
