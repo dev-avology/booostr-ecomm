@@ -80,33 +80,42 @@
             {{-- /left side --}}
 
             {{-- right side --}}
+
+           @php
+           $info->categories = $info->categories->sortBy('position');
+           @endphp
             <div class="col-lg-7">
                 <div class="card">
                     <div class="card-body child_row">
-                        @foreach($info->categories as $key => $row)
-                        <div class="from-group row mb-2 attribute-value childs child{{ $key }}">
-                            <div class="col-lg-10">
-                                <label for="" class="d-block">{{ __('Name:') }} </label>
-                                <input type="text" required name="oldchild[{{$row->id}}]" class="form-control" placeholder="Enter Child Attribute Name" value="{{ $row->name }}">
-                            </div>
-                            <div class="col-lg-2">
-                                
-                                @if(!$info->addcheck)
-                                  <label for="" class="text-danger">{{ __('Remove') }}</label>
-                                  <button type="button" data-id="{{ $key }}"  class="btn btn-danger trash"><i class="fa fa-trash"></i></button>
-                                @endif 
-                                
-                            </div>
+                    <input type="hidden" name="total_attributes" value="{{  $info->categories->count() }}" />
+
+
+            <div id="dynamic-list" class="sortable-list">
+                    @foreach($info->categories as $key => $row)
+                    <div class="from-group row mb-2 attribute-value childs child{{ $key }}" data-id="{{ $key+1 }}">
+                    <div class="col-lg-10">
+                            <div class="col-lg-1 grid_icon drag-handle">
+                                <img src="{{ asset('admin/img/Screenshot_1.png') }}" alt=""/>
+                            </div>    
+                            <label for="" class="d-block">{{ __('Name:') }}</label>
+                            <input type="text" required name="oldchild[{{$row->id}}][{{ $key+1 }}]" class="form-control" placeholder="Enter Child Attribute Name" data-ids="{{ $key+1 }}" value="{{ $row->name }}">
                         </div>
-                        @endforeach
+                        <div class="col-lg-2 remove_attr_button" style="margin-top:31px;">
+                            <button type="button" data-id="{{ $key }}" class="btn btn-danger trash"><i class="fa fa-trash"></i></button>
+                        </div>
+                    </div>
+                    @endforeach
+            </div>
+            
                     </div>
                     <div class="card-footer">
                         <div class="from-group row mb-2 attribute-value">
                             <div class="col-lg-12">
-                                <button type="button" class="btn btn-primary add_more"><i class="fa fa-plus"></i> {{ __('Add Child Attribute') }}</button>
+                                <button type="button" class="btn btn-primary add_more_attr"><i class="fa fa-plus"></i> {{ __('Add Child Attribute') }}</button>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
             {{-- /right side --}}
@@ -124,5 +133,112 @@
 
 var total={{ $info->categories->count() }};
 </script>
+
 <script src="{{ asset('admin/js/attribute-edit.js') }}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+<script>
+
+(function($){
+    $(document).ready(function() {
+
+        let total = {{$info->categories->count()}};
+
+        $(".sortable-list").sortable({
+            handle: '.drag-handle',
+            update: function(event, ui) {
+                // You can handle the update event here to save new positions, if needed
+            }
+        });
+        $(".sortable-list").disableSelection();
+
+
+
+
+        // $('#dynamic-list').sortable({
+        //     handle: '.drag-handle', 
+        // }).disableSelection();
+
+        $('.add_more_attr').on('click', function(e) {
+        e.preventDefault();
+        total++;
+        var newChildId = total;
+        var child = `
+        <div class="from-group row mb-2 attribute-value childs child${newChildId}" data-id="${newChildId}">
+            <div class="col-lg-10">
+                        <div class="col-lg-1 grid_icon drag-handle">
+                            <img src="{{ asset('admin/img/Screenshot_1.png') }}" alt=""/>
+                        </div>  
+                <label for="" class="d-block">Name:</label>
+                <input type="text" required name="newchild[${newChildId}]" class="form-control" data-ids="${newChildId}" placeholder="Enter Child Attribute Name">
+            </div>
+            <div class="col-lg-2 remove_attr_button" style="margin-top:31px;">
+                <button type="button" data-id="${newChildId}" class="btn btn-danger trash"><i class="fa fa-trash"></i></button>
+            </div>
+        </div>`;
+    
+        $('#dynamic-list').append(child);
+    });
+    $(document).on('click', '.trash', function() {
+        var id = $(this).data('id');
+        $('.child' + id).remove();
+    });
+        
+    });
+})(jQuery);
+</script>
+
 @endpush
+
+
+
+<style>
+
+div#dynamic-list    .col-lg-10 {
+    position: relative;
+}
+
+div#dynamic-list .col-lg-1.grid_icon {
+    position: absolute;
+    top: 54%;
+    left: 30px;
+    transform: translateX(-50%);
+    opacity: 0.6;
+}
+div#dynamic-list .col-lg-10 input.form-control {
+    padding-left: 36px !important;
+}
+
+.col-lg-1.grid_icon img {
+    width: 12px;
+    height: 24px;
+}
+
+.from-group.ui-sortable-helper input {
+    border: 2px solid rgb(0, 192, 255);
+}
+button.btn.btn-danger.trash {
+    height: 37px;
+}
+
+.drag-handle {
+    width: 20px;
+    height: 20px;
+    color: white;
+    text-align: center;
+    line-height: 20px;
+    border-radius: 50%;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: grab;
+}
+.sortable-item.ui-sortable-dragging .drag-handle {
+    cursor: grabbing;
+}
+.ui-sortable-handle, .sort-handler {
+    cursor: grab!important;
+
+}
+</style>
+

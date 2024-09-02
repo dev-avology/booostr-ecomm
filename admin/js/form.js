@@ -253,6 +253,14 @@
     -----------------------------*/
 	$(".ajaxform").on('submit', function(e){
 		e.preventDefault();
+			var formData = new FormData(this);
+			$('.childs').each(function(index) {
+				var dataIds = $(this).find('input[data-ids]').attr('data-ids');
+				if (dataIds) {
+					var indexx = index + 1;
+					formData.append('child_ids[' + indexx + ']', dataIds);
+				}
+			});
 		$.ajaxSetup({
 			headers: {
 				'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -262,7 +270,7 @@
 		$.ajax({
 			type: 'POST',
 			url: this.action,
-			data: new FormData(this),
+			data: formData,
 			dataType: 'json',
 			contentType: false,
 			cache: false,
