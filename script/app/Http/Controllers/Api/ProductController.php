@@ -889,7 +889,7 @@ class ProductController extends Controller
 
 
     
-    public function posOrderList(Request $request){
+    public function orderList(Request $request){
         $key = $request->input('key');
 
         $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta');
