@@ -886,4 +886,43 @@ class ProductController extends Controller
         return response()->json($msg);
     }
 
+
+
+    
+    public function posOrderList(Request $request){
+        $key = $request->input('key');
+
+        $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta');
+       // ->whereIn('order_from', [4, 5]);
+
+        if($key == 'latest'){
+            $info->where('payment_status', 1)
+                ->orderByDesc('created_at');
+        } elseif ($key == 'complete') {
+            $info->where('payment_status', 1);
+        }
+
+        $priceIds = [];
+        $termData = [];
+
+        $priceIds = Orderstock::select('price_id', DB::raw('COUNT(*) as count'))->groupBy('price_id')->pluck('price_id')->toArray();
+        
+
+        if(isset($priceIds)){
+            $termIds = Price::whereIn('id',$priceIds)->pluck('term_id')->toArray();
+
+            if(isset($termIds)){
+                $termData = Term::with('media','firstprice','lastprice')->whereIn('id', $termIds)->where('type', 'product')->paginate(20);
+            }   
+        }
+
+        $info = $info->paginate(15);
+
+        if($info->isNotEmpty()){
+            return response()->json(['error' => false, 'message' => 'Order list fetched successfully', 'result' => $info,'heighest_sell_terms' =>$termData]);
+        } else {
+            return response()->json(['error' => true, 'message' => 'No orders found', 'result' => null]);
+        }
+    }
+
 }
