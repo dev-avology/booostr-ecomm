@@ -894,6 +894,7 @@ class ProductController extends Controller
 
         $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta');
        // ->whereIn('order_from', [4, 5]);
+       $info->where('payment_status', 2);
 
         if($key == 'latest'){
             $info->where('payment_status', 1)
@@ -916,7 +917,7 @@ class ProductController extends Controller
             }   
         }
 
-        $info = $info->paginate(15);
+        $info = $info->paginate(10);
 
         if($info->isNotEmpty()){
             return response()->json(['error' => false, 'message' => 'Order list fetched successfully', 'result' => $info,'heighest_sell_terms' =>$termData]);
