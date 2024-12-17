@@ -895,6 +895,7 @@ class ProductController extends Controller
         $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta');
        // ->whereIn('order_from', [4, 5]);
        $info->where('payment_status', 4);
+       $info->orderByDesc('created_at');
 
         if($key == 'latest'){
             $info->where('payment_status', 1)
@@ -916,7 +917,7 @@ class ProductController extends Controller
                 $termData = Term::with('media','firstprice','lastprice')->whereIn('id', $termIds)->where('type', 'product')->paginate(20);
             }   
         }
-
+        $info = $info->take(10)->get();
         $info = $info->paginate(10);
 
         if($info->isNotEmpty()){
