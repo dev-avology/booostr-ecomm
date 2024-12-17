@@ -894,7 +894,7 @@ class ProductController extends Controller
 
         $info = Order::with('orderlasttrans', 'orderitems', 'shippingwithinfo', 'ordermeta');
        // ->whereIn('order_from', [4, 5]);
-       $info->where('payment_status', 7);
+       $info->where('payment_status', 4);
       $info->orderByDesc('created_at');
 
         if($key == 'latest'){
