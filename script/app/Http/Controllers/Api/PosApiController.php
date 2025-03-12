@@ -2017,7 +2017,7 @@ public function posEmailSend(Request $request){
              'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
              'receipt_title'=>$client_name,
              'receipent_org'=>$club_name.' Store',
-             'category'=>'ecommerce',
+             'category'=>'ecommercepos',
              'user_id' => $wpuid ??0,
              'club_id' =>Tenant('club_id'),
              'recurring'=>'one-time',
