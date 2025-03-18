@@ -24,8 +24,27 @@
     @endif
     <li class="dropdown"><a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user">
 
-      <img alt="image" src='https://ui-avatars.com/api/?name={{Auth()->user()->name}}'
-      class="rounded-circle profile-widget-picture ">
+               @php
+                  $url = env("WP_API_URL");
+                  $url = ($url != '') ? $url.'/logo-tenant?tenant='.tenant()->club_id : "https://staging3.booostr.co/wp-json/store-api/v1/logo-tenant";
+                  $curl = curl_init();
+                  curl_setopt_array($curl, array(
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'GET',
+                  ));
+                  $logo = curl_exec($curl);
+                  curl_close($curl);
+                  $result = json_decode($logo, true);
+              @endphp
+
+        <!-- <img alt="image" src='https://ui-avatars.com/api/?name={{Auth()->user()->name}}' class="rounded-circle profile-widget-picture "> -->
+        <img alt="image" src="{{$result['data']}}" class="rounded-circle profile-widget-picture ">
 
       <div class="d-sm-none d-lg-inline-block">{{ __('Hi') }}, {{ ucwords(str_replace("-", " ", Auth::user()->name)) }}</div></a>
       <div class="dropdown-menu dropdown-menu-right">
