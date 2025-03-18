@@ -7,7 +7,25 @@
         <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
         @elseif (Auth::user()->role_id == 3)
           @if(!empty(tenant()->logo))
-            <a href="#"><img src="{{env('WP_URL')}}{{tenant()->logo}}" style="max-width: 80px;"/></a>
+              @php
+                  $url = env("WP_API_URL");
+                  $url = ($url != '') ? $url.'/logo-tenant?tenant='.tenant()->club_id : "https://staging3.booostr.co/wp-json/store-api/v1/logo-tenant";
+                  $curl = curl_init();
+                  curl_setopt_array($curl, array(
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'GET',
+                  ));
+                  $logo = curl_exec($curl);
+                  curl_close($curl);
+                  $result = json_decode($logo, true);
+              @endphp
+            <a href="#"><img src="{{$result['data']}}" style="max-width: 80px;"/></a>
           @else
             <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
           @endif
