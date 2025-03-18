@@ -779,7 +779,7 @@ class CheckoutController extends Controller
 
         $response = curl_exec($ch);
 
-         dd($response);
+        // dd($response);
 
         // Check for cURL errors
         if (curl_errno($ch)) {
