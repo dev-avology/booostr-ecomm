@@ -2019,6 +2019,7 @@ public function posEmailSend(Request $request){
              'receipent_org'=>$club_name.' Store',
              'category'=>'ecommercepos',
              'user_id' => $wpuid ??0,
+             'amount'=>$subtotal,
              'club_id' =>Tenant('club_id'),
              'recurring'=>'one-time',
              'camp_id'=>$orderId,
