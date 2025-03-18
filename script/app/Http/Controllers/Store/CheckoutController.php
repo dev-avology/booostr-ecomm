@@ -623,6 +623,7 @@ class CheckoutController extends Controller
                 'receipent_org'=>$club_info['club_name'].' Store',
                 'category'=>'ecommerce',
                 'user_id' =>  $request->wpuid ??0,
+                'amount'=>$subtotal,
                 'club_id' =>Tenant('club_id'),
                 'recurring'=>'one-time',
                 'camp_id'=>$order->invoice_no,
@@ -778,7 +779,7 @@ class CheckoutController extends Controller
 
         $response = curl_exec($ch);
 
-         //dd($response);
+         dd($response);
 
         // Check for cURL errors
         if (curl_errno($ch)) {
