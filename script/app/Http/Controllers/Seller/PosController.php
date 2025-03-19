@@ -458,7 +458,7 @@ class PosController extends Controller
 
         $postData = json_encode($data);
     print_r($postData);
-    die(============);
+    die('===========');
 
         $url = env("WP_API_URL");
         
