@@ -2020,7 +2020,7 @@ public function posEmailSend(Request $request){
              'category'=>'ecommercepos',
              'user_id' => $wpuid ??0,
              'amount'=>$order->total,
-             'revenue'=>$order->total-$orders->tax,
+             'revenue'=>$order->total-$order->tax,
              'club_id' =>Tenant('club_id'),
              'recurring'=>'one-time',
              'camp_id'=>$orderId,
