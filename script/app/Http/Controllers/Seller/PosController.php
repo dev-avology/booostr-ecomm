@@ -438,7 +438,7 @@ class PosController extends Controller
             'order_subtotal'=>$subtotal,
         ];
 
-print_r($order);
+print_r($user_recipt);
 die('============');
 
        $recipt =  $this->send_order_recipts($user_recipt);
