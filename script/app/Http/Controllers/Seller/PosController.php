@@ -394,6 +394,11 @@ class PosController extends Controller
 
            $name = explode(' ',$customer_info['name']??'Guset User');
            $club_info = tenant_club_info();
+           $subtotal = 0;
+            
+           foreach ($order->orderitems ?? [] as $row){
+               $subtotal = $subtotal + $row->amount*$row->qty;
+           }
 
            $contact_manager_data = array(
             'first_name' => $name[0],
