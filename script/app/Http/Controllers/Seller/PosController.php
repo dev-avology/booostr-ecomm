@@ -328,9 +328,12 @@ class PosController extends Controller
         $order->notify_driver=$notify_driver;
         $order->save();
 
+
+
         $oder_items=[];
         $total_weight=0;
         $priceids=[];
+        $cartid = null;
 
         foreach(Cart::content() as $row){
             $data['order_id']=$order->id;
@@ -347,6 +350,7 @@ class PosController extends Controller
              foreach ($row->options->price_id ?? [] as $key => $r) {
                 array_push($priceids,['order_id'=>$order->id,'price_id'=>$r,'qty'=>$row->qty]);
              }
+             $cartid = $row->instance;
         }
         
         $order->orderitems()->insert($oder_items);
@@ -385,9 +389,60 @@ class PosController extends Controller
             $order->orderstockitems()->insert($priceids);
         }
         
-        Cart::destroy();
+       // Cart::destroy();
+        Cart::destroy($cartid);
 
            DB::commit();
+
+           $name = explode(' ',$customer_info['name']??'Guset User');
+           $club_info = tenant_club_info();
+           $subtotal = 0;
+            
+           foreach ($order->orderitems ?? [] as $row){
+               $subtotal = $subtotal + $row->amount*$row->qty;
+           }
+
+           $contact_manager_data = array(
+            'first_name' => $name[0],
+            'last_name' => $name[1]??'',
+            'user_id' =>  0,
+            'phone_number' => $customer_info['phone']??'123456789',					
+            'booster_name' => $name[0],
+            'country' =>   'USA',									
+            'address_1' => 'Test Address Line 1',
+            'address_2' =>  'Test Address Line 2',
+            'city' => 'Alameda',
+            'state' =>  'California',
+            'zip' =>  '94501',													
+            'email' =>  $customer_info['email'],                   
+            'booster_id' =>Tenant('club_id'),
+            'booster_level_id' => 4,
+            'customer_tag' => 'POS store customer',
+        );	
+
+
+           $user_recipt = [
+            'contact_mgr_data'=>$contact_manager_data,
+            'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
+            'receipt_title'=>$customer_info['name'],
+            'receipent_org'=>$club_info['club_name'].' Store',
+            'category'=>'ecommercepos',
+            'user_id' => 0,
+            'email'=>$customer_info['email'],
+            'amount'=>$order->total,
+            'revenue'=>$order->total-$order->tax,
+            'club_id' =>Tenant('club_id'),
+            'recurring'=>'one-time',
+            'camp_id'=>$order->id,
+            'order_total'=>$order->total,
+            'order_subtotal'=>$subtotal,
+        ];
+
+       if($subtotal > 0)
+          $recipt =  $this->send_order_recipts($user_recipt);
+
+
+
         } catch (\Throwable $th) {
             DB::rollback();
             return $th;
@@ -396,5 +451,34 @@ class PosController extends Controller
         } 
 
         return response()->json('Order Placed');
+    }
+
+
+    private function send_order_recipts($data){
+
+        $postData = json_encode($data);
+   
+        $url = env("WP_API_URL");
+        
+        $url = ($url != '') ? $url.'/add-pos-contact' : "https://staging3.booostr.co/wp-json/store-api/v1/add-pos-contact";
+    
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    
+        $response = curl_exec($ch);
+    
+        // Check for cURL errors
+        if (curl_errno($ch)) {
+            echo 'cURL error: ' . curl_error($ch);
+        }
+        curl_close($ch);
+        return $response;
     }
 }
