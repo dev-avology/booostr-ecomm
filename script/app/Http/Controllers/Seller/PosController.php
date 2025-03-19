@@ -438,8 +438,6 @@ class PosController extends Controller
             'order_subtotal'=>$subtotal,
         ];
 
-print_r($user_recipt);
-die('============');
 
        $recipt =  $this->send_order_recipts($user_recipt);
 
@@ -459,7 +457,9 @@ die('============');
     private function send_order_recipts($data){
 
         $postData = json_encode($data);
-    
+    print_r($postData);
+    die(============);
+
         $url = env("WP_API_URL");
         
         $url = ($url != '') ? $url.'/add-pos-contact' : "https://staging3.booostr.co/wp-json/store-api/v1/add-pos-contact";
