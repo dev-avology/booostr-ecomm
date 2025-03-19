@@ -425,7 +425,7 @@ class PosController extends Controller
             'revenue'=>$order->total-$order->tax,
             'club_id' =>Tenant('club_id'),
             'recurring'=>'one-time',
-            'camp_id'=>$orderId,
+            'camp_id'=>$order->id,
             'order_total'=>$order->total,
             'order_subtotal'=>$subtotal,
         ];
