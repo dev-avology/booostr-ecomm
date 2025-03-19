@@ -328,6 +328,8 @@ class PosController extends Controller
         $order->notify_driver=$notify_driver;
         $order->save();
 
+
+
         $oder_items=[];
         $total_weight=0;
         $priceids=[];
@@ -426,6 +428,7 @@ class PosController extends Controller
             'receipent_org'=>$club_info['club_name'].' Store',
             'category'=>'ecommercepos',
             'user_id' => 0,
+            'email'=>$customer_info['email'],
             'amount'=>$order->total,
             'revenue'=>$order->total-$order->tax,
             'club_id' =>Tenant('club_id'),
@@ -434,6 +437,9 @@ class PosController extends Controller
             'order_total'=>$order->total,
             'order_subtotal'=>$subtotal,
         ];
+
+print_r($order);
+die('============');
 
        $recipt =  $this->send_order_recipts($user_recipt);
 
