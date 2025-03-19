@@ -401,6 +401,7 @@ class CheckoutController extends Controller
         
        $subtotal = Cart::subtotal();
        $total_amount=str_replace(',','',Cart::total());
+       $tax = Cart::tax();
 
 
        $total_discount=str_replace(',','',Cart::discount());
@@ -414,6 +415,7 @@ class CheckoutController extends Controller
        //$total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
        $total_amount = $total_amount;
 
+       $revenue = $total_amount-($tax + $booster_platform_fee + $credit_card_fee);
 
        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
        //Process Payment
@@ -624,7 +626,7 @@ class CheckoutController extends Controller
                 'category'=>'ecommerce',
                 'user_id' =>  $request->wpuid ??0,
                 'amount'=>$order->total,
-                'revenue'=>$order->total-$shipping_price,
+                'revenue'=>$revenue,
                 'club_id' =>Tenant('club_id'),
                 'recurring'=>'one-time',
                 'camp_id'=>$order->invoice_no,
