@@ -384,6 +384,8 @@ class OrderController extends Controller
 									'booster_id' =>Tenant('club_id'),
 									'booster_level_id' => 4,
 									'contact_tags' => '',
+                                    'customer_tag' => 'online store customer',
+                                    'addedsource' => 'storetool',
 								);	  
 
          //$jsonString = $order->shippingwithinfo['info'];

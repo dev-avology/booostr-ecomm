@@ -418,6 +418,7 @@ class PosController extends Controller
             'booster_id' =>Tenant('club_id'),
             'booster_level_id' => 4,
             'customer_tag' => 'POS store customer',
+            'addedsource' => 'storetool',
         );	
 
 
