@@ -172,7 +172,8 @@ class CheckoutController extends Controller
        
         $club_info = tenant_club_info();
         $address = explode(',',$club_info['address']);
-        $store_state = trim($address[count($address)-2]);
+       // $store_state = trim($address[count($address)-2]);
+        $store_state = isset($address[count($address)-2])?trim($address[count($address)-2]):'';
 
         if(isset($customer['state']) && ($customer['state'] == '' || $store_state != trim($customer['state']))){
             $tax = 0;
@@ -872,7 +873,8 @@ class CheckoutController extends Controller
         $club_info = tenant_club_info();
         
         $address = explode(',',$club_info['address']);
-        $state = trim($address[count($address)-2]);
+        //$state = trim($address[count($address)-2]);
+        $store_state = isset($address[count($address)-2])?trim($address[count($address)-2]):'';
 
         if($request->shipping_state == '' || $state != trim($request->shipping_state)){
             $tax = 0;
