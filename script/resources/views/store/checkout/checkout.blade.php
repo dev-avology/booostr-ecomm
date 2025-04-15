@@ -156,11 +156,14 @@ p#show_coupon_error {
 
 
                     <div class="row pb-5 breadcrumb">
-                        <div class="col-lg-12">
+
+                    <div class="col-lg-12">
                             @php 
-                            $club_info = tenant_club_info();
+                                $club_info = tenant_club_info();
+                                $club_url = session()->has('redirect_url') ? session()->get('redirect_url'): $club_info['club_url'];
+                                $club_cart_url = session()->has('redirect_url') ? str_replace('shop','',$club_url).'cart' : $club_info['club_url'].'?tab=cart';
                             @endphp
-                          <a href="{{$club_info['club_url']}}"> {{$club_info['club_name']}} </a>  &nbsp;&nbsp;>>&nbsp;&nbsp;  <a href="{{$club_info['club_url']}}?tab=cart">Cart</a>  &nbsp;&nbsp;>>&nbsp;&nbsp;  Checkout
+                          <a href="{{$club_url}}"> {{$club_info['club_name']}} </a>  &nbsp;&nbsp;>>&nbsp;&nbsp;  <a href="{{$club_cart_url}}">Cart</a>  &nbsp;&nbsp;>>&nbsp;&nbsp;  Checkout
         
                         </div>
                     </div>
