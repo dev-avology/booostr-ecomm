@@ -257,7 +257,7 @@ class ProductController extends Controller
                     'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
                 ];
     
-                if ($price->stock_manage == 1 && $price->stock_status == 1) {
+                if (($price->stock_manage == 1 && $price->stock_status == 1) || $price->stock_status == 1 ) {
                     $options['stock'] = $price->qty;
                     $options['price_id'] = [$price->id];
                 } else {
