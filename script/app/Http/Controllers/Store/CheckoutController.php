@@ -654,7 +654,7 @@ class CheckoutController extends Controller
                     $stock_status=1;
                 }
                 $price_row=Price::find($row->price_id);
-                if (!empty($price_row)) {
+                if (!empty($price_row) && $price_row->stock_manage ) {
                     $price_row->qty=$new_stock;
                     $price_row->stock_status=$stock_status;
                     $price_row->save();
