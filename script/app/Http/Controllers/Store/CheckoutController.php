@@ -142,7 +142,7 @@ class CheckoutController extends Controller
         if(Session::has('redirect_url')){
             $redirect_url=Session::get('redirect_url');
         }else{
-            $redirect_url = str_replace('slash','/',$redirect_url);
+            $redirect_url = str_replace(['slash','{slash}'],['/','/'],$redirect_url);
             $redirect_url=!empty(base64_decode($redirect_url))?base64_decode($redirect_url):"/";
             Session::put('redirect_url',$redirect_url);
         }
@@ -876,7 +876,7 @@ class CheckoutController extends Controller
         //$state = trim($address[count($address)-2]);
         $store_state = isset($address[count($address)-2])?trim($address[count($address)-2]):'';
 
-        if($request->shipping_state == '' || $state != trim($request->shipping_state)){
+        if($request->shipping_state == '' || $store_state != trim($request->shipping_state)){
             $tax = 0;
             Cart::setGlobalTax($tax);
         }else{
