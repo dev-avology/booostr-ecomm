@@ -114,12 +114,12 @@ class PosApiController extends Controller
         ->with('preview', 'icon','recursiveChildren')
         ->withCount('products')
         ->whereDoesntHave('show_on', function ($query) {
-            $query->where('type', 'show_on')->where('content', 'ecommerse_only');
+            $query->where('type', 'show_on')->whereIn('content', ['all','pos_only']);
         })
         ->get();
 
        $product_count = Term::query()->where('type', 'product')->where('status', 1)
-       ->whereIn('list_type', [2])->with('media', 'firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->count();
+       ->whereIn('list_type', [0,2])->with('media', 'firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->count();
 
        return response()->json(["status" => true, "message" => "Category list fetched successfully", "result" => ['categories'=>$posts,'product_count'=>$product_count]]);
     }
@@ -203,7 +203,7 @@ class PosApiController extends Controller
     public function posProductList(Request $request)
     {
        $posts = Term::query()->where('type', 'product')->where('status', 1)
-       ->whereIn('list_type', [2])->with('media','category','firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
+       ->whereIn('list_type', [0,2])->with('media','category','firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
 
         if (!empty($request->category_id) && $request->category_id != 'all') {
             $posts = $posts->whereHas('termcategories', function ($query) use ($request) {
@@ -298,7 +298,7 @@ class PosApiController extends Controller
         $termIds = Termcategory::whereIn('category_id', $categoryIds)->pluck('term_id')->toArray();
     
         $posts = Term::query()->where('type', 'product')->where('status', 1)
-       ->whereIn('list_type', [2])->whereIn('id', $termIds)->with('media','category','firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
+       ->whereIn('list_type', [0,2])->whereIn('id', $termIds)->with('media','category','firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
     
         $posts = $posts->latest()->paginate(50);
     
@@ -387,7 +387,7 @@ class PosApiController extends Controller
     
     public function posProductDetail(Request $request,$id)
     {
-        $info=Term::query()->where('type','product')->where('status',1)->whereIn('list_type', [2])->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo')->withCount('reviews')->where('id', $id)->first();
+        $info=Term::query()->where('type','product')->where('status',1)->whereIn('list_type', [0,2])->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo')->withCount('reviews')->where('id', $id)->first();
         if(empty($info)){
             return response()->json(["status" => false, "message" => "sorry, product not found", "result" => []],404);
         }
