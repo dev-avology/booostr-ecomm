@@ -679,6 +679,9 @@ class CheckoutController extends Controller
                 Session::forget('couponDiscount');
             }
 
+            if(strpos($redirect_url, 'login-customizer') !== false){
+               $redirect_url = str_replace('login-customizer', 'listing/'.tenant('id'), $redirect_url);
+            }
 
             return redirect()->away($redirect_url . '/?tab=thankyou&club_id='.Tenant('club_id').'&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
         } catch (\Throwable $th) {
