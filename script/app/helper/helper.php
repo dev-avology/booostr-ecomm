@@ -648,7 +648,7 @@ function userChecklist(){
 	$address['post_code'] = $decode_address->post_code ?? '';
 	$address['store_legal_email'] = $decode_address->store_legal_email ?? '';
 
-	if(empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) || empty($address['post_code']) || empty($address['store_legal_phone'])){
+	if(empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) || empty($address['post_code'])){
 
 		$checkList['address'] = 0;
 	}else{
@@ -661,7 +661,7 @@ function userChecklist(){
 	$tax=Option::where('key','tax')->first();
     $tax = $tax->value ?? '';
 
-	if (empty($tax) || ($tax=='0') || ($tax == '0.000%') || ($tax == '0.') || $tax == null) {
+	if (empty($tax) || ($tax == '') || $tax == null) {
 		$checkList['tax'] = 0;
 	} else {
 		$checkList['tax'] = 1;
