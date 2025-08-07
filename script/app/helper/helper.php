@@ -533,6 +533,27 @@ function credit_card_fee($total){
 }
 
 
+function tenant_club_is_pro(){
+
+	$club_id =tenant('club_id');
+
+	$response = Http::withOptions([
+		'verify' => false,
+	])->post(env('WP_API_URL').'/get-store-club-info', [
+		'club_id' => $club_id
+	]);
+
+	if ($response->successful()) {
+		$club_info = $response->json();
+	} else {
+		$club_info = [];
+	}
+
+	return $club_info;
+}
+
+
+
 function booster_club_chagre($total){
     
 	$club_info = tenant_club_info();
