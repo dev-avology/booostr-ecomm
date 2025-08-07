@@ -149,7 +149,8 @@
                             </div>
                         </li>
                         @php
-                            $club_info = tenant_club_info();
+                            //$club_info = tenant_club_info();
+                            $pro_club = tenant_club_is_pro();
 
                         @endphp
 
@@ -162,8 +163,11 @@
                         </li>
                         <li class="list-group-item">
                             <div class="row align-items-center text-grey">
+                                <!-- <div class="col-9 text-right">{{ __('Booostr Platform Fee') }}
+                                    {{ !empty($club_info['is_pro']) ? '(1.75%)' : '(3.5%)' }}</div> -->
                                 <div class="col-9 text-right">{{ __('Booostr Platform Fee') }}
-                                    {{ !empty($club_info['is_pro']) ? '(1.75%)' : '(3.5%)' }}</div>
+                                    {{ ($pro_club) ? '(1.75%)' : '(3.5%)' }}</div>
+
                                 <div class="col-3 text-right">{{ currency_formate($booster_platform_fee) }}</div>
                             </div>
                         </li>
