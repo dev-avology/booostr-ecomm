@@ -40,7 +40,7 @@ class TenantGetwaySeeder extends Seeder
 
         $getways = array(
             array('id' => '2','name' => 'stripe','logo' => 'uploads/21/04/1698367948712217.png','rate' => '1','charge' => '0','namespace' => 'App\\Lib\\Stripe','currency_name' => 'usd','is_auto' => '1','image_accept' => '0','test_mode' => '0','status' => '1','phone_required' => '0','data' => '{"test_publishable_key":"'.$test_publishable_key.'","test_secret_key":"'.$test_secret_key.'","publishable_key":"'.$publishable_key.'","secret_key":"'.$secret_key.'","stripe_account_id":"'.$stripe_account_id.'"}','created_at' => '2021-04-15 02:44:46','updated_at' => '2021-04-29 09:51:32'),
-            array('id' => '3','name' => 'cash','rate' => '1','charge' => '0','namespace' => '','currency_name' => 'usd','is_auto' => '0','image_accept' => '0','test_mode' => '0','status' => '1','phone_required' => '0','created_at' => '2025-04-15 02:44:46','updated_at' => '2025-04-29 09:51:32')
+            array('id' => '3','name' => 'cash','logo' => '','rate' => '1','charge' => '0','namespace' => '','currency_name' => 'usd','is_auto' => '0','image_accept' => '0','test_mode' => '0','status' => '1','phone_required' => '0','data' => '','created_at' => '2021-04-15 02:44:46','updated_at' => '2021-04-29 09:51:32'),
         );               
         Getway::insert($getways);    
     
