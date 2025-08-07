@@ -27,7 +27,7 @@ class StoreSettingCheckMiddleware
         }else{
 
             if($request->hasHeader('X-Tenant')){
-                if(get_option('tax') == "" || (float)get_option('tax') == 0 || showAddressError()){
+                if(get_option('tax') == "" || showAddressError()){
                     $response = [
                         'status' => 'error',
                         'message' => 'Oops the store is temporary disabled. Complete your store setting in store manager.',
