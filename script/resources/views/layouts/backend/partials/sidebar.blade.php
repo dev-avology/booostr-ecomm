@@ -25,7 +25,7 @@
                   curl_close($curl);
                   $result = json_decode($logo, true);
               @endphp
-            <a href="#"><img src="{{$result['data']}}" style="max-width: 80px;"/></a>
+            <a href="#"><img src="{{$result['data'] ?? ''}}" style="max-width: 80px;"/></a>
           @else
             <a href="{{ url('/') }}">{{ Config::get('app.name') }}</a>
           @endif
