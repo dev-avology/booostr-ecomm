@@ -49,7 +49,7 @@ class ProductController extends Controller
     public function productList(Request $request)
     {
        $posts = Term::query()->where('type', 'product')->where('status', 1)
-       ->whereIn('list_type', [0,1])->with('media','category','firstprice', 'lastprice','formType')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
+       ->whereIn('list_type', [0,1])->with('media','category','firstprice', 'lastprice','formType','optionwithcategories','price','prices')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
 
         if (!empty($request->category)) {
             $posts = $posts->whereHas('termcategories', function ($query) use ($request) {

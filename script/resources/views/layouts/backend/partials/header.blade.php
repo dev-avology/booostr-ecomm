@@ -44,7 +44,7 @@
               @endphp
 
         <!-- <img alt="image" src='https://ui-avatars.com/api/?name={{Auth()->user()->name}}' class="rounded-circle profile-widget-picture "> -->
-        <img alt="image" src="{{$result['data']}}" class="rounded-circle profile-widget-picture ">
+        <img alt="image" src="{{$result['data'] ?? ''}}" class="rounded-circle profile-widget-picture ">
 
       <div class="d-sm-none d-lg-inline-block">{{ __('Hi') }}, {{ ucwords(str_replace("-", " ", Auth::user()->name)) }}</div></a>
       <div class="dropdown-menu dropdown-menu-right">
