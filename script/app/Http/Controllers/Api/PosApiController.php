@@ -615,7 +615,7 @@ class PosApiController extends Controller
         $booster_platform_fee = 0.00;
 
         if( $request->payment_method == 'card' ){ // Payment Method: CARD
-            // Generate Stripe Token
+            // Generate Stripe Token by cccc
             try {
                 $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
                 $gateway_data_info = json_decode($gateway->data);
