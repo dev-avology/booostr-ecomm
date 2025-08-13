@@ -62,7 +62,9 @@ class SitesettingsController extends Controller
            $languages=Option::where('key','languages')->first();
            $languages=json_decode($languages->value ?? '');
 
-           $store_sender_email= $club_info['club_email'];
+
+           $senderEmail = Option::where('key', 'store_sender_email')->first();
+           $store_sender_email= $senderEmail->value??'';
            $store_name = $club_info['club_name'];
            
            $invoice_data=Option::where('key','invoice_data')->first();
