@@ -212,14 +212,14 @@
                         color: #3c3c3c;
                         text-align: right;
                         font-size: 16px;font-weight: 500;">
-                                ${{ number_format($data['order_subtotal'] ?? 0, 2) }}</p>
+                                ${{ number_format($data['total'] ?? 0, 2) }}</p>
                         </td>
                     </tr>
                     <tr>
                         <th style="text-align: right;width: 70%;">
                             <h5
                                 style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
-                                Sales Tax ({{$data['tax']}}):</h5>
+                                Sales Tax :</h5>
                         </th>
                         <td style="text-align: right;padding-right: 35px;width: 30%;">
                             <p
@@ -228,7 +228,7 @@
                         color: #3c3c3c;
                         text-align: right;
                         font-size: 16px;font-weight: 500;">
-                                ${{ number_format($data['order_tax'] ?? 0, 2) }}
+                                ${{ number_format($data['tax'] ?? 0, 2) }}
                             </p>
                         </td>
                     </tr>
@@ -245,7 +245,7 @@
                         color: #3c3c3c;
                         text-align: right;
                         font-size: 16px;font-weight: 500;">
-                                ${{ number_format($data['order_total'] ?? 0, 2) }}
+                                ${{ number_format($data['total'] ?? 0, 2) }}
                             </p>
                         </td>
                     </tr>
@@ -271,7 +271,7 @@
                                 {{ $data['payment_method'] ?? ''}}</p>
                         </td>
                     </tr>
-                    @if ( $data['payment_method'] == 'cash' )
+                    <!-- @if ( $data['payment_method'] == 'cash' )
                         <tr>
                             <th style="text-align: right;width: 70%;">
                                 <h5
@@ -324,7 +324,7 @@
                                 </p>
                             </td>
                         </tr>
-                    @endif
+                    @endif -->
                 </tbody>
             </table>
 
