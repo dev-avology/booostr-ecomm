@@ -1964,7 +1964,6 @@ class PosApiController extends Controller
 
 
 
-
 public function posEmailSend(Request $request){
     $orderData = $request->all();
 
@@ -1975,16 +1974,18 @@ public function posEmailSend(Request $request){
         $orderId = $orderData['orderId'] ?? '';
         $client_name = $orderData['client_name'] ?? '';
         $client_email = $orderData['client_email'] ?? '';
-        $created_at = $orderData['created_at'] ?? now();
         $phone_number = '9149117623';
+        
+        $order=Order::with('user','ordermeta','orderitems','orderstatus')->where('id',$orderId)->first();
+        
 
-        $subject="Receipt for your purchase from ".$orderData['club_name']." on ".$created_at;
-        $mail = new PosUserEmail($orderData,$subject);
+
+        $subject="Receipt for your purchase from ".$orderData['club_name']." on ".$orderData['created_at'];
+        $mail = new PosUserEmail($order,$subject);
         $to = $orderData['client_email'] ?? '';
         // $to = 'ashishyadav.avology@gmail.com';
         $email = Mail::to($to)->send($mail);
          
-        $orders=Order::with('user','ordermeta','orderitems','orderstatus')->where('id',$orderId)->get();
 
         $club_info = tenant_club_info();
 
