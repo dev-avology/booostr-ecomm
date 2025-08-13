@@ -19,6 +19,16 @@ class DashboardController extends Controller
         $tax=Option::where('key','tax')->first();
         $tax = $tax->value ?? 0.00; 
         abort_if(!getpermission('dashboard'),401);
+         
+        $tanent_info = tenant_club_pro_live_info();
+
+       $sender_email = Option::where('key','store_sender_email')->first();
+       
+       if(!isset($tanent_info['club_email']) && $tanent_info['club_email'] !=  $sender_email->value){
+          $sender_email->value = $tanent_info['club_email'];
+          $sender_email->save();
+       }
+
     	return view('seller.dashboard', compact('tax'));
     }
 
