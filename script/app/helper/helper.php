@@ -554,6 +554,26 @@ function tenant_club_is_pro(){
 }
 
 
+function tenant_club_pro_live_info(){
+
+	$club_id =tenant('club_id');
+
+	$response = Http::withOptions([
+		'verify' => false,
+	])->post(env('WP_API_URL').'/get-store-club-info', [
+		'club_id' => $club_id
+	]);
+
+	if ($response->successful()) {
+	    $result = $response->json();
+		$club_info = $result['data'];
+	} else {
+		$club_info = false;
+	}
+
+	return $club_info;
+}
+
 
 function booster_club_chagre($total){
     
