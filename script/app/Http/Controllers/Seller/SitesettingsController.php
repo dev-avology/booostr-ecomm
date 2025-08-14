@@ -34,7 +34,14 @@ class SitesettingsController extends Controller
        abort_if(!getpermission('website_settings'),401);
 
        if ($slug == 'general') {
-             
+         
+         $tenantInfo = tenant_club_pro_live_info();
+         $senderEmail = Option::where('key', 'store_sender_email')->first();
+         
+         if (!empty($tenantInfo['club_email']) && $tenantInfo['club_email'] !== $senderEmail->value) {
+             $senderEmail->update(['value' => $tenantInfo['club_email']]);
+         }
+         
          $club_info = tenant_club_info();
 
          $lat_lang = explode(',',$club_info['lat_lang']);
