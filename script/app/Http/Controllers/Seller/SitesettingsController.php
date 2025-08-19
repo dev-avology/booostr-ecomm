@@ -38,8 +38,32 @@ class SitesettingsController extends Controller
          $tenantInfo = tenant_club_pro_live_info();
          $senderEmail = Option::where('key', 'store_sender_email')->first();
          
-         if (!empty($tenantInfo['club_email']) && $tenantInfo['club_email'] !== $senderEmail->value) {
+         $club_address=Option::where('key','invoice_data')->first();
+
+         $decode_address=json_decode($club_address->value);
+
+         $address['store_legal_name'] = $decode_address->store_legal_name ?? '';
+         $address['store_legal_phone'] = $decode_address->store_legal_phone ?? '';
+         $address['store_legal_house'] = $decode_address->store_legal_house ?? '';
+         $address['store_legal_address'] = $decode_address->store_legal_address ?? '';
+
+         $address['store_legal_city'] = $decode_address->store_legal_city ?? '';
+         $address['country'] = $decode_address->country ?? '';
+         $address['state'] = $decode_address->state ?? '';
+         $address['post_code'] = $decode_address->post_code;
+         $address['store_legal_email'] = $decode_address->store_legal_email ?? '';
+
+
+         if (!empty($tenantInfo['club_email']) && ($tenantInfo['club_email'] !== $senderEmail->value || $tenantInfo['club_email'] !== $address['store_legal_email'] )) {
+            $address['store_legal_email'] = $tenantInfo['club_email'];
+
              $senderEmail->update(['value' => $tenantInfo['club_email']]);
+
+
+             $club_address->value=json_encode($address);
+             $club_address->save();
+             TenantCacheClear('invoice_data');
+
          }
          
          $club_info = tenant_club_info();
