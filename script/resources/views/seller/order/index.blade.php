@@ -89,32 +89,34 @@
                     <tbody class="list font-size-base rowlink" data-link="row">
                         @foreach($orders ?? [] as $key => $row)
                         @php 
-                               $p_types = $product_type->pluck('id')->flatten()->toArray();
-                            // $orderItems = $row->orderitems->map(function ($term) use ($product_typeIds) {
-                            //     dump($term->termcategories());
-                            //     return $term->termcategories()?->filter(function ($cat) use ($product_typeIds) {
-                            //         return in_array($cat->id, $product_typeIds);
-                            //     });
-                            // });
+                        // All product type IDs
+                            $p_types = $product_type->pluck('id')->all();
 
-                            $selected_product_type = [];
+                            // Gather category IDs from order items that match product types
+                            $selected_product_type = collect($row->orderitems ?? [])
+                                ->flatMap(fn($item) => $item->term->termcategories->pluck('category_id'))
+                                ->filter(fn($id) => in_array($id, $p_types))
+                                ->unique()
+                                ->values()
+                                ->all();
 
-                           foreach($row->orderitems ?? [] as $row1){
-                             foreach ($row1->term->termcategories as $key => $value) {
-                                   if(in_array($value->category_id,$p_types))
-                                     array_push($selected_product_type, $value->category_id);
-                             }
-                           }
-                           
-                         // dump($selected_product_type);
-                         $order_type = 'Goods'; 
-                          if(count($selected_product_type) == 1){
-                               if(!in_array(52,$selected_product_type)){
-                                $order_type = 'Digital '; 
-                               }
-                          }elseif(count($selected_product_type) > 1){
-                                $order_type = 'Mixed'; 
-                          }
+                            // Default order type
+                            $order_type = 'Goods';
+                            $count = count($selected_product_type);
+
+                            if ($count === 1) {
+                                // Find the product type model by ID
+                                $pt = $product_type->firstWhere('id', $selected_product_type[0]);
+
+                                // Decide order type by slug
+                                if ($pt && $pt->slug === 'digital_product') {
+                                    $order_type = 'Digital';
+                                } elseif ($pt && $pt->slug === 'physical_product') {
+                                    $order_type = 'Goods';
+                                }
+                            } elseif ($count > 1) {
+                                $order_type = 'Mixed';
+                            }
 
                         $ordermeta=json_decode($row->ordermeta->value ?? ''); 
                     @endphp
