@@ -34,12 +34,13 @@
                         @endphp
                         @foreach ($info->orderitems ?? [] as $row)
                             @php
-                            $p_types = $product_type->pluck('id')->flatten()->toArray();
+                            $p_types = $product_type->pluck('id')->all();
 
-                            foreach ($row->term->termcategories as $key => $value) {
-                                    if(in_array($value->category_id,$p_types))
-                                        array_push($selected_product_type, $value->category_id);
-                                }
+                            $selected_product_type = $row->term->termcategories
+                                ->pluck('category_id')
+                                ->intersect($p_types)
+                                ->values()
+                                ->all();
                             @endphp    
 
                             <li class="list-group-item">
@@ -84,20 +85,21 @@
                         @endforeach
 
                         @php
-                          $order_type = 'Goods'; 
-                          if(count($selected_product_type) == 1){
-                               if(!in_array(52,$selected_product_type)){
-                                $order_type = 'Digital'; 
-                               }
-                          }elseif(count($selected_product_type) > 1){
-                                $order_type = 'Mixed'; 
-                          }
+                        $count = count($selected_product_type);
+
+                        $order_type = match (true) {
+                            $count > 1 => 'Mixed',
+                            $count === 1 => optional(
+                                $product_type->firstWhere('id', $selected_product_type[0])
+                            )->slug === 'digital_product' ? 'Digital' : 'Goods',
+                            default => 'Goods',
+                        };
                         @endphp  
                         
                         <li class="list-group-item">
                             <div class="row align-items-center">
                                 <div class="col-9 text-right">{{ __('SubTotal') }}</div>
-                                <div class="col-3 text-right"> {{ currency_formate($subtotal) }} {{$order_type}}</div>
+                                <div class="col-3 text-right"> {{ currency_formate($subtotal) }}</div>
                             </div>
                         </li>
                         <li class="list-group-item">
@@ -106,7 +108,7 @@
                                 <div class="col-3 text-right"> - {{ currency_formate($info->discount) }} </div>
                             </div>
                         </li>
-                        @if ($info->order_method == 'delivery')
+                        @if ($info->order_method == 'delivery' && $order_type !== 'Digital')
                             @php
                                 $shipping_price = $info->shippingwithinfo->shipping_price ?? 0;
                             @endphp
@@ -239,7 +241,7 @@
                                 $shipping_servics = ['FedEx','UPS','US Postal Service'];
                                 if($order_type != 'Digital'){
                                 @endphp
-                              <div class="col-sm-4" id="hiddenChooseTracking {{$order_type}}" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;" @endif>
+                              <div class="col-sm-4" id="hiddenChooseTracking" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;" @endif>
                                     <div class="form-group text-left">
                                         <label>Select shipping service </label>
                                         <select class="form-control selectric" id="chooseTracking" name="chooseTracking">
@@ -276,7 +278,7 @@
                                     <!-- <span class="custom-switch-indicator"></span> -->
                                     <!-- <span class="custom-switch-description">{{ __('Notify To Customer') }}</span> -->
                                 </label>
-                                @if ($info->order_method == 'delivery')
+                                @if ($info->order_method == 'delivery' && $order_type !== 'Digital')
                                     <label class="custom-switch mt-2">
                                         <input type="hidden" name="rider_notify" value="1"
                                             class="custom-switch-input">
@@ -306,7 +308,7 @@
                                 <p class="mb-0">{{ __('Customer Phone') }}: {{ $ordermeta->phone ?? '' }}</p>
                             </div>
                         </div>
-                        @if ($info->order_method == 'delivery')
+                        @if ($info->order_method == 'delivery' && $order_type !== 'Digital')
                             @php
                                 $shipping_info = json_decode($info->shippingwithinfo->info ?? '');
                                 //$location=$info->shippingwithinfo->location->name ?? '';
@@ -342,14 +344,46 @@
                         @endif
 
                         @if ($info->payment_status == 1)
-                            <div class="capture-btn">
+                        <div class="capture-btn">
+                            <!-- Trigger Modal -->
+                            <button type="button" class="btn btn-primary float-right mt-2 text-right" 
+                                data-toggle="modal" data-target="#refundConfirmModal">
+                                Cancel Order & Refund Payment
+                            </button>
+                        </div>
+
+                        <!-- Confirmation Modal -->
+                        <div class="modal fade" id="refundConfirmModal" tabindex="-1" role="dialog" aria-labelledby="refundConfirmModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content rounded shadow">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="refundConfirmModalLabel">Confirm Refund</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to <strong>Cancel & Refund</strong> this order?<br>
+                                <span class="text-danger">This action is not reversible.</span>
+                            </div>
+                            <div class="modal-footer">
+                                <form method="POST" action="{{ route('seller.order.refund', $info->id) }}">
+                                    @csrf
+                                    <button type="submit" name="refund_payment" class="btn btn-danger">Yes, Refund</button>
+                                </form>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">No, Cancel</button>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                            <!-- <div class="capture-btn">
                                 <form method="POST" action="{{ route('seller.order.refund', $info->id) }}">
                                     @csrf
                                     <button type="submit" name="refund_payment"
                                         class="btn btn-primary float-right mt-2 text-right">Cancel Order & Refund
                                         Payment</button>
                                 </form>
-                            </div>
+                            </div> -->
                         @endif
 
                     </div>
@@ -377,7 +411,14 @@
                         </p>
 
                         <p>{{ __('Order Type') }}
-                            <span class="badge badge-success float-right">{{ $info->order_method }}</span>
+                            @if($order_type == 'Digital')
+                              <span class="badge badge-success float-right"> Digital {{ $info->order_method }}</span>
+                            @elseif($order_type == 'Goods')
+                              <span class="badge badge-success float-right">{{ $info->order_method }}</span>
+                            @else
+                              <span class="badge badge-success float-right">{{ $info->order_method }}, Digital Delivery</span>
+                            @endif
+
                         </p>
 
                         <p>{{ __('Order Placed') }}

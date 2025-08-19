@@ -9,3 +9,9 @@ booostr.club
 booostr.club/
 !script/vendor/omnipay/stripe/
 !script/vendor/bumbummen99/
+uploads
+*.tar.gz
+*.sql
+.env.save
+package-lock.json
+adminer*
