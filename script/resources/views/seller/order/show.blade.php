@@ -345,37 +345,37 @@
 
                         @if ($info->payment_status == 1)
                         <div class="capture-btn">
+                            <!-- Trigger Modal -->
                             <button type="button" class="btn btn-primary float-right mt-2 text-right" 
-                                data-bs-toggle="modal" data-bs-target="#refundConfirmModal">
+                                data-toggle="modal" data-target="#refundConfirmModal">
                                 Cancel Order & Refund Payment
                             </button>
                         </div>
 
                         <!-- Confirmation Modal -->
-                        <div class="modal fade" id="refundConfirmModal" tabindex="-1" aria-labelledby="refundConfirmModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content rounded-3 shadow">
+                        <div class="modal fade" id="refundConfirmModal" tabindex="-1" role="dialog" aria-labelledby="refundConfirmModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content rounded shadow">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="refundConfirmModalLabel">Confirm Refund</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
                             </div>
                             <div class="modal-body">
-                                <p class="mb-0">
                                 Are you sure you want to <strong>Cancel & Refund</strong> this order?<br>
                                 <span class="text-danger">This action is not reversible.</span>
-                                </p>
                             </div>
                             <div class="modal-footer">
                                 <form method="POST" action="{{ route('seller.order.refund', $info->id) }}">
                                     @csrf
                                     <button type="submit" name="refund_payment" class="btn btn-danger">Yes, Refund</button>
                                 </form>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Cancel</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">No, Cancel</button>
                             </div>
                             </div>
                         </div>
                         </div>
-
                             <!-- <div class="capture-btn">
                                 <form method="POST" action="{{ route('seller.order.refund', $info->id) }}">
                                     @csrf
