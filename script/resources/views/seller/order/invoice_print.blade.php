@@ -23,7 +23,6 @@
                                 <div class="col-lg-6">
                                     @php
                                         $info = get_option('invoice_data',true) ?? '';
-                                        $store_sender_email = get_option('store_sender_email',true);
                                         $club_info = tenant_club_info();
                                     @endphp
                                     <div class="invoice-bill-form">
@@ -35,7 +34,7 @@
                                             <p>{{ $info->country ?? '' }}</p>
                                         </div>
                                         <div class="store-email">
-                                            <p>{{ $store_sender_email ?? '' }}</p>
+                                            <p>{{ $info->store_legal_email ?? '' }}</p>
                                         </div>
                                     </div>
                                 </div>
