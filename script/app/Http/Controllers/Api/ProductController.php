@@ -44,7 +44,7 @@ class ProductController extends Controller
        return response()->json(["status" => true, "message" => "products", "result" => ['categories'=>$posts,'product_count'=>$product_count]]);
     }
 
-
+// Product list api
 
     public function productList(Request $request)
     {
