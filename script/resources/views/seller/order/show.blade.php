@@ -34,12 +34,13 @@
                         @endphp
                         @foreach ($info->orderitems ?? [] as $row)
                             @php
-                            $p_types = $product_type->pluck('id')->flatten()->toArray();
+                            $p_types = $product_type->pluck('id')->all();
 
-                            foreach ($row->term->termcategories as $key => $value) {
-                                    if(in_array($value->category_id,$p_types))
-                                        array_push($selected_product_type, $value->category_id);
-                                }
+                            $selected_product_type = $row->term->termcategories
+                                ->pluck('category_id')
+                                ->intersect($p_types)
+                                ->values()
+                                ->all();
                             @endphp    
 
                             <li class="list-group-item">
@@ -84,14 +85,15 @@
                         @endforeach
 
                         @php
-                          $order_type = 'Goods'; 
-                          if(count($selected_product_type) == 1){
-                               if(!in_array(52,$selected_product_type)){
-                                $order_type = 'Digital'; 
-                               }
-                          }elseif(count($selected_product_type) > 1){
-                                $order_type = 'Mixed'; 
-                          }
+                        $count = count($selected_product_type);
+
+                        $order_type = match (true) {
+                            $count > 1 => 'Mixed',
+                            $count === 1 => optional(
+                                $product_type->firstWhere('id', $selected_product_type[0])
+                            )->slug === 'digital_product' ? 'Digital' : 'Goods',
+                            default => 'Goods',
+                        };
                         @endphp  
                         
                         <li class="list-group-item">
