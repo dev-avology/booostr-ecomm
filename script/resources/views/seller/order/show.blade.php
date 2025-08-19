@@ -227,7 +227,7 @@
                                 <div class="col-sm-4">
                                     <div class="form-group text-left">
                                         <label>Select Order Status </label>
-                                        <select class="form-control select2" id="mainSelect" name="status" required="">
+                                        <select class="form-control selectric" id="mainSelect" name="status" required="">
                                             <option value=""><b>{{ __('Select Order Status') }}</b></option>
                                             @foreach ($order_status ?? [] as $row)
                                                 <option value="{{ $row->id }}"
@@ -241,10 +241,10 @@
                                 $shipping_servics = ['FedEx','UPS','US Postal Service'];
                                 if($order_type != 'Digital'){
                                 @endphp
-                              <div class="col-sm-4" id="hiddenChooseTracking {{$order_type}}" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;" @endif>
+                              <div class="col-sm-4" id="hiddenChooseTracking" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;" @endif>
                                     <div class="form-group text-left">
                                         <label>Select shipping service </label>
-                                        <select class="form-control select2" id="chooseTracking" name="chooseTracking">
+                                        <select class="form-control selectric" id="chooseTracking" name="chooseTracking">
                                             <option value="" selected><b>{{ __('Select option') }}</b></option>
                                             <option value="FedEx" @if ($info->shippingwithinfo->shipping_driver == 'FedEx') selected="" @endif>{{ __('FedEx') }}</option>
                                             <option value="UPS" @if ($info->shippingwithinfo->shipping_driver == 'UPS') selected="" @endif><b>{{ __('UPS') }}</b></option>
