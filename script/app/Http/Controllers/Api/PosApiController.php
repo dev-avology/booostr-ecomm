@@ -24,9 +24,8 @@ use Illuminate\Support\Facades\Session;
 use App\Mail\PosUserEmail;
 use Cart;
 use Mail;
-use DB;
-use Auth;
-use Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Exception;
 use Stripe\Stripe;
 use Stripe\Token;
@@ -614,73 +613,14 @@ class PosApiController extends Controller
         $credit_card_fee = 0.00;
         $booster_platform_fee = 0.00;
 
-        if( $request->payment_method == 'card' ){ // Payment Method: CARD
-            // Generate Stripe Token by cccc
-            try {
-                $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
-                $gateway_data_info = json_decode($gateway->data);
-
-                Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_publishable_key : $gateway_data_info->publishable_key);
-
-                $token = Token::create([
-                    'card' => [
-                        'number' => $request->payment_details['card_details']['cardNumber'],
-                        'exp_month' => substr($request->payment_details['card_details']['expirationDate'], 0, 2),
-                        'exp_year' => substr($request->payment_details['card_details']['expirationDate'], 3, 2),
-                        'cvc' => $request->payment_details['card_details']['cvc'],
-                    ],
-                ]);
-            } catch (InvalidRequestException $e) {
-                return response()->json(['error' => $e->getMessage()], 500);
-            }
-
-            // Set Stripe API keys
-            if( $gateway->test_mode ){
-                $payment_data['test_publishable_key'] = $gateway_data_info->test_publishable_key;
-                $payment_data['test_secret_key'] = $gateway_data_info->test_secret_key;
-            }else{
-                $payment_data['publishable_key'] = $gateway_data_info->publishable_key;
-                $payment_data['secret_key'] = $gateway_data_info->secret_key;
-            }
-
-            // Set Payment Data
-            $payment_data['currency']   = strtoupper($gateway->currency_name) ?? 'USD';
-            $payment_data['name']       = $request->payment_details['card_details']['cardholderName'];
-            $payment_data['billName']   = 'Boostr Sale';
-            $payment_data['amount']     = $total_amount;
-            $payment_data['application_fee_amount']  = 0.00;
-            $payment_data['credit_card_fee']  = 0.00;
-            $payment_data['test_mode']  = $gateway->test_mode;
-            $payment_data['charge']     = 0.00;
-            $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount ?? 0,2));
-            $payment_data['getway_id']  = $gateway->id;
-            $payment_data['stripeToken']=$token->id;
-            $payment_data['pos']=true;
-
-            // Charge Payment
-            $chargePayment= $gateway->namespace::charge_payment($payment_data);
-            
-            // Return Payment Error Message
-            if($chargePayment['payment_status'] != 4){
-                return response()->json(['status' => false, 'message' => 'Sorry, we couldnt charge your card, please try another card', 'paymentresult'=>$chargePayment], 200);
-            }
-
-            $payment_data['transaction_id'] = $chargePayment['payment_id'];
-
-            // Capture Payment
-            $paymentresult= $gateway->namespace::capture_payment($payment_data);
-
-            // Return Payment Error Message
-            if($paymentresult['payment_status'] != 1){
-                return response()->json(['status' => false, 'message' => 'Sorry, we couldnt charge your card, please try another card', 'paymentresult'=>$paymentresult], 200);
-            }
-        } elseif ( $request->payment_method == 'reader' ) {
+        if( ($request->payment_method == 'card') ||  ($request->payment_method == 'reader')){
             $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
         } else { // Payment Method: CASH
             $gateway=Getway::where('name','cash')->first();
-        } // Payment Method specific code END
+        }
 
         DB::beginTransaction();
+
         try {
             // Insert New Order
             $order = new Order;
@@ -699,8 +639,17 @@ class PosApiController extends Controller
             $order->order_method = $order_method ?? 'delivery';
             $order->order_from = $request->payment_method == 'card' || $request->payment_method == 'reader' ? 4 : 5;  // 4 is for card and 5 is for cash
             $order->notify_driver = $notify_driver;
-            $order->transaction_id = $request->payment_method == 'card' ? $paymentresult['payment_id'] : null;
-            $order->transaction_id = $request->payment_method == 'reader' ? $request->payment_details['charges'][0]['id'] : null;
+            // Set transaction_id based on payment method
+            if ($request->payment_method == 'card') {
+                // For card payments, get transaction_id from payment_details like card reader
+                $order->transaction_id = $request->payment_details['charges'][0]['id'] ?? null;
+            } elseif ($request->payment_method == 'reader') {
+                // For card reader payments
+                $order->transaction_id = $request->payment_details['charges'][0]['id'] ?? null;
+            } else {
+                // For cash payments
+                $order->transaction_id = null;
+            }
             $order->payment_status = 1;
             $order->placed_at = Carbon::now()->setTimezone($request->timezone);
             $order->captured_at = Carbon::now()->setTimezone($request->timezone);
@@ -785,16 +734,16 @@ class PosApiController extends Controller
                     'value' => json_encode($customer_info)
                 ]);
 
-                $transcation_log = new Ordermeta;
-                $transcation_log->order_id = $order->id;
-                $transcation_log->key = 'transcation_log';
-                $transcation_log->value = json_encode($paymentresult['transaction_log']);
-                $transcation_log->save();
+                // $transcation_log = new Ordermeta;
+                // $transcation_log->order_id = $order->id;
+                // $transcation_log->key = 'transcation_log';
+                // $transcation_log->value = json_encode($paymentresult['transaction_log']);
+                // $transcation_log->save();
 
-                $order->orderlasttrans()->create([
-                    'key' => 'last_transcation_log',
-                    'value' => json_encode($paymentresult['transaction_log'])
-                ]);
+                // $order->orderlasttrans()->create([
+                //     'key' => 'last_transcation_log',
+                //     'value' => json_encode($paymentresult['transaction_log'])
+                // ]);
             }
 
             if (count($priceids) != 0) {
