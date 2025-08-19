@@ -99,7 +99,7 @@
                         <li class="list-group-item">
                             <div class="row align-items-center">
                                 <div class="col-9 text-right">{{ __('SubTotal') }}</div>
-                                <div class="col-3 text-right"> {{ currency_formate($subtotal) }} {{$order_type}}</div>
+                                <div class="col-3 text-right"> {{ currency_formate($subtotal) }}</div>
                             </div>
                         </li>
                         <li class="list-group-item">
@@ -108,7 +108,7 @@
                                 <div class="col-3 text-right"> - {{ currency_formate($info->discount) }} </div>
                             </div>
                         </li>
-                        @if ($info->order_method == 'delivery')
+                        @if ($info->order_method == 'delivery' && $order_type !== 'Digital')
                             @php
                                 $shipping_price = $info->shippingwithinfo->shipping_price ?? 0;
                             @endphp
@@ -278,7 +278,7 @@
                                     <!-- <span class="custom-switch-indicator"></span> -->
                                     <!-- <span class="custom-switch-description">{{ __('Notify To Customer') }}</span> -->
                                 </label>
-                                @if ($info->order_method == 'delivery')
+                                @if ($info->order_method == 'delivery' && $order_type !== 'Digital')
                                     <label class="custom-switch mt-2">
                                         <input type="hidden" name="rider_notify" value="1"
                                             class="custom-switch-input">
@@ -308,7 +308,7 @@
                                 <p class="mb-0">{{ __('Customer Phone') }}: {{ $ordermeta->phone ?? '' }}</p>
                             </div>
                         </div>
-                        @if ($info->order_method == 'delivery')
+                        @if ($info->order_method == 'delivery' && $order_type !== 'Digital')
                             @php
                                 $shipping_info = json_decode($info->shippingwithinfo->info ?? '');
                                 //$location=$info->shippingwithinfo->location->name ?? '';
@@ -379,7 +379,14 @@
                         </p>
 
                         <p>{{ __('Order Type') }}
-                            <span class="badge badge-success float-right">{{ $info->order_method }}</span>
+                            @if($order_type == 'Digital')
+                              <span class="badge badge-success float-right"> Digital {{ $info->order_method }}</span>
+                            @elseif($order_type == 'Goods')
+                              <span class="badge badge-success float-right">{{ $info->order_method }}</span>
+                            @else
+                              <span class="badge badge-success float-right">{{ $info->order_method }}, Digital Delivery</span>
+                            @endif
+
                         </p>
 
                         <p>{{ __('Order Placed') }}
