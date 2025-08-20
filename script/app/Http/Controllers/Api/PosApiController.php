@@ -26,6 +26,7 @@ use Cart;
 use Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
 use Exception;
 use Stripe\Stripe;
 use Stripe\Token;
@@ -610,8 +611,11 @@ class PosApiController extends Controller
         $order_method='delivery';
         $notify_driver='mail';
 
-        $credit_card_fee = 0.00;
-        $booster_platform_fee = 0.00;
+        // $credit_card_fee = 0.00;
+        // $booster_platform_fee = 0.00;
+
+        $credit_card_fee = credit_card_fee($total_amount);        // 2.9% + $0.30
+        $booster_platform_fee = booster_club_chagre($total_amount); // 1.75% or 3.5%
 
         if( ($request->payment_method == 'card') ||  ($request->payment_method == 'reader')){
             $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
@@ -2041,20 +2045,77 @@ private function send_order_recipts($data){
             return response()->json(['message' => 'Incorrect order amount.'], 422);
         }
         
-        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        $order_total = $request->order_total;
+        
+        // Use existing helper functions for fee calculation (same as current system)
+        $credit_card_fee = credit_card_fee($order_total);        // 2.9% + $0.30
+        $booster_platform_fee = booster_club_chagre($order_total); // 1.75% or 3.5%
+        
+        // ROUND UP to 2 decimal places as client requested
+        $credit_card_fee = ceil($credit_card_fee * 100) / 100;        // $1.4356 → $1.44
+        $booster_platform_fee = ceil($booster_platform_fee * 100) / 100; // $2.8767 → $2.88
+        
+        // Calculate total application fee (same as existing Stripe.php)
+        $total_application_fee = $credit_card_fee + $booster_platform_fee;
+        
+        // Calculate what club receives
+        $club_receives = $order_total - $total_application_fee;
+        
+        $gateway = Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        if (!$gateway) {
+            return response()->json(['message' => 'Stripe gateway not configured.'], 500);
+        }
+        
         $gateway_data_info = json_decode($gateway->data);
-
         Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
-        // Stripe::setApiKey("sk_test_51O0HZtGn6XA9jaoswlEvwvQIuXHWGYBHqx07Zc9AnUMKRMkPXwaayWg4IzB0MABtf4Ffa09FzUl7yaQOmtMOlZpd00bxrrQw9h");
-    
-        $intent = PaymentIntent::create([
-                      'amount' => $request->order_total*100,
-                      'currency' => 'usd',
-                      'payment_method_types' => ['card_present','card'],
-                      'capture_method' => 'automatic',
-                    ]);
-    
-        return response()->json(["status" => true, "client_secret" => $intent->client_secret]);
+
+        $booostr_stripe_account = $gateway_data_info->stripe_account_id;
+     
+        try {
+            // Create PaymentIntent with automatic fee transfer to Booostr
+            $intent = PaymentIntent::create([
+                'amount' => round($order_total * 100), // Convert to cents
+                'currency' => 'usd',
+                'payment_method_types' => ['card_present', 'card'],
+                'capture_method' => 'automatic',
+                'transfer_data' => [
+                    'destination' => $booostr_stripe_account, // Booostr's Stripe account
+                    'amount' => round($total_application_fee * 100), // Rounded Booostr fee gets transferred
+                ],
+                'metadata' => [
+                    'credit_card_fee' => number_format($credit_card_fee, 2),
+                    'booster_platform_fee' => number_format($booster_platform_fee, 2),
+                    'total_fees' => number_format($total_application_fee, 2),
+                    'club_receives' => number_format($club_receives, 2),
+                ],
+            ]);
+            
+            return response()->json([
+                "status" => true, 
+                "client_secret" => $intent->client_secret,
+                "payment_intent_id" => $intent->id,
+                "fee_breakdown" => [
+                    "order_total" => number_format($order_total, 2),
+                    "credit_card_fee" => number_format($credit_card_fee, 2),
+                    "booster_platform_fee" => number_format($booster_platform_fee, 2),
+                    "total_fees" => number_format($total_application_fee, 2),
+                    "club_receives" => number_format($club_receives, 2),
+                    "fee_collection_method" => 'automatic_transfer'
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('PaymentIntent creation failed: ' . $e->getMessage(), [
+                'order_total' => $order_total,
+                'credit_card_fee' => $credit_card_fee,
+                'booster_platform_fee' => $booster_platform_fee,
+                'stripe_account_id' => $booostr_stripe_account
+            ]);
+            
+            return response()->json([
+                'message' => 'Error creating payment intent: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
 }
