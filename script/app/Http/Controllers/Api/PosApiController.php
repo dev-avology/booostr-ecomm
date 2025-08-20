@@ -2050,7 +2050,7 @@ private function send_order_recipts($data){
         $intent = PaymentIntent::create([
                       'amount' => $request->order_total*100,
                       'currency' => 'usd',
-                      'payment_method_types' => ['card_present'],
+                      'payment_method_types' => ['card_present','card'],
                       'capture_method' => 'automatic',
                     ]);
     
