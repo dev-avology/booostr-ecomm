@@ -193,7 +193,7 @@
 
                                 <span class="badge badge-success text-white" style="background-color:#028a74">POS (In Person)</span>
 
-                                @else @if($row->order_from == 0)
+                                @elseif($row->order_from == 0)
 
                                 <span class="badge badge-success text-white" style="background-color:#028a74">POS (Web)</span>
 
