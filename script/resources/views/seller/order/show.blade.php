@@ -411,10 +411,10 @@
 
                         <p>{{ __('Order Status') }}
                         @if($row->order_from == 4 || $row->order_from == 5)
-                        <span class="badge badge-success text-white" style="background-color:#028a74">POS (In Person)</span>
-                        @else if($row->order_from == 6)
-                        <span class="badge badge-success text-white" style="background-color:#028a74">POS Web (In Person)</span>
-                        @else if ($info->status_id != null)
+                        <span class="badge badge-success float-right text-white" style="background-color:#028a74">POS (In Person)</span>
+                        @elseif($row->order_from == 0)
+                        <span class="badge badge-success float-right text-white" style="background-color:#028a74">POS Web (In Person)</span>
+                        @elseif ($info->status_id != null)
                                 <span class="badge  float-right text-white"
                                     style="background-color: {{ $info->orderstatus->slug ?? '' }}">{{ $info->orderstatus->name ?? '' }}</span>
                             @endif
