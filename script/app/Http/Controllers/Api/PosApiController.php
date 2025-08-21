@@ -593,6 +593,7 @@ class PosApiController extends Controller
             'payment_details' => 'required',
 
             'items' => 'required|array',
+            'payment_identifiers' => 'required|in:card,terminal',
         ];
         
         $validator = Validator::make($request->all(), $rules);
@@ -614,8 +615,15 @@ class PosApiController extends Controller
         // $credit_card_fee = 0.00;
         // $booster_platform_fee = 0.00;
 
-        $credit_card_fee = credit_card_fee($total_amount);        // 2.9% + $0.30
-        $booster_platform_fee = booster_club_chagre($total_amount); // 1.75% or 3.5%
+        $credit_card_fee_raw = credit_card_fee_for_pos($total_amount,$request->payment_identifiers);        // 2.9% + $0.30
+        $booster_platform_fee_raw = booster_club_chagre($total_amount); // 1.75% or 3.5%
+
+        $credit_card_fee = (float)$credit_card_fee_raw;
+        $booster_platform_fee = (float)$booster_platform_fee_raw;
+        
+        // ROUND UP to 2 decimal places as client requested
+        $credit_card_fee = ceil($credit_card_fee * 100) / 100; 
+        $booster_platform_fee = ceil($booster_platform_fee * 100) / 100; 
 
         if( ($request->payment_method == 'card') ||  ($request->payment_method == 'reader')){
             $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
@@ -2037,19 +2045,27 @@ private function send_order_recipts($data){
         // Check if the required fields are present
         $rules = [
             'order_total' => 'required|numeric',
+            'payment_identifiers' => 'required|in:card,terminal',
         ];
         
         $validator = Validator::make($request->all(), $rules);
     
         if ($validator->fails()) {
-            return response()->json(['message' => 'Incorrect order amount.'], 422);
+            return response()->json([
+                'message' => $validator->errors()->first() // return the first error message
+            ], 422);
         }
         
         $order_total = $request->order_total;
         
         // Use existing helper functions for fee calculation (same as current system)
-        $credit_card_fee = credit_card_fee($order_total);        // 2.9% + $0.30
-        $booster_platform_fee = booster_club_chagre($order_total); // 1.75% or 3.5%
+        $credit_card_fee_raw = credit_card_fee_for_pos($order_total,$request->payment_identifiers);        // 2.9% + $0.30
+        $booster_platform_fee_raw = booster_club_chagre($order_total); // 1.75% or 3.5%
+
+        
+        // Convert string values to float before applying ceil() - this fixes the calculation issue
+        $credit_card_fee = (float)$credit_card_fee_raw;
+        $booster_platform_fee = (float)$booster_platform_fee_raw;
         
         // ROUND UP to 2 decimal places as client requested
         $credit_card_fee = ceil($credit_card_fee * 100) / 100;        // $1.4356 → $1.44
@@ -2067,6 +2083,12 @@ private function send_order_recipts($data){
         }
         
         $gateway_data_info = json_decode($gateway->data);
+        
+        // Validate that stripe_account_id is configured
+        if (empty($gateway_data_info->stripe_account_id)) {
+            return response()->json(['message' => 'Stripe account ID not configured.'], 500);
+        }
+        
         Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
 
         $booostr_stripe_account = $gateway_data_info->stripe_account_id;
@@ -2089,6 +2111,8 @@ private function send_order_recipts($data){
                     'club_receives' => number_format($club_receives, 2),
                 ],
             ]);
+
+            \Log::info($intent);
             
             return response()->json([
                 "status" => true, 
