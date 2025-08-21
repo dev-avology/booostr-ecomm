@@ -61,7 +61,8 @@
                                             <br>
                                         </a>
                                         @foreach ($options ?? [] as $key => $item)
-                                            @php $product_options = $item->varition_options; @endphp
+                                        @if (is_object($item) && isset($item->varition_options))
+                                            @php  $product_options = $item->varition_options; @endphp
                                             @foreach($item->varitions as $sel_val)
                                                 @php $cur_opt_name = array_filter($product_options,function ($x) use ($sel_val) {
                                                     return $x->id == $sel_val->pivot->productoption_id;
@@ -71,6 +72,7 @@
                                             <strong>{{reset($cur_opt_name)->category->name}} : </strong>{{$sel_val->name}}<br>
                                             @endforeach
                                                 <hr>
+                                                @endif
                                             @endforeach
                                     </div>
                                     <div class="col-3 text-right">
@@ -406,8 +408,13 @@
                                 <span class="badge badge-warning float-right">{{ __('Refunded') }}</span>
                             @endif
                         </p>
+
                         <p>{{ __('Order Status') }}
-                            @if ($info->status_id != null)
+                        @if($row->order_from == 4 || $row->order_from == 5)
+                        <span class="badge badge-success text-white" style="background-color:#028a74">POS (In Person)</span>
+                        @else if($row->order_from == 6)
+                        <span class="badge badge-success text-white" style="background-color:#028a74">POS Web (In Person)</span>
+                        @else if ($info->status_id != null)
                                 <span class="badge  float-right text-white"
                                     style="background-color: {{ $info->orderstatus->slug ?? '' }}">{{ $info->orderstatus->name ?? '' }}</span>
                             @endif
