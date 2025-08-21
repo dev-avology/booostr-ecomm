@@ -73,6 +73,12 @@ p#show_coupon_error {
 .checkout-main span.price span.old-price{
     text-decoration: line-through;
 }
+@if($order_type == 'Digital')
+.shipping-item,.shipping_method_area,.shipping_same_as_billing{
+    display:none !important;
+}    
+@endif
+
 </style>
 
  <!-- Spinner container -->
@@ -291,7 +297,7 @@ p#show_coupon_error {
                                         </div>
 
                                         <div class="col-lg-12 col-md-12 col-12">
-                                            <div class="form-group create-account">
+                                            <div class="form-group create-account shipping_same_as_billing">
                                                 <input id="shipping_address" name="shipping_same_as_billing"
                                                     type="checkbox" value="1" checked>
                                                 <label
@@ -491,7 +497,7 @@ p#show_coupon_error {
                                                         0.00
                                                     </span>
                                                 </li>
-                                                <li>(+) {{ __('Delivery fee') }}<span class="shipping_fee">0.00</span>
+                                                <li class="shipping-item">(+) {{ __('Delivery fee') }}<span class="shipping_fee">0.00</span>
                                                 </li>
 
 
