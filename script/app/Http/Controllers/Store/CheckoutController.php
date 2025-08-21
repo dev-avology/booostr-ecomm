@@ -239,6 +239,43 @@ class CheckoutController extends Controller
         $pickup_order=$order_settings->pickup_order ?? 'off';
         $pre_order=$order_settings->pre_order ?? 'off';
         $source_code=$order_settings->source_code ?? 'on';
+        
+        // Fetch all product types once
+        $product_type = Category::where('type', 'product_type')
+            ->select('id','slug','name')
+            ->get();
+        
+        $p_types = $product_type->pluck('id')->all();
+        
+        $cartTermIds = Cart::instance('default')->content()->pluck('id')->all();
+        
+        $terms = Term::with('termcategories')
+            ->whereIn('id', $cartTermIds)
+            ->get();
+        
+        // Get flat product type IDs from cart
+        $selected_product_type = $terms->flatMap(function ($term) use ($p_types) {
+            return $term->termcategories
+                ->pluck('category_id')
+                ->intersect($p_types);
+        })->unique()->values()->all();
+        
+        $count = count($selected_product_type);
+        
+        // ✅ Determine order type
+        $order_type = match (true) {
+            $count > 1 => 'Mixed',
+            $count === 1 => optional(
+                $product_type->firstWhere('id', $selected_product_type[0])
+            )->slug === 'digital_product' ? 'Digital' : 'Goods',
+            default => 'Goods',
+        };
+        
+       // dump($order_type);
+
+
+
+
 
 
         $payment_data['currency']   = $getways->currency_name ?? 'USD';
@@ -316,7 +353,7 @@ class CheckoutController extends Controller
         $grand_total = $total;
        // $grand_total = $total+$credit_card_fee + $booster_platform_fee;
 
-        return view('store.checkout.checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer'));
+        return view('store.checkout.checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type'));
     }
 
 
