@@ -134,7 +134,10 @@
                                 POS(point of sale)
                             </td>
 
-
+                            @elseif ($row->order_from == 0)
+                            <td class="text-left">
+                                POS(Web)
+                            </td>
                             @else
 
                             <td class="text-left">

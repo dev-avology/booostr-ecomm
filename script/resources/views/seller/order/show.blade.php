@@ -137,7 +137,7 @@
                             $credit_card_fee = 0;
                             $booster_platform_fee = 0;
                             $shipping_price = $shipping_price ?? 0;
-                            if (!empty($ordermeta)) {
+                            if (!empty($ordermeta) && $info->getway->name !== 'cash') {
                                 $credit_card_fee = $ordermeta->credit_card_fee;
                                 $booster_platform_fee = $ordermeta->booster_platform_fee;
                             }
@@ -156,6 +156,7 @@
 
                         @endphp
 
+                       @if($info->getway->name !== 'cash')
                         <li class="list-group-item">
                             <div class="row align-items-center text-grey">
                                 <div class="col-9 text-right">{{ __('Credit Card Processing ') }}</div>
@@ -173,6 +174,7 @@
                                 <div class="col-3 text-right">{{ currency_formate($booster_platform_fee) }}</div>
                             </div>
                         </li>
+                       
                         <li class="list-group-item">
                             <div class="row align-items-center text-grey">
                                 <div class="col-9 text-right">
@@ -183,6 +185,7 @@
                                     {{ currency_formate($info->total - $credit_card_fee - $booster_platform_fee) }}</div>
                             </div>
                         </li>
+                        @endif
                     </ul>
                 </div>
                 <div class="card-footer">
@@ -239,7 +242,7 @@
                                 </div>
                                 @php
                                 $shipping_servics = ['FedEx','UPS','US Postal Service'];
-                                if($order_type != 'Digital'){
+                                if($info->shippingwithinfo !== null && $order_type != 'Digital'){
                                 @endphp
                               <div class="col-sm-4" id="hiddenChooseTracking" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;" @endif>
                                     <div class="form-group text-left">
@@ -333,7 +336,7 @@
                     <div class="card-header" style="justify-content: space-between;">
                         <h4>{{ __('Status') }}</h4>
 
-                        @if ($info->payment_status == 4)
+                        @if ($info->payment_status == 4  && $info->getway->name !== 'cash')
                             <div class="capture-btn">
                                 <form method="POST" action="{{ route('seller.order.capture', $info->id) }}">
                                     @csrf
@@ -343,7 +346,7 @@
                             </div>
                         @endif
 
-                        @if ($info->payment_status == 1)
+                        @if ($info->payment_status == 1 && $info->getway->name !== 'cash')
                         <div class="capture-btn">
                             <!-- Trigger Modal -->
                             <button type="button" class="btn btn-primary float-right mt-2 text-right" 
