@@ -139,9 +139,9 @@
                             $credit_card_fee = 0;
                             $booster_platform_fee = 0;
                             $shipping_price = $shipping_price ?? 0;
-                            if (!empty($ordermeta) && $info->getway->name !== 'cash') {
-                                $credit_card_fee = $ordermeta->credit_card_fee;
-                                $booster_platform_fee = $ordermeta->booster_platform_fee;
+                            if (!empty($ordermeta) && $info->getway->name !== 'cash' ) {
+                                $credit_card_fee = isset($ordermeta->credit_card_fee) ? $ordermeta->credit_card_fee : 0;
+                                $booster_platform_fee =isset($ordermeta->booster_platform_fee) ? $ordermeta->booster_platform_fee : 0 ;
                             }
 
                         @endphp

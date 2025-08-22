@@ -63,6 +63,7 @@
                         <div class="invoice-bill-to">
                             <div class="row">
                                 <div class="col-lg-6">
+                                    @if($order_type !== 'Digital')
                                     <div class="invoice-bill-form">
                                         <h5><strong>SHIP TO:</strong></h5>
                                      
@@ -76,6 +77,8 @@
                                             <p>{{ $order->user->email ?? '' }}</p>
                                         </div>
                                     </div>
+                                     @endif
+
                                 </div>
                                 <div class="col-lg-6">
                                     <div class="invoice-table-area">
@@ -136,11 +139,13 @@
                                                 <td>SUBTOTAL</td>
                                                 <td style="text-align: right;">{{ currency_formate($subtotal) }}</td>
                                             </tr>
+                                            @if($order_type !== 'Digital')
                                             @php  $shipping_price = $order->shippingwithinfo->shipping_price ?? 0; @endphp
                                             <tr>
                                                 <td>Shipping Fee</td>
                                                 <td style="text-align: right;">{{ currency_formate($shipping_price) }}</td>
                                             </tr>
+                                             @endif
                                             <tr>
                                                 <td>TAX</td>
                                                 <td style="text-align: right;">{{ currency_formate($order->tax) }}</td>

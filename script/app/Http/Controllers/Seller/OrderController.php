@@ -16,6 +16,8 @@ use Auth;
 use DB;
 use App\Models\Getway;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
+
 
 class OrderController extends Controller
 {
@@ -102,6 +104,31 @@ class OrderController extends Controller
         $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
         $ordermeta=json_decode($order->ordermeta->value ?? '');
         $order_status=Category::where([['type','status'],['status',1]])->where('id','!=',3)->orderBy('featured','ASC')->get();
+        $product_type = Category::where('type', 'product_type')->select('id','slug', 'name')->orderBy('id', 'ASC')->get();
+       
+        $selected_product_type = [];
+
+        foreach ($order->orderitems ?? [] as $row){
+        $p_types = $product_type->pluck('id')->all();
+        
+        $selected_product_type[] = $row->term->termcategories
+            ->pluck('category_id')
+            ->intersect($p_types)
+            ->values()
+            ->all();
+        }
+     
+        $selected_product_type = Arr::flatten($selected_product_type);
+
+        $count = count($selected_product_type);
+
+        $order_type = match (true) {
+            $count > 1 => 'Mixed',
+            $count === 1 => optional(
+                $product_type->firstWhere('id', $selected_product_type[0])
+            )->slug === 'digital_product' ? 'Digital' : 'Goods',
+            default => 'Goods',
+        };
 
         if ($order->order_method == 'delivery') {
            $riders=User::where('role_id',5)->latest()->get();
@@ -110,7 +137,7 @@ class OrderController extends Controller
             $riders=[];
         }
 
-        return view('seller.order.invoice_print',compact('order','ordermeta','order_status','riders'));
+        return view('seller.order.invoice_print',compact('order','ordermeta','order_status','riders','order_type'));
     }
 
     /**
@@ -284,6 +311,32 @@ class OrderController extends Controller
         $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
         $ordermeta=json_decode($order->ordermeta->value ?? '');
         $order_status=Category::where([['type','status'],['status',1]])->orderBy('featured','ASC')->get();
+        $product_type = Category::where('type', 'product_type')->select('id','slug', 'name')->orderBy('id', 'ASC')->get();
+       
+        $selected_product_type = [];
+
+        foreach ($order->orderitems ?? [] as $row){
+        $p_types = $product_type->pluck('id')->all();
+        
+        $selected_product_type[] = $row->term->termcategories
+            ->pluck('category_id')
+            ->intersect($p_types)
+            ->values()
+            ->all();
+        }
+     
+        $selected_product_type = Arr::flatten($selected_product_type);
+
+        $count = count($selected_product_type);
+
+        $order_type = match (true) {
+            $count > 1 => 'Mixed',
+            $count === 1 => optional(
+                $product_type->firstWhere('id', $selected_product_type[0])
+            )->slug === 'digital_product' ? 'Digital' : 'Goods',
+            default => 'Goods',
+        };
+
 
         if ($order->order_method == 'delivery') {
            $riders=User::where('role_id',5)->latest()->get();
@@ -291,7 +344,7 @@ class OrderController extends Controller
         else{
             $riders=[];
         }
-        return view('seller.order.invoice_print',compact('order','ordermeta','order_status','riders'));
+        return view('seller.order.invoice_print',compact('order','ordermeta','order_status','riders','product_type','order_type'));
     }
 
     public function capture($id)
