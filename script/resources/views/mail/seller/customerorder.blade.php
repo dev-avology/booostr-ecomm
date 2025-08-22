@@ -146,7 +146,7 @@
         </table>
 
 
-        @if ($data['data']['status_id'] == '1')
+        @if ($data['data']['status_id'] == '1' && $order_type !== 'Digital')
             <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff;">
                 <tr>
                     <td colspan="2">
@@ -318,7 +318,7 @@
                 </tr>
             </tbody>
         </table>
-
+         @if($order_type !== 'Digital')
         <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
             <tbody>
                 <tr>
@@ -373,6 +373,7 @@
                 </tr>
             </tbody>
         </table>
+         @endif
 
         <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
             <tbody>
@@ -504,6 +505,7 @@
                         </p>
                     </td>
                 </tr>
+                @if( $order_type !== 'Digital')
                 <tr>
                     <th style="text-align: right;width: 70%;">
                         <h5
@@ -521,6 +523,8 @@
                         </p>
                     </td>
                 </tr>
+               @endif
+
                 <tr>
                     <th style="text-align: right;width: 70%;" class="spac-btm">
                         <h5
