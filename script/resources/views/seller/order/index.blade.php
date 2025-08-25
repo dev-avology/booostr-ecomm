@@ -134,7 +134,10 @@
                                 POS(point of sale)
                             </td>
 
-
+                            @elseif ($row->order_from == 0)
+                            <td class="text-left">
+                                POS(Web)
+                            </td>
                             @else
 
                             <td class="text-left">
@@ -163,9 +166,9 @@
                                 <span class="badge badge-warning">{{ __('Pending') }}</span>
                                 @elseif($row->payment_status==1)
 
-                                     @if($row->order_from == 4)
+                                     @if($row->order_from == 4 || ($row->order_from == 0 && $row->getway->name !== 'cash'))
                                         <span class="badge badge-success">{{ __('CC Complete') }}</span>
-                                     @elseif($row->order_from == 5)
+                                     @elseif($row->order_from == 5 || ($row->order_from == 0 && $row->getway->name == 'cash'))
                                         <span class="badge badge-success">{{ __('Cash Complete') }}</span>
                                      @else
                                         <span class="badge badge-success">{{ __('Complete') }}</span>
@@ -189,6 +192,10 @@
                                 @if($row->order_from == 4 || $row->order_from == 5)
 
                                 <span class="badge badge-success text-white" style="background-color:#028a74">POS (In Person)</span>
+
+                                @elseif($row->order_from == 0)
+
+                                <span class="badge badge-success text-white" style="background-color:#028a74">POS (Web)</span>
 
                                 @else
 
