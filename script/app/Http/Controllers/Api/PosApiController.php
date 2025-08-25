@@ -113,8 +113,9 @@ class PosApiController extends Controller
        $posts = Category::where('type', 'category')->whereNull('category_id')
         ->with('preview', 'icon','recursiveChildren')
         ->withCount('products')
-        ->whereDoesntHave('show_on', function ($query) {
-            $query->where('type', 'show_on')->whereIn('content', ['all','pos_only']);
+        ->whereHas('show_on', function ($query) {
+            $query->where('type', 'show_on')
+                  ->whereIn('content', ['all', 'pos_only']);
         })
         ->get();
 
