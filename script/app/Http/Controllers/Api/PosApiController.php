@@ -600,7 +600,9 @@ class PosApiController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            return response()->json(['message' => 'Required fields are missing'], 422);
+            return response()->json([
+                'errors' => $validator->errors()
+            ], 422);
         }
 
 
