@@ -594,7 +594,7 @@ class PosApiController extends Controller
             'payment_details' => 'required',
 
             'items' => 'required|array',
-            'payment_identifiers' => 'required|in:card,terminal',
+            'payment_identifiers' => 'required|in:card,terminal|cash',
         ];
         
         $validator = Validator::make($request->all(), $rules);
@@ -604,6 +604,8 @@ class PosApiController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
+
+        $payment_identifiers = $request->payment_identifiers;
 
 
         $subtotal = $request->order_subtotal;
@@ -615,10 +617,13 @@ class PosApiController extends Controller
         $order_method='delivery';
         $notify_driver='mail';
 
-        // $credit_card_fee = 0.00;
-        // $booster_platform_fee = 0.00;
+        $credit_card_fee_raw = 0.00;
+        $booster_platform_fee_raw = 0.00;
 
-        $credit_card_fee_raw = credit_card_fee_for_pos($total_amount,$request->payment_identifiers);        // 2.9% + $0.30
+        if($payment_identifiers != 'cash'){
+            $credit_card_fee_raw = credit_card_fee_for_pos($total_amount,$payment_identifiers);        // 2.9% + $0.30
+        }
+
         $booster_platform_fee_raw = booster_club_chagre($total_amount); // 1.75% or 3.5%
 
         $credit_card_fee = (float)$credit_card_fee_raw;
