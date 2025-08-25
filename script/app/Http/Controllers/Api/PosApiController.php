@@ -594,7 +594,7 @@ class PosApiController extends Controller
             'payment_details' => 'required',
 
             'items' => 'required|array',
-            'payment_identifiers' => 'required|in:card,terminal|cash',
+            'payment_identifiers' => 'required|in:card,terminal,cash',
         ];
         
         $validator = Validator::make($request->all(), $rules);
