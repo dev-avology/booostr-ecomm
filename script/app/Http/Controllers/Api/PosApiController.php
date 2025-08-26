@@ -796,7 +796,7 @@ class PosApiController extends Controller
             if(isset($order->ordermeta)){
 
                 $ordermeta=json_decode($order->ordermeta->value ?? '',true);
-        }
+            }
 
             
 
@@ -1934,6 +1934,27 @@ class PosApiController extends Controller
 
 
 public function posEmailSend(Request $request){
+
+   
+    $rules = [
+        'club_name'     => ['required', 'string'],
+        'orderId'       => ['required', 'integer'],
+        'wpuid'         => ['nullable', 'integer'],
+        'client_name'   => ['required', 'string', 'max:255'],
+        'client_email'  => ['required', 'email', 'max:255'],
+        'phone_number'  => ['required', 'string', 'max:20'],
+        'created_at'    => ['required', 'date'],
+    ];
+    
+    $validator = Validator::make($request->all(), $rules);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+
     $orderData = $request->all();
 
     if(!empty($orderData)){
@@ -1948,9 +1969,10 @@ public function posEmailSend(Request $request){
         $order=Order::with('user','ordermeta','orderitems','orderstatus')->where('id',$orderId)->first();
         
 
-
         $subject="Receipt for your purchase from ".$orderData['club_name']." on ".$orderData['created_at'];
-        $mail = new PosUserEmail($order,$subject);
+        
+        $mail = new PosUserEmail($orderData,$subject);
+        
         $to = $orderData['client_email'] ?? '';
         // $to = 'ashishyadav.avology@gmail.com';
         $email = Mail::to($to)->send($mail);
@@ -2000,7 +2022,7 @@ public function posEmailSend(Request $request){
              'order_subtotal'=>$subtotal,
          ];
 
-        $recipt =  $this->send_order_recipts($user_recipt);
+       // $recipt =  $this->send_order_recipts($user_recipt);
 
         if(isset($recipt)){
             return response()->json(['error'=>false,'message'=>'Email sent successfully.']);
