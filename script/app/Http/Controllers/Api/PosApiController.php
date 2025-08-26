@@ -24,9 +24,9 @@ use Illuminate\Support\Facades\Session;
 use App\Mail\PosUserEmail;
 use Cart;
 use Mail;
-use DB;
-use Auth;
-use Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
 use Exception;
 use Stripe\Stripe;
 use Stripe\Token;
@@ -113,8 +113,9 @@ class PosApiController extends Controller
        $posts = Category::where('type', 'category')->whereNull('category_id')
         ->with('preview', 'icon','recursiveChildren')
         ->withCount('products')
-        ->whereDoesntHave('show_on', function ($query) {
-            $query->where('type', 'show_on')->whereIn('content', ['all','pos_only']);
+        ->whereHas('show_on', function ($query) {
+            $query->where('type', 'show_on')
+                  ->whereIn('content', ['all', 'pos_only']);
         })
         ->get();
 
@@ -593,13 +594,18 @@ class PosApiController extends Controller
             'payment_details' => 'required',
 
             'items' => 'required|array',
+            'payment_identifiers' => 'required|in:card,terminal,cash',
         ];
         
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            return response()->json(['message' => 'Required fields are missing'], 422);
+            return response()->json([
+                'errors' => $validator->errors()
+            ], 422);
         }
+
+        $payment_identifiers = $request->payment_identifiers;
 
 
         $subtotal = $request->order_subtotal;
@@ -611,76 +617,30 @@ class PosApiController extends Controller
         $order_method='delivery';
         $notify_driver='mail';
 
-        $credit_card_fee = 0.00;
-        $booster_platform_fee = 0.00;
+        $credit_card_fee_raw = 0.00;
+        $booster_platform_fee_raw = 0.00;
 
-        if( $request->payment_method == 'card' ){ // Payment Method: CARD
-            // Generate Stripe Token by cccc
-            try {
-                $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
-                $gateway_data_info = json_decode($gateway->data);
+        if($payment_identifiers != 'cash'){
+            $credit_card_fee_raw = credit_card_fee_for_pos($total_amount,$payment_identifiers);        // 2.9% + $0.30
+        }
 
-                Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_publishable_key : $gateway_data_info->publishable_key);
+        $booster_platform_fee_raw = booster_club_chagre($total_amount); // 1.75% or 3.5%
 
-                $token = Token::create([
-                    'card' => [
-                        'number' => $request->payment_details['card_details']['cardNumber'],
-                        'exp_month' => substr($request->payment_details['card_details']['expirationDate'], 0, 2),
-                        'exp_year' => substr($request->payment_details['card_details']['expirationDate'], 3, 2),
-                        'cvc' => $request->payment_details['card_details']['cvc'],
-                    ],
-                ]);
-            } catch (InvalidRequestException $e) {
-                return response()->json(['error' => $e->getMessage()], 500);
-            }
+        $credit_card_fee = (float)$credit_card_fee_raw;
+        $booster_platform_fee = (float)$booster_platform_fee_raw;
+        
+        // ROUND UP to 2 decimal places as client requested
+        $credit_card_fee = ceil($credit_card_fee * 100) / 100; 
+        $booster_platform_fee = ceil($booster_platform_fee * 100) / 100; 
 
-            // Set Stripe API keys
-            if( $gateway->test_mode ){
-                $payment_data['test_publishable_key'] = $gateway_data_info->test_publishable_key;
-                $payment_data['test_secret_key'] = $gateway_data_info->test_secret_key;
-            }else{
-                $payment_data['publishable_key'] = $gateway_data_info->publishable_key;
-                $payment_data['secret_key'] = $gateway_data_info->secret_key;
-            }
-
-            // Set Payment Data
-            $payment_data['currency']   = strtoupper($gateway->currency_name) ?? 'USD';
-            $payment_data['name']       = $request->payment_details['card_details']['cardholderName'];
-            $payment_data['billName']   = 'Boostr Sale';
-            $payment_data['amount']     = $total_amount;
-            $payment_data['application_fee_amount']  = 0.00;
-            $payment_data['credit_card_fee']  = 0.00;
-            $payment_data['test_mode']  = $gateway->test_mode;
-            $payment_data['charge']     = 0.00;
-            $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount ?? 0,2));
-            $payment_data['getway_id']  = $gateway->id;
-            $payment_data['stripeToken']=$token->id;
-            $payment_data['pos']=true;
-
-            // Charge Payment
-            $chargePayment= $gateway->namespace::charge_payment($payment_data);
-            
-            // Return Payment Error Message
-            if($chargePayment['payment_status'] != 4){
-                return response()->json(['status' => false, 'message' => 'Sorry, we couldnt charge your card, please try another card', 'paymentresult'=>$chargePayment], 200);
-            }
-
-            $payment_data['transaction_id'] = $chargePayment['payment_id'];
-
-            // Capture Payment
-            $paymentresult= $gateway->namespace::capture_payment($payment_data);
-
-            // Return Payment Error Message
-            if($paymentresult['payment_status'] != 1){
-                return response()->json(['status' => false, 'message' => 'Sorry, we couldnt charge your card, please try another card', 'paymentresult'=>$paymentresult], 200);
-            }
-        } elseif ( $request->payment_method == 'reader' ) {
+        if( ($request->payment_method == 'card') ||  ($request->payment_method == 'reader')){
             $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
         } else { // Payment Method: CASH
             $gateway=Getway::where('name','cash')->first();
-        } // Payment Method specific code END
+        }
 
         DB::beginTransaction();
+
         try {
             // Insert New Order
             $order = new Order;
@@ -699,8 +659,17 @@ class PosApiController extends Controller
             $order->order_method = $order_method ?? 'delivery';
             $order->order_from = $request->payment_method == 'card' || $request->payment_method == 'reader' ? 4 : 5;  // 4 is for card and 5 is for cash
             $order->notify_driver = $notify_driver;
-            $order->transaction_id = $request->payment_method == 'card' ? $paymentresult['payment_id'] : null;
-            $order->transaction_id = $request->payment_method == 'reader' ? $request->payment_details['charges'][0]['id'] : null;
+            // Set transaction_id based on payment method
+            if ($request->payment_method == 'card') {
+                // For card payments, get transaction_id from payment_details like card reader
+                $order->transaction_id = $request->payment_details['charges'][0]['id'] ?? null;
+            } elseif ($request->payment_method == 'reader') {
+                // For card reader payments
+                $order->transaction_id = $request->payment_details['charges'][0]['id'] ?? null;
+            } else {
+                // For cash payments
+                $order->transaction_id = null;
+            }
             $order->payment_status = 1;
             $order->placed_at = Carbon::now()->setTimezone($request->timezone);
             $order->captured_at = Carbon::now()->setTimezone($request->timezone);
@@ -785,16 +754,16 @@ class PosApiController extends Controller
                     'value' => json_encode($customer_info)
                 ]);
 
-                $transcation_log = new Ordermeta;
-                $transcation_log->order_id = $order->id;
-                $transcation_log->key = 'transcation_log';
-                $transcation_log->value = json_encode($paymentresult['transaction_log']);
-                $transcation_log->save();
+                // $transcation_log = new Ordermeta;
+                // $transcation_log->order_id = $order->id;
+                // $transcation_log->key = 'transcation_log';
+                // $transcation_log->value = json_encode($paymentresult['transaction_log']);
+                // $transcation_log->save();
 
-                $order->orderlasttrans()->create([
-                    'key' => 'last_transcation_log',
-                    'value' => json_encode($paymentresult['transaction_log'])
-                ]);
+                // $order->orderlasttrans()->create([
+                //     'key' => 'last_transcation_log',
+                //     'value' => json_encode($paymentresult['transaction_log'])
+                // ]);
             }
 
             if (count($priceids) != 0) {
@@ -827,7 +796,7 @@ class PosApiController extends Controller
             if(isset($order->ordermeta)){
 
                 $ordermeta=json_decode($order->ordermeta->value ?? '',true);
-        }
+            }
 
             
 
@@ -1965,6 +1934,27 @@ class PosApiController extends Controller
 
 
 public function posEmailSend(Request $request){
+
+   
+    $rules = [
+        'club_name'     => ['required', 'string'],
+        'orderId'       => ['required', 'integer'],
+        'wpuid'         => ['nullable', 'integer'],
+        'client_name'   => ['required', 'string', 'max:255'],
+        'client_email'  => ['required', 'email', 'max:255'],
+        'phone_number'  => ['required', 'string', 'max:20'],
+        'created_at'    => ['required', 'date'],
+    ];
+    
+    $validator = Validator::make($request->all(), $rules);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+
     $orderData = $request->all();
 
     if(!empty($orderData)){
@@ -1979,9 +1969,10 @@ public function posEmailSend(Request $request){
         $order=Order::with('user','ordermeta','orderitems','orderstatus')->where('id',$orderId)->first();
         
 
-
         $subject="Receipt for your purchase from ".$orderData['club_name']." on ".$orderData['created_at'];
-        $mail = new PosUserEmail($order,$subject);
+        
+        $mail = new PosUserEmail($orderData,$subject);
+        
         $to = $orderData['client_email'] ?? '';
         // $to = 'ashishyadav.avology@gmail.com';
         $email = Mail::to($to)->send($mail);
@@ -2031,7 +2022,7 @@ public function posEmailSend(Request $request){
              'order_subtotal'=>$subtotal,
          ];
 
-        $recipt =  $this->send_order_recipts($user_recipt);
+       // $recipt =  $this->send_order_recipts($user_recipt);
 
         if(isset($recipt)){
             return response()->json(['error'=>false,'message'=>'Email sent successfully.']);
@@ -2084,28 +2075,101 @@ private function send_order_recipts($data){
         // Check if the required fields are present
         $rules = [
             'order_total' => 'required|numeric',
+            'payment_identifiers' => 'required|in:card,terminal',
         ];
         
         $validator = Validator::make($request->all(), $rules);
     
         if ($validator->fails()) {
-            return response()->json(['message' => 'Incorrect order amount.'], 422);
+            return response()->json([
+                'message' => $validator->errors()->first() // return the first error message
+            ], 422);
         }
         
-        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
-        $gateway_data_info = json_decode($gateway->data);
+        $order_total = $request->order_total;
+        
+        // Use existing helper functions for fee calculation (same as current system)
+        $credit_card_fee_raw = credit_card_fee_for_pos($order_total,$request->payment_identifiers);        // 2.9% + $0.30
+        $booster_platform_fee_raw = booster_club_chagre($order_total); // 1.75% or 3.5%
 
+        
+        // Convert string values to float before applying ceil() - this fixes the calculation issue
+        $credit_card_fee = (float)$credit_card_fee_raw;
+        $booster_platform_fee = (float)$booster_platform_fee_raw;
+        
+        // ROUND UP to 2 decimal places as client requested
+        $credit_card_fee = ceil($credit_card_fee * 100) / 100;        // $1.4356 → $1.44
+        $booster_platform_fee = ceil($booster_platform_fee * 100) / 100; // $2.8767 → $2.88
+        
+        // Calculate total application fee (same as existing Stripe.php)
+        $total_application_fee = $credit_card_fee + $booster_platform_fee;
+        
+        // Calculate what club receives
+        $club_receives = $order_total - $total_application_fee;
+        
+        $gateway = Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        if (!$gateway) {
+            return response()->json(['message' => 'Stripe gateway not configured.'], 500);
+        }
+        
+        $gateway_data_info = json_decode($gateway->data);
+        
+        // Validate that stripe_account_id is configured
+        if (empty($gateway_data_info->stripe_account_id)) {
+            return response()->json(['message' => 'Stripe account ID not configured.'], 500);
+        }
+        
         Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
-        // Stripe::setApiKey("sk_test_51O0HZtGn6XA9jaoswlEvwvQIuXHWGYBHqx07Zc9AnUMKRMkPXwaayWg4IzB0MABtf4Ffa09FzUl7yaQOmtMOlZpd00bxrrQw9h");
-    
-        $intent = PaymentIntent::create([
-                      'amount' => $request->order_total*100,
-                      'currency' => 'usd',
-                      'payment_method_types' => ['card_present'],
-                      'capture_method' => 'automatic',
-                    ]);
-    
-        return response()->json(["status" => true, "client_secret" => $intent->client_secret]);
+
+        $booostr_stripe_account = $gateway_data_info->stripe_account_id;
+     
+        try {
+            // Create PaymentIntent with automatic fee transfer to Booostr
+            $intent = PaymentIntent::create([
+                'amount' => round($order_total * 100), // Convert to cents
+                'currency' => 'usd',
+                'payment_method_types' => ['card_present', 'card'],
+                'capture_method' => 'automatic',
+                'transfer_data' => [
+                    'destination' => $booostr_stripe_account, // Booostr's Stripe account
+                    'amount' => round($total_application_fee * 100), // Rounded Booostr fee gets transferred
+                ],
+                'metadata' => [
+                    'credit_card_fee' => number_format($credit_card_fee, 2),
+                    'booster_platform_fee' => number_format($booster_platform_fee, 2),
+                    'total_fees' => number_format($total_application_fee, 2),
+                    'club_receives' => number_format($club_receives, 2),
+                ],
+            ]);
+
+            \Log::info($intent);
+            
+            return response()->json([
+                "status" => true, 
+                "client_secret" => $intent->client_secret,
+                "payment_intent_id" => $intent->id,
+                "fee_breakdown" => [
+                    "order_total" => number_format($order_total, 2),
+                    "credit_card_fee" => number_format($credit_card_fee, 2),
+                    "booster_platform_fee" => number_format($booster_platform_fee, 2),
+                    "total_fees" => number_format($total_application_fee, 2),
+                    "club_receives" => number_format($club_receives, 2),
+                    "fee_collection_method" => 'automatic_transfer'
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('PaymentIntent creation failed: ' . $e->getMessage(), [
+                'order_total' => $order_total,
+                'credit_card_fee' => $credit_card_fee,
+                'booster_platform_fee' => $booster_platform_fee,
+                'stripe_account_id' => $booostr_stripe_account
+            ]);
+            
+            return response()->json([
+                'message' => 'Error creating payment intent: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
 }

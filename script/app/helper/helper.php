@@ -532,6 +532,14 @@ function credit_card_fee($total){
   return number_format($total * 0.029 + 0.30,2);
 }
 
+function credit_card_fee_for_pos($total,$payment_identifiers){
+	if($payment_identifiers == 'card'){
+		return number_format($total * 0.029 + 0.30,2);
+	}else{
+		return number_format($total * 0.027 + 0.05,2); // 2.7% + $0.05 for POS/terminal
+	}
+}
+
 
 function tenant_club_is_pro(){
 
