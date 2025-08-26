@@ -2022,7 +2022,7 @@ public function posEmailSend(Request $request){
              'order_subtotal'=>$subtotal,
          ];
 
-       // $recipt =  $this->send_order_recipts($user_recipt);
+        $recipt =  $this->send_order_recipts($user_recipt);
 
         if(isset($recipt)){
             return response()->json(['error'=>false,'message'=>'Email sent successfully.']);
