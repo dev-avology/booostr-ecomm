@@ -75,8 +75,8 @@ class PosUserEmail extends Mailable
         };
         
         $data['order_type'] = $order_type;
-        
-       // dd($data);
+
+        $this->data = $data;
 
         return $this->markdown('mail.posusermail')->subject($subject)->with('data', $data);
     }
