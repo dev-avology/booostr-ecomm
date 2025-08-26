@@ -171,7 +171,7 @@
 
                 @php $subtotal = 0; @endphp
 
-                @foreach ($order->orderitems ?? [] as $row)
+                @foreach ($data['data']->orderitems ?? [] as $row)
                     @php
 
                         $variations = json_decode($row->info);
