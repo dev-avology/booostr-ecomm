@@ -291,7 +291,7 @@
                     <tr class="border-style">
                         <td style="width: 100%;padding-left: 15px;font-size: 15px; padding-right: 15px;"
                             class="spac-top spac-btm">
-                            <p style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;    font-weight: 500;"> If you have questions about your order, please don't hesitate to reach out.
+                            <p style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;    font-weight: 500;">If you have questions about your order, please don't hesitate to reach out via email: {{$data['invoice_data']->store_legal_email ?? ""}}
                             <p style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;    font-weight: 500;padding-top: 20px; padding-bottom: 20px;"> Thank You, </p>
                             <p style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;    font-weight: 500;"> {{$data['club_name'] ?? ""}} </p>
                         </td>
