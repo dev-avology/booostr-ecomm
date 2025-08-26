@@ -222,7 +222,7 @@
                         </th>
                         <td style="text-align: right; padding-right: 35px;width: 30%;" class="spac-top">
                             <p style="padding-left: 20px; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; text-align: right;font-size: 16px;font-weight: 500;">
-                                ${{ number_format(subtotal ?? 0, 2) }}</p>
+                                ${{ number_format($subtotal ?? 0, 2) }}</p>
                         </td>
                     </tr>
                     <tr>
