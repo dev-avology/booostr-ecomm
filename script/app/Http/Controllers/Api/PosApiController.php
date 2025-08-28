@@ -1942,7 +1942,6 @@ public function posEmailSend(Request $request){
         'wpuid'         => ['nullable', 'integer'],
         'client_name'   => ['required', 'string', 'max:255'],
         'client_email'  => ['required', 'email', 'max:255'],
-        'phone_number'  => ['required', 'string', 'max:20'],
         'created_at'    => ['required', 'date'],
     ];
     
@@ -2123,6 +2122,7 @@ private function send_order_recipts($data){
 
         $booostr_stripe_account = $gateway_data_info->stripe_account_id;
      
+
         try {
             // Create PaymentIntent with automatic fee transfer to Booostr
             $intent = PaymentIntent::create([
@@ -2130,9 +2130,9 @@ private function send_order_recipts($data){
                 'currency' => 'usd',
                 'payment_method_types' => ['card_present', 'card'],
                 'capture_method' => 'automatic',
+                'application_fee_amount' => round($total_application_fee * 100),
                 'transfer_data' => [
                     'destination' => $booostr_stripe_account, // Booostr's Stripe account
-                    'amount' => round($total_application_fee * 100), // Rounded Booostr fee gets transferred
                 ],
                 'metadata' => [
                     'credit_card_fee' => number_format($credit_card_fee, 2),
