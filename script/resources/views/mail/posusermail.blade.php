@@ -185,6 +185,7 @@
                             style="padding-left: 35px;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 15px;">
                             {{ $row->term->title ?? '' }}
                             @foreach ($options ?? [] as $key => $item)
+                                @if (is_object($item) && isset($item->varition_options))
                               @php $product_options = $item->varition_options; @endphp
                             @foreach($item->varitions as $sel_val)
                                 @php $cur_opt_name = array_filter($product_options,function ($x) use ($sel_val) {
@@ -195,6 +196,7 @@
                              <br><strong>{{reset($cur_opt_name)->category->name}} : </strong>{{$sel_val->name}}
                             @endforeach
                                 <hr>
+                                @endif
                             @endforeach
                         </td>
                         <td class="text-center"
