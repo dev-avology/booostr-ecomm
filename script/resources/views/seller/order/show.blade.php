@@ -577,7 +577,7 @@
                                 <p >High</p>
                             </div> 
                             <span>Chargeback Risk is Not Assessed either because your organization has opted out of fraud assessment OR the payment type is not a credit or debit card (ie. ACH Transfer)</span>
-                        @elseif($info->risk_level == 'low')
+                        @elseif($info->risk_level == 'low' || $info->risk_level == 'normal')
                              <div class="risk-level"> 
                                 <span class="low-risk active"></span>
                                 <span class="medium-risk"></span>
