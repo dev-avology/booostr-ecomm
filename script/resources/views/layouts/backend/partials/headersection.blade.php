@@ -10,6 +10,18 @@
   	<a href="{{ url($button_link) }}" class="btn btn-primary">{{ $button_name }}</a>
   </div>
   @endisset
+
+  @isset($risk_level) 
+
+      @if($risk_level == 'high')
+      <div class="section-header-risk-level">
+        <span class="risk-level-text"><img src="{{ asset('uploads/security-2.png') }}" alt="High"></span>
+        <span class="risk-level-text">High Risk of fraud detected </span>
+      </div>
+    @endif
+
+  @endisset
+
   <div class="section-header-breadcrumb">
   	  @foreach(request()->segments() as $segment)
       <div class="breadcrumb-item">{{ $segment }}</div>
