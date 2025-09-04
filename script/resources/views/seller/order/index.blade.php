@@ -129,12 +129,21 @@
                             </td>
                             <td class="text-left">
                                 <a href="{{ route('seller.order.show',$row->id) }}">{{ $row->invoice_no }}</a> 
-                            
-                                {{ $row->risk_level }}
+                             
+                                <span class="risk-badge">
+                                  @if($row->risk_level == 'not_assessed' || $row->risk_level == 'unknown' || $row->risk_level == 'low')
+                                    <span class="risk-badge-text"><img src="{{ asset('uploads/security-1.png') }}" alt="Low"></span>
+                                  @elseif($row->risk_level == 'medium')
+                                    <span class="risk-badge-text"><img src="{{ asset('uploads/security-2.png') }}" alt="Medium"></span>
+                                  @elseif($row->risk_level == 'high')
+                                    <span class="risk-badge-text"><img src="{{ asset('uploads/security-2.png') }}" alt="High"></span>
+                                  @endif
+
+                                </span>
                             </td>
 
                             <td><a href="{{ route('seller.order.show',$row->id) }}">{{ $row->created_at->format('d-F-Y') }}</a></td>
-                            
+
                             <td>
                                @if($row->user_id == null && $row->order_from == 1  )
                                  {{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}} 
