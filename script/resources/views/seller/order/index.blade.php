@@ -134,7 +134,7 @@
                                   @if($row->risk_level == 'not_assessed' || $row->risk_level == 'unknown' || $row->risk_level == 'low')
                                     <span class="risk-badge-text"><img src="{{ asset('uploads/security-1.png') }}" alt="Low"></span>
                                   @elseif($row->risk_level == 'medium')
-                                    <span class="risk-badge-text"><img src="{{ asset('uploads/security-2.png') }}" alt="Medium"></span>
+                                    <span class="risk-badge-text"><img src="{{ asset('uploads/security-3.png') }}" alt="Medium"></span>
                                   @elseif($row->risk_level == 'high')
                                     <span class="risk-badge-text"><img src="{{ asset('uploads/security-2.png') }}" alt="High"></span>
                                   @endif

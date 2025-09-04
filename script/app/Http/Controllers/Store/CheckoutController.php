@@ -524,6 +524,7 @@ class CheckoutController extends Controller
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $paymentresult['payment_id'];
             $order->payment_status =$paymentresult['payment_status'];
+            $order->risk_level = $paymentresult['risk_level'];
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
 

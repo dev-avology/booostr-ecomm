@@ -5,6 +5,7 @@
 @section('head')
     @include('layouts.backend.partials.headersection', [
         'title' => $info->invoice_no,
+        'risk_level' => $info->risk_level,
         'prev' => url('seller/order'),
     ])
 @endsection
