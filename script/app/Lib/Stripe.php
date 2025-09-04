@@ -211,10 +211,10 @@ class Stripe {
             $data['getway_id'] = $array['getway_id'];
             $data['payment_type'] = $array['payment_type']??'';
             $data['charge'] = $array['charge'];
+            $data['risk_level'] = $arr_body['outcome']['risk_level'];
             $data['status'] = 1;
             $data['payment_status'] = 4;
-        }
-        else{
+        }else{
             $data['payment_status'] = 0;
         }
         return $data;
