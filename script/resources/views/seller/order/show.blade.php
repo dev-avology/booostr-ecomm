@@ -22,7 +22,7 @@
     margin: 0 auto;
 }
 
-.section-header-risk-level .risk-level-text {
+.section-header-risk-level .risk-level-text1 {
     font-size: 20px;
     color: #fff;
 }

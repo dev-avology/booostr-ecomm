@@ -15,8 +15,8 @@
 
       @if($risk_level == 'high')
       <div class="section-header-risk-level">
-        <span class="risk-level-text"><img src="{{ asset('uploads/security-2.png') }}" alt="High"></span>
-        <span class="risk-level-text">High Risk of fraud detected </span>
+        <span class="risk-level-text1"><img src="{{ asset('uploads/security-2.png') }}" alt="High"></span>
+        <span class="risk-level-text1">High Risk of fraud detected </span>
       </div>
     @endif
 
