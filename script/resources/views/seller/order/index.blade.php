@@ -74,10 +74,10 @@
                             <input type="checkbox" class="custom-control-input checkAll" id="selectAll">
                             <label class="custom-control-label checkAll" for="selectAll"></label>
                             </div></th>
-                            <th class="text-left" >{{ __('Order Channel') }}</th>
                             <th class="text-left" >{{ __('Order') }}</th>
                             <th >{{ __('Date') }}</th>
                             <th>{{ __('Customer') }}</th>
+                            <th class="text-left" >{{ __('Order Channel') }}</th>
                             <th class="text-right">{{ __('total') }}</th>
                             <th>{{ __('Payment') }}</th>
                             <th>{{ __('Fulfillment') }}</th>
@@ -127,6 +127,23 @@
                                     <label class="custom-control-label" for="customCheck{{ $row->id }}"></label>
                                 </div>
                             </td>
+                            <td class="text-left">
+                                <a href="{{ route('seller.order.show',$row->id) }}">{{ $row->invoice_no }}</a> 
+                            
+                                {{ $row->risk_level }}
+                            </td>
+
+                            <td><a href="{{ route('seller.order.show',$row->id) }}">{{ $row->created_at->format('d-F-Y') }}</a></td>
+                            
+                            <td>
+                               @if($row->user_id == null && $row->order_from == 1  )
+                                 {{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}} 
+                                @elseif($row->user_id !== null)
+                                 <a href="{{ route('seller.user.show',$row->user_id) }}">{{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}}</a>
+                                @else 
+                                 {{ __('Guest User') }}
+                                @endif 
+                            </td>
 
                             @if($row->order_from == 4 || $row->order_from == 5)
 
@@ -147,19 +164,6 @@
                             @endif
 
 
-                            <td class="text-left">
-                                <a href="{{ route('seller.order.show',$row->id) }}">{{ $row->invoice_no }}</a>
-                            </td>
-                            <td><a href="{{ route('seller.order.show',$row->id) }}">{{ $row->created_at->format('d-F-Y') }}</a></td>
-                            <td>
-                               @if($row->user_id == null && $row->order_from == 1  )
-                                 {{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}} 
-                                @elseif($row->user_id !== null)
-                                 <a href="{{ route('seller.user.show',$row->user_id) }}">{{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}}</a>
-                                @else 
-                                 {{ __('Guest User') }}
-                                @endif 
-                            </td>
                             <td >{{ currency_formate($row->total) }}</td>
                             <td>
                                 @if($row->payment_status==2)
@@ -185,10 +189,8 @@
                                 <span class="badge badge-warning">{{ __('Refunded') }}</span>
                                 @endif
                             </td>
+
                             <td>
-
-
-
                                 @if($row->order_from == 4 || $row->order_from == 5)
 
                                 <span class="badge badge-success text-white" style="background-color:#028a74">POS (In Person)</span>
