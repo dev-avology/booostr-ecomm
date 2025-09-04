@@ -131,7 +131,7 @@
                                 <a href="{{ route('seller.order.show',$row->id) }}">{{ $row->invoice_no }}</a> 
                              
                                 <span class="risk-badge">
-                                  @if($row->risk_level == 'not_assessed' || $row->risk_level == 'unknown' || $row->risk_level == 'low')
+                                  @if($row->risk_level == 'not_assessed' || $row->risk_level == 'unknown' || $row->risk_level == 'low' || $row->risk_level == 'normal')
                                     <span class="risk-badge-text"><img src="{{ asset('uploads/security-1.png') }}" alt="Low"></span>
                                   @elseif($row->risk_level == 'medium')
                                     <span class="risk-badge-text"><img src="{{ asset('uploads/security-3.png') }}" alt="Medium"></span>
