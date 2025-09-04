@@ -501,6 +501,58 @@
                         @endif
                     </div>
                 </div>
+
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h4>{{ __('Order Risk Level') }}</h4>
+                    </div>
+                    <div class="card-body">
+                        @if ($info->risk_level == 'not_assessed')
+                              <div class="risk-level"> 
+                                <span class="low-risk"></span>
+                                <span class="medium-risk"></span>
+                                <span class="high-risk"></span>
+                             </div> 
+                            <p>{{ __('Not Assessed') }} </p>
+                            <span>Chargeback Risk is Not Assessed either because your organization has opted out of fraud assessment OR the payment type is not a credit or debit card (ie. ACH Transfer)</span>
+                        @elseif($info->risk_level == 'low')
+                             <div class="risk-level"> 
+                                <span class="low-risk active"></span>
+                                <span class="medium-risk"></span>
+                                <span class="high-risk"></span>
+                             </div> 
+                            <p>{{ __('Low') }} </p>
+                            <span>Chargeback Risk is Low, which is normal and can be processed.</span>
+                        @elseif($info->risk_level == 'medium')
+                            <div class="risk-level"> 
+                                <span class="low-risk"></span>
+                                <span class="medium-risk active"></span>
+                                <span class="high-risk"></span>
+                             </div> 
+                            <p>{{ __('Medium') }} </p>
+                            <span>Chargeback Risk is Medium, confirm with customer before capturing payment and fulfilling the order.</span>
+                        @elseif($info->risk_level == 'high')
+                            <div class="risk-level"> 
+                                <span class="low-risk"></span>
+                                <span class="medium-risk"></span>
+                                <span class="high-risk active"></span>
+                             </div> 
+                            <p>{{ __('High') }}</p>
+                            <span>Chargeback Risk is HIGH, consider canceling this order.</span>
+                        @elseif($info->risk_level == 'unknown')
+                            <div class="risk-level"> 
+                                <span class="low-risk"></span>
+                                <span class="medium-risk"></span>
+                                <span class="high-risk"></span>
+                             </div> 
+                            <p>{{ __('Unknown') }} </p>
+                            <span>Chargeback Risk is Unknown due to incomplete risk verification. Review customer order history, this order and make a determination to accept or cancel the order.</span>
+                        @endif
+
+                    </div>
+                </div>
+
+
                 @if (!empty($ordermeta->comment ?? ''))
                     <div class="card card-primary">
                         <div class="card-header">
