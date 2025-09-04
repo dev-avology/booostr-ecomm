@@ -10,6 +10,63 @@
     ])
 @endsection
 
+@section('style')
+<style>
+    .section-header-risk-level {
+    background: #fe0000;
+    color: #fff;
+    padding: 10px;
+    flex-grow: 1;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.section-header-risk-level .risk-level-text {
+    font-size: 20px;
+    color: #fff;
+}
+.risk-level {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr );
+    gap: 5px;
+}
+
+.risk-level span {
+    width: 100%;
+    height: 10px;
+    background: #e0e0e0;
+}
+
+.high-risk.active {
+    background: #fe0000;
+}
+.low-risk.active {
+    background: #84ff8b;
+}
+.medium-risk.active {
+    background: #ffc107;
+}
+
+
+.risk-level-text {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    align-items: center;
+}
+
+.risk-level-text p {
+    margin: 0;
+    text-align: center;
+    opacity: 0;
+}
+
+.risk-level-text p.active {
+    opacity: 1;
+}
+</style>
+@endsection
 @section('content')
     <div class="row" id="order">
         <div class="col-12 col-lg-8">
@@ -509,12 +566,16 @@
                     </div>
                     <div class="card-body">
                         @if ($info->risk_level == 'not_assessed')
-                              <div class="risk-level"> 
+                              <div class="risk-level not-assessed"> 
                                 <span class="low-risk"></span>
                                 <span class="medium-risk"></span>
                                 <span class="high-risk"></span>
                              </div> 
-                            <p>{{ __('Not Assessed') }} </p>
+                             <div class="risk-level-text">
+                                <p>low</p>
+                                <p class="active">Not Assessed</p>
+                                <p >High</p>
+                            </div> 
                             <span>Chargeback Risk is Not Assessed either because your organization has opted out of fraud assessment OR the payment type is not a credit or debit card (ie. ACH Transfer)</span>
                         @elseif($info->risk_level == 'low')
                              <div class="risk-level"> 
@@ -522,15 +583,23 @@
                                 <span class="medium-risk"></span>
                                 <span class="high-risk"></span>
                              </div> 
-                            <p>{{ __('Low') }} </p>
-                            <span>Chargeback Risk is Low, which is normal and can be processed.</span>
+                             <div class="risk-level-text">
+                                <p class="active">Low</p>
+                                <p>Medium</p>
+                                <p>High</p>
+                            </div>                           
+                         <span>Chargeback Risk is Low, which is normal and can be processed.</span>
                         @elseif($info->risk_level == 'medium')
                             <div class="risk-level"> 
                                 <span class="low-risk"></span>
                                 <span class="medium-risk active"></span>
                                 <span class="high-risk"></span>
                              </div> 
-                            <p>{{ __('Medium') }} </p>
+                             <div class="risk-level-text">
+                                <p>low</p>
+                                <p class="active">Medium</p>
+                                <p>High</p>
+                            </div>                
                             <span>Chargeback Risk is Medium, confirm with customer before capturing payment and fulfilling the order.</span>
                         @elseif($info->risk_level == 'high')
                             <div class="risk-level"> 
@@ -538,15 +607,24 @@
                                 <span class="medium-risk"></span>
                                 <span class="high-risk active"></span>
                              </div> 
-                            <p>{{ __('High') }}</p>
+                             <div class="risk-level-text">
+                                <p>low</p>
+                                <p>Medium</p>
+                                <p class="active">High</p>
+                            </div> 
                             <span>Chargeback Risk is HIGH, consider canceling this order.</span>
                         @elseif($info->risk_level == 'unknown')
-                            <div class="risk-level"> 
+                            <div class="risk-level unknown"> 
                                 <span class="low-risk"></span>
                                 <span class="medium-risk"></span>
                                 <span class="high-risk"></span>
                              </div> 
-                            <p>{{ __('Unknown') }} </p>
+
+                             <div class="risk-level-text">
+                                <p>low</p>
+                                <p class="active">Unknown</p>
+                                <p >High</p>
+                            </div> 
                             <span>Chargeback Risk is Unknown due to incomplete risk verification. Review customer order history, this order and make a determination to accept or cancel the order.</span>
                         @endif
 
