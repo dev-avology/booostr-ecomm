@@ -13,9 +13,9 @@
 
   @isset($risk_level) 
 
-      @if($risk_level == 'high')
+      @if($risk_level == 'highest')
       <div class="section-header-risk-level">
-        <span class="risk-level-text1"><img src="{{ asset('uploads/security-2.png') }}" alt="High"></span>
+        <span class="risk-level-text1"><img src="{{ asset('uploads/shiled.png') }}" alt="High"></span>
         <span class="risk-level-text1">High Risk of fraud detected </span>
       </div>
     @endif
