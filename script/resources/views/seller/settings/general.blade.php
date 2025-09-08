@@ -1122,8 +1122,9 @@
                         <label for="" class="col-lg-12">{{ __('Set Your Credit Card Processing Method ') }} </label>
                         <div class="col-lg-12">
                             <select class="form-control selectric" name="credit_card_processing_method">
-                                <option value="auto" @if($credit_card_processing_method == 'auto') selected="" @endif>{{ __('Automatic Capture - Automatically Capture ONLY Low Fraud Risk Orders') }}</option>
                                 <option value="manual" @if($credit_card_processing_method == 'manual') selected="" @endif>{{ __('Manually Approve Orders and Capture Payment') }}</option>
+                                <option value="auto" @if($credit_card_processing_method == 'auto') selected="" @endif>{{ __('Automatic Capture - Automatically Capture ONLY Low Fraud Risk Orders') }}</option>
+                                
                             </select>
                         </div>
                         <small>{{ __('Automatic Capture - Automatically Capture ONLY Low Fraud Risk Orders') }}</small>
