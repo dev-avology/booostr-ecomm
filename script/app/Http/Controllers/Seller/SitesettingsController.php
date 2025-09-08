@@ -144,7 +144,7 @@ class SitesettingsController extends Controller
           $min_cart_total = $min_cart_total ? $min_cart_total->value : 0.00;
 
           $credit_card_processing_method=Option::where('key','credit_card_processing_method')->first();
-          $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'auto';
+          $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
 
            return view('seller.settings.general',compact('languages','lat_lang','address','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings',
            'banner_logo','bannerUrlValue','credit_card_processing_method'));
@@ -549,7 +549,7 @@ class SitesettingsController extends Controller
          TenantCacheClear('measurment_type');
          TenantCacheClear('credit_card_processing_method');
            
-         
+
            return response()->json('General Settings');
         }
         

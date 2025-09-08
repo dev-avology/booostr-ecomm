@@ -530,7 +530,7 @@ class CheckoutController extends Controller
 
             
             $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();
-            $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'auto';
+            $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
 
             if($credit_card_processing_method == 'auto' && $paymentresult['risk_level'] == 'normal'){
             

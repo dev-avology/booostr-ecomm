@@ -1122,10 +1122,15 @@
                         <label for="" class="col-lg-12">{{ __('Set Your Credit Card Processing Method ') }} </label>
                         <div class="col-lg-12">
                             <select class="form-control selectric" name="credit_card_processing_method">
-                                <option value="auto" @if($credit_card_processing_method == 'auto') selected="" @endif>{{ __('Automatic Capture - Automatically Capture ONLY Low Fraud Risk Orders') }}</option>
                                 <option value="manual" @if($credit_card_processing_method == 'manual') selected="" @endif>{{ __('Manually Approve Orders and Capture Payment') }}</option>
+                                <option value="auto" @if($credit_card_processing_method == 'auto') selected="" @endif>{{ __('Automatic Capture - Automatically Capture ONLY Low Fraud Risk Orders') }}</option>
+                                
                             </select>
                         </div>
+                        <small>{{ __('Automatic Capture - Automatically Capture ONLY Low Fraud Risk Orders') }}</small>
+                        <small>{{ __('Manually Approve Orders and Capture Payment') }}</small>  
+                       <p><b>{{ __('The Default method') }}</b> {{ __('means you need to review each transaction, approve it and manually capture each order\'s payment. This is set this way as it is the safest way to protect against fraudulent transactions.') }} </p>
+                       <p><b>The Automatic Capture method</b> {{ __('means you want the system to capture any order that Stripe Radar (fraud analysis) identifies as a LOW RISK of fraud. Any order you receive that Stripe Radar identifies as MEDIUM or HIGH RISK of fraud will still need to reviewed, approved and either manually capture or cancelled.') }} </p>
                     </div>
                     <div class="from-group row mt-2">
                         <div class="col-lg-4">
