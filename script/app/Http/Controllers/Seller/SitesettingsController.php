@@ -143,8 +143,11 @@ class SitesettingsController extends Controller
           $min_cart_total=Option::where('key','min_cart_total')->first();
           $min_cart_total = $min_cart_total ? $min_cart_total->value : 0.00;
 
+          $credit_card_processing_method=Option::where('key','credit_card_processing_method')->first();
+          $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'auto';
+
            return view('seller.settings.general',compact('languages','lat_lang','address','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings',
-           'banner_logo','bannerUrlValue'));
+           'banner_logo','bannerUrlValue','credit_card_processing_method'));
        }
       
     }
@@ -525,6 +528,14 @@ class SitesettingsController extends Controller
          $min_cart_total->value = $request->min_cart_total;
          $min_cart_total->save();
 
+         $credit_card_processing_method=Option::where('key','credit_card_processing_method')->first();
+         if (empty($credit_card_processing_method)) {
+         $credit_card_processing_method=new Option;
+         $credit_card_processing_method->key='credit_card_processing_method';
+         }
+         $credit_card_processing_method->value = $request->credit_card_processing_method;
+         $credit_card_processing_method->save();
+
           
          TenantCacheClear('tax');
          TenantCacheClear('shipping_method');
@@ -532,12 +543,13 @@ class SitesettingsController extends Controller
          TenantCacheClear('min_cart_total');
          TenantCacheClear('whatsapp_settings');
          TenantCacheClear('average_times');
-           TenantCacheClear('invoice_data');
-           TenantCacheClear('autoload');
-           TenantCacheClear('order_settings');
-           TenantCacheClear('measurment_type');
-
+         TenantCacheClear('invoice_data');
+         TenantCacheClear('autoload');
+         TenantCacheClear('order_settings');
+         TenantCacheClear('measurment_type');
+         TenantCacheClear('credit_card_processing_method');
            
+         
            return response()->json('General Settings');
         }
         
