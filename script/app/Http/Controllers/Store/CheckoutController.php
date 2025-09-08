@@ -525,6 +525,9 @@ class CheckoutController extends Controller
             $order->transaction_id = $paymentresult['payment_id'];
             $order->payment_status =$paymentresult['payment_status'];
             $order->risk_level = $paymentresult['risk_level'];
+            if($paymentresult['payment_status'] == 1){
+                $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+            }
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
 
