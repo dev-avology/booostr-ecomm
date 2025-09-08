@@ -525,13 +525,29 @@ class CheckoutController extends Controller
             $order->transaction_id = $paymentresult['payment_id'];
             $order->payment_status =$paymentresult['payment_status'];
             $order->risk_level = $paymentresult['risk_level'];
-            if($paymentresult['payment_status'] == 1){
-                $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
-            }
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
 
             
+            $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();
+            $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'auto';
+
+            if($credit_card_processing_method == 'auto' && $paymentresult['risk_level'] == 'normal'){
+            
+                     $payment_data['transaction_id'] =  $order->transaction_id;
+                         
+                        // dd($payment_data);
+                         
+                     $paymentresult= $gateway->namespace::capture_payment($payment_data);
+                     
+                if($paymentresult['payment_status'] == 1){
+                   $order->payment_status =$paymentresult['payment_status'];
+                   $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                   $order->save(); 
+                }
+            } 
+
+
             if($couponcode != null){
                 $coupon = Coupon::where('code',$couponcode)->first();
                 $coupon->used_count =  $coupon->used_count + 1 ;

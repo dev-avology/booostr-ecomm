@@ -215,18 +215,6 @@ class Stripe {
             $data['status'] = 1;
             $data['payment_status'] = 4;
 
-            $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();
-            $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'auto';
-            if($credit_card_processing_method == 'auto' && $data['risk_level'] == 'normal'){
-
-                 $array['transaction_id'] = $arr_body['id'];
-
-                $paymentresult= self::capture_payment($array);
-                if ($paymentresult['payment_status'] == '1') {
-                    $data['payment_status'] = 1;
-                    $data['transaction_log'] = $paymentresult['transaction_log'];
-                }
-            }
         }else{
             $data['payment_status'] = 0;
         }
