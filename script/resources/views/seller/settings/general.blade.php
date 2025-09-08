@@ -1127,6 +1127,12 @@
                             </select>
                         </div>
                     </div>
+                    <div class="from-group row mt-2">
+                        <div class="col-lg-4">
+                           <button type="submit" class="basicbtn btn btn-primary">{{ __('Save changes') }}</button>
+                        </div>
+                    </div>
+
               </div>
             </div>
           </div>
