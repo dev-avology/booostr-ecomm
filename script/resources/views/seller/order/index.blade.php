@@ -2,6 +2,14 @@
 
 @section('title','Dashboard')
 
+@section('style')
+<style>
+    span.risk-badge-text img {
+        margin-left: 12px;
+    }
+</style>
+@endsection
+
 @section('content')
 
 <section class="section">
@@ -132,15 +140,15 @@
                              
                                 <span class="risk-badge">
                                   @if($row->risk_level == 'normal')
-                                    <span class="risk-badge-text"><img src="{{ asset('uploads/security-1.png') }}" alt="Low"></span>
+                                    <span class="risk-badge-text"  data-toggle="tooltip" data-placement="left" title="Tooltip on left"><img src="{{ asset('uploads/security-1.png') }}" alt="Low"></span>
                                   @elseif($row->risk_level == 'elevated')
-                                    <span class="risk-badge-text"><img src="{{ asset('uploads/security-3.png') }}" alt="Medium"></span>
+                                    <span class="risk-badge-text" data-toggle="tooltip" data-placement="left" title="Tooltip on left"><img src="{{ asset('uploads/security-3.png') }}" alt="Medium"></span>
                                   @elseif($row->risk_level == 'highest')
-                                    <span class="risk-badge-text"><img src="{{ asset('uploads/security-2.png') }}" alt="Highest"></span>
+                                    <span class="risk-badge-text" data-toggle="tooltip" data-placement="left" title="Tooltip on left"><img src="{{ asset('uploads/security-2.png') }}" alt="Highest"></span>
                                   @elseif($row->risk_level == 'unknown')
-                                    <span class="risk-badge-text"><img src="{{ asset('uploads/shiled-5.png') }}" alt="Unknown"></span>
+                                    <span class="risk-badge-text" data-toggle="tooltip" data-placement="left" title="Tooltip on left"><img src="{{ asset('uploads/shiled-5.png') }}" alt="Unknown"></span>
                                   @elseif($row->risk_level == 'not_assessed')
-                                    <span class="risk-badge-text"><img src="{{ asset('uploads/shiled-4.png') }}" alt="Not Assessed"></span>
+                                    <span class="risk-badge-text" data-toggle="tooltip" data-placement="left" title="Tooltip on left"><img src="{{ asset('uploads/shiled-4.png') }}" alt="Not Assessed"></span>
                                   @endif
                                 </span>
                             </td>
