@@ -739,7 +739,7 @@
             </div>
             {{-- /right side --}}
          </div>
-           <div class="row">
+        <div class="row">
             {{-- left side --}}
             <div class="col-lg-4">
                 <h6>{{ __('Store currency') }}</h6>
@@ -847,7 +847,7 @@
 
 
 
-{{-- 
+                      {{-- 
                         <div class="from-group row mb-2">
                             <label for="" class="col-lg-12">{{ __('Regular Shipping Method:') }}
                             </label>
@@ -1110,7 +1110,27 @@
             </div>
             {{-- /right side --}}
         </div>
-
+        <div class="row">
+            <div class="col-lg-4">
+                    <h6>{{ __('Store Order Processing Rules') }}</h6>
+                    <strong>{{ __('Control how you process store order payments') }}</strong>
+            </div>
+          <div class="col-lg-8">
+            <div class="card">
+              <div class="card-body">
+                    <div class="from-group row mb-2">
+                        <label for="" class="col-lg-12">{{ __('Set Your Credit Card Processing Method ') }} </label>
+                        <div class="col-lg-12">
+                            <select class="form-control selectric" name="credit_card_processing_method">
+                                <option value="auto" @if($credit_card_processing_method == 'auto') selected="" @endif>{{ __('Automatic Capture - Automatically Capture ONLY Low Fraud Risk Orders') }}</option>
+                                <option value="manual" @if($credit_card_processing_method == 'manual') selected="" @endif>{{ __('Manually Approve Orders and Capture Payment') }}</option>
+                            </select>
+                        </div>
+                    </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
 
           <div class="row" >
