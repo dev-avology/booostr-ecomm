@@ -6,6 +6,7 @@ use Session;
 use Illuminate\Http\Request;
 use Money\Currency;
 use Money\Money;
+use App\Models\Option;
 
 
 class Stripe {
