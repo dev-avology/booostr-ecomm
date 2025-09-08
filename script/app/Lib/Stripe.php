@@ -166,7 +166,6 @@ class Stripe {
 
             $applicarionfee = ($application_fee_amount + $credit_card_fee)*100;
 
-
             $currency_obj = new Currency($currency);
 
             $applicarionfee = new Money($applicarionfee, $currency_obj);
@@ -214,6 +213,19 @@ class Stripe {
             $data['risk_level'] = $arr_body['outcome']['risk_level'];
             $data['status'] = 1;
             $data['payment_status'] = 4;
+
+            $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();
+            $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'auto';
+            if($credit_card_processing_method == 'auto' && $data['risk_level'] == 'normal'){
+
+                 $array['transaction_id'] = $arr_body['id'];
+
+                $paymentresult= self::capture_payment($array);
+                if ($paymentresult['payment_status'] == '1') {
+                    $data['payment_status'] = 1;
+                    $data['transaction_log'] = $paymentresult['transaction_log'];
+                }
+            }
         }else{
             $data['payment_status'] = 0;
         }
@@ -259,8 +271,8 @@ class Stripe {
             $data['payment_method'] = "stripe";
             $data['status'] = 1;
             $data['payment_status'] = 1;
-        }
-        else{
+
+        }else{
             $data['payment_status'] = 0;
         }
         return $data;
