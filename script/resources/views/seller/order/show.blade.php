@@ -65,6 +65,10 @@
 .risk-level-text p.active {
     opacity: 1;
 }
+
+.risk-level.not-assessed span {
+    background-color: #a9e0ff;
+}
 </style>
 @endsection
 @section('content')
