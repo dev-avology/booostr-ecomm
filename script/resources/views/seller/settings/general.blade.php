@@ -1095,14 +1095,14 @@
                         @endforeach
 
 
-                        <div class="from-group row mt-2">
+                        <!-- <div class="from-group row mt-2">
                        
                             <div class="col-lg-4">
                                <button type="button" class="basicbtn btn btn-primary">{{ __('Save changes') }}</button>
                                <button type="submit" class="basicbtnsbt btn btn-primary" style="display:none">{{ __('Save changes') }}</button>
 
                             </div>
-                        </div>
+                        </div> -->
 
                     </div>
                 </div>
@@ -1124,7 +1124,6 @@
                             <select class="form-control selectric" name="credit_card_processing_method">
                                 <option value="manual" @if($credit_card_processing_method == 'manual') selected="" @endif>{{ __('Manually Approve Orders and Capture Payment') }}</option>
                                 <option value="auto" @if($credit_card_processing_method == 'auto') selected="" @endif>{{ __('Automatic Capture - Automatically Capture ONLY Low Fraud Risk Orders') }}</option>
-                                
                             </select>
                         </div>
 
@@ -1135,10 +1134,13 @@
 
                     </div>
                     <div class="from-group row mt-2">
-                        <div class="col-lg-4">
-                           <button type="submit" class="basicbtn btn btn-primary">{{ __('Save changes') }}</button>
-                        </div>
-                    </div>
+                       
+                       <div class="col-lg-4">
+                          <button type="button" class="basicbtn btn btn-primary">{{ __('Save changes') }}</button>
+                          <button type="submit" class="basicbtnsbt btn btn-primary" style="display:none">{{ __('Save changes') }}</button>
+                       </div>
+                       
+                   </div>
 
               </div>
             </div>
