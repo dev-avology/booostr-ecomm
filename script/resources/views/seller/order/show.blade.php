@@ -148,7 +148,6 @@
                                                 @endphp
                                             <strong>{{reset($cur_opt_name)->category->name}} : </strong>{{$sel_val->name}}<br>
                                             @endforeach
-                                            <hr>
                                             @php $varition_price = $options->price;  
                                              $row->amount = $options->price;
                                             @endphp
