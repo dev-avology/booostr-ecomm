@@ -111,7 +111,9 @@
                                         @php
                                             $variations = json_decode($row->info ?? '');
                                             $options = $variations->options ?? [];
+                                            $varition_price = null;
                                         @endphp
+
                                         <a href="{{ url('/seller/product/' . $row->term->id . '/edit') }}">{{ $row->term->title ?? '' }}
                                             @if ($options == '' && !empty($variations->sku))
                                                 ({{ $row->term->full_id }})
@@ -122,20 +124,38 @@
                                             @endif
                                             <br>
                                         </a>
+                                        @if(is_array($options))
                                         @foreach ($options ?? [] as $key => $item)
                                         @if (is_object($item) && isset($item->varition_options))
                                             @php  $product_options = $item->varition_options; @endphp
                                             @foreach($item->varitions as $sel_val)
                                                 @php $cur_opt_name = array_filter($product_options,function ($x) use ($sel_val) {
                                                     return $x->id == $sel_val->pivot->productoption_id;
-                                                } );
+                                                });
                                                 @endphp
-
                                             <strong>{{reset($cur_opt_name)->category->name}} : </strong>{{$sel_val->name}}<br>
                                             @endforeach
                                                 <hr>
-                                                @endif
+                                            @endif
                                             @endforeach
+                                        @else
+                                          @if(is_object($options) && isset($options->varition_options))
+                                            @php  $product_options = $options->varition_options; @endphp
+                                             @foreach($options->varitions as $sel_val)
+                                                @php $cur_opt_name = array_filter($product_options,function ($x) use ($sel_val) {
+                                                    return $x->id == $sel_val->pivot->productoption_id;
+                                                });
+                                                @endphp
+                                            <strong>{{reset($cur_opt_name)->category->name}} : </strong>{{$sel_val->name}}<br>
+                                            @endforeach
+                                            <hr>
+                                            @php $varition_price = $options->price;  
+                                             $row->amount = $options->price;
+                                            @endphp
+                                            
+                                          @endif
+                                         
+                                        @endif
                                     </div>
                                     <div class="col-3 text-right">
                                         {{ currency_formate($row->amount) }} × {{ $row->qty }}
@@ -207,6 +227,13 @@
                             }
 
                         @endphp
+                        @if($info->shippingwithinfo->shipping_driver == 'local')
+                                @php
+                                       $shippingwithinfo_price = json_decode($info->shippingwithinfo->info ?? '');
+                                       $credit_card_fee = isset($shippingwithinfo_price->credit_card_fee) ? $shippingwithinfo_price->credit_card_fee : 0;
+                                       $booster_platform_fee =isset($shippingwithinfo_price->booster_platform_fee) ? $shippingwithinfo_price->booster_platform_fee : 0 ;
+                                @endphp
+                        @endif
                         <li class="list-group-item">
                             <div class="row align-items-center">
                                 <div class="col-9 text-right">{{ __('Order Total') }}</div>
