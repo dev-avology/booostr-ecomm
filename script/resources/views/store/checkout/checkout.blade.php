@@ -73,6 +73,11 @@ p#show_coupon_error {
 .checkout-main span.price span.old-price{
     text-decoration: line-through;
 }
+span.learn-more {
+    float: inline-end;
+    color: deepskyblue;
+}
+
 @if($order_type == 'Digital')
 .shipping-item,.shipping_method_area,.shipping_same_as_billing{
     display:none !important;
@@ -479,8 +484,11 @@ p#show_coupon_error {
                                                 </div>
                                             </div>
                                             
+                                            <div class="alert alert-success" role="alert">
+                                               <input type="checkbox" id="cover_fee_checkbox" checked value="cover_fee" name="cover_fee_checkbox" />   Yes! I would like to help boostr_club lower their costs by covering the processing fees for this transaction. <span class="learn-more"><a data-bs-toggle="modal" data-bs-target="#transactionModal">Learn More</a> </span>
+                                            </div>
+                                            
                                             <ul>
-                                               
                                                 <li>{{ __('Subtotal') }}
                                                     <span class="cart_subtotal">
                                                         0.00
@@ -498,6 +506,8 @@ p#show_coupon_error {
                                                     </span>
                                                 </li>
                                                 <li class="shipping-item">(+) {{ __('Delivery fee') }}<span class="shipping_fee">0.00</span>
+                                                </li>
+                                                <li class="cover-fee">(+) {{ __('Covered Fees - thank you') }}<span class="cover_fee_amount">0.00</span>
                                                 </li>
 
 
@@ -586,7 +596,8 @@ p#show_coupon_error {
         <input type="hidden" id="latitude" value="{{ tenant('lat') }}">
         <input type="hidden" id="longitude" value="{{ tenant('long') }}">
         <input type="hidden" id="city" value="{{ $invoice_data->store_legal_city ?? '' }}">
-
+        <input type="hidden" id="cover_fee" value="{{ $cover_fee }}">
+        
         <footer class="container">
             <div class="row">
                 <div class="col-lg-12 container" style="text-align:center;">
@@ -599,7 +610,46 @@ p#show_coupon_error {
                 </div>
             </div>
         </footer>
+        
+<!-- Modal -->
+<div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content p-3">
+      <button type="button" class="btn-close ms-auto me-1 mt-1" data-bs-dismiss="modal" aria-label="Close"></button>
 
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-success fw-bold w-100 text-center" id="transactionModalLabel">
+          Covering Transaction Fees Makes A Bigger Impact
+        </h5>
+      </div>
+
+      <div class="modal-body">
+        <div class="row align-items-start">
+          <div class="col-md-4 text-center mb-3 mb-md-0">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Dollar_bill_icon.svg/240px-Dollar_bill_icon.svg.png" 
+                 alt="Money Jar" class="img-fluid" style="max-width:120px;">
+          </div>
+          <div class="col-md-8">
+            <p>
+              Organizations like &lt;booster club&gt; work extremely hard to fundraise and make sure every dollar is spent in the best possible way. 
+              Boooostr’s Platform and connected software tools lower existing technology barriers to allow small nonprofits to grow and make a bigger impact.
+            </p>
+            <p>
+              <strong style="display: block;padding-top: 10px;">Covering transaction fees is always optional.</strong> 
+              Every time you choose to cover fees, you help ensure &lt;booster club&gt; can continue to access the online tools through Boooostr they need AND help maximize every dollar raised to achieve their funding goals and mission quicker.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-link text-muted text-decoration-underline" data-bs-dismiss="modal">
+          close window
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
     @endsection
     @push('js')
@@ -660,7 +710,7 @@ p#show_coupon_error {
             var price = {{ $shipping_price }};
             var credit_card_fee = parseFloat($('#credit_card_fee').val());
             var booster_platform_fee = parseFloat($('#booster_platform_fee').val());
-
+            var cover_fee = parseFloat($('#cover_fee').val());
             var new_total = subtotal;
             var apply_tax_url = "{{ route('checkout.applyTax') }}";
             var store_info = {!! Tenant('club_info') !!};

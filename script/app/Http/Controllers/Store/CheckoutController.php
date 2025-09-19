@@ -353,7 +353,7 @@ class CheckoutController extends Controller
         $grand_total = $total;
        // $grand_total = $total+$credit_card_fee + $booster_platform_fee;
 
-        return view('store.checkout.checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type'));
+        return view('store.checkout.checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee'));
     }
 
 
@@ -452,6 +452,13 @@ class CheckoutController extends Controller
 
        //$total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
        $total_amount = $total_amount;
+       
+       $cover_fee = 0;
+       if($request->cover_fee_checkbox){
+         $cover_fee = $credit_card_fee + $booster_platform_fee;          
+       }
+
+       $total_amount = $total_amount+$cover_fee;
 
        $revenue = $total_amount-($tax + $booster_platform_fee + $credit_card_fee);
 
@@ -601,6 +608,7 @@ class CheckoutController extends Controller
                 $delivery_info['shipping_label'] = $shipping_method_label;
                 $delivery_info['credit_card_fee'] = $credit_card_fee;
                 $delivery_info['booster_platform_fee'] = $booster_platform_fee;
+                $delivery_info['cover_fee'] = $cover_fee;
 
                 $order->shipping()->create([
                     'location_id' => $request->location,
@@ -622,6 +630,7 @@ class CheckoutController extends Controller
                 $customer_info['shipping'] = $request->shipping ?? "";
                 $customer_info['credit_card_fee'] = $credit_card_fee;
                 $customer_info['booster_platform_fee'] = $booster_platform_fee;
+                $customer_info['cover_fee'] = $cover_fee;
 
                 $order->ordermeta()->create([
                     'key' => 'orderinfo',
