@@ -352,7 +352,14 @@ class CheckoutController extends Controller
 
         $grand_total = $total;
        // $grand_total = $total+$credit_card_fee + $booster_platform_fee;
-       $cover_fee = $credit_card_fee + $booster_platform_fee;
+       $cover_fee = $grand_total + $credit_card_fee + $booster_platform_fee;
+         
+       $credit_card_fee1 = credit_card_fee($cover_fee);
+
+       $booster_platform_fee1 = booster_club_chagre($cover_fee);
+
+       $cover_fee =  $credit_card_fee1 + $booster_platform_fee1;
+
 
         return view('store.checkout.checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee','cover_fee'));
     }
@@ -452,11 +459,20 @@ class CheckoutController extends Controller
        $booster_platform_fee = booster_club_chagre($total_amount);
 
        //$total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
-       $total_amount = $total_amount;
-       
+
+      
+
+
        $cover_fee = 0;
        if($request->cover_fee_checkbox){
-         $cover_fee = $credit_card_fee + $booster_platform_fee;          
+        $cover_fee = $total_amount + $credit_card_fee + $booster_platform_fee;
+            
+        $credit_card_fee = credit_card_fee($cover_fee);
+
+        $booster_platform_fee = booster_club_chagre($cover_fee);
+
+        $cover_fee =  $credit_card_fee + $booster_platform_fee;  
+        
        }
 
        $total_amount = $total_amount+$cover_fee;

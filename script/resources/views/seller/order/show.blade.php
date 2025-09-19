@@ -220,9 +220,11 @@
                             $credit_card_fee = 0;
                             $booster_platform_fee = 0;
                             $shipping_price = $shipping_price ?? 0;
+                            $cover_fee = $booster_platform_fee + $credit_card_fee;
                             if (!empty($ordermeta) && $info->getway->name !== 'cash' ) {
                                 $credit_card_fee = isset($ordermeta->credit_card_fee) ? $ordermeta->credit_card_fee : 0;
                                 $booster_platform_fee =isset($ordermeta->booster_platform_fee) ? $ordermeta->booster_platform_fee : 0 ;
+                                $cover_fee = isset($ordermeta->cover_fee) ? $ordermeta->cover_fee : 0;
                             }
 
                         @endphp
@@ -233,11 +235,19 @@
                                        $booster_platform_fee =isset($shippingwithinfo_price->booster_platform_fee) ? $shippingwithinfo_price->booster_platform_fee : 0 ;
                                 @endphp
                         @endif
+                       @if($cover_fee > 0)
+                        <li class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col-9 text-right">{{ __('Support Covered Fees') }}</div>
+                                <div class="col-3 text-right">{{ currency_formate($cover_fee) }}</div>
+                            </div>
+                        </li>
+                        @endif
+                        
                         <li class="list-group-item">
                             <div class="row align-items-center">
                                 <div class="col-9 text-right">{{ __('Order Total') }}</div>
-                                {{-- <div class="col-3 text-right">{{ currency_formate($info->total-$credit_card_fee-$booster_platform_fee) }}</div> --}}
-                                <div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
+                                <div class="col-3 text-right">{{ currency_formate($info->total-$cover_fee) }}</div>
                             </div>
                         </li>
                         @php
@@ -250,8 +260,11 @@
                         <li class="list-group-item">
                             <div class="row align-items-center text-grey">
                                 <div class="col-9 text-right">{{ __('Credit Card Processing ') }}</div>
-
-                                <div class="col-3 text-right">{{ currency_formate($credit_card_fee) }}</div>
+                                @if($cover_fee > 0)
+                                <div class="col-9 text-right">{{ __('Support Covered Fees') }}</div>
+                               @else
+                                 <div class="col-3 text-right">{{ currency_formate($credit_card_fee) }}</div>
+                                @endif
                             </div>
                         </li>
                         <li class="list-group-item">
@@ -260,8 +273,11 @@
                                     {{ !empty($club_info['is_pro']) ? '(1.75%)' : '(3.5%)' }}</div> -->
                                 <div class="col-9 text-right">{{ __('Booostr Platform Fee') }}
                                     {{ ($pro_club) ? '(1.75%)' : '(3.5%)' }}</div>
-
-                                <div class="col-3 text-right">{{ currency_formate($booster_platform_fee) }}</div>
+                                @if($cover_fee > 0)
+                                 <div class="col-9 text-right">{{ __('Support Covered Fees') }}</div>
+                               @else
+                                 <div class="col-3 text-right">{{ currency_formate($booster_platform_fee) }}</div>
+                               @endif
                             </div>
                         </li>
                        
@@ -272,7 +288,12 @@
                                 </div>
 
                                 <div class="col-3 text-right">
-                                    {{ currency_formate($info->total - $credit_card_fee - $booster_platform_fee) }}</div>
+                                    @if($cover_fee > 0)
+                                    {{ currency_formate($info->total - $cover_fee) }}
+                                    @else
+                                    {{ currency_formate($info->total - $credit_card_fee - $booster_platform_fee) }}
+                                    @endif
+                                </div>
                             </div>
                         </li>
                         @endif
