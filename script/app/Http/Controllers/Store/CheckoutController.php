@@ -352,8 +352,9 @@ class CheckoutController extends Controller
 
         $grand_total = $total;
        // $grand_total = $total+$credit_card_fee + $booster_platform_fee;
+       $cover_fee = $credit_card_fee + $booster_platform_fee;
 
-        return view('store.checkout.checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee'));
+        return view('store.checkout.checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee','cover_fee'));
     }
 
 
