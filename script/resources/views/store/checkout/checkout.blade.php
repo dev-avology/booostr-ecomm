@@ -626,8 +626,7 @@ span.learn-more {
       <div class="modal-body">
         <div class="row align-items-start">
           <div class="col-md-4 text-center mb-3 mb-md-0">
-            <img src="{{ asset('checkout/img/big_jar.png') }}" 
-                 alt="Money Jar" class="img-fluid" style="max-width:120px;">
+            <img src="{{ asset('checkout/img/big_jar.png') }}" alt="Money Jar" class="img-fluid" style="max-width:170px;">
           </div>
           <div class="col-md-8">
             <p>
