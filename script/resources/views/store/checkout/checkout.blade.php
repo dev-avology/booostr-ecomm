@@ -485,7 +485,7 @@ span.learn-more {
                                             </div>
                                             
                                             <div class="alert alert-success" role="alert">
-                                               <input type="checkbox" id="cover_fee_checkbox" checked value="cover_fee" name="cover_fee_checkbox" />   Yes! I would like to help boostr_club lower their costs by covering the processing fees for this transaction. <span class="learn-more"><a data-bs-toggle="modal" data-bs-target="#transactionModal">Learn More</a> </span>
+                                               <input type="checkbox" id="cover_fee_checkbox" checked value="cover_fee" name="cover_fee_checkbox" />   Yes! I would like to help {{ ucfirst(str_replace(['-', '_'], ' ', tenant()->id)) }} lower their costs by covering the processing fees for this transaction. <span class="learn-more"><a data-bs-toggle="modal" data-bs-target="#transactionModal">Learn More</a> </span>
                                             </div>
                                             
                                             <ul>
@@ -626,17 +626,17 @@ span.learn-more {
       <div class="modal-body">
         <div class="row align-items-start">
           <div class="col-md-4 text-center mb-3 mb-md-0">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Dollar_bill_icon.svg/240px-Dollar_bill_icon.svg.png" 
+            <img src="{{ asset('checkout/img/big_jar.png') }}" 
                  alt="Money Jar" class="img-fluid" style="max-width:120px;">
           </div>
           <div class="col-md-8">
             <p>
-              Organizations like &lt;booster club&gt; work extremely hard to fundraise and make sure every dollar is spent in the best possible way. 
+              Organizations like {{ ucfirst(str_replace(['-', '_'], ' ', tenant()->id)) }} work extremely hard to fundraise and make sure every dollar is spent in the best possible way. 
               Boooostr’s Platform and connected software tools lower existing technology barriers to allow small nonprofits to grow and make a bigger impact.
             </p>
             <p>
               <strong style="display: block;padding-top: 10px;">Covering transaction fees is always optional.</strong> 
-              Every time you choose to cover fees, you help ensure &lt;booster club&gt; can continue to access the online tools through Boooostr they need AND help maximize every dollar raised to achieve their funding goals and mission quicker.
+              Every time you choose to cover fees, you help ensure {{ ucfirst(str_replace(['-', '_'], ' ', tenant()->id)) }} can continue to access the online tools through Boooostr they need AND help maximize every dollar raised to achieve their funding goals and mission quicker.
             </p>
           </div>
         </div>
