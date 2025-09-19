@@ -4,7 +4,7 @@
 // $('.cart_tax').text(amount_format(tax));
 // $('.cart_total').text(amount_format(total));
 
-var cartState = {Rsubtotal:subtotal,Rtax:tax,Rshipping:price,Rdiscount:discount};
+var cartState = {Rsubtotal:subtotal,Rtax:tax,Rshipping:price,Rdiscount:discount,Rcover_fee:cover_fee};
 
 calculateTotal(cartState);
 
@@ -384,12 +384,25 @@ $(document).on('click','#applyCouponBtn',function(){
 function calculateTotal(state = cartState){
 
 	var newtotal = state.Rsubtotal+state.Rshipping+state.Rtax-state.Rdiscount;
+
+	if($('#cover_fee_checkbox').is(':checked')){
+		$('.cover_fee_amount').text(amount_format(state.Rcover_fee));
+		newtotal = newtotal+state.Rcover_fee;
+		$('.cover-fee').show();
+	}else{
+		$('.cover-fee').hide();
+		$('.cover_fee_amount').text(amount_format(0));
+	}
+
 	cartState.Rtotal = newtotal;
 
 	$('.cart_subtotal').text(amount_format(state.Rsubtotal));
 	$('.cart_discount').text(amount_format(state.Rdiscount));
 	$('.shipping_fee').text(amount_format(state.Rshipping));
 	$('.cart_tax').text(amount_format(state.Rtax));
+
+
 	$('.cart_total').text(amount_format(newtotal));
+
 	
 }
