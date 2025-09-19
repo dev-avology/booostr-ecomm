@@ -106,6 +106,10 @@ $(document).on('change','.shipping_item',function(){
 	calculateShipping();
 });
 
+$(document).on('change','#cover_fee_checkbox',function(){
+	calculateTotal(cartState);
+});
+
 
 function calculateShipping(){
 
