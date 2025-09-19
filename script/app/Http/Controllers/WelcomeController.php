@@ -21,6 +21,8 @@ class WelcomeController extends Controller
 {
     public function index()
     {
+
+        return redirect('https://booostr.co/');
        
         $info = get_option('theme',true);
         $services = Term::with('servicemeta')->where([
