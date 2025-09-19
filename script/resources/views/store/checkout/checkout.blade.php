@@ -720,7 +720,7 @@ span.learn-more {
         @if ($source_code == 'off')
             <script type="text/javascript" src="{{ asset('theme/disable-source-code.js') }}"></script>
         @endif
-        <script type="text/javascript" src="{{ asset('checkout/js/checkout.js') }}"></script>
+        <script type="text/javascript" src="{{ asset('checkout/js/checkout.js') }}?v=1.0.0"></script>
 
         @if (1)
             <script async defer
