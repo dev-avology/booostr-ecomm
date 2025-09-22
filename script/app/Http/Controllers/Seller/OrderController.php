@@ -296,7 +296,7 @@ class OrderController extends Controller
                     }else{
                         $userTo=$info->user->email ?? '';
                     }
-             //       \App\Lib\NotifyToUser::sendEmail($info, $userTo, 'user');
+                    \App\Lib\NotifyToUser::sendEmail($info, $userTo, 'user');
                 }
 
 
