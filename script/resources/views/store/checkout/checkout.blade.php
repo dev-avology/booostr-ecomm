@@ -88,6 +88,7 @@ input#cover_fee_checkbox {
 .alert.alert-success.success-sec {
     margin: 0 10px;
     padding-left: 28px;
+    background-color: #E4FFEE;
 }
 
 @if($order_type == 'Digital')
@@ -519,7 +520,7 @@ input#cover_fee_checkbox {
                                                 </li>
                                                 <li class="shipping-item">(+) {{ __('Delivery fee') }}<span class="shipping_fee">0.00</span>
                                                 </li>
-                                                <li class="cover-fee alert-success" style="margin: 0 10px;padding: 5px 22px;">(+) {{ __('Covered Fees - thank you') }}<span class="cover_fee_amount">0.00</span>
+                                                <li class="cover-fee alert-success" style="margin: 0 10px;padding: 5px 22px;background-color: #E4FFEE;">(+) {{ __('Covered Fees - thank you') }}<span class="cover_fee_amount">0.00</span>
                                                 </li>
 
 
