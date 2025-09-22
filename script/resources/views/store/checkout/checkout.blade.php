@@ -76,6 +76,18 @@ p#show_coupon_error {
 span.learn-more {
     float: inline-end;
     color: deepskyblue;
+    display: inline-block;
+    position: relative;
+    bottom: -18px;
+    font-size: 10px;
+}
+
+input#cover_fee_checkbox {
+    margin-left: -18px;
+}
+.alert.alert-success.success-sec {
+    margin: 0 10px;
+    padding-left: 28px;
 }
 
 @if($order_type == 'Digital')
@@ -484,7 +496,7 @@ span.learn-more {
                                                 </div>
                                             </div>
                                             
-                                            <div class="alert alert-success" role="alert">
+                                            <div class="alert alert-success success-sec" role="alert">
                                                <input type="checkbox" id="cover_fee_checkbox" checked value="cover_fee" name="cover_fee_checkbox" />   Yes! I would like to help {{ ucfirst(str_replace(['-', '_'], ' ', tenant()->id)) }} lower their costs by covering the processing fees for this transaction. <span class="learn-more"><a data-bs-toggle="modal" data-bs-target="#transactionModal">Learn More</a> </span>
                                             </div>
                                             
@@ -507,7 +519,7 @@ span.learn-more {
                                                 </li>
                                                 <li class="shipping-item">(+) {{ __('Delivery fee') }}<span class="shipping_fee">0.00</span>
                                                 </li>
-                                                <li class="cover-fee alert-success">(+) {{ __('Covered Fees - thank you') }}<span class="cover_fee_amount">0.00</span>
+                                                <li class="cover-fee alert-success" style="margin: 0 10px;padding: 5px 22px;">(+) {{ __('Covered Fees - thank you') }}<span class="cover_fee_amount">0.00</span>
                                                 </li>
 
 
@@ -615,12 +627,13 @@ span.learn-more {
 <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content p-3">
-      <button type="button" class="btn-close ms-auto me-1 mt-1" data-bs-dismiss="modal" aria-label="Close"></button>
 
-      <div class="modal-header border-0">
-        <h5 class="modal-title text-success fw-bold w-100 text-center" id="transactionModalLabel">
+      <div class="modal-header border-0" style="background-color: #9bffd0;">
+        <h5 class="modal-title text-success fw-bold w-100 text-center" id="transactionModalLabel" style="font-size: 16px;">
           Covering Transaction Fees Makes A Bigger Impact
         </h5>
+        <button type="button" class="btn-close ms-auto me-1" data-bs-dismiss="modal" aria-label="Close"></button>
+
       </div>
 
       <div class="modal-body">
@@ -628,7 +641,7 @@ span.learn-more {
           <div class="col-md-4 text-center mb-3 mb-md-0">
             <img src="{{ asset('checkout/img/big_jar.png') }}" alt="Money Jar" class="img-fluid" style="max-width:170px;">
           </div>
-          <div class="col-md-8">
+          <div class="col-md-8" style="font-size: 13px;">
             <p>
               Organizations like {{ ucfirst(str_replace(['-', '_'], ' ', tenant()->id)) }} work extremely hard to fundraise and make sure every dollar is spent in the best possible way. 
               Boooostr’s Platform and connected software tools lower existing technology barriers to allow small nonprofits to grow and make a bigger impact.
@@ -642,7 +655,7 @@ span.learn-more {
       </div>
 
       <div class="modal-footer border-0 justify-content-center">
-        <button type="button" class="btn btn-link text-muted text-decoration-underline" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-link text-muted text-decoration-underline" data-bs-dismiss="modal" style="font-size: small;">
           close window
         </button>
       </div>
