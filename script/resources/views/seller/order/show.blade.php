@@ -76,6 +76,7 @@
         <div class="col-12 col-lg-8">
             <div class="card card-primary">
                 <div class="card-body">
+
                     <ul class="list-group list-group-lg list-group-flush list">
                         <li class="list-group-item">
                             <div class="row align-items-center">
@@ -519,14 +520,14 @@
                         </p>
 
                         <p>{{ __('Order Status') }}
-                        @if($row->order_from == 4 || $row->order_from == 5)
+                        @if($info->order_from == 4 || $info->order_from == 5)
                         <span class="badge badge-success float-right text-white" style="background-color:#028a74">POS (In Person)</span>
-                        @elseif($row->order_from == 0)
+                        @elseif($info->order_from == 0)
                         <span class="badge badge-success float-right text-white" style="background-color:#028a74">POS Web (In Person)</span>
                         @elseif ($info->status_id != null)
                                 <span class="badge  float-right text-white"
                                     style="background-color: {{ $info->orderstatus->slug ?? '' }}">{{ $info->orderstatus->name ?? '' }}</span>
-                            @endif
+                        @endif
                         </p>
 
                         <p>{{ __('Order Type') }}
