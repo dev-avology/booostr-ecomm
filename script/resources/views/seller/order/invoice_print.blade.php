@@ -24,7 +24,9 @@
                                     @php
                                         $info = get_option('invoice_data',true) ?? '';
                                         $club_info = tenant_club_info();
+                                        $shippingwithinfo = json_decode($order->shippingwithinfo->info,true);
                                     @endphp
+                                       
                                     <div class="invoice-bill-form">
                                         <h5><strong>{{ __('BILL FROM:') }}</strong></h5>
                                         <div class="store-name">
@@ -150,6 +152,13 @@
                                                 <td>TAX</td>
                                                 <td style="text-align: right;">{{ currency_formate($order->tax) }}</td>
                                             </tr>
+                                             
+                                            @if(isset($shippingwithinfo['cover_fee']) && $shippingwithinfo['cover_fee'] !== '0')
+                                            <tr>
+                                                <td>Fee Covered</td>
+                                                <td style="text-align: right;">{{ currency_formate($shippingwithinfo['cover_fee']) }}</td>
+                                            </tr>
+                                            @endif
                                             <tr>
                                                 <th>TOTAL</th>
                                                 <th style="text-align: right;">{{ currency_formate($order->total) }}</th>
