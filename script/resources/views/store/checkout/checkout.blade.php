@@ -626,7 +626,7 @@ input#cover_fee_checkbox {
 <!-- Modal -->
 <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-md modal-dialog-centered">
-    <div class="modal-content p-3">
+    <div class="modal-content">
 
       <div class="modal-header border-0" style="background-color: #9bffd0;">
         <h5 class="modal-title text-success fw-bold w-100 text-center" id="transactionModalLabel" style="font-size: 16px;">
