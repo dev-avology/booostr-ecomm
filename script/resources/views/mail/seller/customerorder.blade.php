@@ -188,6 +188,8 @@
                 $cancel_date_format = date_format($cancelDate, 'm/d/Y');
             }
 
+            $shipping_info =json_decode($data['data']['shippingwithinfo']->info ?? '');
+
         @endphp
 
         @if ($data['data']['status_id'] == '2')
@@ -524,6 +526,23 @@
                     </td>
                 </tr>
                @endif
+
+                @if(isset($shipping_info['cover_fee']) && $shipping_info['cover_fee'] !== '0')
+                <tr>
+                    <th style="text-align: right;width: 70%;" class="spac-btm">
+                        <h5
+                            style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
+                            Covered Fees:</h5>
+                    </th>
+                    <td style="text-align: center;padding-right: 20px;width: 30%;" class="spac-btm">
+                        <p style="padding-left: 20px; font-family: 'Nunito', 'Segoe UI', Arial;color: #3c3c3c;font-size: 16px;font-weight: 500;">
+                            {{ currency_formate($shipping_info['cover_fee']) }}
+                        </p>
+                    </td>
+                </tr>
+                @endif
+
+
 
                 <tr>
                     <th style="text-align: right;width: 70%;" class="spac-btm">
