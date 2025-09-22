@@ -103,7 +103,9 @@ class OrderController extends Controller
 
         $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
         $ordermeta=json_decode($order->ordermeta->value ?? '');
+        
         $order_status=Category::where([['type','status'],['status',1]])->where('id','!=',3)->orderBy('featured','ASC')->get();
+        
         $product_type = Category::where('type', 'product_type')->select('id','slug', 'name')->orderBy('id', 'ASC')->get();
        
         $selected_product_type = [];
@@ -155,6 +157,36 @@ class OrderController extends Controller
 
         $admin_details = User::where('role_id',3)->first();
         $to = $admin_details->email;
+        
+        
+        $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+
+        $product_type = Category::where('type', 'product_type')->select('id','slug', 'name')->orderBy('id', 'ASC')->get();
+       
+        $selected_product_type = [];
+
+        foreach ($order->orderitems ?? [] as $row){
+        $p_types = $product_type->pluck('id')->all();
+        
+        $selected_product_type[] = $row->term->termcategories
+            ->pluck('category_id')
+            ->intersect($p_types)
+            ->values()
+            ->all();
+        }
+     
+        $selected_product_type = Arr::flatten($selected_product_type);
+
+        $count = count($selected_product_type);
+
+        $order_type = match (true) {
+            $count > 1 => 'Mixed',
+            $count === 1 => optional(
+                $product_type->firstWhere('id', $selected_product_type[0])
+            )->slug === 'digital_product' ? 'Digital' : 'Goods',
+            default => 'Goods',
+        };
+        
 
         DB::beginTransaction();
         try { 
@@ -237,18 +269,21 @@ class OrderController extends Controller
 
             if ($request->status == 1) {
 
-               if($info->order_from == 4 || $info->order_from == 5){
+               if($info->order_from == 4 || $info->order_from == 5 || $info->order_from == 0 ){
                  $this->post_order_data_POS($info);
                }else{
                 $this->post_order_data($info);
                
-
+                if($order_type !== 'Digital'){
+                    
                 $shippingArray = [
                     'shipping_driver' => $request->shipping_service ?? $request->chooseTracking,
                     'tracking_no' => $request->tacking_number
                 ];
 
                 $orderShipping = Ordershipping::where('order_id', $id)->update($shippingArray);
+                
+                }
 
                 $info = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
 
@@ -258,11 +293,10 @@ class OrderController extends Controller
                     $ordermeta=json_decode($info->ordermeta->value ?? '');
                     if (!empty($ordermeta)) {
                         $userTo=$ordermeta->email ?? '';
-                    }
-                    else{
+                    }else{
                         $userTo=$info->user->email ?? '';
                     }
-                    \App\Lib\NotifyToUser::sendEmail($info, $userTo, 'user');
+             //       \App\Lib\NotifyToUser::sendEmail($info, $userTo, 'user');
                 }
 
 
