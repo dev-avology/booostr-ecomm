@@ -758,7 +758,6 @@ class CheckoutController extends Controller
                 'booster_platform_fee' => number_format($booster_platform_fee, 2),
                 'total_fees' => number_format($total_application_fee, 2),
                 'club_receives' => number_format($club_receives, 2),
-                'order_id' => $order->id,
             ],
             'automatic_payment_methods' => ['enabled' => true],
         ]);
