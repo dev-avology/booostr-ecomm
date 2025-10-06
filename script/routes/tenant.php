@@ -54,12 +54,26 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::get('/wishlist', 'Store\PageController@wishlist');
     Route::get('/direct_checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_checkout_to');
     Route::get('/direct/checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_checkout')->name('direct.checkout');
+
+    Route::get('/direct/new-checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_new_checkout')->name('direct.new_checkout');
+
+
+    Route::get('/get-stripe-paymentIntent', 'Store\CheckoutController@get_stripe_paymentIntent')->name('checkout.get_stripe_paymentIntent');
     Route::post('/applyTax', 'Store\CheckoutController@applyTax')->name('checkout.applyTax');
 
     Route::get('/checkout', 'Store\PageController@checkout');
     Route::post('/checkout/make-order', 'Store\CheckoutController@makeOrder')->name('checkout.makeorder');
+    Route::post('/checkout/new-make-order', 'Store\CheckoutController@newMakeOrder')->name('checkout.newmakeorder');
+    Route::post('/checkout/process-payment/{order_id}', 'Store\CheckoutController@processPayment')->name('checkout.processPayment');
+    Route::get('/payment/success', 'Store\CheckoutController@paymentSuccess')->name('checkout.success');
+
+
     Route::get('/thanks', 'Store\PageController@thanks');
+
     Route::post('make-order', 'Store\OrderController@makeOrder')->name('make.order');
+
+    Route::get('/checkout/payment/{order_id}', 'Store\CheckoutController@paymentPage')->name('checkout.payment');
+
     Route::get('/contact', 'Store\PageController@contact');
     Route::post('/contact/send', 'Store\PageController@contact_send')->middleware('throttle:2,1');
     Route::get('locale/lang', 'LocalizationController@store')->name('language.set');
