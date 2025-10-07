@@ -708,8 +708,8 @@ class ProductController extends Controller
 
             $createdAt = Carbon::parse($info->placed_at)->format('m/d/Y h:i A');
 
-            $amount_refunded = $orderlasttrans->amount_refunded;
-            $lastdigit = $orderlasttrans->source->last4;
+            $amount_refunded = $orderlasttrans->amount_refunded??0;
+            $lastdigit = $orderlasttrans->source->last4??'';
             $card_number = str_pad($lastdigit, 16, "*", STR_PAD_LEFT);
             $order_data = [];
             $ordermeta=json_decode($info->ordermeta->value ?? '');

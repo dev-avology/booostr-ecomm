@@ -32,6 +32,7 @@ use App\Models\Orderstock;
 use Carbon\Carbon;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
+use Stripe\Charge;
 
 class CheckoutController extends Controller
 {
@@ -748,7 +749,7 @@ class CheckoutController extends Controller
         $paymentIntent = PaymentIntent::create([
             'amount' => round($total_amount * 100),
             'currency' => 'usd',
-            'capture_method' => 'automatic',
+            'capture_method' => 'manual',
             'application_fee_amount' => round($cover_fee * 100),
             'transfer_data' => [
                 'destination' => $booostr_stripe_account,
@@ -795,7 +796,7 @@ class CheckoutController extends Controller
             $notify_driver = 'mail';
 
             $order->getway_id = $gateway->id;
-            $order->status_id = 97;
+            $order->status_id = 3;
             $order->tax = str_replace(',', '', Cart::tax());
             $order->discount = $total_discount;
             $order->coupon_code = $couponcode;
@@ -903,6 +904,7 @@ class CheckoutController extends Controller
                 $customer_info['credit_card_fee'] = $credit_card_fee;
                 $customer_info['booster_platform_fee'] = $booster_platform_fee;
                 $customer_info['cover_fee'] = $cover_fee;
+                $customer_info['cart_id'] = $cartid;
 
                 $order->ordermeta()->create([
                     'key' => 'orderinfo',
@@ -1012,16 +1014,21 @@ class CheckoutController extends Controller
         $publishable_key = $gateway->test_mode ? $gateway_data->test_publishable_key : $gateway_data->publishable_key;
 
         $meta = json_decode($order->ordermeta->value, true);
+        
         $client_secret = null;
         
         Stripe::setApiKey($gateway->test_mode ? $gateway_data->test_secret_key : $gateway_data->secret_key);
          
         if($order->transaction_id){
-        $paymentIntent = \Stripe\PaymentIntent::retrieve($order->transaction_id);
+            
+         $paymentIntent = PaymentIntent::retrieve($order->transaction_id);
+        
           if($paymentIntent->status !== 'succeeded'){
             $client_secret = $paymentIntent->client_secret;
           }
+          
         }
+        
 
         // Shipping info
         $shipping = $meta['shipping'] ?? [];
@@ -1062,20 +1069,196 @@ class CheckoutController extends Controller
 
     function processPayment(Request $request, $order_id)
     {
+        
+     $redirect_url=Session::has('redirect_url')?Session::get('redirect_url'):'https://www.boostr.co';
+
         try {
-            $order = Order::findOrFail($order_id);
+            
+            $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($order_id);
+            
+             $gateway = Getway::where('status','!=',0)->where('namespace','App\Lib\Stripe')->first();
+             $gateway_data = json_decode($gateway->data);
+             
+         $publishable_key = $gateway->test_mode ? $gateway_data->test_publishable_key : $gateway_data->publishable_key;
+         Stripe::setApiKey($gateway->test_mode ? $gateway_data->test_secret_key : $gateway_data->secret_key);
+        
+                $ordermeta=json_decode($order->ordermeta->value ?? '',true);
+
+        if($order->transaction_id){
+            
+            $paymentIntent = PaymentIntent::retrieve($order->transaction_id);
+            
+             $riskLevel = 'not_assessed';
+             
+            // dd($paymentIntent);
+             
+             if ($paymentIntent->latest_charge) {
+                 
+                $charge = Charge::retrieve([
+                    'id' => $paymentIntent->latest_charge,
+                    'expand' => ['outcome', 'balance_transaction'],
+                ]);
+        
+                $riskLevel = $charge->outcome->risk_level ?? 'N/A';
+            }
+            
+             
+                $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();
+                $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
     
-            $order->payment_status = 1; // Mark as paid
-            $order->save();
+                if($credit_card_processing_method == 'auto' && $riskLevel == 'normal' && $paymentIntent->status === 'requires_capture'){
+                
+                            // dd($payment_data);
+                     $captured = $intent->capture();
+                     
+                    if($captured->status === 'succeeded'){
+                       $order->payment_status =1;
+                       $order->risk_level = $riskLevel;
+                       $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                       $order->save(); 
+                    }
+                    
+                }else if($paymentIntent->status === 'requires_capture'){
+                   $order->payment_status =4;
+                   $order->risk_level = $riskLevel;
+                   $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                   $order->save();  
+                }else if($paymentIntent->status === 'succeeded'){
+                   $order->payment_status =1;
+                   $order->risk_level = $riskLevel;
+                   $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                   $order->save();  
+                }
+                
+                
+            
+            //   if($paymentIntent->status !== 'succeeded'){
+            //     $client_secret = $paymentIntent->client_secret;
+            //   }
+        }
     
-            return response()->json([
-                'success' => true,
-                'redirect_url' => route('checkout.success'),
-            ]);
+        $paymentIntent = PaymentIntent::retrieve(['id' => $order->transaction_id,'expand' => ['charges.data.outcome', 'charges.data.review']]);
+
+        if($paymentIntent->status === 'succeeded' || $paymentIntent->status === 'requires_capture' ){
+          
+          
+          if(isset($ordermeta['email']) && $ordermeta['cart_id'] !== '' ){
+
+                $this->syncFormData($ordermeta['cart_id'],$order->id);
+
+            }  
+           //  dd($order);
+            
+            $reciptdata = $this->order_recipt_data($order_id);
+       
+            $recipt =  $this->send_order_recipt($reciptdata);
+
+           // \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
+            
+          //  \App\Lib\NotifyToUser::sendEmail($order, $ordermeta['email'], 'user');
+
+        }
+    
+    
+        $parts = parse_url($redirect_url);
+        
+        if (isset($parts['scheme'], $parts['host'], $parts['path'])) {
+        	$redirect_url = $parts['scheme'] . '://' . $parts['host'] . $parts['path'];
+        }
+        
+        if(strpos($redirect_url, 'login-customizer') !== false){
+           $redirect_url = str_replace('login-customizer', 'listing/'.tenant('id'), $redirect_url);
+        }
+        
+        
+        $url = $redirect_url . '/?tab=thankyou&club_id='.Tenant('club_id').'&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no;
+
+        return redirect()->away($redirect_url . '/?tab=thankyou&club_id='.Tenant('club_id').'&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
+    
         } catch (\Exception $e) {
+            
+            dd($e);
+            
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+    
+    
+    public function order_recipt_data($order_id){
+        
+      $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($order_id);
+        
+        $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
+        $qty = $order->orderitems[0]['qty'];
+        $product_amount = $order->orderitems[0]['amount'];
+        $sub_total = $product_amount*$qty;
+        $sales_tax = $order->tax;
+        $order_total = $order->total;
+
+        $ordermeta=json_decode($order->ordermeta->value ?? '',true);
+        
+        $name = explode(' ',$ordermeta['name']);
+        
+        $club_info = tenant_club_info();
+        
+        $shippingPrice = $order->shippingwithinfo['shipping_price']??0;
+        $jsonString = $order->shippingwithinfo['info'];
+        
+        
+        // Decode the JSON string into a PHP array
+        $shipping_data = json_decode($jsonString, true);
+
+        $credit_card_fee = $shipping_data['credit_card_fee'];
+        $booster_platform_fee = $shipping_data['booster_platform_fee'];
+        $processing_fees = $credit_card_fee+$booster_platform_fee;
+
+        $revenue = $order_total-($sales_tax+$processing_fees);
+       
+       $sub_total = $revenue - $shippingPrice;
+       
+               $contact_manager_data = array(
+									'first_name' => $name[0],
+									'last_name' => $name[1]??'',
+									'user_id' =>  $ordermeta['wpuid']??0,
+									'phone_number' => $ordermeta['phone'],					
+									'booster_name' => $name[0],
+									'country' =>   $ordermeta['billing']['country'],									
+									'address_1' => $ordermeta['billing']['address'],
+									'address_2' =>  '',
+									'city' => $ordermeta['billing']['city'],
+									'state' =>  $ordermeta['billing']['state'],
+									'zip' =>  $ordermeta['billing']['post_code'],													
+									'email' =>  $ordermeta['email'],                   
+									'booster_id' =>Tenant('club_id'),
+									'booster_level_id' => 4,
+									'contact_tags' => '',
+                                    'customer_tag' => 'online store customer',
+                                    'addedsource' => 'storetool',
+								);
+								
+								
+			$user_recipt = [
+                'contact_mgr_data'=>$contact_manager_data,
+                'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
+                'receipt_title'=>$ordermeta['name'],
+                'receipent_org'=>$club_info['club_name'].' Store',
+                'category'=>'ecommerce',
+                'user_id' =>  $ordermeta['wpuid']??0,
+                'amount'=>$order_total,
+                'revenue'=>$revenue,
+                'club_id' =>Tenant('club_id'),
+                'recurring'=>'one-time',
+                'camp_id'=>$order->invoice_no,
+                'order_total'=>$order->total,
+                'order_subtotal'=>$sub_total,
+            ];				
+								
+								
+			return $user_recipt;					
+      
+    }
+    
+    
 
     public function paymentSuccess(Request $request)
     {
@@ -1088,7 +1271,7 @@ class CheckoutController extends Controller
             ]);
         }
 
-        return redirect()->route('checkout')->with('error', 'Payment failed or canceled.');
+        return redirect()->with('error', 'Payment failed or canceled.');
     }
 
 
@@ -1507,6 +1690,8 @@ class CheckoutController extends Controller
     }
 
 
+
+
     public function syncFormData($cartid, $orderId)
     {
         $productFormData = ProductForm::where('cart_id', $cartid)->get();
@@ -1628,6 +1813,7 @@ class CheckoutController extends Controller
 
 
     }
+    
     public function makepayment(Request $request)
     {
         abort_if(!Session::has('stripe_credentials'), 404);

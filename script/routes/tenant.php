@@ -65,6 +65,8 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::post('/checkout/make-order', 'Store\CheckoutController@makeOrder')->name('checkout.makeorder');
     Route::post('/checkout/new-make-order', 'Store\CheckoutController@newMakeOrder')->name('checkout.newmakeorder');
     Route::post('/checkout/process-payment/{order_id}', 'Store\CheckoutController@processPayment')->name('checkout.processPayment');
+    Route::get('/checkout/process-payment/{order_id}', 'Store\CheckoutController@processPayment')->name('checkout.processPayment');
+
     Route::get('/payment/success', 'Store\CheckoutController@paymentSuccess')->name('checkout.success');
 
 
@@ -157,8 +159,5 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
 
     
 });
-
-
-
 
 

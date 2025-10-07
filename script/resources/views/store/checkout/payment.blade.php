@@ -223,6 +223,10 @@
 <input type="hidden" id="shipping_hidden" value="{{ $order->shipping->shipping_price ?? 0 }}">
 <input type="hidden" id="cover_fee_hidden" value="{{ $order->cover_fee ?? 0 }}">
 <input type="hidden" id="total_hidden" value="{{ $order->total ?? 0 }}">
+<input type="hidden" id="publishable_key" value="{{ $publishable_key }}">
+<input type="hidden" id="client_secret" value="{{$client_secret}}">
+<input type="hidden" id="order_success_url" value="{{ route('checkout.success')}}?order_id={{ $order->id }}">
+<input type="hidden" id="process_order_url" value="{{ route('checkout.processPayment', $order->id) }}">
 
 
 <!-- Footer -->
@@ -238,57 +242,6 @@
 
 @push('js')
     <script src="https://js.stripe.com/v3/"></script>
-    <script type="text/javascript">
-        "use strict";
-        document.addEventListener("DOMContentLoaded", function () {
-            console.log('Script loaded');
-
-            // Format numbers to 2 decimal places
-            function fmt(v) {
-                return Number(v || 0).toFixed(2);
-            }
-
-            // Update display with values from hidden inputs
-            const subtotal = document.getElementById('subtotal_hidden')?.value || 0;
-            const discount = document.getElementById('discount_hidden')?.value || 0;
-            const tax = document.getElementById('tax_hidden')?.value || 0;
-            const shipping = document.getElementById('shipping_hidden')?.value || 0;
-            const cover = document.getElementById('cover_fee_hidden')?.value || 0;
-            const total = document.getElementById('total_hidden')?.value || 0;
-
-            console.log({ subtotal, discount, tax, shipping, cover, total }); // Debug values
-
-            // Stripe initialization
-       const stripe = Stripe("{{ $publishable_key }}");
-    const elements = stripe.elements({
-      clientSecret: '{{$client_secret}}',
-      appearance: { /* appearance config */ }
-    });
-
-    elements.create('payment', {
-      layout: { type: 'tabs', defaultCollapsed: false }
-    }).mount('#payment_method_area');
-
-
-
-    const form = document.getElementById('payment-form');
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        document.getElementById('page-loader').style.display = 'flex';
-
-
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        // optional return_url for redirects that some methods require
-        return_url: '{{ route("checkout.success") }}?order_id={{ $order->id }}',
-      },
-      redirect: 'if_required' // avoids automatic redirect when not needed
-    });
-
-
-    });
-});
-    </script>
+    <script src="{{ asset('checkout/js/new-stripe.js') }}"></script>
 @endpush
 @endsection
