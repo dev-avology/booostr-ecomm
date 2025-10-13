@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const loader = document.getElementById("page-loader");
   const form = document.getElementById("payment-form");
   const payment_url = document.getElementById("process_order_url")?.value;
+  const submitButton = document.getElementById("submit_btn");
 
   if (!publishableKey || !clientSecret) {
     console.error("Missing Stripe publishable key or client secret");
@@ -31,7 +32,13 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Handle form submission
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = "SUBMITTING ORDER";
+      submitButton.style.backgroundColor = "#4a4a4a";
+      submitButton.style.cursor = "not-allowed";
+      submitButton.style.borderColor = "#4a4a4a";
+    }
     if (loader) loader.style.display = "flex";
 
     try {
@@ -61,3 +68,4 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 });
+

@@ -8,34 +8,32 @@ a.cart-summary > span {
     width: 100%;
 }
 
-p span.title{
+p span.title {
     font-size: 12px;
 }
 
-.attr-variation-style{
+.attr-variation-style {
     background: #eeebec;
     padding: 2px;
     border-radius: 2px;
     margin: 0px 2px;
 }
 
-/* add coupon code css */
-
+/* Add coupon code CSS */
 .coupon-main-div {
     padding-left: 22px;
 }
 
 .apply-c-code .coupon-input-button {
-  display: flex;
-  flex-direction: row;
-  padding: 6px 0px;
+    display: flex;
+    flex-direction: row;
+    padding: 6px 0px;
 }
 
 .apply-c-code .coupon-input-button .coupon-btn {
     background-color: #00c0ff;
     color: white;
-    padding: -17px;
-    /* margin: 7px 1px 27px 42px; */
+    padding: -17px; /* Note: Negative padding might be a typo; consider removing or adjusting */
     border: none;
     border-radius: 3px;
     cursor: pointer;
@@ -43,22 +41,31 @@ p span.title{
     width: 87px;
     height: 37px;
     padding-top: 9px;
-    border-radius: 6px!important;
+    border-radius: 6px !important;
 }
-
+.shop.checkout .single-widget.get-button .btn {
+	height: 55px;
+	width: 110%;
+	line-height: 55px;
+	text-align: center;
+	border-radius: 0;
+	text-transform: uppercase;
+	color: #fff;
+	padding: 0;
+}
 .apply-c-code .coupon-input-button .c-input {
     width: 224px;
     height: 42px;
     margin-top: 7px;
 }
 
-.apply-c-code h5{
+.apply-c-code h5 {
     margin-left: 23px;
     font-size: 14px;
 }
 
-.coupon-main-div a{
-    color:#00c0ff;
+.coupon-main-div a {
+    color: #00c0ff;
     font-weight: bold;
 }
 
@@ -67,12 +74,21 @@ p#show_coupon_error {
     background: transparent;
 }
 
-.checkout-main span.price,.checkout-main span.price span{
+.submit-btn:disabled {
+    background-color: #4a4a4a; 
+    color: #ffffff; 
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.checkout-main span.price,
+.checkout-main span.price span {
     display: block;
 }
-.checkout-main span.price span.old-price{
+
+.checkout-main span.price span.old-price {
     text-decoration: line-through;
 }
+
 span.learn-more {
     float: inline-end;
     color: deepskyblue;
@@ -85,16 +101,84 @@ span.learn-more {
 input#cover_fee_checkbox {
     margin-left: -18px;
 }
+
 .alert.alert-success.success-sec {
     margin: 0 10px;
     padding-left: 28px;
     background-color: #E4FFEE;
 }
 
+/* Checkout form layout */
+.checkout-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.shipping-method-button-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.shipping_method_area,
+.single-widget.get-button {
+    flex: 1;
+    min-width: 0; /* Prevents overflow issues */
+}
+
+.shipping_method_area {
+    margin-right: 10px; /* Space between shipping and button */
+}
+
+.single-widget.get-button {
+    text-align: right;
+}
+
+.single-widget.get-button .button button {
+    background-color: #00baff;
+    border: none;
+    padding: 10px 25px;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+.single-widget.get-button .button button:hover {
+    background-color: #0099cc;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .shipping-method-button-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .shipping_method_area,
+    .single-widget.get-button {
+        width: 100%;
+        text-align: left;
+    }
+
+    .single-widget.get-button {
+        margin-top: 10px;
+    }
+}
+
+/* Digital item adjustments */
+.single-widget.get-button {
+    text-align: right;
+    flex: 0 0 auto; /* Prevents it from stretching */
+}
+
 @if($order_type == 'Digital')
-.shipping-item,.shipping_method_area,.shipping_same_as_billing{
-    display:none !important;
-}    
+.shipping-method-button-container {
+    justify-content: flex-end !important;
+    min-height: 50px; /* Ensures container has height when shipping is hidden */
+}
 @endif
 
 </style>
@@ -197,197 +281,219 @@ input#cover_fee_checkbox {
                         @csrf
                         <div class="row">
                             <div class="col-lg-8 col-12 col-65 container">
-                                <div class="checkout-form  pb-3">
-                                    <h3 class="mt-3 mb-1">Billing Address</h3>
-                                    <em>Enter your payment method billing information below</em>
-                                    <!-- Form -->
-									<div class="row mt-3" id="error-msg">
-									</div>
-                                    <div class="row mt-3">
-                                        <div class="col-lg-12 col-md-12 col-12">
-                                            @if ($errors->any())
-                                                <div class="alert alert-danger">
-                                                    <ul>
-                                                        @foreach ($errors->all() as $error)
-                                                            <li>{{ $error }}</li>
-                                                        @endforeach
-                                                    </ul>
-                                                </div>
-                                            @endif
-                                            @if (Session::has('error'))
-                                                <div class="alert alert-danger">
-                                                    <ul>
-                                                        <li>{{ Session::get('error') }}</li>
-                                                    </ul>
-                                                </div>
-                                            @endif
-                                            @if (Session::has('alert'))
-                                                <div class="alert alert-danger">
-                                                    <ul>
-                                                        <li>{{ Session::get('alert') }}</li>
-                                                    </ul>
-                                                </div>
-                                            @endif
+                        <div class="checkout-form pb-3">
+                            <h3 class="mt-3 mb-1">Billing Address</h3>
+                            <em>Enter your payment method billing information below</em>
+                            <!-- Form -->
+                            <div class="row mt-3" id="error-msg"></div>
+                            <div class="row mt-3">
+                                <div class="col-lg-12 col-md-12 col-12">
+                                    @if ($errors->any())
+                                        <div class="alert alert-danger">
+                                            <ul>
+                                                @foreach ($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
                                         </div>
-
-                                        <div class="col-lg-6 col-md-6 col-12">
-                                            <div class="form-group">
-                                                <label><i class="fa fa-user"></i>{{ __('Full Name') }}<span>*</span></label>
-                                                <input type="text" name="name" id="billing-name"
-                                                    data-shippingf="shipping-name" value="{{ $customer['name'] }}"
-                                                    placeholder=""  class="required" data-msg="{{__('Billing Full Name')}}" @if(!empty($customer['name'])) @endif>
-                                            </div>
+                                    @endif
+                                    @if (Session::has('error'))
+                                        <div class="alert alert-danger">
+                                            <ul>
+                                                <li>{{ Session::get('error') }}</li>
+                                            </ul>
                                         </div>
-
-                                        <div class="col-lg-6 col-md-6 col-12">
-                                            <div class="form-group">
-                                                <label><i
-                                                        class="fa fa-envelope"></i>{{ __('Email Address') }}<span>*</span></label>
-                                                <input value="{{ $customer['email'] }}" id="billing-email"
-                                                    data-shippingf="shipping-email" type="email" name="email"
-                                                    placeholder="" class="required" data-msg="{{__('Billing Email')}}" required @if(!empty($customer['email'])) @endif>
-                                            </div>
-                                            
+                                    @endif
+                                    @if (Session::has('alert'))
+                                        <div class="alert alert-danger">
+                                            <ul>
+                                                <li>{{ Session::get('alert') }}</li>
+                                            </ul>
                                         </div>
-                                        <div class="col-lg-6 col-md-6 col-12">
-                                            <div class="form-group">
-                                                <label><i
-                                                        class="fa fa-phone"></i>{{ __('Phone Number') }}<span>*</span></label>
-                                                <input type="number" id="billing-phone" name="phone"
-                                                    data-shippingf="shipping-phone"
-                                                    value="{{ str_replace('-', '', $customer['phone']) }}" placeholder=""
-                                                     maxlength="20" class="required" data-msg="{{__('Billing Phone Number')}}" @if(!empty($customer['phone'])) @endif>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-12 col-md-12 col-12 delivery_address_area">
-                                            <div class="form-group">
-                                                <label><i class="fa fa-map-marker"></i> {{ __('Address') }}
-                                                    <span>*</span></label>
-                                                <input type="text" class="location_input required" id="location_input"
-                                                    data-shippingf="location_input1" name="billing[address]" placeholder=""
-                                                     value="{{ $customer['address'] }}" data-msg="{{__('Billing Address')}}" @if(!empty($customer['address'])) @endif>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6 col-md-6 col-12 delivery_address_city">
-                                            <div class="form-group">
-                                                <label><i class="fa fa-building"></i> {{ __('City') }}
-                                                    <span>*</span></label>
-                                                <input type="text" class="location_input required" id="location_city"
-                                                    data-shippingf="location_city1" name="billing[city]" placeholder=""
-                                                     value="{{ $customer['city'] }}" data-msg="{{__('Billing City')}}" @if(!empty($customer['city'])) @endif>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6 col-md-6 col-12 delivery_address_state">
-                                            <div class="form-group">
-                                                <label> <i class="fa fa-map"></i>{{ __('State') }} <span>*</span></label>
-
-
-                                                <select class="location_input nice-select add-coupon-check required" id="location_state"
-                                                        data-shippingf="location_state1" name="billing[state]" data-msg="{{__('Billing State')}}" @if(!empty($customer['state'])) @endif>
-                                                    @foreach ($states_data as $key => $val)
-                                                        <option @if ($key == $customer['state']) selected @endif
-                                                            value="{{ $key }}">{{ $val }}</option>
-                                                    @endforeach
-                                                </select>
-                                                {{-- <input type="text" class="location_input" id="location_state" name="billing[state]" placeholder="" required="required" value="{{ $customer['state'] }}"> --}}
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6 col-md-6 col-12 delivery_address_country">
-                                            <div class="form-group">
-                                                <label> <i class="fa fa-globe"></i>
-                                                    {{ __('Country') }} <span>*</span></label>
-                                                <select id="billing-country" name="billing[country]"
-                                                    data-shippingf="billing-country1" class="nice-select required" data-msg="{{__('Billing Country')}}">
-                                                    <option value="USA">United State</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6 col-md-6 col-12 post_code_area">
-                                            <div class="form-group">
-                                                <label><i class="fa fa-envelope"></i>
-                                                    {{ __('Zip Code') }}<span>*</span></label>
-                                                <input type="text" id="post_code" name="billing[post_code]"
-                                                    data-shippingf="post_code1" placeholder=""
-                                                    value="{{ $customer['zip'] }}"  class="required" data-msg="{{__('Billing Postal Code')}}" @if(!empty($customer['zip'])) @endif>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-12 col-md-12 col-12">
-                                            <div class="form-group create-account shipping_same_as_billing">
-                                                <input id="shipping_address" name="shipping_same_as_billing"
-                                                    type="checkbox" value="1" checked>
-                                                <label
-                                                    for="shipping_address">{{ __('Shipping address same as billing') }}</label>
-                                            </div>
+                                    @endif
+                                </div>
+                        
+                                <div class="col-lg-6 col-md-6 col-12">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-user"></i>{{ __('Full Name') }}<span>*</span></label>
+                                        <input type="text" name="name" id="billing-name"
+                                            data-shippingf="shipping-name" value="{{ $customer['name'] }}"
+                                            placeholder="" class="required" data-msg="{{__('Billing Full Name')}}" @if(!empty($customer['name'])) @endif>
+                                    </div>
+                                </div>
+                        
+                                <div class="col-lg-6 col-md-6 col-12">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-envelope"></i>{{ __('Email Address') }}<span>*</span></label>
+                                        <input value="{{ $customer['email'] }}" id="billing-email"
+                                            data-shippingf="shipping-email" type="email" name="email"
+                                            placeholder="" class="required" data-msg="{{__('Billing Email')}}" required @if(!empty($customer['email'])) @endif>
+                                    </div>
+                                </div>
+                        
+                                <div class="col-lg-6 col-md-6 col-12">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-phone"></i>{{ __('Phone Number') }}<span>*</span></label>
+                                        <input type="number" id="billing-phone" name="phone"
+                                            data-shippingf="shipping-phone"
+                                            value="{{ str_replace('-', '', $customer['phone']) }}" placeholder=""
+                                            maxlength="20" class="required" data-msg="{{__('Billing Phone Number')}}" @if(!empty($customer['phone'])) @endif>
+                                    </div>
+                                </div>
+                        
+                                <div class="col-lg-12 col-md-12 col-12 delivery_address_area">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-map-marker"></i> {{ __('Address') }}<span>*</span></label>
+                                        <input type="text" class="location_input required" id="location_input"
+                                            data-shippingf="location_input1" name="billing[address]" placeholder=""
+                                            value="{{ $customer['address'] }}" data-msg="{{__('Billing Address')}}" @if(!empty($customer['address'])) @endif>
+                                    </div>
+                                </div>
+                        
+                                <div class="col-lg-6 col-md-6 col-12 delivery_address_city">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-building"></i> {{ __('City') }}<span>*</span></label>
+                                        <input type="text" class="location_input required" id="location_city"
+                                            data-shippingf="location_city1" name="billing[city]" placeholder=""
+                                            value="{{ $customer['city'] }}" data-msg="{{__('Billing City')}}" @if(!empty($customer['city'])) @endif>
+                                    </div>
+                                </div>
+                        
+                                <div class="col-lg-6 col-md-6 col-12 delivery_address_state">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-map"></i>{{ __('State') }}<span>*</span></label>
+                                        <select class="location_input nice-select add-coupon-check required" id="location_state"
+                                            data-shippingf="location_state1" name="billing[state]" data-msg="{{__('Billing State')}}" @if(!empty($customer['state'])) @endif>
+                                            @foreach ($states_data as $key => $val)
+                                                <option @if ($key == $customer['state']) selected @endif
+                                                    value="{{ $key }}">{{ $val }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                        
+                                <div class="col-lg-6 col-md-6 col-12 delivery_address_country">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-globe"></i>{{ __('Country') }}<span>*</span></label>
+                                        <select id="billing-country" name="billing[country]"
+                                            data-shippingf="billing-country1" class="nice-select required" data-msg="{{__('Billing Country')}}">
+                                            <option value="USA">United State</option>
+                                        </select>
+                                    </div>
+                                </div>
+                        
+                                <div class="col-lg-6 col-md-6 col-12 post_code_area">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-envelope"></i>{{ __('Zip Code') }}<span>*</span></label>
+                                        <input type="text" id="post_code" name="billing[post_code]"
+                                            data-shippingf="post_code1" placeholder=""
+                                            value="{{ $customer['zip'] }}" class="required" data-msg="{{__('Billing Postal Code')}}" @if(!empty($customer['zip'])) @endif>
+                                    </div>
+                                </div>
+                        
+                                <div class="col-lg-12 col-md-12 col-12">
+                                    <div class="form-group create-account shipping_same_as_billing">
+                                        <input id="shipping_address" name="shipping_same_as_billing" type="checkbox" value="1" checked>
+                                        <label for="shipping_address">{{ __('Shipping address same as billing') }}</label>
+                                    </div>
+                                </div>
+                        
+                                <!-- Shipping Address Fields - Hidden by default -->
+                                <div class="row mt-3 shipping_address_area none" style="display:none">
+                                    <div class="col-lg-6 col-md-6 col-12">
+                                        <div class="form-group">
+                                            <label><i class="fa fa-user"></i>{{ __('Full Name') }}<span>*</span></label>
+                                            <input type="text" id="shipping-name" name="shipping[name]"
+                                                value="{{ $customer['name'] }}" placeholder="" class="required" data-msg="{{__('Shipping Full Name')}}">
                                         </div>
                                     </div>
-                                    <div class="row mt-3 shipping_address_area none" style="display:none">
-                                        <div class="col-lg-6 col-md-6 col-12">
-                                            <div class="form-group">
-                                                <label><i
-                                                        class="fa fa-user"></i>{{ __('Full Name') }}<span>*</span></label>
-                                                <input type="text" id="shipping-name" name="shipping[name]"
-                                                    value="{{ $customer['name'] }}" placeholder=""  class="required" data-msg="{{__('Shipping Full Name')}}">
-                                            </div>
+                                    <div class="col-lg-6 col-md-6 col-12">
+                                        <div class="form-group">
+                                            <label><i class="fa fa-phone"></i>{{ __('Phone Number') }}<span>*</span></label>
+                                            <input type="number" id="shipping-phone" name="shipping[phone]"
+                                                value="{{ str_replace('-', '', $customer['phone']) }}" placeholder=""
+                                                maxlength="20" class="required" data-msg="{{__('Shipping Phone Number')}}">
                                         </div>
-                                        <div class="col-lg-6 col-md-6 col-12">
-                                            <div class="form-group">
-                                                <label><i
-                                                        class="fa fa-phone"></i>{{ __('Phone Number') }}<span>*</span></label>
-                                                <input type="number" id="shipping-phone" name="shipping[phone]"
-                                                    value="{{ str_replace('-', '', $customer['phone']) }}" placeholder=""
-                                                     maxlength="20" class="required" data-msg="{{__('Shipping Phone Number')}}">
-                                            </div>
+                                    </div>
+                                    <div class="col-lg-12 col-md-12 col-12 delivery_address_area">
+                                        <div class="form-group">
+                                            <label><i class="fa fa-map-marker"></i> {{ __('Address') }}<span>*</span></label>
+                                            <input type="text" class="location_input required" id="location_input1"
+                                                name="shipping[address]" placeholder=""
+                                                value="{{ $customer['address'] }}" data-msg="{{__('Shipping Address')}}">
                                         </div>
-                                        <div class="col-lg-12 col-md-12 col-12 delivery_address_area">
-                                            <div class="form-group">
-                                                <label><i class="fa fa-map-marker"></i> {{ __('Address') }}
-                                                    <span>*</span></label>
-                                                <input type="text" class="location_input required" id="location_input1"
-                                                    name="shipping[address]" placeholder="" 
-                                                    value="{{ $customer['address'] }}" data-msg="{{__('Shipping Address')}}">
-                                            </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-12 delivery_address_city">
+                                        <div class="form-group">
+                                            <label><i class="fa fa-building"></i> {{ __('City') }}<span>*</span></label>
+                                            <input type="text" class="location_input required" id="location_city1"
+                                                name="shipping[city]" placeholder=""
+                                                value="{{ $customer['city'] }}" data-msg="{{__('Shipping City')}}">
                                         </div>
-                                        <div class="col-lg-6 col-md-6 col-12 delivery_address_city">
-                                            <div class="form-group">
-                                                <label><i class="fa fa-building"></i> {{ __('City') }}
-                                                    <span>*</span></label>
-                                                <input type="text" class="location_input required" id="location_city1"
-                                                    name="shipping[city]" placeholder="" 
-                                                    value="{{ $customer['city'] }}" data-msg="{{__('Shipping City')}}">
-                                            </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-12 delivery_address_state">
+                                        <div class="form-group">
+                                            <label><i class="fa fa-map"></i>{{ __('State') }}<span>*</span></label>
+                                            <select class="location_input add-coupon-check2 nice-select required" id="location_state1"
+                                                name="shipping[state]" data-msg="{{__('Shipping State')}}">
+                                                @foreach ($states_data as $key => $val)
+                                                    <option @if ($key == $customer['state']) selected @endif
+                                                        value="{{ $key }}">{{ $val }}</option>
+                                                @endforeach
+                                            </select>
                                         </div>
-                                        <div class="col-lg-6 col-md-6 col-12 delivery_address_state">
-                                            <div class="form-group">
-                                                <label> <i class="fa fa-map"></i>{{ __('State') }} <span>*</span></label>
-                                                <select class="location_input add-coupon-check2 nice-select required" id="location_state1"
-                                                    name="shipping[state]" data-msg="{{__('Shipping State')}}">
-                                                    @foreach ($states_data as $key => $val)
-                                                        <option @if ($key == $customer['state']) selected @endif
-                                                            value="{{ $key }}">{{ $val }}</option>
-                                                    @endforeach
-                                                </select>
-                                                {{-- <input type="text" class="location_input" id="location_state1" name="shipping[state]" placeholder="" required="required" value="{{ $customer['state'] }}"> --}}
-                                            </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-12 delivery_address_country">
+                                        <div class="form-group">
+                                            <label><i class="fa fa-globe"></i>{{ __('Country') }}<span>*</span></label>
+                                            <select id="shipping-country" name="shipping[country]"
+                                                class="nice-select required" data-msg="{{__('Shipping Country')}}">
+                                                <option value="USA">United State</option>
+                                            </select>
                                         </div>
-                                        <div class="col-lg-6 col-md-6 col-12 delivery_address_country">
-                                            <div class="form-group">
-                                                <label> <i class="fa fa-globe"></i>{{ __('Country') }} <span>*</span></label>
-                                                <select id="shipping-country" name="shipping[country]"
-                                                    class="nice-select required" data-msg="{{__('Shipping Country')}}">
-                                                    <option value="USA">United State</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6 col-md-6 col-12 post_code_area">
-                                            <div class="form-group">
-                                                <label><i class="fa fa-envelope"></i>{{ __('Zip Code') }}<span>*</span></label>
-                                                <input type="text" id="post_code1" class="required post_code_class" name="shipping[post_code]"
-                                                    placeholder="" value="{{ $customer['zip'] }}"  data-msg="{{__('Shipping Postal Code')}}">
-                                            </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-12 post_code_area">
+                                        <div class="form-group">
+                                            <label><i class="fa fa-envelope"></i>{{ __('Zip Code') }}<span>*</span></label>
+                                            <input type="text" id="post_code1" class="required post_code_class" name="shipping[post_code]"
+                                                placeholder="" value="{{ $customer['zip'] }}" data-msg="{{__('Shipping Postal Code')}}">
                                         </div>
                                     </div>
                                 </div>
+                        
+                                <!-- Shipping Method and Button Container -->
+                                <div class="shipping-method-button-container" style="justify-content: flex-end;">
+                                    @if ($order_settings->shipping_amount_type != 'distance')
+                                        <div class="single-widget shipping_method_area">
+                                            <h3 class="mt-5 mb-1">{{ __('Shipping Method') }}</h3>
+                                            <div class="content">
+                                                <div class="checkbox shipping_render_area">
+                                                    <label class="checkbox-inline shipping_method" for="shipping{{ $shipping_methods['method_type'] }}">
+                                                        <input name="shipping_method" class="shipping_item"
+                                                            value="{{ $shipping_methods['method_type'] }}"
+                                                            data-price="{{ $shipping_methods['base_pricing'] }}"
+                                                            data-shippingInfo='{!! json_encode($shipping_methods) !!}'
+                                                            id="shipping{{ $shipping_methods['method_type'] }}"
+                                                            type="radio"> {{ $shipping_methods['label'] }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                            <div class="single-widget get-button">
+                                <div class="content">
+                                    <div class="button">
+                                        <input type="hidden" id="shipping_fee" name="shipping_fee">
+                                        <input type="hidden" id="total_price" name="total_price">
+                                        <button type="submit" class="btn submit_btn submitbtn" id="submit_btn" >{{ __('Continue Payment') }}</button>
+                                    </div>
+                                </div>
+                            </div>
+                                </div>
+                            </div>
+                        </div>
+                                
+                                
                             </div>
                             <div class="col-lg-4 col-12 col-35">
                                 <div class="order-details container carts-right">
@@ -501,42 +607,12 @@ input#cover_fee_checkbox {
                                             </ul>
                                         </div>
                                     </div>
-                                    @if ($order_settings->shipping_amount_type != 'distance')
-                                        <div class="single-widget shipping_method_area">
-                                            <h2>{{ __('Shipping Method') }}</h2>
-                                            <div class="content">
-                                                <div class="checkbox shipping_render_area">
-
-                                                    <label class="checkbox-inline shipping_method"
-                                                        for="shipping{{ $shipping_methods['method_type'] }}">
-                                                        <input name="shipping_method" class="shipping_item"
-                                                            value="{{ $shipping_methods['method_type'] }}"
-                                                            data-price="{{ $shipping_methods['base_pricing'] }}"
-                                                            data-shippingInfo='{!! json_encode($shipping_methods) !!}'
-                                                            id="shipping{{ $shipping_methods['method_type'] }}"
-                                                            type="radio"> {{ $shipping_methods['label'] }}
-                                                    </label>
-
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
+                                 
                                     <!--/ End Order Widget -->
 
                                     <!--/ End Order Widget -->
 
-                                    <!-- Button Widget -->
-                                    <div class="single-widget get-button">
-                                        <div class="content">
-                                            <div class="button">
-                                                <input type="hidden" id="shipping_fee" name="shipping_fee">
-                                                <input type="hidden" id="total_price" name="total_price">
-                                                <button type="submit" class="btn submit_btn submitbtn"
-                                                    id="submit_btn">{{ __('Place Order') }}</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!--/ End Button Widget -->
+                                    
                                 </div>
                             </div>
                         </div>
@@ -630,7 +706,7 @@ input#cover_fee_checkbox {
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 120%;
             background-color: rgba(255, 255, 255, 0.5); /* Transparent white background */
             display: flex;
             justify-content: center;
@@ -653,6 +729,8 @@ input#cover_fee_checkbox {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+
     </style>
 
 
@@ -695,5 +773,31 @@ input#cover_fee_checkbox {
     @endpush
     @push('js')
         <script src="https://js.stripe.com/v3/"></script>
-        <!-- <script src="{{ asset('checkout/js/new-stripe.js') }}"></script> -->
+         <!--<script src="{{ asset('checkout/js/new-stripe.js') }}"></script> -->
+        <script>
+        $(document).ready(function () {
+            const $shippingAddress = $('#shipping_address');
+            const $shippingArea = $('.shipping_address_area');
+            const $submitBtn = $('#submit_btn');
+
+            $shippingArea.toggle(!$shippingAddress.is(':checked'));
+
+            $shippingAddress.on('change', function () {
+                $shippingArea.slideToggle('fast', !$shippingAddress.is(':checked'));
+            });
+
+            // Disable submit button on form submission
+            $('#payment-form').on('submit', function () {
+                $submitBtn
+                    .prop('disabled', true)
+                    .text('SUBMITTING ORDER')
+                    .css({
+                        backgroundColor: '#4a4a4a',
+                        color: 'white',
+                        cursor: 'not-allowed'
+                    });
+            });
+        });
+
+        </script>
     @endpush

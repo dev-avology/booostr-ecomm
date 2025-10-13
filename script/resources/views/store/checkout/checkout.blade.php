@@ -91,6 +91,7 @@ input#cover_fee_checkbox {
     background-color: #E4FFEE;
 }
 
+
 @if($order_type == 'Digital')
 .shipping-item,.shipping_method_area,.shipping_same_as_billing{
     display:none !important;
@@ -112,6 +113,7 @@ input#cover_fee_checkbox {
         <div class="container">
             <div class="row">
                 <div class="row align-items-center">
+
 
                     <div class="col-lg-6 col-md-7 col-12">
                         <!-- Topbar Left -->
@@ -572,8 +574,7 @@ input#cover_fee_checkbox {
                                             <div class="button">
                                                 <input type="hidden" id="shipping_fee" name="shipping_fee">
                                                 <input type="hidden" id="total_price" name="total_price">
-                                                <button type="submit" class="btn submit_btn submitbtn"
-                                                    id="submit_btn">{{ __('Place Order') }}</button>
+                                                <button type="submit" class="btn submit_btn submitbtn" id="submit_btn" onclick="disableSubmitButton(event)">{{ __('Place Order') }}</button>
                                             </div>
                                         </div>
                                     </div>
@@ -780,6 +781,19 @@ input#cover_fee_checkbox {
             </script>
         @endif
         <script type="text/javascript" src="{{ asset('checkout/js/google-api.js') }}"></script>
+        <script>
+            function disableSubmitButton(event) {
+                const submitButton = document.getElementById('submit_btn');
+                event.preventDefault();
+                submitButton.disabled = true;
+                submitButton.textContent = 'SUBMITTING ORDER';
+                submitButton.style.backgroundColor = '#4a4a4a';
+                submitButton.style.color = 'white';
+                submitButton.style.cursor = 'not-allowed';
+                // Trigger the form submission to let Stripe handle the rest
+                document.getElementById('payment-form').dispatchEvent(new Event('submit'));
+            }
+        </script>
     @endpush
     @push('js')
         <script src="https://js.stripe.com/v3/"></script>
