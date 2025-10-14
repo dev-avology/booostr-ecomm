@@ -266,195 +266,223 @@ class OrderController extends Controller
         return view('seller.order.invoice_print',compact('order','ordermeta','order_status','riders','product_type','order_type'));
     }
     
-        //     public function capture($id)
-        // {
-        //     abort_if(!getpermission('order'), 401);
+//     public function capture($id)
+// {
+//     abort_if(!getpermission('order'), 401);
 
-        //     $admin_details = User::where('role_id', 3)->first();
-        //     $to = $admin_details->email;
+//     $admin_details = User::where('role_id', 3)->first();
+//     $to = $admin_details->email;
 
-        //     $order = Order::with('orderstatus', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'getway', 'schedule')->findOrFail($id);
+//     $order = Order::with('orderstatus', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'getway', 'schedule')->findOrFail($id);
 
-        //     $gateway = Getway::where('status', '!=', 0)->where('namespace', '=', 'App\Lib\Stripe')->first();
-        //     $ordermeta = json_decode($order->ordermeta->value ?? '');
+//     $gateway = Getway::where('status', '!=', 0)->where('namespace', '=', 'App\Lib\Stripe')->first();
+//     $ordermeta = json_decode($order->ordermeta->value ?? '');
 
-        //     $gateway_data_info = json_decode($gateway->data);
-        //     $payment_data['test_mode'] = $gateway->test_mode;
-        //     $payment_data['currency'] = $gateway->currency_name ?? 'USD';
-        //     $payment_data['getway_id'] = $gateway->id;
-        //     $payment_data['amount'] = $order->total;
-        //     $payment_data['transaction_id'] = $order->transaction_id;
-        //     $payment_data['application_fee_amount'] = $ordermeta->booster_platform_fee ?? 0;
-        //     $payment_data['card_fee_amount'] = $ordermeta->credit_card_fee ?? 0;
+//     $gateway_data_info = json_decode($gateway->data);
+//     $payment_data['test_mode'] = $gateway->test_mode;
+//     $payment_data['currency'] = $gateway->currency_name ?? 'USD';
+//     $payment_data['getway_id'] = $gateway->id;
+//     $payment_data['amount'] = $order->total;
+//     $payment_data['transaction_id'] = $order->transaction_id;
+//     $payment_data['application_fee_amount'] = $ordermeta->booster_platform_fee ?? 0;
+//     $payment_data['card_fee_amount'] = $ordermeta->credit_card_fee ?? 0;
 
-        //     if (!empty($gateway->data)) {
-        //         foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
-        //             $payment_data[$key] = $info;
-        //         };
-        //     }
+//     if (!empty($gateway->data)) {
+//         foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
+//             $payment_data[$key] = $info;
+//         };
+//     }
 
-        //     Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
+//     Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
 
-        //         // Detect PaymentIntent or Charge
-        //         if (str_starts_with($payment_data['transaction_id'], 'pi_')) {
-        //             $paymentIntent = \Stripe\PaymentIntent::retrieve($payment_data['transaction_id']);
-        //         } elseif (str_starts_with($payment_data['transaction_id'], 'ch_')) {
-        //             $charge = \Stripe\Charge::retrieve($payment_data['transaction_id']);
-        //             $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
-        //         } else {
-        //             throw new \Exception('Invalid transaction ID format');
-        //         }
+//         // Detect PaymentIntent or Charge
+//         if (str_starts_with($payment_data['transaction_id'], 'pi_')) {
+//             $paymentIntent = \Stripe\PaymentIntent::retrieve($payment_data['transaction_id']);
+//         } elseif (str_starts_with($payment_data['transaction_id'], 'ch_')) {
+//             $charge = \Stripe\Charge::retrieve($payment_data['transaction_id']);
+//             $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
+//         } else {
+//             throw new \Exception('Invalid transaction ID format');
+//         }
 
-        //         // Capture if required
-        //         if ($paymentIntent->status === 'requires_capture') {
-        //             $captured = $paymentIntent->capture();
-        //             $payment_status = $captured->status === 'succeeded' ? 1 : 0;
-        //             $transaction_log = $captured;
-        //         } else {
-        //             $payment_status = $paymentIntent->status === 'succeeded' ? 1 : 0;
-        //             $transaction_log = $paymentIntent;
-        //         }
+//         // Capture if required
+//         if ($paymentIntent->status === 'requires_capture') {
+//             $captured = $paymentIntent->capture();
+//             $payment_status = $captured->status === 'succeeded' ? 1 : 0;
+//             $transaction_log = $captured;
+//         } else {
+//             $payment_status = $paymentIntent->status === 'succeeded' ? 1 : 0;
+//             $transaction_log = $paymentIntent;
+//         }
 
-        //         $paymentresult = [
-        //             'payment_status'  => $payment_status,
-        //             'payment_id'      => $paymentIntent->id,
-        //             'transaction_log' => $transaction_log,
-        //         ];
-        //     } 
-            
+//         $paymentresult = [
+//             'payment_status'  => $payment_status,
+//             'payment_id'      => $paymentIntent->id,
+//             'transaction_log' => $transaction_log,
+//         ];
+//     } 
+    
 
-        //     // ✅ Existing logic continues
-        //     if ($paymentresult['payment_status'] == '1') {
-        //         $order->payment_status = 1;
-        //         $order->status_id = 3;
-        //         $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
-        //         $order->save();
+//     // ✅ Existing logic continues
+//     if ($paymentresult['payment_status'] == '1') {
+//         $order->payment_status = 1;
+//         $order->status_id = 3;
+//         $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+//         $order->save();
 
-        //         $transcation_log = new Ordermeta;
-        //         $transcation_log->order_id = $order->id;
-        //         $transcation_log->key = 'transcation_log';
-        //         $transcation_log->value = json_encode($paymentresult['transaction_log']);
-        //         $transcation_log->save();
+//         $transcation_log = new Ordermeta;
+//         $transcation_log->order_id = $order->id;
+//         $transcation_log->key = 'transcation_log';
+//         $transcation_log->value = json_encode($paymentresult['transaction_log']);
+//         $transcation_log->save();
 
-        //         $order->orderlasttrans()->update([
-        //             'key' => 'last_transcation_log',
-        //             'value' => json_encode($paymentresult['transaction_log'])
-        //         ]);
+//         $order->orderlasttrans()->update([
+//             'key' => 'last_transcation_log',
+//             'value' => json_encode($paymentresult['transaction_log'])
+//         ]);
 
-        //         $order = Order::with('orderstatus', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'getway', 'schedule')->findOrFail($id);
+//         $order = Order::with('orderstatus', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'getway', 'schedule')->findOrFail($id);
 
-        //         \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
-        //     }
+//         \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
+//     }
 
-        //     return redirect()->back();
-        // }
+//     return redirect()->back();
+// }
 
 
-    public function capture($id)
+     public function capture($id)
     {
-        abort_if(!getpermission('order'),401);
-
-        $admin_details = User::where('role_id',3)->first();
-        $to = $admin_details->email;
-        
-        $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
-
-        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
-        $ordermeta=json_decode($order->ordermeta->value ?? '');
-
-        $gateway_data_info = json_decode($gateway->data);
-        $payment_data['test_mode']  = $gateway->test_mode;
-        $payment_data['currency']   = $gateway->currency_name ?? 'USD';
-        $payment_data['getway_id']  = $gateway->id;
-        $payment_data['amount']  = $order->total;
-        $payment_data['transaction_id']  = $order->transaction_id;
-
-
-        $payment_data['application_fee_amount']  = $ordermeta->booster_platform_fee??0;
-        $payment_data['card_fee_amount']  = $ordermeta->credit_card_fee??0;
-
-        if (!empty($gateway->data)) {
-            foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
-                $payment_data[$key] = $info;
-            };
+        abort_if(!getpermission('order'), 401);
+    
+        $admin = User::where('role_id', 3)->first();
+        $order = Order::with([
+            'orderstatus',
+            'orderitems',
+            'getway',
+            'user',
+            'shippingwithinfo',
+            'ordermeta',
+            'schedule'
+        ])->findOrFail($id);
+    
+        $gateway = Getway::where('status', '!=', 0)
+            ->where('namespace', '=', 'App\Lib\Stripe')
+            ->firstOrFail();
+    
+        $ordermeta = json_decode($order->ordermeta->value ?? '{}');
+        $gatewayData = json_decode($gateway->data ?? '{}');
+    
+        // Prepare payment data
+        $paymentData = [
+            'test_mode' => $gateway->test_mode,
+            'currency'  => $gateway->currency_name ?? 'USD',
+            'amount'    => $order->total,
+            'transaction_id' => $order->transaction_id,
+            'application_fee_amount' => $ordermeta->booster_platform_fee ?? 0,
+            'card_fee_amount' => $ordermeta->credit_card_fee ?? 0,
+        ];
+    
+        // Configure Stripe
+        \Stripe\Stripe::setApiKey(
+            $gateway->test_mode == 1 ? $gatewayData->test_secret_key : $gatewayData->secret_key
+        );
+    
+        $transactionId = $paymentData['transaction_id'] ?? null;
+        if (!$transactionId) {
+            throw new \Exception('Transaction ID not found');
         }
-
-        // $paymentresult= $gateway->namespace::capture_payment($payment_data);
-        //$paymentresult= ['payment_status'=>1,'payment_id'=>'sffsdf43534','transaction_log'=>$tran_log];
-
-          Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
-          
-            $transactionId = $payment_data['transaction_id'] ?? null;
-
-            if (!$transactionId) {
-                throw new \Exception('Transaction ID not found');
-            }
-        
-            // Retrieve PaymentIntent or Charge
+    
+        $paymentStatus = 0;
+        $transactionLog = null;
+        $paymentId = $transactionId;
+    
+        try {
+            // --- Handle PaymentIntent (pi_) ---
             if (str_starts_with($transactionId, 'pi_')) {
                 $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
     
-            } elseif (str_starts_with($transactionId, 'ch_')) {
-                $charge = \Stripe\Charge::retrieve($transactionId);
-                $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
-            } else {
-                throw new \Exception('Invalid transaction ID format');
-            }
-       
-            // Capture if required
-            if ($paymentIntent->status === 'requires_capture') {
-                $captured = $paymentIntent->capture();
-                $payment_status = $captured->status === 'succeeded' ? 1 : 0;
-                $transaction_log = $captured;
-            } else {
-                $payment_status = $paymentIntent->status === 'succeeded' ? 1 : 0;
-                $transaction_log = $paymentIntent;
+                if ($paymentIntent->status === 'requires_capture') {
+                    $paymentIntent = $paymentIntent->capture();
+                }
+    
+                $paymentStatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
+                $transactionLog = $paymentIntent;
+                $paymentId = $paymentIntent->id;
             }
     
-            $paymentresult = [
-                'payment_status'  => $payment_status,
-                'payment_id'      => $paymentIntent->id,
-                'transaction_log' => $transaction_log,
-            ];
-        
-        
-        
-        if ($paymentresult['payment_status'] == '1') {
-            $order->payment_status = 1;
-            $order->status_id = 3;
-            $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
-            $order->save();
-
-
-            $transcation_log = new Ordermeta;
-            $transcation_log->order_id = $order->id;
-            $transcation_log->key = 'transcation_log';
-            $transcation_log->value = json_encode($paymentresult['transaction_log']);
-            $transcation_log->save();
-
+            // --- Handle Charge (ch_) ---
+            elseif (str_starts_with($transactionId, 'ch_')) {
+                $charge = \Stripe\Charge::retrieve($transactionId);
+    
+                // Case: Legacy charge (no payment_intent)
+                if (empty($charge->payment_intent)) {
+                    if ($charge->status === 'pending') {
+                        $charge = \Stripe\Charge::capture($transactionId);
+                    }
+                    $paymentStatus = $charge->status === 'succeeded' ? 1 : 0;
+                    $transactionLog = $charge;
+                    $paymentId = $charge->id;
+                } else {
+                    // Capture from PaymentIntent
+                    $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
+                    if ($paymentIntent->status === 'requires_capture') {
+                        $paymentIntent = $paymentIntent->capture();
+                    }
+                    $paymentStatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
+                    $transactionLog = $paymentIntent;
+                    $paymentId = $paymentIntent->id;
+                }
+            }
+    
+            // --- Invalid format ---
+            else {
+                throw new \Exception('Invalid transaction ID format.');
+            }
+    
+        } catch (\Stripe\Exception\InvalidRequestException $e) {
+            \Log::error("Stripe InvalidRequest for order {$id}: " . $e->getMessage());
+            throw new \Exception('Stripe capture error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            \Log::error("Capture failed for order {$id}: " . $e->getMessage());
+            throw $e;
+        }
+    
+        // --- Update order if payment successful ---
+        if ($paymentStatus === 1) {
+            $order->update([
+                'payment_status' => 1,
+                'status_id' => 3,
+                'captured_at' => now()->setTimezone(config('app.timezone')),
+            ]);
+    
+            // Log transaction
+            Ordermeta::create([
+                'order_id' => $order->id,
+                'key' => 'transcation_log',
+                'value' => json_encode($transactionLog),
+            ]);
+    
             $order->orderlasttrans()->update([
                 'key' => 'last_transcation_log',
-                'value' => json_encode($paymentresult['transaction_log'])
+                'value' => json_encode($transactionLog),
             ]);
-            
-               // Sync to financial manager after capture
-
+    
+            // Sync to financial manager
             if (in_array($order->order_from, [0, 4, 5])) {
-
                 $this->post_order_data_POS($order, 'capture');
-
             } else {
-
                 $this->post_order_data($order, 'capture');
-
             }
-
-            $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
-
-            \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
+    
+            // Send notification
+            \App\Lib\NotifyToUser::sendEmail($order, $admin->email, 'admin');
         }
+    
         return redirect()->back();
     }
+
+
+
 
 
     public function post_order_data($order,$post_type = 'capture'){
@@ -584,149 +612,190 @@ class OrderController extends Controller
 
     public function post_order_data_POS($order,$post_type = 'capture'){
 
-            $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
-            $qty = $order->orderitems[0]['qty'];
-            $product_amount = $order->orderitems[0]['amount'];
-            $sub_total = $product_amount*$qty;
-            $sales_tax = $order->tax;
-            $order_total = $order->total;
-        
-            if(isset($order->ordermeta)){
-                $ordermeta=json_decode($order->ordermeta->value ?? '',true);
-            }
-
-            $gateway=Getway::find($order->getway_id);
-
-
-            //$jsonString = $order->shippingwithinfo['info'];
-
-            $jsonString = $order->shippingwithinfo['info'];
-            // Decode the JSON string into a PHP array
-            $shipping_data = json_decode($jsonString, true);
-
-            $credit_card_fee = $shipping_data['credit_card_fee'];
-            $booster_platform_fee = $shipping_data['booster_platform_fee'];
-            $processing_fees = $credit_card_fee+$booster_platform_fee;
-
-            $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
-
-            $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
-
-
-
-            $postData = json_encode([
-            'category_type'=> 'Booostr Ecommerce',
-            'booster_id' =>Tenant('club_id'),
-            'coaid'=>41,
-            'contactname'=>isset($ordermeta['name'])?$ordermeta['name']:'Guest User',
-            //'memo'=>'Booostr Ecommerce',
-            'user_id' => 0,
-            'revenue_name'=>'4-850 Booostr Ecommerce',
-            'transaction_type'=>'I',
-            'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
-            'net_revenue'=>$net_recieved_amount,
-            'transaction_amount'=>$order_total,
-            'expense_category'=>'Revenue',
-            'receipts_issued'=> 'Yes',
-            'status'=>1,
-            'donor_name'=>isset($ordermeta['name'])? $ordermeta['name'].' (POS Order)':'Guest User'.' (POS Order)',
-            'created'=>$order->placed_at,
-            'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
-            'payement_method'=>($gateway->name == 'cash') ? 0 : 3,
-            'invoicenumber'=>$order->invoice_no,
-            'invoicreatedate'=>$order->placed_at,
-            'invoiceprocessingfee'=>$processing_fees,
-            'invoicesalestax'=> $sales_tax,
-            'invoiceopt'=>$order->invoice_no,
-            'deposite_date'=>$order->captured_at,
-            'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
-            'record_type' => $post_type,
-        ]);
-
+        $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
+        $qty = $order->orderitems[0]['qty'];
+        $product_amount = $order->orderitems[0]['amount'];
+        $sub_total = $product_amount*$qty;
+        $sales_tax = $order->tax;
+        $order_total = $order->total;
     
-        $url = env("WP_API_URL");
-
-    // $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
-        $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager";
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $response = curl_exec($ch);
-
-        // Check for cURL errors
-        if (curl_errno($ch)) {
-            echo 'cURL error: ' . curl_error($ch);
+        if(isset($order->ordermeta)){
+            $ordermeta=json_decode($order->ordermeta->value ?? '',true);
         }
-        curl_close($ch);
-        //Log::info($response);
-    // dump("=========POS=============");
-    // dd($response);
-        return $response;
+
+        $gateway=Getway::find($order->getway_id);
+
+
+        //$jsonString = $order->shippingwithinfo['info'];
+
+        $jsonString = $order->shippingwithinfo['info'];
+        // Decode the JSON string into a PHP array
+        $shipping_data = json_decode($jsonString, true);
+
+        $credit_card_fee = $shipping_data['credit_card_fee'];
+        $booster_platform_fee = $shipping_data['booster_platform_fee'];
+        $processing_fees = $credit_card_fee+$booster_platform_fee;
+
+        $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
+
+        $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
+
+
+
+        $postData = json_encode([
+        'category_type'=> 'Booostr Ecommerce',
+        'booster_id' =>Tenant('club_id'),
+        'coaid'=>41,
+        'contactname'=>isset($ordermeta['name'])?$ordermeta['name']:'Guest User',
+        //'memo'=>'Booostr Ecommerce',
+        'user_id' => 0,
+        'revenue_name'=>'4-850 Booostr Ecommerce',
+        'transaction_type'=>'I',
+        'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
+        'net_revenue'=>$net_recieved_amount,
+        'transaction_amount'=>$order_total,
+        'expense_category'=>'Revenue',
+        'receipts_issued'=> 'Yes',
+        'status'=>1,
+        'donor_name'=>isset($ordermeta['name'])? $ordermeta['name'].' (POS Order)':'Guest User'.' (POS Order)',
+        'created'=>$order->placed_at,
+        'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
+        'payement_method'=>($gateway->name == 'cash') ? 0 : 3,
+        'invoicenumber'=>$order->invoice_no,
+        'invoicreatedate'=>$order->placed_at,
+        'invoiceprocessingfee'=>$processing_fees,
+        'invoicesalestax'=> $sales_tax,
+        'invoiceopt'=>$order->invoice_no,
+        'deposite_date'=>$order->captured_at,
+        'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
+        'record_type' => $post_type,
+    ]);
+
+   
+    $url = env("WP_API_URL");
+
+   // $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
+    $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+
+    // Check for cURL errors
+    if (curl_errno($ch)) {
+        echo 'cURL error: ' . curl_error($ch);
+    }
+    curl_close($ch);
+    //Log::info($response);
+   // dump("=========POS=============");
+   // dd($response);
+    return $response;
+}
+
+
+
+public function refund($id, $silent = false)
+{
+    abort_if(!getpermission('order'),401);
+
+    $admin_details = User::where('role_id',3)->first();
+    $to = $admin_details->email ?? '';
+
+    $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+
+    $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+    $ordermeta=json_decode($order->ordermeta->value ?? '');
+
+    $gateway_data_info = json_decode($gateway->data);
+    $payment_data['test_mode']  = $gateway->test_mode;
+    $payment_data['currency']   = $gateway->currency_name ?? 'USD';
+    $payment_data['getway_id']  = $gateway->id;
+    $payment_data['amount']  = $order->total;
+    $payment_data['transaction_id']  = $order->transaction_id;
+    $payment_data['application_fee_amount']  = (float) $ordermeta->booster_platform_fee??0;
+    $payment_data['card_fee_amount']  = (float) $ordermeta->credit_card_fee??0;
+    $payment_data['refund_application_fee']  = true;
+    $payment_data['refund_card_fee']  = true;
+
+    if (!empty($gateway->data)) {
+        foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
+            $payment_data[$key] = $info;
+        };
+    }
+
+  Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
+ 
+  $transactionId = $payment_data['transaction_id'] ?? null;
+    if (!$transactionId) {
+        if (request()->wantsJson() || $silent) {
+            throw new \Exception('No transaction ID provided');
+        }
+        return redirect()->back()->with('error', 'No transaction ID provided');
+    }
+
+    if (str_starts_with($transactionId, 'pi_')) {
+        $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
+    } elseif (str_starts_with($transactionId, 'ch_')) {
+        $charge = \Stripe\Charge::retrieve($transactionId);
+        $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
+    } else {
+        if (request()->wantsJson() || $silent) {
+            throw new \Exception('Invalid transaction ID format');
+        }
+        return redirect()->back()->with('error', 'Invalid transaction ID format');
+    }
+
+    $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
+
+    $transaction_log = $paymentIntent;
+
+    $payment_data['payment_intent'] = $paymentIntent;
+    $payment_data['payment_status'] = $paymentstatus;
+
+    if ($paymentstatus !== 1) {
+        if (request()->wantsJson() || $silent) {
+            throw new \Exception('Payment is not in a refundable state.');
+        }
+        return redirect()->back()->with('error', 'Payment is not in a refundable state.');
     }
 
 
+    $chargeId = $paymentIntent->latest_charge;
+    $payment_data['transaction_id'] = $chargeId;
 
-    public function refund($id)
-    {
-        abort_if(!getpermission('order'),401);
+    $paymentresult= $gateway->namespace::refund_payment($payment_data);
 
-        $admin_details = User::where('role_id',3)->first();
-        $to = $admin_details->email;
+
+    if ($paymentresult['payment_status'] == '1') {
+        $order->payment_status = 5;
+        $order->status_id = 2;
+        $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
+        $order->save();
+
+        $transcation_log = new Ordermeta;
+        $transcation_log->order_id = $order->id;
+        $transcation_log->key = 'transcation_log';
+        $transcation_log->value = json_encode($paymentresult['transaction_log']);
+        $transcation_log->save();
+
+        $order->orderlasttrans()->update([
+            'key' => 'last_transcation_log',
+            'value' => json_encode($paymentresult['transaction_log'])
+        ]);
 
         $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+        
+        $this->post_order_data($order,'refund');
 
-        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
-        $ordermeta=json_decode($order->ordermeta->value ?? '');
-
-        $gateway_data_info = json_decode($gateway->data);
-        $payment_data['test_mode']  = $gateway->test_mode;
-        $payment_data['currency']   = $gateway->currency_name ?? 'USD';
-        $payment_data['getway_id']  = $gateway->id;
-        $payment_data['amount']  = $order->total;
-        $payment_data['transaction_id']  = $order->transaction_id;
-        $payment_data['application_fee_amount']  = (float) $ordermeta->booster_platform_fee??0;
-        $payment_data['card_fee_amount']  = (float) $ordermeta->credit_card_fee??0;
-        $payment_data['refund_application_fee']  = true;
-        $payment_data['refund_card_fee']  = true;
-
-        if (!empty($gateway->data)) {
-            foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
-                $payment_data[$key] = $info;
-            };
-        }
-
-      
-        $paymentresult= $gateway->namespace::refund_payment($payment_data);
-
-        if ($paymentresult['payment_status'] == '1') {
-            $order->payment_status = 5;
-            $order->status_id = 2;
-            $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
-            $order->save();
-
-            $transcation_log = new Ordermeta;
-            $transcation_log->order_id = $order->id;
-            $transcation_log->key = 'transcation_log';
-            $transcation_log->value = json_encode($paymentresult['transaction_log']);
-            $transcation_log->save();
-
-            $order->orderlasttrans()->update([
-                'key' => 'last_transcation_log',
-                'value' => json_encode($paymentresult['transaction_log'])
-            ]);
-
-            $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
-            
-            $this->post_order_data($order,'refund');
-
+        if (!$silent) {
             \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
 
             if ($order->notify_driver == 'mail') {
@@ -739,9 +808,21 @@ class OrderController extends Controller
                 }
                 \App\Lib\NotifyToUser::sendEmail($order, $mail_to, 'user');
             }
+
+            if (request()->wantsJson()) {
+                return response()->json(['message' => 'Order refunded successfully']);
+            }
+            return redirect()->back()->with('success', 'Order refunded successfully');
         }
-        return redirect()->back();
+
+        return true;
+    } else {
+        if (request()->wantsJson() || $silent) {
+            throw new \Exception('Refund failed');
+        }
+         return redirect()->back();
     }
+}
 
 
 
@@ -752,87 +833,247 @@ class OrderController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function destroy(Request $request)
-    {
-        abort_if(!getpermission('order'), 401);
+public function destroy(Request $request)
+{
+    abort_if(!getpermission('order'), 401);
 
-        $ids = $request->ids ?? [];
-        if (empty($ids)) {
-            return response()->json(['error' => 'No orders selected'], 400);
+    $ids = $request->ids ?? [];
+     $ids = array_filter(array_map('intval', (array) $ids), fn($id) => $id > 0);
+    $ids = array_unique(array_values($ids));
+
+    if (empty($ids)) {
+        return response()->json(['error' => 'No valid orders selected'], 400);
+    }
+    // Always get method as string to avoid numeric/string issues
+    $method = (string) $request->input('method', '');
+
+    $orders = Order::with(['user', 'ordermeta'])->whereIn('id', $ids)->get();
+    $adminEmail = User::where('role_id', 3)->value('email');
+
+    $updated = [];
+
+    // 1️⃣ DELETE UNCAPPED ORDERS
+    if ($request->method == 'delete') {
+        Order::whereIn('id', $ids)->delete();
+        return response()->json(['message' => 'Orders Deleted']);
+    }
+
+    // 2️⃣ CAPTURE AUTHORIZED LOW RISK
+    // elseif ($method === 'capture_authorized') {
+    //     $admin_details = User::where('role_id', 3)->first();
+    //     $adminEmail = $admin_details->email ?? '';
+
+    //     $gateway = Getway::where('status', '!=', 0)
+    //         ->where('namespace', '=', 'App\Lib\Stripe')->first();
+
+    //     if (!$gateway) {
+    //         return response()->json(['error' => 'Stripe gateway not found'], 400);
+    //     }
+
+    //     $gateway_data_info = json_decode($gateway->data);
+
+    //     foreach ($orders as $order) {
+    //         if (in_array($order->risk_level, ['normal', 'low']) && in_array($order->payment_status, [4, 5])) {
+    //             $paymentstatus = 1; // Default to complete
+    //             $status = 3; // Default to pending fulfillment
+
+    //             if ($order->payment_status == 5) {
+    //                 // Already refunded, just update status
+    //                 $order->status_id = $status;
+    //                 $order->save();
+    //             } else {
+    //                 // Capture authorized payment
+    //                 $ordermeta = json_decode($order->ordermeta->value ?? '');
+    //                 $payment_data = [
+    //                     'test_mode' => $gateway->test_mode,
+    //                     'currency' => $gateway->currency_name ?? 'USD',
+    //                     'getway_id' => $gateway->id,
+    //                     'amount' => $order->total,
+    //                     'transaction_id' => $order->transaction_id,
+    //                     'application_fee_amount' => $ordermeta->booster_platform_fee ?? 0,
+    //                     'card_fee_amount' => $ordermeta->credit_card_fee ?? 0,
+    //                 ];
+
+    //                 Stripe::setApiKey($gateway->test_mode == 1 
+    //                     ? $gateway_data_info->test_secret_key 
+    //                     : $gateway_data_info->secret_key);
+
+    //                 $transactionId = $payment_data['transaction_id'] ?? null;
+    //                 if (!$transactionId) continue;
+
+    //                 try {
+    //                     if (str_starts_with($transactionId, 'pi_')) {
+    //                         $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
+    //                     } elseif (str_starts_with($transactionId, 'ch_')) {
+    //                         $charge = \Stripe\Charge::retrieve($transactionId);
+    //                         $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
+    //                     } else {
+    //                         throw new \Exception('Invalid transaction ID format');
+    //                     }
+
+    //                     if ($paymentIntent->status === 'requires_capture') {
+    //                         $captured = $paymentIntent->capture();
+    //                         $paymentstatus = $captured->status === 'succeeded' ? 1 : 0;
+    //                         $transaction_log = $captured;
+    //                     } else {
+    //                         $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
+    //                         $transaction_log = $paymentIntent;
+    //                     }
+
+    //                     if ($paymentstatus == 1) {
+    //                         $order->payment_status = $paymentstatus;
+    //                         $order->status_id = $status;
+    //                         $order->captured_at = now();
+    //                         $order->save();
+
+    //                         $transcation_log = new Ordermeta;
+    //                         $transcation_log->order_id = $order->id;
+    //                         $transcation_log->key = 'transcation_log';
+    //                         $transcation_log->value = json_encode([
+    //                             'payment_status' => $paymentstatus,
+    //                             'payment_id' => $paymentIntent->id,
+    //                             'transaction_log' => $transaction_log,
+    //                         ]);
+    //                         $transcation_log->save();
+
+    //                         $order->orderlasttrans()->update([
+    //                             'key' => 'last_transcation_log',
+    //                             'value' => json_encode([
+    //                                 'payment_status' => $paymentstatus,
+    //                                 'payment_id' => $paymentIntent->id,
+    //                                 'transaction_log' => $transaction_log,
+    //                             ])
+    //                         ]);
+
+    //                         $post_type = 'capture';
+    //                         if (in_array($order->order_from, [0, 4, 5])) {
+    //                             $this->post_order_data_POS($order, $post_type);
+    //                         } else {
+    //                             $this->post_order_data($order, $post_type);
+    //                         }
+    //                     }
+    //                 } catch (\Exception $e) {
+    //                     continue;
+    //                 }
+    //             }
+
+    //             // Notifications
+    //             if ($adminEmail) {
+    //                 \App\Lib\NotifyToUser::sendEmail($order, $adminEmail, 'admin');
+    //             }
+    //             if ($order->notify_driver == 'mail') {
+    //                 $userTo = json_decode($order->ordermeta->value ?? '{}')->email ?? $order->user->email ?? '';
+    //                 if ($userTo) \App\Lib\NotifyToUser::sendEmail($order, $userTo, 'user');
+    //             }
+    //             $updated[] = $order->id;
+    //         }
+    //     }
+
+    //     return response()->json([
+    //         'message' => 'Captured authorized low-risk orders.',
+    //         'captured_orders' => $updated
+    //     ]);
+    // }
+    elseif ($method === 'capture_authorized') {
+        $admin_details = User::where('role_id', 3)->first();
+        $adminEmail = $admin_details->email ?? '';
+    
+        $gateway = Getway::where('status', '!=', 0)
+            ->where('namespace', '=', 'App\Lib\Stripe')->first();
+    
+        if (!$gateway) {
+            return response()->json(['error' => 'Stripe gateway not found'], 400);
         }
-
-        // Always get method as string to avoid numeric/string issues
-        $method = (string) $request->input('method', '');
-
-        $orders = Order::with(['user', 'ordermeta'])->whereIn('id', $ids)->get();
-        $adminEmail = User::where('role_id', 3)->value('email');
-
-        $updated = [];
-
-        // 1️⃣ DELETE UNCAPPED ORDERS
-        if ($method === 'delete') {
-            foreach ($orders as $order) {
-                if ($order->payment_status == 4) { // authorized
-                    $order->delete();
+    
+        $gateway_data_info = json_decode($gateway->data);
+    
+        foreach ($orders as $order) {
+            if (in_array($order->risk_level, ['normal', 'low']) && in_array($order->payment_status, [4, 5])) {
+                $status = 3; // Default to pending fulfillment
+    
+                if ($order->payment_status == 5) {
+                    // Already refunded, just update status
+                    $order->status_id = $status;
+                    $order->save();
                     $updated[] = $order->id;
+                    continue;
                 }
-            }
-            return response()->json(['message' => 'Uncaptured orders deleted', 'deleted_orders' => $updated]);
-        }
-
-        // 2️⃣ CAPTURE AUTHORIZED LOW RISK
-        elseif ($method === 'capture_authorized') {
-            $admin_details = User::where('role_id', 3)->first();
-            $adminEmail = $admin_details->email ?? '';
-
-            $gateway = Getway::where('status', '!=', 0)
-                ->where('namespace', '=', 'App\Lib\Stripe')->first();
-
-            if (!$gateway) {
-                return response()->json(['error' => 'Stripe gateway not found'], 400);
-            }
-
-            $gateway_data_info = json_decode($gateway->data);
-
-            foreach ($orders as $order) {
-                if (in_array($order->risk_level, ['normal', 'low']) && in_array($order->payment_status, [4, 5])) {
-                    $paymentstatus = 1; // Default to complete
-                    $status = 3; // Default to pending fulfillment
-
-                    if ($order->payment_status == 5) {
-                        // Already refunded, just update status
-                        $order->status_id = $status;
-                        $order->save();
-                    } else {
-                        // Capture authorized payment
-                        $ordermeta = json_decode($order->ordermeta->value ?? '');
-                        $payment_data = [
-                            'test_mode' => $gateway->test_mode,
-                            'currency' => $gateway->currency_name ?? 'USD',
-                            'getway_id' => $gateway->id,
-                            'amount' => $order->total,
-                            'transaction_id' => $order->transaction_id,
-                            'application_fee_amount' => $ordermeta->booster_platform_fee ?? 0,
-                            'card_fee_amount' => $ordermeta->credit_card_fee ?? 0,
-                        ];
-
-                        Stripe::setApiKey($gateway->test_mode == 1 
-                            ? $gateway_data_info->test_secret_key 
-                            : $gateway_data_info->secret_key);
-
-                        $transactionId = $payment_data['transaction_id'] ?? null;
-                        if (!$transactionId) continue;
-
-                        try {
-                            if (str_starts_with($transactionId, 'pi_')) {
-                                $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
-                            } elseif (str_starts_with($transactionId, 'ch_')) {
-                                $charge = \Stripe\Charge::retrieve($transactionId);
-                                $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
-                            } else {
-                                throw new \Exception('Invalid transaction ID format');
+    
+                // Capture authorized payment
+                $ordermeta = json_decode($order->ordermeta->value ?? '');
+                $payment_data = [
+                    'test_mode' => $gateway->test_mode,
+                    'currency' => $gateway->currency_name ?? 'USD',
+                    'getway_id' => $gateway->id,
+                    'amount' => $order->total,
+                    'transaction_id' => $order->transaction_id,
+                    'application_fee_amount' => $ordermeta->booster_platform_fee ?? 0,
+                    'card_fee_amount' => $ordermeta->credit_card_fee ?? 0,
+                ];
+    
+                if (!empty($gateway->data)) {
+                    foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
+                        $payment_data[$key] = $info;
+                    }
+                }
+    
+                Stripe::setApiKey($gateway->test_mode == 1 
+                    ? $gateway_data_info->test_secret_key 
+                    : $gateway_data_info->secret_key);
+    
+                $transactionId = $payment_data['transaction_id'] ?? null;
+                if (!$transactionId) continue;
+    
+                $paymentstatus = 0;
+                $transaction_log = null;
+                $payment_id = $transactionId;
+    
+                try {
+                    $paymentIntent = null;
+                    $charge = null;
+    
+                    if (str_starts_with($transactionId, 'pi_')) {
+                        $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
+    
+                        if ($paymentIntent->status === 'requires_capture') {
+                            $captured = $paymentIntent->capture();
+                            $paymentstatus = $captured->status === 'succeeded' ? 1 : 0;
+                            $transaction_log = $captured;
+                        } else {
+                            $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
+                            $transaction_log = $paymentIntent;
+                        }
+                        $payment_id = $paymentIntent->id;
+    
+                    } elseif (str_starts_with($transactionId, 'ch_')) {
+                        $charge = \Stripe\Charge::retrieve($transactionId);
+    
+                        // Handle legacy charges without PaymentIntent
+                        if (empty($charge->payment_intent)) {
+                            if ($charge->refunded) {
+                                \Log::info('Charge already refunded for order ' . $order->id . ', syncing local status');
+                                $order->update([
+                                    'payment_status' => 5,
+                                    'status_id' => 2, // Assuming 2 is refunded/canceled
+                                    'refunded_at' => now(),
+                                ]);
+                                $updated[] = $order->id;
+                                continue;
                             }
-
+                            if ($charge->status === 'succeeded' && $charge->captured) {
+                                $paymentstatus = 1;
+                                $transaction_log = $charge;
+                            } elseif ($charge->status === 'succeeded' && !$charge->captured) {
+                                $captured_charge = $charge->capture();
+                                $paymentstatus = $captured_charge->status === 'succeeded' ? 1 : 0;
+                                $transaction_log = $captured_charge;
+                            } else {
+                                throw new \Exception('Charge not in a capturable state: ' . $charge->status);
+                            }
+                        } else {
+                            // Has PaymentIntent, proceed as before
+                            $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
+    
                             if ($paymentIntent->status === 'requires_capture') {
                                 $captured = $paymentIntent->capture();
                                 $paymentstatus = $captured->status === 'succeeded' ? 1 : 0;
@@ -841,111 +1082,163 @@ class OrderController extends Controller
                                 $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
                                 $transaction_log = $paymentIntent;
                             }
-
-                            if ($paymentstatus == 1) {
-                                $order->payment_status = $paymentstatus;
-                                $order->status_id = $status;
-                                $order->captured_at = now();
-                                $order->save();
-
-                                $transcation_log = new Ordermeta;
-                                $transcation_log->order_id = $order->id;
-                                $transcation_log->key = 'transcation_log';
-                                $transcation_log->value = json_encode([
-                                    'payment_status' => $paymentstatus,
-                                    'payment_id' => $paymentIntent->id,
-                                    'transaction_log' => $transaction_log,
-                                ]);
-                                $transcation_log->save();
-
-                                $order->orderlasttrans()->update([
-                                    'key' => 'last_transcation_log',
-                                    'value' => json_encode([
-                                        'payment_status' => $paymentstatus,
-                                        'payment_id' => $paymentIntent->id,
-                                        'transaction_log' => $transaction_log,
-                                    ])
-                                ]);
-
-                                $post_type = 'capture';
-                                if (in_array($order->order_from, [0, 4, 5])) {
-                                    $this->post_order_data_POS($order, $post_type);
-                                } else {
-                                    $this->post_order_data($order, $post_type);
-                                }
-                            }
-                        } catch (\Exception $e) {
-                            continue;
+                            $payment_id = $paymentIntent->id;
+                        }
+    
+                    } else {
+                        throw new \Exception('Invalid transaction ID format');
+                    }
+    
+                    if ($paymentstatus == 1) {
+                        $order->update([
+                            'payment_status' => $paymentstatus,
+                            'status_id' => $status,
+                            'captured_at' => now(),
+                        ]);
+    
+                        $logData = json_encode([
+                            'payment_status' => $paymentstatus,
+                            'payment_id' => $payment_id,
+                            'transaction_log' => $transaction_log,
+                        ]);
+    
+                        $transcation_log = new Ordermeta;
+                        $transcation_log->order_id = $order->id;
+                        $transcation_log->key = 'transcation_log';
+                        $transcation_log->value = $logData;
+                        $transcation_log->save();
+    
+                        $order->orderlasttrans()->update([
+                            'key' => 'last_transcation_log',
+                            'value' => $logData,
+                        ]);
+    
+                        $post_type = 'capture';
+                        if (in_array($order->order_from, [0, 4, 5])) {
+                            $this->post_order_data_POS($order, $post_type);
+                        } else {
+                            $this->post_order_data($order, $post_type);
                         }
                     }
-
-                    // Notifications
-                    if ($adminEmail) {
-                        \App\Lib\NotifyToUser::sendEmail($order, $adminEmail, 'admin');
-                    }
-                    if ($order->notify_driver == 'mail') {
-                        $userTo = json_decode($order->ordermeta->value ?? '{}')->email ?? $order->user->email ?? '';
-                        if ($userTo) \App\Lib\NotifyToUser::sendEmail($order, $userTo, 'user');
-                    }
-                    $updated[] = $order->id;
+                } catch (\Exception $e) {
+                    \Log::error('Error capturing payment for order ' . $order->id . ': ' . $e->getMessage());
+                    continue;
                 }
-            }
-
-            return response()->json([
-                'message' => 'Captured authorized low-risk orders.',
-                'captured_orders' => $updated
-            ]);
-        }
-
-        // 3️⃣ COMPLETE FULFILLMENT
-        elseif ($method === 'complete_fulfillment') {
-
-            $completeStatusId = 1; // Complete
-            $orders = Order::whereIn('id', $ids)->get();
-            $updated = [];
-
-            foreach ($orders as $order) {
-                $order->status_id = $completeStatusId;
-                $order->save();
-
-                $updated[] = [
-                    'id' => $order->id,
-                    'status_id' => $order->status_id,
-                    'order_method' => $order->order_method,
-                ];
-            }
-
-            if (empty($updated)) {
-                return response()->json(['message' => 'No eligible orders to complete'], 200);
-            }
-
-            return response()->json([
-                'message' => 'Completed fulfillment for eligible orders',
-                'completed_orders' => $updated
-            ]);
-        }
-
-        // 4️⃣ NUMERIC STATUS CHANGE
-        elseif (is_numeric($method)) {
-            foreach ($orders as $order) {
-                $order->update(['status_id' => $method]);
+    
+                // Notifications
+                if ($adminEmail) {
+                    \App\Lib\NotifyToUser::sendEmail($order, $adminEmail, 'admin');
+                }
+                if ($order->notify_driver == 'mail') {
+                    $userTo = json_decode($order->ordermeta->value ?? '{}')->email ?? $order->user->email ?? '';
+                    if ($userTo) \App\Lib\NotifyToUser::sendEmail($order, $userTo, 'user');
+                }
                 $updated[] = $order->id;
             }
-            return response()->json(['message' => 'Orders updated', 'updated_orders' => $updated]);
+        }
+    
+       $message = empty($updated) 
+            ? 'No eligible low-risk orders.'
+            : 'Captured authorized low-risk orders.';
+    
+        return response()->json([
+            'message' => $message,
+            'captured_orders' => $updated
+        ]);
+     }
+
+    // 3️⃣ COMPLETE FULFILLMENT
+    elseif ($method === 'complete_fulfillment') {
+
+        $completeStatusId = 1; // Complete
+        $orders = Order::whereIn('id', $ids)->get();
+        $updated = [];
+
+        foreach ($orders as $order) {
+            $order->status_id = $completeStatusId;
+            $order->save();
+
+            $updated[] = [
+                'id' => $order->id,
+                'status_id' => $order->status_id,
+                'order_method' => $order->order_method,
+            ];
         }
 
-        // 5️⃣ INVALID ACTION
-        else {
-            return response()->json(['error' => 'Invalid action'], 400);
+        if (empty($updated)) {
+            return response()->json(['message' => 'No eligible orders to complete'], 200);
         }
+
+        return response()->json([
+            'message' => 'Completed fulfillment for eligible orders',
+            'completed_orders' => $updated
+        ]);
+    }
+    elseif ($method === 'cancel_order') {
+        $updated = [];
+        $admin_details = User::where('role_id', 3)->first();
+        $adminEmail = $admin_details->email ?? '';
+    
+        foreach ($orders as $order) {
+            if (!$order) continue;
+    
+            $ordermeta = json_decode($order->ordermeta->value ?? '');
+            $user_email = $ordermeta->email ?? ($order->user->email ?? '');
+    
+            try {
+                $refundSuccess = $this->refund($order->id, true); // silent mode
+    
+                if ($refundSuccess) {
+                    $updated[] = $order->id;
+    
+                    // Send notifications after successful refund
+                    \App\Lib\NotifyToUser::sendEmail($order, $adminEmail, 'admin');
+    
+                    if ($order->notify_driver == 'mail' && $user_email) {
+                        \App\Lib\NotifyToUser::sendEmail($order, $user_email, 'user');
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::error('Refund failed for order '.$order->id.': '.$e->getMessage());
+            }
+        }
+    
+        return response()->json([
+            'message' => 'Cancelled and refunded eligible orders',
+            'cancelled_orders' => $updated
+        ]);
     }
 
 
+        // 5️⃣ PENDING
+        elseif ($method === 'mark_pending') {
+            $pendingStatusId = 3; // Assuming 3 is pending fulfillment
+            foreach ($orders as $order) {
+                $order->status_id = $pendingStatusId;
+                $order->save();
+                $updated[] = $order->id;
+            }
+
+            return response()->json([
+                'message' => 'Marked orders as pending',
+                'updated_orders' => $updated
+            ]);
+        }
 
 
+    // 4️⃣ NUMERIC STATUS CHANGE
+    elseif (is_numeric($method)) {
+        foreach ($orders as $order) {
+            $order->update(['status_id' => $method]);
+            $updated[] = $order->id;
+        }
+        return response()->json(['message' => 'Orders updated', 'updated_orders' => $updated]);
+    }
 
-
-
-
+    // 5️⃣ INVALID ACTION
+    else {
+        return response()->json(['error' => 'Invalid action'], 400);
+    }
+}
 
 }

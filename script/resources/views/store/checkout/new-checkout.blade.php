@@ -31,6 +31,7 @@ p span.title {
 }
 
 .apply-c-code .coupon-input-button .coupon-btn {
+    
     background-color: #00c0ff;
     color: white;
     padding: -17px; /* Note: Negative padding might be a typo; consider removing or adjusting */
@@ -179,6 +180,12 @@ input#cover_fee_checkbox {
     justify-content: flex-end !important;
     min-height: 50px; /* Ensures container has height when shipping is hidden */
 }
+@endif
+
+@if($order_type == 'Digital')
+.shipping-item,.shipping_method_area,.shipping_same_as_billing{
+    display:none !important;
+}    
 @endif
 
 </style>
@@ -775,27 +782,29 @@ input#cover_fee_checkbox {
         <script src="https://js.stripe.com/v3/"></script>
          <!--<script src="{{ asset('checkout/js/new-stripe.js') }}"></script> -->
         <script>
-        $(document).ready(function () {
-            const $shippingAddress = $('#shipping_address');
-            const $shippingArea = $('.shipping_address_area');
-            const $submitBtn = $('#submit_btn');
+        $(function () {
+            const shippingArea = $('.shipping_address_area');
+            const shippingCheckbox = $('#shipping_address');
+            const submitBtn = $('#submit_btn');
 
-            $shippingArea.toggle(!$shippingAddress.is(':checked'));
-
-            $shippingAddress.on('change', function () {
-                $shippingArea.slideToggle('fast', !$shippingAddress.is(':checked'));
+            // Toggle shipping address visibility
+            shippingCheckbox.on('change', function () {
+                shippingArea.slideToggle('fast', !$(this).is(':checked'));
             });
 
-            // Disable submit button on form submission
+            // Set initial state (checked → hidden)
+            if (shippingCheckbox.is(':checked')) shippingArea.hide();
+
+            // Handle form submission
             $('#payment-form').on('submit', function () {
-                $submitBtn
-                    .prop('disabled', true)
-                    .text('SUBMITTING ORDER')
-                    .css({
-                        backgroundColor: '#4a4a4a',
-                        color: 'white',
-                        cursor: 'not-allowed'
-                    });
+                submitBtn
+                .prop('disabled', true)
+                .text('SUBMITTING ORDER')
+                .css({
+                    backgroundColor: '#4a4a4a',
+                    color: 'white',
+                    cursor: 'not-allowed'
+                });
             });
         });
 
