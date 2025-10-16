@@ -14,11 +14,17 @@ class TenantGetwaySeeder extends Seeder
      *
      * @return void
      */
+     
     public function run()
     {
 
         //$club_id = '36615';
         $club_id =tenant('club_id');
+        
+        $url = env('APP_PROTOCOLESS_URL');
+        
+        $tenant_url = $club_id . '.' . $url;
+    
         
         $response = Http::withOptions([
             'verify' => false,
@@ -43,6 +49,26 @@ class TenantGetwaySeeder extends Seeder
             array('id' => '3','name' => 'cash','logo' => '','rate' => '1','charge' => '0','namespace' => '','currency_name' => 'usd','is_auto' => '0','image_accept' => '0','test_mode' => '0','status' => '1','phone_required' => '0','data' => '','created_at' => '2021-04-15 02:44:46','updated_at' => '2021-04-29 09:51:32'),
         );               
         Getway::insert($getways);    
-    
+
+
+            if ($secret_key && $stripe_account_id && $tenant_url) {
+                try {
+                    $stripe = new \Stripe\StripeClient([
+                        'api_key' => $secret_key,
+                        'stripe_version' => '2025-09-30.preview',
+                    ]);
+        
+                     $stripe->paymentMethodDomains->create([
+                        'domain_name' => $tenant_url,
+                        'enabled' => true,
+                    ], [
+                        'stripe_account' => $stripe_account_id,
+                    ]);
+        
+                    \Log::info("Stripe domain {$tenant_url} registered for account {$stripe_account_id}");
+                } catch (\Exception $e) {
+                    \Log::error("Stripe domain registration failed for {$tenant_url}: " . $e->getMessage());
+                }
+            }
     }
 }

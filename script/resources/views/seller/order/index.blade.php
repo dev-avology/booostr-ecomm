@@ -7,6 +7,10 @@
     span.risk-badge-text img {
         margin-left: 12px;
     }
+    .input-group-btn button.btn.btn-primary.btn-icon {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
 </style>
 @endsection
 
@@ -47,20 +51,21 @@
         </button>
     </div>
     <div class="card-body">
-        <form method="post" action="{{ route('seller.order.multipledelete') }}" class="ajaxform_with_reload">
+        <form method="post" action="{{ route('seller.order.multipledelete') }}" class="" id="bulkActionForm">
             @csrf
             <div class="float-left">
                 @if(count($orders) > 0)
+
                 <div class="input-group mb-1">
-                    <select class="form-control selectric" name="method">
-                        <option disabled selected="">{{ __('Select Fulfillment') }}</option>
-                        @foreach($status as $row)
-                        <option value="{{ $row->id }}">{{ $row->name }}</option>
-                        @endforeach
-                    
-                        <option value="delete">{{ __('Delete Permanently') }}</option>
-                    
+                     <select class="form-control selectric" name="method">
+                        <option disabled selected>Select Capture/Fulfillment</option>
+                        <option value="capture_authorized">Capture Authorized Payments</option>
+                        <option value="complete_fulfillment">Complete Fulfillment</option>
+                        <option value="cancel_order">Cancel Order</option>
+                        <option value="mark_pending">Mark As Pending</option>
+                        <option value="delete">Delete Permanently</option>
                     </select>
+
                     <div class="input-group-append">                                            
                         <button class="btn btn-primary basicbtn" type="submit">{{ __('Submit') }}</button>
                     </div>
@@ -212,6 +217,7 @@
 
                             <td>
                                 @if($row->order_from == 4 || $row->order_from == 5)
+                               
 
                                 <span class="badge badge-success text-white" style="background-color:#028a74">POS (In Person)</span>
 
@@ -306,6 +312,195 @@
 @endsection
 
 @push('js')
-<script src="{{ asset('assets/js/form.js') }}"></script>
-<script src="{{ asset('assets/js/order_index.js') }}"></script>
+<!--<script src="{{ asset('assets/js/form.js') }}"></script>-->
+<!--<script src="{{ asset('assets/js/order_index.js') }}"></script>-->
 @endpush
+<!-- jQuery (must be before your custom JS) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Submit handler for the bulk form
+    $('#bulkActionForm').on('submit', function(e){
+        e.preventDefault(); // stop page refresh
+
+        let method = $(this).find('select[name="method"]').val();
+        if(method === 'capture_authorized'){
+            $('#captureModal').modal('show');
+        } else if (method === 'complete_fulfillment'){ 
+            $('#fulfillModal').modal('show'); 
+        } else if (method === 'cancel_order'){ 
+            $('#cancelModal').modal('show'); 
+        } else if (method === 'mark_pending'){ 
+            $('#pendingModal').modal('show'); 
+        } else if (method === 'delete'){ 
+            $('#deleteModal').modal('show'); 
+        } else {
+            sendAjax($(this)); // other actions
+        }
+    });
+
+    // Proceed in Capture modal
+    $('#proceedCapture').on('click', function(){
+        let form = $('#bulkActionForm');
+        sendAjax(form);
+        $('#captureModal').modal('hide');
+    });
+
+    // Proceed in Fulfill modal
+    $('#proceedFulfill').on('click', function(){
+        let form = $('#bulkActionForm');
+        sendAjax(form);
+        $('#fulfillModal').modal('hide');
+    });
+
+    // Proceed in Cancel modal
+    $('#proceedCancel').on('click', function(){
+        let form = $('#bulkActionForm');
+        sendAjax(form);
+        $('#cancelModal').modal('hide');
+    });
+
+    // Proceed in Pending modal
+    $('#proceedPending').on('click', function(){
+        let form = $('#bulkActionForm');
+        sendAjax(form);
+        $('#pendingModal').modal('hide');
+    });
+
+    // Proceed in Delete modal
+    $('#proceedDelete').on('click', function(){
+        let form = $('#bulkActionForm');
+        sendAjax(form);
+        $('#deleteModal').modal('hide');
+    });
+
+    function sendAjax(form){
+        $.ajax({
+            url: form.attr('action'),
+            method: form.attr('method'),
+            data: form.serialize(),
+            success: function(res){
+                alert(res.message);
+                location.reload(); // reload page
+            },
+            error: function(err){
+                alert(err.responseJSON?.error || 'Something went wrong!');
+            }
+        });
+    }
+});
+
+</script>
+
+<!-- Capture Authorized Payments Modal -->
+<div class="modal fade" id="captureModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">Fraud Protection</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          Bulk capturing order payments will only capture authorized payments for <strong>low risk</strong> orders.<br>
+          If you have selected any other risk level, those orders will be skipped, and you will need to manually capture those higher-risk orders individually.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="proceedCapture">Proceed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Complete Fulfillment Modal -->
+<div class="modal fade" id="fulfillModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">Limitations</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          Choosing bulk <strong>Complete Order Fulfillment</strong> will only complete digital orders that:
+          <br><br>
+          - Payment status is <strong>captured</strong> or <strong>refunded</strong><br>
+          - Do not require shipping/tracking information<br><br>
+          Any order with authorized payment or physical goods will need to be completed manually.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="proceedFulfill">Proceed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Cancel Order Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">Cancel Order Confirmation</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          This will cancel the selected orders and process refunds where applicable.<br>
+          This action cannot be undone for refunded orders.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="proceedCancel">Proceed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mark As Pending Modal -->
+<div class="modal fade" id="pendingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">Mark As Pending Confirmation</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          This will mark the selected orders as pending.<br>
+          This will update the fulfillment status for the orders.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-warning" id="proceedPending">Proceed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Permanently Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">Delete Confirmation</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          This will permanently delete uncaptured orders only.<br>
+          Captured or refunded orders will be skipped.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="proceedDelete">Proceed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+

@@ -2,6 +2,140 @@
 @section('content')
 
 <style>
+
+a.cart-summary > span {
+    display: inline;
+    float: left;
+    width: 100%;
+}
+
+p span.title{CART SUMMARY
+    font-size: 12px;
+}
+
+.attr-variation-style{
+    background: #eeebec;
+    padding: 2px;
+    border-radius: 2px;
+    margin: 0px 2px;
+}
+
+/* add coupon code css */
+
+.coupon-main-div {
+    padding-left: 22px;
+}
+
+.apply-c-code .coupon-input-button {
+  display: flex;
+  flex-direction: row;
+  padding: 6px 0px;
+}
+
+.apply-c-code .coupon-input-button .coupon-btn {
+    background-color: #00c0ff;
+    color: white;
+    padding: -17px;
+    /* margin: 7px 1px 27px 42px; */
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    width: 87px;
+    height: 37px;
+    padding-top: 9px;
+    border-radius: 6px!important;
+}
+
+.apply-c-code .coupon-input-button .c-input {
+    width: 224px;
+    height: 42px;
+    margin-top: 7px;
+}
+
+.apply-c-code h5{
+    margin-left: 23px;
+    font-size: 14px;
+}
+
+.coupon-main-div a{
+    color:#00c0ff;
+    font-weight: bold;
+}
+
+p#show_coupon_error {
+    color: red;
+    background: transparent;
+}
+
+.checkout-main span.price,.checkout-main span.price span{
+    display: block;
+}
+.checkout-main span.price span.old-price{
+    text-decoration: line-through;
+}
+span.learn-more {
+    float: inline-end;
+    color: deepskyblue;
+    display: inline-block;
+    position: relative;
+    bottom: -18px;
+    font-size: 10px;
+}
+
+input#cover_fee_checkbox {
+    margin-left: -18px;
+}
+.alert.alert-success.success-sec {
+    margin: 0 10px;
+    padding-left: 28px;
+    background-color: #E4FFEE;
+}
+.shipping_method_area,
+.single-widget.get-button {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.shipping_method_area {
+    width: 60%;
+}
+
+.single-widget.get-button {
+    width: 38%;
+    text-align: right;
+}
+
+/* Button styling */
+.single-widget.get-button .button button {
+    background-color: #00baff;
+    border: none;
+    padding: 10px 25px;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+.single-widget.get-button .button button:hover {
+    background-color: #0099cc;
+}
+ .shop.checkout .single-widget.get-button .btn {
+    top: 50px;
+}
+/* Responsive (for mobile screens) */
+@media (max-width: 991px) {
+    .shipping_method_area,
+    .single-widget.get-button {
+        width: 100%;
+        display: block;
+        text-align: left;
+    }
+
+    .single-widget.get-button {
+        margin-top: 10px;
+    }
+}
     .StripeElement {
         box-sizing: border-box;
         height: auto;
@@ -33,7 +167,7 @@
     }
 
     .payment-form-container {
-   
+       
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -41,7 +175,10 @@
  .single-widget ul {
     margin-top: 30px;
 }
-
+.single-widget.get-button {
+    display: inline-block;
+    vertical-align: middle;
+}
     .payment-form-container h3 {
         margin-bottom: 15px;
         font-size: 18px;
@@ -96,10 +233,103 @@
     ul.order-summary {
     margin-left: 20px;
     }
+    ul.order-summary{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    color: #333;
+    font-size: 14px;
+    font-weight: 400;
+    font-family: 'Open Sans', sans-serif;
+     padding-left: 20px;
+    padding-right: 20px;
+    }
     
     .order-summary li {
         padding: 10px;
     }
+    .payment-pg h3 {
+    color: #00c0ff;
+    font-size: 26px;
+    font-weight: 600;
+    font-family: 'Arvo', serif;
+}
+.order-summary ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .order-summary ul li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        font-size: 14px;
+        border-bottom: 1px solid #e0e0e0;
+        margin-bottom: 0;
+    }
+
+    .order-summary ul li:last-child {
+        border-bottom: none;
+        font-weight: bold;
+        font-size: 18px;
+        padding: 16px 0 0;
+        border-top: 2px solid #e0e0e0;
+        color: #333;
+    }
+
+    .order-summary ul li .cart_subtotal,
+    .order-summary ul li .cart_discount,
+    .order-summary ul li .cart_tax,
+    .order-summary ul li .shipping_fee,
+    .order-summary ul li .cover_fee_amount,
+    .order-summary ul li .cart_total {
+        font-weight: 600;
+        color: #000;
+        min-width: 60px;
+        text-align: right;
+    }
+    
+    span.cart_subtotal {
+    display: inline-block;
+    float: right;
+    }
+        span.cart_discount {
+    display: inline-block;
+    float: right;
+    }
+        span.cart_tax {
+    display: inline-block;
+    float: right;
+    }
+        span.shipping_fee {
+    display: inline-block;
+    float: right;
+    }
+        span.cover_fee_amount {
+    display: inline-block;
+    float: right;
+    }
+        span.cart_total {
+    display: inline-block;
+    float: right;
+    }
+
+
+    .order-summary .cover-fee {
+        background-color: #E4FFEE !important;
+      
+        padding: 12px 16px !important;
+        border-radius: 0 4px 4px 0;
+        margin-bottom: 0;
+    }
+
+    .order-summary .cover-fee span {
+        color: #155724;
+        font-weight: 500;
+    }
+
 
 </style>
 
@@ -139,22 +369,20 @@
                     $club_url = session()->has('redirect_url') ? session()->get('redirect_url') : $club_info['club_url'];
                     $club_cart_url = session()->has('redirect_url') ? str_replace('shop', '', $club_url) . 'cart' : $club_info['club_url'] . '?tab=cart';
                 @endphp
-                <a href="{{ $club_url }}">{{ $club_info['club_name'] }}</a>   >>  
-                <a href="{{ $club_cart_url }}">Cart</a>   >>  
+                <a href="{{ $club_url }}">{{ $club_info['club_name'] }}</a> >>  
+                <a href="{{ $club_cart_url }}">Cart</a> >>  
                 <a href="{{ route('direct.new_checkout', [
-    'cartid' => session('cartid', 'default'),
-    'redirect_url' => base64_encode(session('redirect_url', url('/')))
-]) }}">Checkout</a>
-   >>   Payment
+                    'cartid' => session('cartid', 'default'),
+                    'redirect_url' => base64_encode(session('redirect_url', url('/')))
+                ]) }}">Checkout</a> >> Payment
             </div>
         </div>
 
         <div class="row">
+            <!-- Payment Form Left -->
             <div class="col-lg-8 col-12 col-65 container">
                 <div class="payment-form-container">
                     <h3>Payment Method</h3>
-                    <p>Order ID: {{ $order->id }}</p>
-                    <p>Total: {{ get_option('currency_data', true)->currency_icon }}{{ number_format($order->total, 2) }}</p>
 
                     @if ($errors->any())
                         <div class="alert alert-danger">
@@ -173,49 +401,102 @@
                         </div>
                     @endif
 
-                   <form id="payment-form" method="post" action="{{ route('checkout.processPayment', $order->id) }}">
+                    <form id="payment-form" method="post" action="{{ route('checkout.processPayment', $order->id) }}">
                         @csrf
                         <div id="payment_method_area"></div>
                         <input type="hidden" id="publishable_key" value="{{ $publishable_key }}">
                         <div id="card-errors" role="alert"></div>
-                        <button type="submit" class="btn btn-primary mt-3">Pay Now</button>
+                        <button type="submit" class="btn btn-primary mt-3" id="submit_btn">Pay Now</button>
                     </form>
                 </div>
             </div>
 
+            <!-- Order Summary Right -->
             <div class="col-lg-4 col-12 col-35">
                 <div class="order-details container carts-right">
-                <div class="single-widget">
-                    <h2>{{ __('Order Summary') }}</h2>
-                    
-                    <ul class="order-summary">
-                        <li>{{ __('Subtotal') }}
-                            <span class="cart_subtotal">${{ number_format($subtotal, 2) }}</span>
-                        </li>
-                        <li>(-) {{ __('Discount') }}
-                            <span class="cart_discount">${{ number_format($discount, 2) }}</span>
-                        </li>
-                        <li>(+) {{ __('Tax') }}
-                            <span class="cart_tax">${{ number_format($tax, 2) }}</span>
-                        </li>
-                        <li class="shipping-item">(+) {{ __('Delivery fee') }}
-                            <span class="shipping_fee">${{ number_format($delivery_fee, 2) }}</span>
-                        </li>
-                        <li class="cover-fee alert-success">(+) {{ __('Covered Fees - thank you') }}
-                            <span class="cover_fee_amount">${{ number_format($cover_fee, 2) }}</span>
-                        </li>
-                        <li class="last">{{ __('Total') }}
-                            <span class="cart_total">${{ number_format($total, 2) }}</span>
-                        </li>
-                </ul>
+                    <div class="single-widget">
 
+                        <h2>{{ __('ORDER SUMMARY') }}<span class="price" style="color:black"><i class="fa fa-shopping-cart"></i>
+                            <b>{{ count($order->orderitems) }}</b></span></h2>
+
+                        {{-- Order Items --}}
+                        @foreach ($order->orderitems as $item)
+                  
+                            <p id="{{ $item->id }}">
+                                <a href="#" class="cart-summary" style="display:flex; align-items:center; text-decoration:none;">
+                                    
+                                
+                                         @if($item->term && $item->term->media())
+                                            <img src=" {{ asset($item->term->media->value ?? 'uploads/default.png') }}" alt="img">
+                                          
+
+                                        @else
+                                            <img src="{{ asset('uploads/default.jpg') }}" alt="img">
+                                        @endif
+
+                                    <span class="title">{{ $item->term->title ?? 'Product Name' }}</span>
+
+                                    {{-- Options like in checkout --}}
+                                    @php
+                                    if(count($item->options ?? [])){
+                                        echo "<span class='product-description' style='font-size:9px; display:flow;'>";
+                                        foreach($item->options as $option => $selected_option){
+                                            $product_options = $selected_option->varitionOptions ?? [];
+                                            foreach($selected_option->varitions ?? [] as $sel_val){
+                                                $cur_opt_name = collect($product_options)->filter(function($x) use($sel_val){
+                                                    return $x->id == $sel_val->pivot->productoption_id;
+                                                });
+                                                echo "<strong class='attr-variation-style'>".$sel_val->name."</strong>";
+                                            }
+                                        }
+                                        echo "</span>";
+                                    }
+                                    @endphp
+                                </a>
+                                <span class="d-qty">{{ $item->qty }}</span>
+                                <span class="price">${{ number_format($item->amount * $item->qty, 2) }}</span>
+                            </p>
+                        @endforeach
+
+                        <hr>
+
+                        {{-- Totals --}}
+                   <ul class="order-summary">
+                            <li>
+                                <span>{{ __('Subtotal') }}</span>
+                                <span class="cart_subtotal">${{ number_format($subtotal ?? 0, 2) }}</span>
+                            </li>
+                            <li>
+                                <span>(-) {{ __('Discount') }}</span>
+                                <span class="cart_discount">${{ number_format($discount ?? 0, 2) }}</span>
+                            </li>
+                            <li>
+                                <span>(+) {{ __('Tax') }}</span>
+                                <span class="cart_tax">${{ number_format($tax ?? 0, 2) }}</span>
+                            </li>
+                            <li class="shipping-item">
+                                <span>(+) {{ __('Delivery fee') }}</span>
+                                <span class="shipping_fee">${{ number_format($delivery_fee ?? 0, 2) }}</span>
+                            </li>
+                            <li class="cover-fee alert-success">
+                                <span>(+) {{ __('Covered Fees - thank you') }}</span>
+                                <span class="cover_fee_amount">${{ number_format($cover_fee ?? 0, 2) }}</span>
+                            </li>
+                            <li class="last">
+                                <span>{{ __('Total') }}</span>
+                                <span class="cart_total">${{ number_format($total ?? 0, 2) }}</span>
+                            </li>
+                        </ul>
+
+                    </div>
                 </div>
             </div>
+            <!-- End Order Summary Right -->
 
-            </div>
         </div>
     </div>
 </section>
+
 
 <input type="hidden" id="subtotal_hidden" value="{{ $order->subtotal ?? 0 }}">
 <input type="hidden" id="discount_hidden" value="{{ $order->discount ?? 0 }}">
@@ -244,4 +525,5 @@
     <script src="https://js.stripe.com/v3/"></script>
     <script src="{{ asset('checkout/js/new-stripe.js') }}"></script>
 @endpush
+
 @endsection
