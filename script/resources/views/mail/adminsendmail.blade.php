@@ -33,6 +33,7 @@
             </tr>
             <tr>
                 <td colspan="2" style="font-family: 'Nunito', 'Segoe UI', Arial; padding-top: 39px; padding-bottom: 39px; font-size: 24px; font-weight: normal; text-align: center;     text-transform: capitalize;">
+     
                     {{ $data['invoice_data']->store_legal_name ?? '' }} Store
                 </td>
             </tr>
@@ -44,7 +45,7 @@
             </tr>
             <tr>
                 <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order Total: {{ currency_formate($data['total']) ?? 0 }}</p>
+                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order Total: {{ currency_formate((float)($data['total'] ?? 0)) }}</p>
                 </td>
             </tr>
 
@@ -53,13 +54,17 @@
             $date = date_create($data['placed_at']);
             $date_format = date_format($date, "m/d/Y");
 
-            $jsonString = $data->orderlasttrans->value;
+         
+            $jsonString = !empty($data->orderlasttrans->value) ? $data->orderlasttrans->value : null;
+
+            
             $decodedJsonLastTrans = json_decode($jsonString, true);
             $timestamp = $decodedJsonLastTrans['created'] ?? '';
             $cancelDate = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
             $cancel_date = date_create($cancelDate);
             $cancel_date_format = date_format($cancel_date, "m/d/Y");
-            $amountRefunded = $decodedJsonLastTrans['amount_refunded']/100 ?? '';
+            $amountRefunded = isset($decodedJsonLastTrans['amount_refunded']) ? (float)($decodedJsonLastTrans['amount_refunded']/100) : 0;
+
 
             @endphp
 
@@ -99,7 +104,7 @@
             @if ($data['status_id'] == 2)
             <tr>
                 <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0; margin: 0; padding-left: 30px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Refund Amount: {{currency_formate($amountRefunded ?? 0)}}</p>
+                    <p style="padding: 0; margin: 0; padding-left: 30px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Refund Amount: {{currency_formate((float)($amountRefunded ?? 0))}}</p>
                 </td>
             </tr>
             @endif
