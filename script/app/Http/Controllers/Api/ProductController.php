@@ -885,5 +885,90 @@ class ProductController extends Controller
 
         return response()->json($msg);
     }
+    
+public function productListShow()
+{
+    // Load product types (categories for digital/physical)
+    $product_type = Category::whereIn('slug', ['digital_product', 'physical_product'])->get();
+
+    $products = Term::query()
+        ->where('type', 'product')
+        ->where('status', 1)
+        ->whereIn('list_type', [0, 1])
+        ->with(['price', 'prices', 'excerpt', 'firstprice', 'lastprice', 'termcategories']) // Added termcategories for type check
+        ->where(function($query) {
+            $query->whereHas('price')
+                  ->orWhereHas('prices');
+        })
+        ->get();
+
+    $list = [];
+
+    foreach ($products as $product) {
+        // Determine product kind based on categories (similar to order type logic)
+        $p_types = $product_type->pluck('id')->all();
+        $selected_product_type = $product->termcategories->pluck('category_id')
+            ->filter(fn($id) => in_array($id, $p_types))
+            ->unique()
+            ->values()
+            ->all();
+
+        $kind = 'physical'; // Default
+        $count = count($selected_product_type);
+
+        if ($count === 1) {
+            $pt = $product_type->firstWhere('id', $selected_product_type[0]);
+            if ($pt && $pt->slug === 'digital_product') {
+                $kind = 'digital';
+            } elseif ($pt && $pt->slug === 'physical_product') {
+                $kind = 'physical';
+            }
+        } elseif ($count > 1) {
+            $kind = 'mixed'; // Or handle as needed, e.g., 'physical' default
+        }
+
+        // Fallback to excerpt if no category match
+        if ($kind === 'physical' && $product->excerpt) {
+            $kind = $product->excerpt->type ?? 'physical';
+        }
+
+        $type = $product->is_variation == 1 ? 'Variations' : 'Simple';
+
+        if ($product->is_variation == 1 && $product->prices && count($product->prices) > 0) {
+            $min = $product->prices->min('price');
+            $max = $product->prices->max('price');
+            $price = '$' . number_format($min, 2);
+            if ($min != $max) {
+                $price .= '–$' . number_format($max, 2);
+            }
+            $price .= '*'; // Add * indicator for variants as seen in table
+        } else {
+            $price = '$' . number_format(optional($product->price)->price ?? 0, 2);
+        }
+
+        // Skip only if no valid price data at all
+        if (($product->is_variation == 1 && (!$product->prices || $product->prices->count() === 0)) ||
+            ($product->is_variation == 0 && !optional($product->price)->price)) {
+            continue;
+        }
+
+        $label = "{$product->title} ({$type}) - {$price} - [{$kind}]";
+
+        $list[] = [
+            'id' => $product->id,
+            'label' => $label,
+            'name' => $product->title,
+            'type' => $type,
+            'price' => $price,
+            'product_kind' => $kind,
+        ];
+    }
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Product dropdown list',
+        'result' => $list
+    ]);
+}
 
 }

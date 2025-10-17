@@ -48,7 +48,7 @@ Route::group([
     Route::get('/get_footer_links','Api\ProductController@getFooterLinks');
 
     Route::post('/add_product_form','Api\ProductController@addProductForm');
-
+    Route::get('/products_list_show', 'Api\ProductController@productListShow');
 
 
     // PosApiController

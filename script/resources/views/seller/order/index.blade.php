@@ -84,7 +84,7 @@
                     <thead>
                         <tr>
                             <th class="text-left" ><div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input checkAll" id="selectAll">
+                            <input type="checkbox" class="custom-control-input checkAll" id="selectAll"  name="ids[]">
                             <label class="custom-control-label checkAll" for="selectAll"></label>
                             </div></th>
                             <th class="text-left" >{{ __('Order') }}</th>
@@ -341,11 +341,79 @@ $(document).ready(function() {
         }
     });
 
-    // Proceed in Capture modal
+    // Proceed in Capture modal - Fixed text formatting and grammar
     $('#proceedCapture').on('click', function(){
         let form = $('#bulkActionForm');
-        sendAjax(form);
-        $('#captureModal').modal('hide');
+        let selectedOrders = []; // Collect selected order IDs from DOM
+        $('input[name="ids[]"]:checked').each(function() {
+            selectedOrders.push(parseInt($(this).val()));
+        });
+        const orderCount = selectedOrders.length;
+        
+        // Update modal to processing state with correct count
+        $('#captureModalBody').html(`<p>Capturing payment for ${orderCount} selected orders. Please wait.</p>`);
+        $('#captureModalFooter').html('<div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>');
+        $('#captureModal').modal('handleUpdate'); // Ensure modal stays open
+        
+        // Prepare form data and append orders JSON
+        let formData = form.serializeArray();
+        formData.push({name: 'orders', value: JSON.stringify(selectedOrders)});
+        let ajaxData = $.param(formData);
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: form.attr('method'),
+            data: ajaxData,
+            success: function(res){
+                const capturedCount = res.captured_orders ? res.captured_orders.length : 0;
+                const syncedCount = res.synced_refunds ? res.synced_refunds.length : 0;
+                const failedCount = res.failed_orders ? res.failed_orders.length : 0;
+                
+                // Use backend-provided skipped orders
+                let skippedOrders = res.skipped_orders || [];
+                const skippedCount = skippedOrders.length;
+                const skippedList = skippedOrders.slice(0, 10).join(', ');
+                const skippedOverflow = skippedCount > 10 ? '...' : '';
+                
+                // Helper function for singular/plural
+                function pluralize(count, singular, plural) {
+                    return count === 1 ? singular : plural;
+                }
+                
+                let bodyHtml = `<p>${capturedCount} ${pluralize(capturedCount, 'order', 'orders')} ${pluralize(capturedCount, 'has', 'have')} been captured</p>`;
+                if (syncedCount > 0) {
+                    bodyHtml += `<p>${syncedCount} ${pluralize(syncedCount, 'order', 'orders')} ${pluralize(syncedCount, 'has', 'have')} been synced as refunded.</p>`;
+                }
+                if (skippedCount > 0) {
+                    const skippedEntity = pluralize(skippedCount, 'order', 'orders');
+                    const skippedVerb = pluralize(skippedCount, 'was', 'were');
+                    const skippedLabel = pluralize(skippedCount, 'Order ID', 'Order IDs');
+                    const riskPhrase = skippedCount === 1 ? 'a Low Risk order' : 'Low Risk orders';
+                    bodyHtml += `<p>${skippedCount} ${skippedEntity} ${skippedVerb} unable to be captured due to not being ${riskPhrase}. <br><strong>${skippedLabel}: ${skippedList}${skippedOverflow}</strong></p>`;
+                }
+                if (failedCount > 0) {
+                    const failedEntity = pluralize(failedCount, 'order', 'orders');
+                    const failedVerb = pluralize(failedCount, 'has', 'have');
+                    const failedLabel = pluralize(failedCount, 'Order ID', 'Order IDs');
+                    const failedList = res.failed_orders.slice(0, 10).join(', ');
+                    const failedOverflow = failedCount > 10 ? '...' : '';
+                    bodyHtml += `<p>${failedCount} ${failedEntity} ${failedVerb} failed to process.<br><strong>${failedLabel}: ${failedList}${failedOverflow}</strong></p>`;
+                }
+                
+                $('#captureModalBody').html(`<div class="text-center">${bodyHtml}</div>`);
+                $('#captureModalFooter').html('<button type="button" class="btn btn-secondary" data-dismiss="modal">CLOSE</button>');
+                
+                // Reload page after modal close
+                $('#captureModal').one('hidden.bs.modal', function () {
+                    location.reload();
+                });
+            },
+            error: function(err){
+                const errorMsg = err.responseJSON?.error || 'Something went wrong!';
+                $('#captureModalBody').html(`<p class="text-danger">Error: ${errorMsg}</p>`);
+                $('#captureModalFooter').html('<button type="button" class="btn btn-secondary" data-dismiss="modal">CLOSE</button>');
+            }
+        });
     });
 
     // Proceed in Fulfill modal
@@ -391,7 +459,6 @@ $(document).ready(function() {
         });
     }
 });
-
 </script>
 
 <!-- Capture Authorized Payments Modal -->
@@ -401,19 +468,20 @@ $(document).ready(function() {
       <div class="modal-header text-center d-block">
         <h5 class="modal-title w-100 font-weight-bold">Fraud Protection</h5>
       </div>
-      <div class="modal-body text-center">
+      <div class="modal-body text-center" id="captureModalBody">
         <p>
           Bulk capturing order payments will only capture authorized payments for <strong>low risk</strong> orders.<br>
           If you have selected any other risk level, those orders will be skipped, and you will need to manually capture those higher-risk orders individually.
         </p>
       </div>
-      <div class="modal-footer justify-content-center">
+      <div class="modal-footer justify-content-center" id="captureModalFooter">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" id="proceedCapture">Proceed</button>
       </div>
     </div>
   </div>
 </div>
+
 
 <!-- Complete Fulfillment Modal -->
 <div class="modal fade" id="fulfillModal" tabindex="-1" aria-hidden="true">

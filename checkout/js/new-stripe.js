@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Create payment element (tab layout)
   const paymentElement = elements.create("payment", {
-    layout: { type: "accordion", defaultCollapsed: false }
+    layout: { type: "tabs" }
   });
   paymentElement.mount("#payment_method_area");
 
@@ -68,4 +68,3 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 });
-

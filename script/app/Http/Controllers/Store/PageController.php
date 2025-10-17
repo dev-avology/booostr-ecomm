@@ -629,5 +629,7 @@ class PageController extends Controller
 
         return response()->json('Message Send Successfully');
     }
+    
+
 
 }

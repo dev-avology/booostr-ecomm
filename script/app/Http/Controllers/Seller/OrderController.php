@@ -350,140 +350,209 @@ class OrderController extends Controller
 // }
 
 
-     public function capture($id)
+    public function capture($id)
     {
         abort_if(!getpermission('order'), 401);
-    
+        \Log::info("Capture called for order {$id}");
+
         $admin = User::where('role_id', 3)->first();
-        $order = Order::with([
-            'orderstatus',
-            'orderitems',
-            'getway',
-            'user',
-            'shippingwithinfo',
-            'ordermeta',
-            'schedule'
-        ])->findOrFail($id);
+        $order = Order::with([ 'orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','schedule','orderlasttrans'])->find($id);
+        if (!$order) {
+            \Log::error("Order {$id} not found.");
+            return back()->with('error', 'Order not found.');
+        }
+        
+        $gateway = Getway::where('status', '!=', 0)->where('namespace', 'App\Lib\Stripe')->first();
+        
+        if (!$gateway) {
     
-        $gateway = Getway::where('status', '!=', 0)
-            ->where('namespace', '=', 'App\Lib\Stripe')
-            ->firstOrFail();
+            \Log::error("Stripe gateway not found for order {$id}");
     
-        $ordermeta = json_decode($order->ordermeta->value ?? '{}');
+            return back()->with('error', 'Stripe gateway not configured.');
+    
+        }
+    
         $gatewayData = json_decode($gateway->data ?? '{}');
+        $secretKey = $gateway->test_mode == 1 ? ($gatewayData->test_secret_key ?? '') : ($gatewayData->secret_key ?? '');
     
-        // Prepare payment data
-        $paymentData = [
-            'test_mode' => $gateway->test_mode,
-            'currency'  => $gateway->currency_name ?? 'USD',
-            'amount'    => $order->total,
-            'transaction_id' => $order->transaction_id,
-            'application_fee_amount' => $ordermeta->booster_platform_fee ?? 0,
-            'card_fee_amount' => $ordermeta->credit_card_fee ?? 0,
+        if (empty($secretKey)) {
+    
+            \Log::error("Stripe secret key missing for gateway id {$gateway->id}");
+    
+            return back()->with('error', 'Stripe secret key missing.');
+    
+        }
+    
+        \Stripe\Stripe::setApiKey($secretKey);
+ 
+        $transactionId = $order->transaction_id ?? null;
+        if (empty($transactionId)) {
+    
+            \Log::error("Order {$order->id} missing transaction_id.");
+    
+            return back()->with('error', 'Transaction ID not found for order.');
+    
+        }
+
+        $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}');
+
+        $debug = [ 'order_id' => $order->id,'transaction_id' => $transactionId,'gateway_id' => $gateway->id,
+            'gateway_test_mode' => $gateway->test_mode,
         ];
-    
-        // Configure Stripe
-        \Stripe\Stripe::setApiKey(
-            $gateway->test_mode == 1 ? $gatewayData->test_secret_key : $gatewayData->secret_key
-        );
-    
-        $transactionId = $paymentData['transaction_id'] ?? null;
-        if (!$transactionId) {
-            throw new \Exception('Transaction ID not found');
-        }
-    
-        $paymentStatus = 0;
-        $transactionLog = null;
-        $paymentId = $transactionId;
-    
+        \Log::info('Capture debug start', $debug);
+
         try {
-            // --- Handle PaymentIntent (pi_) ---
+            $paymentSucceeded = false;
+            $transactionObject = null;
+            $paymentId = $transactionId;
+
             if (str_starts_with($transactionId, 'pi_')) {
-                $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
+                $pi = \Stripe\PaymentIntent::retrieve($transactionId);
     
-                if ($paymentIntent->status === 'requires_capture') {
-                    $paymentIntent = $paymentIntent->capture();
+                \Log::info("PaymentIntent retrieved: {$pi->id} status {$pi->status}");
+    
+                if ($pi->status === 'requires_capture') {
+                    $pi = $pi->capture();
+                    \Log::info("PaymentIntent captured: {$pi->id} status {$pi->status}");
+    
                 }
     
-                $paymentStatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
-                $transactionLog = $paymentIntent;
-                $paymentId = $paymentIntent->id;
-            }
+                if ($pi->status === 'succeeded') {
+                    $paymentSucceeded = true;
     
-            // --- Handle Charge (ch_) ---
-            elseif (str_starts_with($transactionId, 'ch_')) {
-                $charge = \Stripe\Charge::retrieve($transactionId);
+                    $transactionObject = $pi;
     
-                // Case: Legacy charge (no payment_intent)
-                if (empty($charge->payment_intent)) {
-                    if ($charge->status === 'pending') {
-                        $charge = \Stripe\Charge::capture($transactionId);
-                    }
-                    $paymentStatus = $charge->status === 'succeeded' ? 1 : 0;
-                    $transactionLog = $charge;
-                    $paymentId = $charge->id;
+                    $paymentId = $pi->id;
+    
                 } else {
-                    // Capture from PaymentIntent
-                    $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
-                    if ($paymentIntent->status === 'requires_capture') {
-                        $paymentIntent = $paymentIntent->capture();
-                    }
-                    $paymentStatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
-                    $transactionLog = $paymentIntent;
-                    $paymentId = $paymentIntent->id;
+                    \Log::warning("PaymentIntent not succeeded, status={$pi->status} for order {$order->id}");
+    
                 }
+    
             }
     
-            // --- Invalid format ---
+            elseif (str_starts_with($transactionId, 'ch_')) {
+                $ch = \Stripe\Charge::retrieve($transactionId);
+    
+                \Log::info("Charge retrieved: {$ch->id} status {$ch->status} captured={$ch->captured} refunded=" . ($ch->refunded ? '1' : '0'));
+    
+                if (!empty($ch->payment_intent)) {
+    
+                    $pi = \Stripe\PaymentIntent::retrieve($ch->payment_intent);
+    
+                    \Log::info("Linked PaymentIntent {$pi->id} status {$pi->status}");
+    
+                    if ($pi->status === 'requires_capture') {
+    
+                        $pi = $pi->capture();
+    
+                        \Log::info("Linked PaymentIntent captured {$pi->id} status {$pi->status}");
+    
+                    }
+                    if ($pi->status === 'succeeded') {
+                        $paymentSucceeded = true;
+    
+                        $transactionObject = $pi;
+    
+                        $paymentId = $pi->id;
+    
+                    } else {
+                        \Log::warning("Linked PI not succeeded status={$pi->status} for order {$order->id}");
+    
+                    }
+    
+                } else {
+
+                    if ($ch->refunded) {
+                        \Log::info("Charge already refunded for order {$order->id}. Syncing local state.");
+                        $order->payment_status = 5;
+                        $order->status_id = 2; // refunded/cancelled (adjust as needed)
+                        $order->refunded_at = now();
+                        $order->save();
+                        return back()->with('info', 'Charge already refunded; local status synced.');
+                    }
+                    if ($ch->captured || $ch->status === 'succeeded') {
+                        $paymentSucceeded = true;
+                        $transactionObject = $ch;
+                        $paymentId = $ch->id;
+    
+                    } elseif ($ch->status === 'pending' && !$ch->captured) {
+                        $capturedCharge = $ch->capture();
+                        \Log::info("Captured legacy charge {$capturedCharge->id} status {$capturedCharge->status}");
+                        
+                        if ($capturedCharge->status === 'succeeded') {
+                            $paymentSucceeded = true;
+                            $transactionObject = $capturedCharge;
+                            $paymentId = $capturedCharge->id;
+                        }
+                    } else {
+                        \Log::warning("Charge not capturable: status={$ch->status} captured={$ch->captured}");
+    
+                    }
+    
+                }
+    
+            }
             else {
-                throw new \Exception('Invalid transaction ID format.');
-            }
+                \Log::error("Unsupported transaction id format: {$transactionId}");
+                return back()->with('error', 'Unsupported transaction id format.');
     
-        } catch (\Stripe\Exception\InvalidRequestException $e) {
-            \Log::error("Stripe InvalidRequest for order {$id}: " . $e->getMessage());
-            throw new \Exception('Stripe capture error: ' . $e->getMessage());
+            }
+            if ($paymentSucceeded) {
+                DB::transaction(function () use ($order, $transactionObject, $paymentId, $admin) {
+                    $order->payment_status = 1;
+                    $order->status_id = 3;
+                    $order->captured_at = now();
+                    $order->save();
+
+                    Ordermeta::updateOrCreate(
+                        ['order_id' => $order->id, 'key' => 'transcation_log'],
+                        ['value' => json_encode($transactionObject)]
+                    );
+
+                    Ordermeta::updateOrCreate(
+                        ['order_id' => $order->id, 'key' => 'last_transcation_log'],
+                        ['value' => json_encode($transactionObject)]
+                    );
+    
+                });
+
+                if (in_array($order->order_from, [0, 4, 5])) {
+                    $this->post_order_data_POS($order, 'capture');
+                } else {
+                    $this->post_order_data($order, 'capture');
+    
+                }
+                
+                if (!empty($admin->email)) {
+                    \App\Lib\NotifyToUser::sendEmail($order, $admin->email, 'admin');
+    
+                }
+                \Log::info("Order {$order->id} successfully captured and updated. payment_id={$paymentId}");
+    
+                return back()->with('success', 'Payment captured and order updated.');
+    
+            }
+
+            \Log::warning("Payment capture attempt did not result in succeeded status for order {$order->id}. TransactionObject status logged.");
+    
+            return back()->with('warning', 'Payment capture did not succeed. Check logs for details.');
+    
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+    
+            \Log::error("Stripe API error for order {$order->id}: " . $e->getMessage());
+    
+            return back()->with('error', 'Stripe API error: ' . $e->getMessage());
+    
         } catch (\Exception $e) {
-            \Log::error("Capture failed for order {$id}: " . $e->getMessage());
-            throw $e;
+    
+            \Log::error("Capture failed for order {$order->id}: " . $e->getMessage());
+    
+            return back()->with('error', 'Capture failed: ' . $e->getMessage());
+    
         }
     
-        // --- Update order if payment successful ---
-        if ($paymentStatus === 1) {
-            $order->update([
-                'payment_status' => 1,
-                'status_id' => 3,
-                'captured_at' => now()->setTimezone(config('app.timezone')),
-            ]);
-    
-            // Log transaction
-            Ordermeta::create([
-                'order_id' => $order->id,
-                'key' => 'transcation_log',
-                'value' => json_encode($transactionLog),
-            ]);
-    
-            $order->orderlasttrans()->update([
-                'key' => 'last_transcation_log',
-                'value' => json_encode($transactionLog),
-            ]);
-    
-            // Sync to financial manager
-            if (in_array($order->order_from, [0, 4, 5])) {
-                $this->post_order_data_POS($order, 'capture');
-            } else {
-                $this->post_order_data($order, 'capture');
-            }
-    
-            // Send notification
-            \App\Lib\NotifyToUser::sendEmail($order, $admin->email, 'admin');
-        }
-    
-        return redirect()->back();
     }
-
-
-
-
 
     public function post_order_data($order,$post_type = 'capture'){
 
@@ -974,178 +1043,198 @@ public function destroy(Request $request)
     //         'captured_orders' => $updated
     //     ]);
     // }
-    elseif ($method === 'capture_authorized') {
-        $admin_details = User::where('role_id', 3)->first();
-        $adminEmail = $admin_details->email ?? '';
+elseif ($method === 'capture_authorized') {
     
-        $gateway = Getway::where('status', '!=', 0)
-            ->where('namespace', '=', 'App\Lib\Stripe')->first();
-    
-        if (!$gateway) {
-            return response()->json(['error' => 'Stripe gateway not found'], 400);
+    $adminEmail = User::where('role_id', 3)->value('email');
+
+    $gateway = Getway::where('status', '!=', 0)->where('namespace', 'App\Lib\Stripe')->first();
+
+    if (!$gateway) {
+        return response()->json(['error' => 'Stripe gateway not found'], 400);
+    }
+
+    $gateway_data_info = json_decode($gateway->data ?? '{}');
+    $secretKey = $gateway->test_mode == 1? ($gateway_data_info->test_secret_key ?? ''): ($gateway_data_info->secret_key ?? '');
+
+    if (empty($secretKey)) {
+        \Log::error('Stripe secret key missing for gateway id: ' . $gateway->id);
+        return response()->json(['error' => 'Stripe secret key missing'], 500);
+    }
+    \Stripe\Stripe::setApiKey($secretKey);
+    $updated = [];
+    $failed = [];
+    $synced_refunds = [];
+    $skipped = []; // Added for client requirement: track skipped orders (not low-risk)
+    foreach ($orders as $order) {
+        if (!is_object($order) || !method_exists($order, 'save')) {
+            \Log::error('Order item is not an Eloquent model: ' . gettype($order));
+            $failed[] = $order->id ?? null;
+            continue;
         }
-    
-        $gateway_data_info = json_decode($gateway->data);
-    
-        foreach ($orders as $order) {
-            if (in_array($order->risk_level, ['normal', 'low']) && in_array($order->payment_status, [4, 5])) {
-                $status = 3; // Default to pending fulfillment
-    
-                if ($order->payment_status == 5) {
-                    // Already refunded, just update status
-                    $order->status_id = $status;
-                    $order->save();
-                    $updated[] = $order->id;
-                    continue;
+        if (!in_array($order->risk_level, ['normal', 'low']) || !in_array($order->payment_status, [4, 5])) {
+            $skipped[] = $order->id; // Track skipped due to risk level or payment status
+            continue;
+        }
+        if ($order->payment_status == 5) {
+            try {
+                $order->status_id = 2; // refunded/cancelled (adjust if needed)
+                $order->refunded_at = now();
+                $order->save();
+                $synced_refunds[] = $order->id;
+            } catch (\Exception $e) {
+                \Log::error("Failed to sync refunded order {$order->id}: {$e->getMessage()}");
+                $failed[] = $order->id;
+            }
+            continue;
+        }
+
+        $transactionId = $order->transaction_id;
+        if (empty($transactionId)) {
+            \Log::warning("Order {$order->id} missing transaction_id, skipping");
+            $failed[] = $order->id;
+            continue;
+        }
+        DB::beginTransaction();
+        try {
+            $paymentSucceeded = false;
+            $payment_id = $transactionId;
+            $transaction_log_object = null;
+            if (str_starts_with($transactionId, 'pi_')) {
+                $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
+                if ($paymentIntent->status === 'requires_capture') {
+                    $captured = $paymentIntent->capture();
+                    $paymentSucceeded = ($captured->status === 'succeeded');
+                    $transaction_log_object = $captured;
+                    $payment_id = $captured->id ?? $payment_id;
+                } elseif ($paymentIntent->status === 'succeeded') {
+                    $paymentSucceeded = true;
+                    $transaction_log_object = $paymentIntent;
+                    $payment_id = $paymentIntent->id;
+                } else {
+                    \Log::info("Order {$order->id} PaymentIntent not capturable: status={$paymentIntent->status}");
+                    throw new \Exception("PaymentIntent status not capturable: {$paymentIntent->status}");
                 }
-    
-                // Capture authorized payment
-                $ordermeta = json_decode($order->ordermeta->value ?? '');
-                $payment_data = [
-                    'test_mode' => $gateway->test_mode,
-                    'currency' => $gateway->currency_name ?? 'USD',
-                    'getway_id' => $gateway->id,
-                    'amount' => $order->total,
-                    'transaction_id' => $order->transaction_id,
-                    'application_fee_amount' => $ordermeta->booster_platform_fee ?? 0,
-                    'card_fee_amount' => $ordermeta->credit_card_fee ?? 0,
-                ];
-    
-                if (!empty($gateway->data)) {
-                    foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
-                        $payment_data[$key] = $info;
-                    }
-                }
-    
-                Stripe::setApiKey($gateway->test_mode == 1 
-                    ? $gateway_data_info->test_secret_key 
-                    : $gateway_data_info->secret_key);
-    
-                $transactionId = $payment_data['transaction_id'] ?? null;
-                if (!$transactionId) continue;
-    
-                $paymentstatus = 0;
-                $transaction_log = null;
-                $payment_id = $transactionId;
-    
-                try {
-                    $paymentIntent = null;
-                    $charge = null;
-    
-                    if (str_starts_with($transactionId, 'pi_')) {
-                        $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
-    
-                        if ($paymentIntent->status === 'requires_capture') {
-                            $captured = $paymentIntent->capture();
-                            $paymentstatus = $captured->status === 'succeeded' ? 1 : 0;
-                            $transaction_log = $captured;
-                        } else {
-                            $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
-                            $transaction_log = $paymentIntent;
-                        }
+            }
+            elseif (str_starts_with($transactionId, 'ch_')) {
+                $charge = \Stripe\Charge::retrieve($transactionId);
+                if (!empty($charge->payment_intent)) {
+                    $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
+                    if ($paymentIntent->status === 'requires_capture') {
+                        $captured = $paymentIntent->capture();
+                        $paymentSucceeded = ($captured->status === 'succeeded');
+                        $transaction_log_object = $captured;
+                        $payment_id = $captured->id ?? $payment_id;
+                    } elseif ($paymentIntent->status === 'succeeded') {
+                        $paymentSucceeded = true;
+                        $transaction_log_object = $paymentIntent;
                         $payment_id = $paymentIntent->id;
-    
-                    } elseif (str_starts_with($transactionId, 'ch_')) {
-                        $charge = \Stripe\Charge::retrieve($transactionId);
-    
-                        // Handle legacy charges without PaymentIntent
-                        if (empty($charge->payment_intent)) {
-                            if ($charge->refunded) {
-                                \Log::info('Charge already refunded for order ' . $order->id . ', syncing local status');
-                                $order->update([
-                                    'payment_status' => 5,
-                                    'status_id' => 2, // Assuming 2 is refunded/canceled
-                                    'refunded_at' => now(),
-                                ]);
-                                $updated[] = $order->id;
-                                continue;
-                            }
-                            if ($charge->status === 'succeeded' && $charge->captured) {
-                                $paymentstatus = 1;
-                                $transaction_log = $charge;
-                            } elseif ($charge->status === 'succeeded' && !$charge->captured) {
-                                $captured_charge = $charge->capture();
-                                $paymentstatus = $captured_charge->status === 'succeeded' ? 1 : 0;
-                                $transaction_log = $captured_charge;
-                            } else {
-                                throw new \Exception('Charge not in a capturable state: ' . $charge->status);
-                            }
-                        } else {
-                            // Has PaymentIntent, proceed as before
-                            $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
-    
-                            if ($paymentIntent->status === 'requires_capture') {
-                                $captured = $paymentIntent->capture();
-                                $paymentstatus = $captured->status === 'succeeded' ? 1 : 0;
-                                $transaction_log = $captured;
-                            } else {
-                                $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
-                                $transaction_log = $paymentIntent;
-                            }
-                            $payment_id = $paymentIntent->id;
-                        }
-    
                     } else {
-                        throw new \Exception('Invalid transaction ID format');
+                        throw new \Exception("PaymentIntent status not capturable: {$paymentIntent->status}");
                     }
-    
-                    if ($paymentstatus == 1) {
-                        $order->update([
-                            'payment_status' => $paymentstatus,
-                            'status_id' => $status,
-                            'captured_at' => now(),
-                        ]);
-    
-                        $logData = json_encode([
-                            'payment_status' => $paymentstatus,
-                            'payment_id' => $payment_id,
-                            'transaction_log' => $transaction_log,
-                        ]);
-    
-                        $transcation_log = new Ordermeta;
-                        $transcation_log->order_id = $order->id;
-                        $transcation_log->key = 'transcation_log';
-                        $transcation_log->value = $logData;
-                        $transcation_log->save();
-    
-                        $order->orderlasttrans()->update([
-                            'key' => 'last_transcation_log',
-                            'value' => $logData,
-                        ]);
-    
-                        $post_type = 'capture';
-                        if (in_array($order->order_from, [0, 4, 5])) {
-                            $this->post_order_data_POS($order, $post_type);
-                        } else {
-                            $this->post_order_data($order, $post_type);
-                        }
+                } else {
+                    if ($charge->refunded) {
+                        $order->payment_status = 5;
+                        $order->status_id = 2;
+                        $order->refunded_at = now();
+                        $order->save();
+                        $synced_refunds[] = $order->id;
+                        DB::commit();
+                        continue;
                     }
-                } catch (\Exception $e) {
-                    \Log::error('Error capturing payment for order ' . $order->id . ': ' . $e->getMessage());
-                    continue;
+                    if ($charge->captured || $charge->status === 'succeeded') {
+                        $paymentSucceeded = true;
+                        $transaction_log_object = $charge;
+                        $payment_id = $charge->id;
+                    } elseif ($charge->status === 'succeeded' && !$charge->captured) {
+                        $captured_charge = $charge->capture();
+                        $paymentSucceeded = ($captured_charge->status === 'succeeded');
+                        $transaction_log_object = $captured_charge;
+                        $payment_id = $captured_charge->id ?? $payment_id;
+                    } else {
+                        throw new \Exception('Legacy charge not capturable: ' . $charge->status);
+                    }
                 }
-    
-                // Notifications
+            } else {
+                throw new \Exception('Invalid transaction ID format: ' . $transactionId);
+            }
+            if ($paymentSucceeded) {
+                $order->payment_status = 1;
+                $order->status_id = 3; // pending fulfillment
+                $order->captured_at = now();
+                $order->save(); // explicit save to avoid $fillable issues
+                $logData = json_encode([
+                    'payment_status' => 1,
+                    'payment_id' => $payment_id,
+                    'transaction_log' => $transaction_log_object,
+
+                ]);
+                Ordermeta::create([
+
+                    'order_id' => $order->id,
+                    'key' => 'transcation_log', // keep your existing key or change consistently
+                    'value' => $logData,
+
+                ]);
+
+                $order->orderlasttrans()->updateOrCreate(
+                    ['key' => 'last_transcation_log'],
+                    ['value' => $logData]
+
+                );
+                $post_type = 'capture';
+                if (in_array($order->order_from, [0, 4, 5])) {
+                    $this->post_order_data_POS($order, $post_type);
+                } else {
+
+                    $this->post_order_data($order, $post_type);
+                }
                 if ($adminEmail) {
+
                     \App\Lib\NotifyToUser::sendEmail($order, $adminEmail, 'admin');
+
                 }
+                $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}');
                 if ($order->notify_driver == 'mail') {
-                    $userTo = json_decode($order->ordermeta->value ?? '{}')->email ?? $order->user->email ?? '';
-                    if ($userTo) \App\Lib\NotifyToUser::sendEmail($order, $userTo, 'user');
+                    $userEmail = ($ordermeta->email ?? '') ?: ($order->user->email ?? '');
+                    if ($userEmail) {
+
+                        \App\Lib\NotifyToUser::sendEmail($order, $userEmail, 'user');
+                    }
                 }
                 $updated[] = $order->id;
+                \Log::info("Order {$order->id} captured and updated successfully.");
+
+            } else {
+                \Log::warning("Order {$order->id} capture attempted but not succeeded.");
+
+                $failed[] = $order->id;
             }
+            DB::commit();
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            DB::rollBack();
+            \Log::error("Stripe API error for order {$order->id}: {$e->getMessage()}");
+            $failed[] = $order->id;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error("Error processing capture for order {$order->id}: {$e->getMessage()}");
+            $failed[] = $order->id;
         }
-    
-       $message = empty($updated) 
-            ? 'No eligible low-risk orders.'
-            : 'Captured authorized low-risk orders.';
-    
-        return response()->json([
-            'message' => $message,
-            'captured_orders' => $updated
-        ]);
-     }
+    }
+    $message_parts = [];
+    if (count($updated)) $message_parts[] = count($updated) . ' low-risk orders captured successfully.';
+    if (count($synced_refunds)) $message_parts[] = count($synced_refunds) . ' refunded orders synced.';
+    if (count($failed)) $message_parts[] = count($failed) . ' orders failed to process.';
+    if (count($skipped)) $message_parts[] = count($skipped) . ' orders skipped (not low-risk).';
+    if (empty($message_parts)) $message_parts[] = 'No eligible low-risk orders found.';
+    return response()->json([
+        'message' => implode(' ', $message_parts),
+        'captured_orders' => $updated,
+        'synced_refunds' => $synced_refunds,
+        'failed_orders' => $failed,
+        'skipped_orders' => $skipped, // Added for client requirement
+    ]);
+
+}
 
     // 3️⃣ COMPLETE FULFILLMENT
     elseif ($method === 'complete_fulfillment') {
