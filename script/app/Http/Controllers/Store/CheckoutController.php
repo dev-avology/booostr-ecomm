@@ -250,7 +250,7 @@ class CheckoutController extends Controller
         
         $p_types = $product_type->pluck('id')->all();
         
-        $cartTermIds = Cart::instance('default')->content()->pluck('id')->all();
+        $cartTermIds = Cart::content()->pluck('id')->all();
         
         $terms = Term::with('termcategories')
             ->whereIn('id', $cartTermIds)
@@ -345,6 +345,10 @@ class CheckoutController extends Controller
         }
        }
 
+       if($order_type == 'Digital'){
+        $shipping_methods = ['method_type'=>'digital_shipping','label'=>'Digital Shipping','pricing'=>0,'base_pricing'=>0];
+        $shipping_price = 0;
+       }
       
 
         $total =  Cart::total() + $shipping_price;
@@ -479,7 +483,7 @@ class CheckoutController extends Controller
         
         $p_types = $product_type->pluck('id')->all();
         
-        $cartTermIds = Cart::instance('default')->content()->pluck('id')->all();
+        $cartTermIds = Cart::content()->pluck('id')->all();
         
         $terms = Term::with('termcategories')
             ->whereIn('id', $cartTermIds)
@@ -574,6 +578,10 @@ class CheckoutController extends Controller
         }
        }
 
+       if($order_type == 'Digital'){
+         $shipping_methods = ['method_type'=>'digital_shipping','label'=>'Digital Shipping','pricing'=>0,'base_pricing'=>0];
+         $shipping_price = 0;
+       }
       
 
         $total =  Cart::total() + $shipping_price;
@@ -614,6 +622,39 @@ class CheckoutController extends Controller
        $order_method='delivery';
        $notify_driver='mail';
        $order_settings=get_option('order_settings',true);
+
+
+        // Fetch all product types once
+        $product_type = Category::where('type', 'product_type')
+            ->select('id','slug','name')
+            ->get();
+        
+        $p_types = $product_type->pluck('id')->all();
+        
+        $cartTermIds = Cart::content()->pluck('id')->all();
+        
+        $terms = Term::with('termcategories')
+            ->whereIn('id', $cartTermIds)
+            ->get();
+        
+        // Get flat product type IDs from cart
+        $selected_product_type = $terms->flatMap(function ($term) use ($p_types) {
+            return $term->termcategories
+                ->pluck('category_id')
+                ->intersect($p_types);
+        })->unique()->values()->all();
+        
+        $count = count($selected_product_type);
+        
+        // ✅ Determine order type
+        $order_type = match (true) {
+            $count > 1 => 'Mixed',
+            $count === 1 => optional(
+                $product_type->firstWhere('id', $selected_product_type[0])
+            )->slug === 'digital_product' ? 'Digital' : 'Goods',
+            default => 'Goods',
+        };
+
 
        // add discount
         $subtotal = Cart::subtotal();
@@ -664,6 +705,12 @@ class CheckoutController extends Controller
             $order_method = 'pickup';
         }
 
+
+        if($order_type == 'Digital'){
+            $shipping_methods = ['method_type'=>'digital_shipping','label'=>'Digital Shipping','pricing'=>0,'base_pricing'=>0];
+            $shipping_price = 0;
+            $order_method = 'local';
+        }
         
         // if (Session::has('couponDiscount')) {
         //     $sessionDiscountArr = Session::get('couponDiscount');
@@ -1295,6 +1342,40 @@ class CheckoutController extends Controller
        $notify_driver='mail';
        $order_settings=get_option('order_settings',true);
 
+
+            // Fetch all product types once
+            $product_type = Category::where('type', 'product_type')
+            ->select('id','slug','name')
+            ->get();
+           
+           $p_types = $product_type->pluck('id')->all();
+           
+           $cartTermIds = Cart::content()->pluck('id')->all();
+           
+           $terms = Term::with('termcategories')
+               ->whereIn('id', $cartTermIds)
+               ->get();
+           
+           // Get flat product type IDs from cart
+           $selected_product_type = $terms->flatMap(function ($term) use ($p_types) {
+               return $term->termcategories
+                   ->pluck('category_id')
+                   ->intersect($p_types);
+           })->unique()->values()->all();
+           
+           $count = count($selected_product_type);
+           
+           // ✅ Determine order type
+           $order_type = match (true) {
+               $count > 1 => 'Mixed',
+               $count === 1 => optional(
+                   $product_type->firstWhere('id', $selected_product_type[0])
+               )->slug === 'digital_product' ? 'Digital' : 'Goods',
+               default => 'Goods',
+           };
+
+
+
        // add discount
         $subtotal = Cart::subtotal();
      
@@ -1355,7 +1436,14 @@ class CheckoutController extends Controller
         //     $total_amount=str_replace(',','',Cart::total());
         // }
 
+
+        if($order_type == 'Digital'){
+            $shipping_methods = ['method_type'=>'digital_shipping','label'=>'Digital Shipping','pricing'=>0,'base_pricing'=>0];
+            $shipping_price = 0;
+            $order_method = 'local';
+        }
         
+
        $subtotal = Cart::subtotal();
        $total_amount=str_replace(',','',Cart::total());
        $tax = Cart::tax();
