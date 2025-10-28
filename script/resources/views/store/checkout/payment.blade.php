@@ -9,7 +9,7 @@ a.cart-summary > span {
     width: 100%;
 }
 
-p span.title{CART SUMMARY
+p span.title{
     font-size: 12px;
 }
 
