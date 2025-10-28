@@ -179,7 +179,7 @@ class OrderController extends Controller
     
         $order_type = match (true) {
             $count > 1 => 'Mixed',
-            $count === 1 => optional($product_type->firstWhere('id', $selected_product_type[0]))->slug === 'physical_product' ? 'Digital' : 'Goods',
+            $count === 1 => optional($product_type->firstWhere('id', $selected_product_type[0]))->slug === 'digital_product' ? 'Digital' : 'Goods',
             default => 'Goods',
         };
     
