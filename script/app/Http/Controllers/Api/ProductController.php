@@ -44,7 +44,7 @@ class ProductController extends Controller
        return response()->json(["status" => true, "message" => "products", "result" => ['categories'=>$posts,'product_count'=>$product_count]]);
     }
 
-// Product list api
+   // Product list api
 
     public function productList(Request $request)
     {
@@ -885,5 +885,62 @@ class ProductController extends Controller
 
         return response()->json($msg);
     }
+
+public function connectProductForm(Request $request)
+{
+    try {
+        $validated = $request->validate([
+            'product_id' => 'required|integer|exists:terms,id',
+            'form_id' => 'required|integer',
+            'form_data' => 'nullable|array',
+            'cart_id' => 'nullable|string'
+        ]);
+
+        // Safely handle optional form_data
+        $formDataJson = isset($validated['form_data']) && is_array($validated['form_data'])
+            ? json_encode($validated['form_data'])
+            : null;
+
+        // Check if record already exists
+        $existing = \App\Models\ProductForm::where('product_id', $validated['product_id'])
+            ->where('form_id', $validated['form_id'])
+            ->first();
+
+        if ($existing) {
+            $existing->update([
+                'form_data' => $formDataJson,
+                'cart_id' => $validated['cart_id'] ?? $existing->cart_id,
+            ]);
+            $record = $existing;
+            $message = 'Form data updated successfully.';
+        } else {
+            $record = \App\Models\ProductForm::create([
+                'product_id' => $validated['product_id'],
+                'form_id' => $validated['form_id'],
+                'form_data' => $formDataJson,
+                'cart_id' => $validated['cart_id'] ?? null,
+            ]);
+            $message = 'Form connected to product successfully.';
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => $message,
+            'data' => $record
+        ], 200);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Validation failed',
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+}
 
 }

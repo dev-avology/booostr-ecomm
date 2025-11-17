@@ -6,6 +6,7 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
 use App\Http\Middleware\AvalogyMiddleware;
 use App\Http\Middleware\StoreSettingCheckMiddleware;
 use Stancl\Tenancy\Middleware\InitializeTenancyByRequestData;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -85,3 +86,6 @@ Route::group([
     Route::get('checkout-redirect/{cartid}/{redirect_url}', 'Store\CheckoutController@redirect_to_checkout');
     Route::get('cron/product-price-reset', 'Seller\CronController@ProductPriceReset');
 });
+
+
+Route::post('/product-form-connect', 'Api\ProductController@connectProductForm');
