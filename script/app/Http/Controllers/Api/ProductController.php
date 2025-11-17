@@ -60,6 +60,17 @@ class ProductController extends Controller
         return response()->json(["status" => true, "message" => "products", "result" => $posts]);
     }
 
+
+    public function productDropdownList(Request $request)
+    {
+       $posts = Term::query()->where('type', 'product')->where('status', 1)
+       ->whereIn('list_type', [0,1])->with('media','category','firstprice', 'lastprice','formType','optionwithcategories','price','prices')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
+
+
+        $posts = $posts->orderBy('order','asc')->get();
+        return response()->json(["status" => true, "message" => "products", "result" => $posts]);
+    }
+
     
     public function productDetail(Request $request,$id)
     {
