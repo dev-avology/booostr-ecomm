@@ -49,6 +49,7 @@ Route::group([
 
     Route::post('/add_product_form','Api\ProductController@addProductForm');
 
+    Route::get('/products_list', 'Api\ProductController@productDropdownList');
 
 
     // PosApiController
