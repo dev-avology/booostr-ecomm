@@ -54,9 +54,9 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::get('/wishlist', 'Store\PageController@wishlist');
     Route::get('/direct_checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_checkout_to');
 
-    //Route::get('/direct/checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_checkout')->name('direct.checkout');
+    Route::get('/direct/checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_checkout')->name('direct.checkout');
 
-    Route::get('/direct/checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_new_checkout')->name('direct.checkout');
+   // Route::get('/direct/checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_new_checkout')->name('direct.checkout');
 
     Route::get('/direct/new-checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_new_checkout')->name('direct.new_checkout');
 
