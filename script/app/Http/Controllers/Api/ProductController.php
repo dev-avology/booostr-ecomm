@@ -63,12 +63,49 @@ class ProductController extends Controller
 
     public function productDropdownList(Request $request)
     {
-       $posts = Term::query()->where('type', 'product')->where('status', 1)
-       ->whereIn('list_type', [0,1])->with('media','category','firstprice', 'lastprice','formType','optionwithcategories','price','prices')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
+        $posts = Term::query()->where('type', 'product')->where('status', 1)
+            ->whereIn('list_type', [0,1])
+            ->with('media','category','firstprice','lastprice','formType','optionwithcategories','price','prices')
+            ->whereHas('firstprice')
+            ->whereHas('lastprice')
+            ->selectRaw('*, 
+                (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, 
+                (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price')
+            ->orderBy('order','asc')
+            ->get();
+    
 
+        $product_types = Category::where('type', 'product_type') ->select('id', 'name')->get() ->keyBy('id');
 
-        $posts = $posts->orderBy('order','asc')->get();
-        return response()->json(["status" => true, "message" => "products", "result" => $posts]);
+        foreach ($posts as $post) {
+            $selected_product_type = '';
+    
+            // Case 1: if you have termcategories relationship
+            if ($post->termcategories ?? false) {
+                foreach ($post->termcategories as $tc) {
+                    if (isset($product_types[$tc->category_id])) {
+                        $selected_product_type = $product_types[$tc->category_id]->name;
+                        break;
+                    }
+                }
+            }
+            else {
+                foreach ($post->category as $cat) {
+                    if ($cat->type === 'product_type' && isset($product_types[$cat->id])) {
+                        $selected_product_type = $product_types[$cat->id]->name;
+                        break;
+                    }
+                }
+            }
+    
+            $post->product_type = $selected_product_type;
+        }
+    
+        return response()->json([
+            "status"  => true,
+            "message" => "products",
+            "result"  => $posts
+        ]);
     }
 
     
