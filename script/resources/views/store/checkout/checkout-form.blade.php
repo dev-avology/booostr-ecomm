@@ -600,19 +600,6 @@ input#cover_fee_checkbox {
         <input type="hidden" id="city" value="{{ $invoice_data->store_legal_city ?? '' }}">
         <input type="hidden" id="cover_fee" value="{{ $cover_fee }}">
         
-        <footer class="container">
-            <div class="row">
-                <div class="col-lg-12 container" style="text-align:center;">
-
-                    <a href="{{ route('store.page', ['slug' => 'terms-and-conditions']) }}" target="_blank"> Terms and
-                        conditions</a> |
-                    <a href="{{ route('store.page', ['slug' => 'privacy-policy']) }}" target="_blank">Privacy Policy</a> |
-                    <a href="{{ route('store.page', ['slug' => 'return-policy']) }}" target="_blank">Return Policy</a>
-
-                </div>
-            </div>
-        </footer>
-        
 <!-- Modal -->
 <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-md modal-dialog-centered">
@@ -786,5 +773,5 @@ input#cover_fee_checkbox {
     @push('js')
         <script src="https://js.stripe.com/v3/"></script>
         <script src="{{ asset('checkout/js/stripe.js') }}"></script>
-        // Example using fetch
+    
     @endpush
