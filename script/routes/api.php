@@ -84,5 +84,7 @@ Route::group([
     'middleware' => [InitializeTenancyByPath::class, 'tenantenvironment'],
 ], function () {
     Route::get('checkout-redirect/{cartid}/{redirect_url}', 'Store\CheckoutController@redirect_to_checkout');
+    Route::get('checkout-form-redirect/{cartid}/{redirect_url}', 'Store\CheckoutController@redirect_to_checkout_form');
+
     Route::get('cron/product-price-reset', 'Seller\CronController@ProductPriceReset');
 });
