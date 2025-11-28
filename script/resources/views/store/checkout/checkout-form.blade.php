@@ -110,77 +110,12 @@ input#cover_fee_checkbox {
     <div class="topbar-area">
 		
 
-        <div class="container">
-            <div class="row">
-                <div class="row align-items-center">
 
-
-                    <div class="col-lg-6 col-md-7 col-12">
-                        <!-- Topbar Left -->
-                        <div class="topbar-left">
-                            <ul class="topbar-left-inner">
-                                @if (!empty(tenant()->logo))
-                                    <li><a href="#"><img src="{{ env('WP_URL') }}{{ tenant()->logo }}"
-                                                style="max-width: 80px;" /></a></li>
-                                @else
-                                    <li><a
-                                            href="{{ url('/') }}">{{ ucfirst(str_replace(['-', '_'], ' ', tenant()->id)) }}</a>
-                                    </li>
-                                @endif
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-6 col-md-5 col-12">
-                        <!-- Topbar Right -->
-                        {{-- <div class="topbar-right">
-					<ul class="topbar-right-inner">
-						<!-- Topbar Language -->
-						@if (tenant('customer_modules') == 'on')
-						<li class="accounts-top-btn"><a href="{{ !Auth::check() ? '#' : url('/customer/dashboard') }}"><i class="icofont-user-male"></i><span>{{ !Auth::check() ? __('My Account') : Auth::user()->name }}</span></a>
-							@if (!Auth::check())
-							<!-- Topbar Accounts Form -->
-							<div class="accounts-signin-top-form">
-								<form action="{{ route('login') }}" method="post" class="accounts-signin-inner">
-									@csrf
-									<div class="row">
-										<div class="col-12">
-											<div class="form-group">
-												<label><i class="icofont-ui-user"></i> {{ __('Email') }}</label>
-												<input type="email" name="email" required="required" placeholder="Enter Email">
-											</div>
-										</div>
-										<div class="col-12">
-											<div class="form-group">
-												<label><i class="icofont-ssl-security"></i> {{ __('Password') }}</label>
-												<input type="password" name="password" required="">
-											</div>
-										</div>
-										<div class="col-12">
-											<div class="accounts-signin-btn">
-												<button type="submit" class="theme-btn">{{ __('Sign in') }}</button>
-											</div>
-										</div>
-									</div>
-								</form>
-							</div>
-							<!-- End Topbar Accounts Form -->
-							@endif
-						</li>
-						@endif
-					</ul>
-				</div> --}}
-                    </div>
-                </div>
-            </div>
-        </div>
         <!-- Start Checkout -->
 
         <section class="shop checkout section checkout-main">
             <div class="checkout-container">
-                <h1 class="page-title">{{ $page_data->cart_page_title ?? 'Checkout' }}</h1>
-
-    
+              
                 @if (Cart::instance('default')->count() != 0)
                     <form class="form orderform" id="payment-form" method="post"
                         action="{{ route('checkout.makeorder') }}">
