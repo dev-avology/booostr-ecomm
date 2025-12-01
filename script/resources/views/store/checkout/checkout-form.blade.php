@@ -640,6 +640,7 @@ input#cover_fee_checkbox {
             var store_info = {!! Tenant('club_info') !!};
             var currency_icon = "{{ get_option('currency_data', true)->currency_icon }}";
             var discount = parseFloat($('#discount').val());
+            
         </script>
         @if ($source_code == 'off')
             <script type="text/javascript" src="{{ asset('theme/disable-source-code.js') }}"></script>
@@ -708,5 +709,10 @@ input#cover_fee_checkbox {
     @push('js')
         <script src="https://js.stripe.com/v3/"></script>
         <script src="{{ asset('checkout/js/stripe.js') }}"></script>
-    
+        <script> 
+        window.onload = () => {
+			const height = document.body.scrollHeight;
+			window.parent.postMessage({ type: 'CHECKOUT_LOAD', iframeHeight: height }, "*");
+		};
+        </script>
     @endpush
