@@ -110,7 +110,8 @@ class CheckoutController extends Controller
     public function redirect_to_checkout_form(Request $request,$cartid,$redirect_url='/')
     {
         if (empty($cartid)) {
-            return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Oops something went wrong']);
+           // return redirect()->to($redirect_url)->with(['type' => 'error','message' => 'Oops something went wrong']);
+            return response()->json(['type' => 'error',"status" => true, "message" => "Oops something went wrong", "url" => $redirect_url]);
         }
         $domain=tenant('domain');
         if($request->has('guest')){
@@ -131,8 +132,11 @@ class CheckoutController extends Controller
             ];
         }
 
-        return redirect()->to("//".$domain->domain.'/direct_checkout_form/'.$cartid.'/'.$redirect_url.'/?'.http_build_query($customer));
+        $url = "https://".$domain->domain.'/direct_checkout_form/'.$cartid.'/'.$redirect_url.'/?'.http_build_query($customer);
 
+        return response()->json(["status" => true, "message" => "checkout url", "url" => $url]);
+
+        //return redirect()->to();
     }
 
 
