@@ -132,7 +132,8 @@ class CheckoutController extends Controller
             ];
         }
 
-        $url = "https://".$domain->domain.'/direct_checkout_form/'.$cartid.'/'.$redirect_url.'/?'.http_build_query($customer);
+       // $url = "https://".$domain->domain.'/direct_checkout_form/'.$cartid.'/'.$redirect_url.'/?'.http_build_query($customer);
+        $url = "https://".$domain->domain.'/direct/checkout_form/'.$cartid.'/'.$redirect_url.'/?'.http_build_query($customer);
 
         return response()->json(["status" => true, "message" => "checkout url", "url" => $url]);
 
@@ -142,6 +143,7 @@ class CheckoutController extends Controller
 
     public function direct_checkout_form(Request $request,$cartid='',$redirect_url='/'){
         Session::flush();
+
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
         ]);
@@ -174,6 +176,27 @@ class CheckoutController extends Controller
 
     public function direct_checkout_form_to(Request $request,$cartid='',$redirect_url='/')
     {
+        Session::flush();
+
+        $customer=[
+            "name"=>($request->name??""),
+            "email"=>($request->email),
+            "phone"=>($request->phone??""),
+            "address"=>($request->address??""),
+            "city"=>($request->city??""),
+            "state"=>($request->state??""),
+            "country"=>($request->country??""),
+            "zip"=>($request->zip??""),
+            "wpuid"=>($request->wpuid??"")
+        ];
+
+        if($request->has('guest')){
+            $customer["guest"]=($request->guest??"");
+        }
+         
+        Session::put('customer_data',$customer);
+
+
 
         if(Session::has('redirect_url')){
             $redirect_url=Session::get('redirect_url');
