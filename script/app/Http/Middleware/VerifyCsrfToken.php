@@ -15,5 +15,7 @@ class VerifyCsrfToken extends Middleware
         'partner/payu/status',
         'install/migrate',
         'install/seed',
+        'direct/checkout_form/*',
+        '/checkout/make-order'
     ];
 }
