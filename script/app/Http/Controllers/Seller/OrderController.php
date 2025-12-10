@@ -214,7 +214,8 @@ class OrderController extends Controller
     
         // Refund logic if status = 2
         if ($request->status == 2) {
-            $this->processRefund($order);
+            //$this->processRefund($order);
+            $this->refund($id);
         }
     
         return response()->json(['message' => 'Order Updated']);
@@ -612,92 +613,92 @@ class OrderController extends Controller
 
     public function post_order_data_POS($order,$post_type = 'capture'){
 
-        $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
-        $qty = $order->orderitems[0]['qty'];
-        $product_amount = $order->orderitems[0]['amount'];
-        $sub_total = $product_amount*$qty;
-        $sales_tax = $order->tax;
-        $order_total = $order->total;
-    
-        if(isset($order->ordermeta)){
-            $ordermeta=json_decode($order->ordermeta->value ?? '',true);
-        }
+                $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
+                $qty = $order->orderitems[0]['qty'];
+                $product_amount = $order->orderitems[0]['amount'];
+                $sub_total = $product_amount*$qty;
+                $sales_tax = $order->tax;
+                $order_total = $order->total;
+            
+                if(isset($order->ordermeta)){
+                    $ordermeta=json_decode($order->ordermeta->value ?? '',true);
+                }
 
-        $gateway=Getway::find($order->getway_id);
-
-
-        //$jsonString = $order->shippingwithinfo['info'];
-
-        $jsonString = $order->shippingwithinfo['info'];
-        // Decode the JSON string into a PHP array
-        $shipping_data = json_decode($jsonString, true);
-
-        $credit_card_fee = $shipping_data['credit_card_fee'];
-        $booster_platform_fee = $shipping_data['booster_platform_fee'];
-        $processing_fees = $credit_card_fee+$booster_platform_fee;
-
-        $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
-
-        $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
+                $gateway=Getway::find($order->getway_id);
 
 
+                //$jsonString = $order->shippingwithinfo['info'];
 
-        $postData = json_encode([
-        'category_type'=> 'Booostr Ecommerce',
-        'booster_id' =>Tenant('club_id'),
-        'coaid'=>41,
-        'contactname'=>isset($ordermeta['name'])?$ordermeta['name']:'Guest User',
-        //'memo'=>'Booostr Ecommerce',
-        'user_id' => 0,
-        'revenue_name'=>'4-850 Booostr Ecommerce',
-        'transaction_type'=>'I',
-        'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
-        'net_revenue'=>$net_recieved_amount,
-        'transaction_amount'=>$order_total,
-        'expense_category'=>'Revenue',
-        'receipts_issued'=> 'Yes',
-        'status'=>1,
-        'donor_name'=>isset($ordermeta['name'])? $ordermeta['name'].' (POS Order)':'Guest User'.' (POS Order)',
-        'created'=>$order->placed_at,
-        'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
-        'payement_method'=>($gateway->name == 'cash') ? 0 : 3,
-        'invoicenumber'=>$order->invoice_no,
-        'invoicreatedate'=>$order->placed_at,
-        'invoiceprocessingfee'=>$processing_fees,
-        'invoicesalestax'=> $sales_tax,
-        'invoiceopt'=>$order->invoice_no,
-        'deposite_date'=>$order->captured_at,
-        'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
-        'record_type' => $post_type,
-    ]);
+                $jsonString = $order->shippingwithinfo['info'];
+                // Decode the JSON string into a PHP array
+                $shipping_data = json_decode($jsonString, true);
+
+                $credit_card_fee = $shipping_data['credit_card_fee'];
+                $booster_platform_fee = $shipping_data['booster_platform_fee'];
+                $processing_fees = $credit_card_fee+$booster_platform_fee;
+
+                $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
+
+                $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
+
+
+
+                $postData = json_encode([
+                'category_type'=> 'Booostr Ecommerce',
+                'booster_id' =>Tenant('club_id'),
+                'coaid'=>41,
+                'contactname'=>isset($ordermeta['name'])?$ordermeta['name']:'Guest User',
+                //'memo'=>'Booostr Ecommerce',
+                'user_id' => 0,
+                'revenue_name'=>'4-850 Booostr Ecommerce',
+                'transaction_type'=>'I',
+                'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
+                'net_revenue'=>$net_recieved_amount,
+                'transaction_amount'=>$order_total,
+                'expense_category'=>'Revenue',
+                'receipts_issued'=> 'Yes',
+                'status'=>1,
+                'donor_name'=>isset($ordermeta['name'])? $ordermeta['name'].' (POS Order)':'Guest User'.' (POS Order)',
+                'created'=>$order->placed_at,
+                'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
+                'payement_method'=>($gateway->name == 'cash') ? 0 : 3,
+                'invoicenumber'=>$order->invoice_no,
+                'invoicreatedate'=>$order->placed_at,
+                'invoiceprocessingfee'=>$processing_fees,
+                'invoicesalestax'=> $sales_tax,
+                'invoiceopt'=>$order->invoice_no,
+                'deposite_date'=>$order->captured_at,
+                'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
+                'record_type' => $post_type,
+            ]);
 
    
-    $url = env("WP_API_URL");
+            $url = env("WP_API_URL");
 
-   // $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
-    $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager";
+        // $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
+            $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager";
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-    $response = curl_exec($ch);
+            $response = curl_exec($ch);
 
-    // Check for cURL errors
-    if (curl_errno($ch)) {
-        echo 'cURL error: ' . curl_error($ch);
-    }
-    curl_close($ch);
-    //Log::info($response);
-   // dump("=========POS=============");
-   // dd($response);
-    return $response;
+            // Check for cURL errors
+            if (curl_errno($ch)) {
+                echo 'cURL error: ' . curl_error($ch);
+            }
+            curl_close($ch);
+            //Log::info($response);
+        // dump("=========POS=============");
+        // dd($response);
+            return $response;
 }
 
 
