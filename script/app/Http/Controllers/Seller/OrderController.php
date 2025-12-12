@@ -215,7 +215,7 @@ class OrderController extends Controller
         // Refund logic if status = 2
         if ($request->status == 2) {
             //$this->processRefund($order);
-            $this->refund($id);
+            $this->refund($id,false);
         }
     
         return response()->json(['message' => 'Order Updated']);
@@ -670,35 +670,35 @@ class OrderController extends Controller
         'deposite_date'=>$order->captured_at,
         'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
         'record_type' => $post_type,
-      ]);
+    ]);
 
    
-        $url = env("WP_API_URL");
+    $url = env("WP_API_URL");
 
-    // $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
-        $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager";
+   // $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
+    $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager";
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        $response = curl_exec($ch);
+    $response = curl_exec($ch);
 
-        // Check for cURL errors
-        if (curl_errno($ch)) {
-            echo 'cURL error: ' . curl_error($ch);
-        }
-        curl_close($ch);
-        //Log::info($response);
-    // dump("=========POS=============");
-    // dd($response);
-        return $response;
+    // Check for cURL errors
+    if (curl_errno($ch)) {
+        echo 'cURL error: ' . curl_error($ch);
+    }
+    curl_close($ch);
+    //Log::info($response);
+   // dump("=========POS=============");
+   // dd($response);
+    return $response;
 }
 
 
@@ -764,16 +764,17 @@ public function refund($id, $silent = false)
         $payment_data['transaction_id'] = $chargeId;
     
         $paymentresult= $gateway->namespace::refund_payment($payment_data);
-    
+    //  dd($paymentresult);
         
     } elseif (str_starts_with($transactionId, 'ch_')) {
+  
        // $charge = \Stripe\Charge::retrieve($transactionId);
       //  $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
         
         $payment_data['transaction_id']  = $order->transaction_id;
 
         $paymentresult= $gateway->namespace::refund_payment($payment_data);
-       // dd($paymentresult);
+   
 
     } else {
         if (request()->wantsJson() || $silent) {
@@ -802,14 +803,15 @@ public function refund($id, $silent = false)
             'value' => json_encode($paymentresult['transaction_log'])
         ]);
 
-        $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
-        
+        $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);  
+     
         $this->post_order_data($order,'refund');
 
         if (!$silent) {
             \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
 
             if ($order->notify_driver == 'mail') {
+               
                 $ordermeta=json_decode($order->ordermeta->value ?? '');
                 if (!empty($ordermeta)) {
                     $mail_to=$ordermeta->email ?? '';
