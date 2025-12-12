@@ -214,7 +214,8 @@ class OrderController extends Controller
     
         // Refund logic if status = 2
         if ($request->status == 2) {
-            $this->processRefund($order);
+            //$this->processRefund($order);
+            $this->refund($id);
         }
     
         return response()->json(['message' => 'Order Updated']);
@@ -669,35 +670,35 @@ class OrderController extends Controller
         'deposite_date'=>$order->captured_at,
         'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
         'record_type' => $post_type,
-    ]);
+      ]);
 
    
-    $url = env("WP_API_URL");
+        $url = env("WP_API_URL");
 
-   // $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
-    $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager";
+    // $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
+        $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager";
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');   
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-    $response = curl_exec($ch);
+        $response = curl_exec($ch);
 
-    // Check for cURL errors
-    if (curl_errno($ch)) {
-        echo 'cURL error: ' . curl_error($ch);
-    }
-    curl_close($ch);
-    //Log::info($response);
-   // dump("=========POS=============");
-   // dd($response);
-    return $response;
+        // Check for cURL errors
+        if (curl_errno($ch)) {
+            echo 'cURL error: ' . curl_error($ch);
+        }
+        curl_close($ch);
+        //Log::info($response);
+    // dump("=========POS=============");
+    // dd($response);
+        return $response;
 }
 
 
@@ -743,9 +744,37 @@ public function refund($id, $silent = false)
 
     if (str_starts_with($transactionId, 'pi_')) {
         $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
+        
+          $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
+
+        $transaction_log = $paymentIntent;
+    
+        $payment_data['payment_intent'] = $paymentIntent;
+        $payment_data['payment_status'] = $paymentstatus;
+    
+        if ($paymentstatus !== 1) {
+            if (request()->wantsJson() || $silent) {
+                throw new \Exception('Payment is not in a refundable state.');
+            }
+            return redirect()->back()->with('error', 'Payment is not in a refundable state.');
+        }
+    
+    
+        $chargeId = $paymentIntent->latest_charge;
+        $payment_data['transaction_id'] = $chargeId;
+    
+        $paymentresult= $gateway->namespace::refund_payment($payment_data);
+    
+        
     } elseif (str_starts_with($transactionId, 'ch_')) {
-        $charge = \Stripe\Charge::retrieve($transactionId);
-        $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
+       // $charge = \Stripe\Charge::retrieve($transactionId);
+      //  $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
+        
+        $payment_data['transaction_id']  = $order->transaction_id;
+
+        $paymentresult= $gateway->namespace::refund_payment($payment_data);
+       // dd($paymentresult);
+
     } else {
         if (request()->wantsJson() || $silent) {
             throw new \Exception('Invalid transaction ID format');
@@ -753,25 +782,7 @@ public function refund($id, $silent = false)
         return redirect()->back()->with('error', 'Invalid transaction ID format');
     }
 
-    $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
-
-    $transaction_log = $paymentIntent;
-
-    $payment_data['payment_intent'] = $paymentIntent;
-    $payment_data['payment_status'] = $paymentstatus;
-
-    if ($paymentstatus !== 1) {
-        if (request()->wantsJson() || $silent) {
-            throw new \Exception('Payment is not in a refundable state.');
-        }
-        return redirect()->back()->with('error', 'Payment is not in a refundable state.');
-    }
-
-
-    $chargeId = $paymentIntent->latest_charge;
-    $payment_data['transaction_id'] = $chargeId;
-
-    $paymentresult= $gateway->namespace::refund_payment($payment_data);
+  
 
 
     if ($paymentresult['payment_status'] == '1') {
@@ -820,7 +831,7 @@ public function refund($id, $silent = false)
         if (request()->wantsJson() || $silent) {
             throw new \Exception('Refund failed');
         }
-         return redirect()->back();
+         return redirect()->back()->with('success', 'Order refunded failed');;
     }
 }
 
