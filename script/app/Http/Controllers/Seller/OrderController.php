@@ -214,7 +214,8 @@ class OrderController extends Controller
     
         // Refund logic if status = 2
         if ($request->status == 2) {
-            $this->processRefund($order);
+            //$this->processRefund($order);
+            $this->refund($id,false);
         }
     
         return response()->json(['message' => 'Order Updated']);
@@ -743,9 +744,38 @@ public function refund($id, $silent = false)
 
     if (str_starts_with($transactionId, 'pi_')) {
         $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
+        
+          $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
+
+        $transaction_log = $paymentIntent;
+    
+        $payment_data['payment_intent'] = $paymentIntent;
+        $payment_data['payment_status'] = $paymentstatus;
+    
+        if ($paymentstatus !== 1) {
+            if (request()->wantsJson() || $silent) {
+                throw new \Exception('Payment is not in a refundable state.');
+            }
+            return redirect()->back()->with('error', 'Payment is not in a refundable state.');
+        }
+    
+    
+        $chargeId = $paymentIntent->latest_charge;
+        $payment_data['transaction_id'] = $chargeId;
+    
+        $paymentresult= $gateway->namespace::refund_payment($payment_data);
+    //  dd($paymentresult);
+        
     } elseif (str_starts_with($transactionId, 'ch_')) {
-        $charge = \Stripe\Charge::retrieve($transactionId);
-        $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
+  
+       // $charge = \Stripe\Charge::retrieve($transactionId);
+      //  $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
+        
+        $payment_data['transaction_id']  = $order->transaction_id;
+
+        $paymentresult= $gateway->namespace::refund_payment($payment_data);
+   
+
     } else {
         if (request()->wantsJson() || $silent) {
             throw new \Exception('Invalid transaction ID format');
@@ -753,25 +783,7 @@ public function refund($id, $silent = false)
         return redirect()->back()->with('error', 'Invalid transaction ID format');
     }
 
-    $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
-
-    $transaction_log = $paymentIntent;
-
-    $payment_data['payment_intent'] = $paymentIntent;
-    $payment_data['payment_status'] = $paymentstatus;
-
-    if ($paymentstatus !== 1) {
-        if (request()->wantsJson() || $silent) {
-            throw new \Exception('Payment is not in a refundable state.');
-        }
-        return redirect()->back()->with('error', 'Payment is not in a refundable state.');
-    }
-
-
-    $chargeId = $paymentIntent->latest_charge;
-    $payment_data['transaction_id'] = $chargeId;
-
-    $paymentresult= $gateway->namespace::refund_payment($payment_data);
+  
 
 
     if ($paymentresult['payment_status'] == '1') {
@@ -791,14 +803,15 @@ public function refund($id, $silent = false)
             'value' => json_encode($paymentresult['transaction_log'])
         ]);
 
-        $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
-        
+        $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);  
+     
         $this->post_order_data($order,'refund');
 
         if (!$silent) {
             \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
 
             if ($order->notify_driver == 'mail') {
+               
                 $ordermeta=json_decode($order->ordermeta->value ?? '');
                 if (!empty($ordermeta)) {
                     $mail_to=$ordermeta->email ?? '';
@@ -820,7 +833,7 @@ public function refund($id, $silent = false)
         if (request()->wantsJson() || $silent) {
             throw new \Exception('Refund failed');
         }
-         return redirect()->back();
+         return redirect()->back()->with('success', 'Order refunded failed');;
     }
 }
 
