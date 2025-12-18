@@ -2171,5 +2171,29 @@ private function send_order_recipts($data){
             ], 500);
         }
     }
+    public function stripePublishableKey(Request $request)
+    {
+        $gateway = Getway::where('status', '!=', 0)
+            ->where('namespace', '=', 'App\Lib\Stripe')
+            ->first();
+    
+        if (!$gateway) {
+            return response()->json(['success' => false]);
+        }
+    
+        $gateway_data_info = json_decode($gateway->data, true); 
+    
+        $payment_data = [];
 
+        $payment_data['test_mode']  = $gateway->test_mode;
+        
+    
+        return response()->json([
+            'success' => true,
+            'publishable_key' => $gateway_data_info['publishable_key'] ?? '',
+            'payment_data' => $payment_data
+        ]);
+    }
+    
+    
 }

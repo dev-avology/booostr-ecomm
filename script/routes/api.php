@@ -88,3 +88,5 @@ Route::group([
 
     Route::get('cron/product-price-reset', 'Seller\CronController@ProductPriceReset');
 });
+
+Route::post('/stripe/publishable-key','Api\PosApiController@stripePublishableKey');
