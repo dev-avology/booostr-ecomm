@@ -153,6 +153,7 @@ class OrderController extends Controller
 
     public function update(Request $request, $order_user_id)
     {
+        
         abort_if(!getpermission('order'), 401);
         list($id, $user_id) = explode('_', $order_user_id);
     
@@ -182,7 +183,21 @@ class OrderController extends Controller
             $count === 1 => optional($product_type->firstWhere('id', $selected_product_type[0]))->slug === 'digital_product' ? 'Digital' : 'Goods',
             default => 'Goods',
         };
-    
+
+        // If refunded BEFORE fulfillment (not yet completed), prevent completion
+        if ($request->status == 1 && $order->payment_status == 5 && $order->status_id != 1) {
+            return response()->json([
+                'errors' => ['This order was refunded before fulfillment and cannot be completed.'],
+            ], 400);
+        }
+
+        // Check if status is set to Complete (1) and payment status is not captured
+        if ($request->status == 1 && $order->payment_status != 1) {
+            return response()->json([
+                'errors' => ['Please capture order payment before Completing Order Fulfillment. Orders cannot be fulfilled until the payment has been captured.'],
+            ], 422);
+        }
+            
         // Check if status is set to Complete (1) and order type is Digital
         if ($request->status == 1 && $order_type == 'Digital') {
             $order->status_id = 1; // Set to Complete
@@ -208,6 +223,17 @@ class OrderController extends Controller
         } else {
             // For non-Digital orders or other statuses, update as requested
             $order->status_id = $request->status;
+            
+            if($request->status == 1){
+                
+                // Post order data logic
+                if (in_array($order->order_from, [0, 4, 5])) {
+                    $this->post_order_data_POS($order);
+                } else {
+                    $this->post_order_data($order);
+                }
+            
+            }
         }
     
         $order->save();
@@ -788,7 +814,7 @@ public function refund($id, $silent = false)
 
     if ($paymentresult['payment_status'] == '1') {
         $order->payment_status = 5;
-        $order->status_id = 2;
+        $order->status_id = $order->status_id == 1? 1: 2;
         $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
         $order->save();
 
@@ -1168,8 +1194,23 @@ public function destroy(Request $request)
         $updated = [];
 
         foreach ($orders as $order) {
+           
+            // ❌ Refunded before fulfillment
+            if ($order->payment_status == 5 && $order->status_id != 1) {
+                continue;
+            }
+             // ❌ Skip if payment not completed
+             if ($order->payment_status != 1) {
+                continue;
+            }
             $order->status_id = $completeStatusId;
             $order->save();
+            
+             if (in_array($order->order_from, [0, 4, 5])) {
+                $this->post_order_data_POS($order, 'capture');
+            } else {
+                $this->post_order_data($order, 'capture');
+            }
 
             $updated[] = [
                 'id' => $order->id,
@@ -1177,6 +1218,8 @@ public function destroy(Request $request)
                 'order_method' => $order->order_method,
             ];
         }
+        
+        
 
         if (empty($updated)) {
             return response()->json(['message' => 'No eligible orders to complete'], 200);

@@ -10,7 +10,9 @@
     .input-group-btn button.btn.btn-primary.btn-icon {
     padding-top: 8px;
     padding-bottom: 8px;
+
 }
+
 </style>
 @endsection
 
@@ -420,15 +422,15 @@ $(document).ready(function() {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header text-center d-block">
-        <h5 class="modal-title w-100 font-weight-bold">Limitations</h5>
+        <h5 class="modal-title w-100 font-weight-bold">Limitationss</h5>
       </div>
       <div class="modal-body text-center">
         <p>
           Choosing bulk <strong>Complete Order Fulfillment</strong> will only complete digital orders that:
           <br><br>
-          - Payment status is <strong>captured</strong> or <strong>refunded</strong><br>
+          - Payment status is <strong>Complete (Paid)<br>
           - Do not require shipping/tracking information<br><br>
-          Any order with authorized payment or physical goods will need to be completed manually.
+          Any order with authorized payment status, refunded payment status, or the order contains physical goods that need to be shipped will need to be managed and/or completed manually.
         </p>
       </div>
       <div class="modal-footer justify-content-center">
