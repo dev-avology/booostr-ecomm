@@ -120,17 +120,36 @@
                 </select>
             </div>
         </div>
+        <div class="form-group row mb-2">
+          <label class="col-lg-12">{{ __('List On') }} :</label>
+
+          <div class="col-lg-3">
+              <input type="radio" name="list_type" value="0" id="list_both"
+                    {{ (old('list_type', $info->list_type ?? 0) == 0) ? 'checked' : '' }} />
+              <label for="list_both">{{ __('Both on Web and POS') }}</label>
+          </div>
+
+          <div class="col-lg-3">
+              <input type="radio" name="list_type" value="1" id="list_web"
+                    {{ (old('list_type', $info->list_type ?? 0) == 1) ? 'checked' : '' }} />
+              <label for="list_web">{{ __('Web Only') }}</label>
+          </div>
+
+          <div class="col-lg-3">
+              <input type="radio" name="list_type" value="2" id="list_pos"
+                    {{ (old('list_type', $info->list_type ?? 0) == 2) ? 'checked' : '' }} />
+              <label for="list_pos">{{ __('POS Only') }}</label>
+          </div>
+
+          <div class="col-lg-3">
+              <input type="radio" name="list_type" value="3" id="list_form"
+                    {{ (old('list_type', $info->list_type ?? 0) == 3) ? 'checked' : '' }} />
+              <label for="list_form">{{ __('Form Page Product') }}</label>
+          </div>
+      </div>
+
         <div class="from-group row mb-2">
-            <label for="" class="col-lg-12">{{ __('List On') }} : </label>
-            <div class="col-lg-4">
-                <input type="radio" name="list_type" value="0" @if($info->list_type == 0) checked @endif /> All
-            </div>
-            <div class="col-lg-4">
-                <input type="radio" name="list_type" value="1" @if($info->list_type == 1) checked @endif /> Web Only
-            </div>
-            <div class="col-lg-4">
-                <input type="radio" name="list_type" value="2" @if($info->list_type == 2) checked @endif /> POS Only
-            </div>
+            <label for="" class="col-lg-12">{{ __('Product Type') }} : </label>
         </div>
         <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Status') }} : </label>
