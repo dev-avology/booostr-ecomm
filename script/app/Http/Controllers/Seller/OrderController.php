@@ -1200,7 +1200,7 @@ public function destroy(Request $request)
                 continue;
             }
              // ❌ Skip if payment not completed
-             if ($order->payment_status != 1) {
+             if ($request->status == 1 && $order->payment_status != 1) {
                 continue;
             }
             $order->status_id = $completeStatusId;

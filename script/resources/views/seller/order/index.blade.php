@@ -422,7 +422,7 @@ $(document).ready(function() {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header text-center d-block">
-        <h5 class="modal-title w-100 font-weight-bold">Limitationss</h5>
+        <h5 class="modal-title w-100 font-weight-bold">Limitations</h5>
       </div>
       <div class="modal-body text-center">
         <p>
