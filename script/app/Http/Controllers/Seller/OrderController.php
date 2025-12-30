@@ -440,7 +440,7 @@ class OrderController extends Controller
             // --- Handle Charge (ch_) ---
             elseif (str_starts_with($transactionId, 'ch_')) {
                 $charge = \Stripe\Charge::retrieve($transactionId);
-    
+                
                 // Case: Legacy charge (no payment_intent)
                 if (empty($charge->payment_intent)) {
                     if ($charge->status === 'pending') {
@@ -474,14 +474,18 @@ class OrderController extends Controller
             throw $e;
         }
     
+
         // --- Update order if payment successful ---
         if ($paymentStatus === 1) {
-            $order->update([
-                'payment_status' => 1,
-                'status_id' => 3,
-                'captured_at' => now()->setTimezone(config('app.timezone')),
-            ]);
-    
+            // $order->update([
+            //     'payment_status' => 1,
+            //     'status_id' => 3,
+            //     'captured_at' => now()->setTimezone(config('app.timezone')),
+            // ]);
+            $order->payment_status = 1;
+            $order->status_id = 3;
+            $order->captured_at = now()->setTimezone(config('app.timezone'));
+             $order->save();    
             // Log transaction
             Ordermeta::create([
                 'order_id' => $order->id,
@@ -493,7 +497,7 @@ class OrderController extends Controller
                 'key' => 'last_transcation_log',
                 'value' => json_encode($transactionLog),
             ]);
-    
+            
             // Sync to financial manager
             if (in_array($order->order_from, [0, 4, 5])) {
                 $this->post_order_data_POS($order, 'capture');

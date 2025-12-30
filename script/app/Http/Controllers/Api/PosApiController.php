@@ -2177,11 +2177,13 @@ private function send_order_recipts($data){
             ->where('namespace', '=', 'App\Lib\Stripe')
             ->first();
     
+
         if (!$gateway) {
             return response()->json(['success' => false]);
         }
     
         $gateway_data_info = json_decode($gateway->data, true); 
+        
     
         $payment_data = [];
 
@@ -2191,9 +2193,380 @@ private function send_order_recipts($data){
         return response()->json([
             'success' => true,
             'publishable_key' => $gateway_data_info['publishable_key'] ?? '',
-            'payment_data' => $payment_data
+            'payment_data' => $payment_data,
+            'all_keys' => $gateway_data_info
         ]);
     }
     
+    public function makeOrderCreate(Request $request)
+
+    {
+       
+   
+        /* ===============================
+        * 1. CART RESTORE
+        * =============================== */
+
+
+        if ($request->has('cartId')) {
+            $cartId = $request->input('cartId');
+
+
+            Cart::instance($cartId);
+
+
+            Cart::restore($cartId, $cartId);
+
+            // Now check if empty
+            if (Cart::content()->isEmpty()) {
+                // Clean up invalid/expired cart
+                DB::table('shoppingcart')
+                    ->where('identifier', $cartId)
+                    ->where('instance', $cartId)
+                    ->delete();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cart is empty or expired. Please add items again.'
+                ], 400);
+            }
+
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'No cartId provided.'
+            ], 400);
+        } 
+        
+        
+        /* ===============================
+         * 2. VALIDATE REQUEST
+         * =============================== */
+
+        $data = $request->validate([
+            'stripeToken'      => 'required',
+            'name'             => 'required|max:50',
+            'email'            => 'required|email|max:50',
+            'phone'            => 'required|max:20',
+            'cartId'           => 'required',
+            'order_method'     => 'required',
+            'shipping_method'  => 'required',
+            'city'             => 'required',
+            'state'            => 'required',
+            'country'          => 'required',
+            'zip'              => 'required',
+            'total_amount' => 'required|numeric|min:0',
+          'cover_fee'    => 'nullable|numeric|min:0',
+        ]);
+
+        /* ===============================
+         * 3. MAP BILLING/SHIPPING
+         * =============================== */
+        
+        $request->merge([
+            'billing' => [
+                'address'   => $request->address,
+                'city'      => $request->city,
+                'state'     => $request->state,
+                'country'   => $request->country,
+                'post_code' => $request->zip,
+            ],
+            'shipping' => [
+                'address'   => $request->address,
+                'city'      => $request->city,
+                'state'     => $request->state,
+                'country'   => $request->country,
+                'post_code' => $request->zip,
+            ],
+        ]);
+    
+    
+        /* ===============================
+         * 4. CALCULATE TOTALS
+         * =============================== */
+        
+        $order_method    = $request->order_method ?? 'delivery';
+        $shipping_method = $request->shipping_method ?? 'free_shipping';
+        
+        $subtotal       = (float) str_replace(',', '', Cart::subtotal());
+        $shipping_price = 0;
+
+        $subtotal = Cart::subtotal();
+     
+        $shipping_price = 0;
+        $shipping_method_label = '';
+        if ($request->order_method == 'delivery' && !empty($request->shipping_method)) {
+           
+          if($request->shipping_method == 'free_shipping'){
+             $shipping_price = 0;
+             $shipping_method_label = 'Free Shipping';
+            }else{
+
+            $shippingDetails= json_decode(Option::where('key','shipping_method')->first()->value,true);
+
+            if($shippingDetails['method_type'] == 'per_item'){
+
+                $shipping_price = $shippingDetails['base_pricing'] + Cart::count() * $shippingDetails['pricing'];
+
+                $shipping_method_label = $shippingDetails['label'];
+
+            }else if($shippingDetails['method_type'] == 'weight_based'){
+
+                $shipping_price = $shippingDetails['base_pricing'] + Cart::weight() * $shippingDetails['pricing'];
+                $shipping_method_label = $shippingDetails['label'];
+
+            }else if($shippingDetails['method_type'] == 'flat_rate'){
+
+
+                if(is_array($shippingDetails['pricing'])){
+                    foreach($shippingDetails['pricing'] as $index){
+        
+
+                    $from = (float)$index['from']??0;
+                    $to = (float) $index['to'] > 0 ?(float) $index['to']: PHP_INT_MAX;
+
+                        if($subtotal > $from && $subtotal <= $to){
+                            $shipping_price = (float)$index['price'];
+                            $shipping_method_label = $shippingDetails['label'];
+                        }
+                    }
+                }
+
+            }
+
+          }
+
+        } else {
+            $order_method = 'pickup';
+        }
+
+
+      $total_amount=str_replace(',','',Cart::total());
+      $tax = Cart::tax();
+
+
+      $total_discount=str_replace(',','',Cart::discount());
+
+      $total_amount =  $total_amount + $shipping_price;
+
+      $credit_card_fee = credit_card_fee($total_amount);
+
+      $booster_platform_fee = booster_club_chagre($total_amount);
+
+      //$total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
+
+      
+
+
+      $cover_fee = 0;
+      if($request->input('cover_fee', 0) != 0){
+        $cover_fee = $total_amount + $credit_card_fee + $booster_platform_fee;
+            
+        $credit_card_fee = credit_card_fee($cover_fee);
+
+        $booster_platform_fee = booster_club_chagre($cover_fee);
+
+        $cover_fee =  $credit_card_fee + $booster_platform_fee;  
+        
+      }
+
+      $total_amount = $total_amount+$cover_fee;
+
+      $revenue = $total_amount-($tax + $booster_platform_fee + $credit_card_fee);
+
+
+
+        /* ===============================
+         * 5. STRIPE PAYMENT
+         * =============================== */
+         
+         
+        $gateway_settings = Getway::where('status', '!=', 0)
+        ->where('namespace', 'App\Lib\Stripe')
+        ->first();
+      
+
+
+            $payment_data = [
+            'currency' => strtoupper($gateway_settings->currency_name ?? 'USD'),
+            'email'       => $request->email,
+            'name'        => $request->name,
+            'phone'       => $request->phone,
+            'stripeToken' => $request->stripeToken,
+            'getway_id'   => $gateway_settings->id,
+            'test_mode'   => $gateway_settings->test_mode,
+           
+          ];
+
+        $payment_data['charge']     = $gateway_settings->charge ?? 0;
+        $payment_data['billName']   = 'Boostr Sale';
+        $payment_data['amount']     = $total_amount;
+        $payment_data['application_fee_amount']  = $booster_platform_fee;
+        $payment_data['credit_card_fee']  = $credit_card_fee;
+        $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount*$gateway_settings->rate+$gateway_settings->charge ?? 0,2));
+           
+
+        if (!empty($gateway_settings->data)) {
+            foreach (json_decode($gateway_settings->data ?? '') ?? [] as $key => $info) {
+                $payment_data[$key] = $info;
+            };
+        }
+
+
+
+        $paymentresult = $gateway_settings->namespace::charge_payment($payment_data);
+        
+        if ($paymentresult['payment_status'] != 4) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Stripe payment failed'
+            ], 400);
+        }
+    
+        /* ===============================
+         * 6. SAVE ORDER
+         * =============================== */
+         
+         
+        DB::beginTransaction();
+        try {
+            $order = new Order();
+            $order->getway_id      = $gateway_settings->id;
+            $order->status_id      = 3;
+            $order->tax            = Cart::tax();
+            $order->discount       = str_replace(',', '', Cart::discount());
+            $order->total          = $total_amount;
+            $order->order_method = $order_method ?? 'delivery';
+            $order->transaction_id = $paymentresult['payment_id'];
+            $order->payment_status = $paymentresult['payment_status'];
+             $order->risk_level =    $paymentresult['risk_level'];
+            $order->placed_at      = now();
+            $order->save();
+    
+    
+            $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();
+            $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
+
+            if($credit_card_processing_method == 'auto' && $paymentresult['risk_level'] == 'normal'){
+            
+                     $payment_data['transaction_id'] =  $order->transaction_id;
+                         
+                        // dd($payment_data);
+                         
+                     $paymentresult= $gateway_settings->namespace::capture_payment($payment_data);
+                     
+                if($paymentresult['payment_status'] == 1){
+                  $order->payment_status =$paymentresult['payment_status'];
+                  $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                  $order->save(); 
+                }
+            } 
+    
+    
+    
+           $oder_items = [];
+            $total_weight = 0;
+            $priceids = [];
+
+
+            foreach (Cart::content() as $row) {
+                
+                $item = [];
+
+                 $item['order_id'] = $order->id;
+                $item['term_id']  = $row->id;
+                $item['info']     = json_encode([
+                    'sku' => $row->options->sku ?? '',
+                    'options' => $row->options->options ?? []
+                ]);
+
+            //    if(isset($row->options->price_id)){
+            //     array_push($priceids, ['order_id' => $order->id, 'price_id' => $row->options->price_id, 'qty' => $row->qty]);
+            //    }
+
+                if($row->options->options == []){
+                        array_push($priceids, ['order_id' => $order->id, 'price_id' => $row->options->price_id[0], 'qty' => $row->qty]);
+                }else{
+                    foreach ($row->options->options as $optionVal) {
+                        array_push($priceids, ['order_id' => $order->id, 'price_id' => $optionVal->id, 'qty' => (int)$row->qty]);
+                    }
+                }
+
+                 $item['qty']    = $row->qty;
+                 $item['amount'] = $row->price;
+
+                $total_weight = $total_weight + $row->weight;
+                array_push($oder_items, $item);
+                $cartid = $row->instance;
+            }
+
+            $order->orderitems()->insert($oder_items);
+            
+            
+          if ($request->order_method == 'delivery') {
+                $delivery_info['address'] = $request->shipping['address'].' '. $request->shipping['city'].', '.$request->shipping['state'].', '.$request->shipping['country'];
+                $delivery_info['post_code'] = $request->shipping['post_code'];
+                $delivery_info['shipping_method'] = $request->shipping_method;
+                $delivery_info['shipping_label'] = $shipping_method;
+                $delivery_info['credit_card_fee'] = $credit_card_fee;
+                $delivery_info['booster_platform_fee'] = $booster_platform_fee;
+                $delivery_info['cover_fee'] = $cover_fee;
+
+                $order->shipping()->create([
+                    'location_id' => $request->location,
+                    'shipping_price' => $shipping_price,
+                    'lat' => $request->my_lat ?? null,
+                    'long' => $request->my_long ?? null,
+                    'weight' => 0,
+                    'info' => json_encode($delivery_info)
+                ]);
+            }
+            
+            if (!empty($request->name) || !empty($request->email) || !empty($request->phone) || !empty($request->comment)) {
+                $customer_info['name'] = $request->name;
+                $customer_info['email'] = $request->email;
+                $customer_info['phone'] = $request->phone;
+                $customer_info['wpuid'] = $request->wpuid??0;
+                $customer_info['note'] = $request->comment ?? "";
+                $customer_info['billing'] = $request->billing ?? "";
+                $customer_info['shipping'] = $request->shipping ?? "";
+                $customer_info['credit_card_fee'] = $credit_card_fee;
+                $customer_info['booster_platform_fee'] = $booster_platform_fee;
+                $customer_info['cover_fee'] = $cover_fee;
+
+                $order->ordermeta()->create([
+                    'key' => 'orderinfo',
+                    'value' => json_encode($customer_info)
+                ]);
+                
+            }
+            
+            
+            if (count($priceids) != 0) {
+                $order->orderstockitems()->insert($priceids);
+            }
+            
+    
+            Cart::destroy($request->cartId);
+            DB::commit();
+            
+            
+
+                
+            return response()->json([
+                'success'  => true,
+                'message'  => 'Order created successfully',
+                'order_id' => $order->id,
+            ]);
+    
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Order save failed',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
     
 }
