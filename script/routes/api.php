@@ -71,6 +71,9 @@ Route::group([
     Route::post('/pos-email-send', 'Api\PosApiController@posEmailSend');
     Route::get('/pos-stripe-reader-connection-token', 'Api\PosApiController@stipeCardReaderConnectionToken');
     Route::post('/pos-stripe-reader-client-secret', 'Api\PosApiController@stipeCardReaderClientSecret');
+    
+    Route::post('/stripe/publishable-key','Api\PosApiController@stripePublishableKey');
+    Route::post('/order/create','Api\PosApiController@makeOrderCreate');
 });
 
 Route::group([
@@ -88,5 +91,3 @@ Route::group([
 
     Route::get('cron/product-price-reset', 'Seller\CronController@ProductPriceReset');
 });
-
-Route::post('/stripe/publishable-key','Api\PosApiController@stripePublishableKey');
