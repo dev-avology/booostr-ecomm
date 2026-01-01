@@ -79,19 +79,6 @@ class TenantSyncService
                 $subtotal = $subtotal + $row->amount*$row->qty;
             }
 
-            $user_recipt = [
-                'receipts_date'=>$order->placed_at,
-                'receipt_title'=>$receipt_title,
-                'receipent_org'=>$club_info['club_name'].' Store',
-                'category'=>'ecommerce',
-                'user_id' =>  !empty($ordermeta->wpuid) ? (int)$ordermeta->wpuid : 0,
-                'club_id' =>Tenant('club_id'),
-                'recurring'=>'one-time',
-                'camp_id'=>$order->invoice_no,
-                'order_total'=>$order->total,
-                'order_subtotal'=>$subtotal,
-            ];
-
             $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
            
             $sales_tax = $order->tax;
@@ -100,6 +87,36 @@ class TenantSyncService
             if(isset($order->ordermeta)){
                 $ordermeta=json_decode($order->ordermeta->value ?? '',true);
             }
+
+            $jsonString = $order->shippingwithinfo['info'];
+            // Decode the JSON string into a PHP array
+            $shipping_data = json_decode($jsonString, true);
+    
+            $credit_card_fee = $shipping_data['credit_card_fee'];
+            $booster_platform_fee = $shipping_data['booster_platform_fee'];
+            $processing_fees = $credit_card_fee+$booster_platform_fee;
+    
+            $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
+
+
+            $user_recipt = [
+                'receipts_date'=>$order->placed_at,
+                'receipt_title'=>$receipt_title,
+                'receipent_org'=>$club_info['club_name'].' Store',
+                'category'=>'ecommerce',
+                'user_id' =>  !empty($ordermeta->wpuid) ? (int)$ordermeta->wpuid : 0,
+                'amount'=>$order->total,
+                'revenue'=>$net_recieved_amount,
+                'club_id' =>Tenant('club_id'),
+                'tip'=>'',
+                'recurring'=>'one-time',
+                'cc_fee'=>$credit_card_fee,
+                'camp_id'=>$order->invoice_no,
+                'order_total'=>$order->total,
+                'order_subtotal'=>$subtotal,
+            ];
+
+
     
             $gateway=Getway::find($order->getway_id);
     
@@ -111,52 +128,44 @@ class TenantSyncService
     
             //$jsonString = $order->shippingwithinfo['info'];
     
-            $jsonString = $order->shippingwithinfo['info'];
-            // Decode the JSON string into a PHP array
-            $shipping_data = json_decode($jsonString, true);
-    
-            $credit_card_fee = $shipping_data['credit_card_fee'];
-            $booster_platform_fee = $shipping_data['booster_platform_fee'];
-            $processing_fees = $credit_card_fee+$booster_platform_fee;
-    
-            $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
+
     
             $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 
-            if($order->status_id == 1){
+                if($order->status_id == 1){
 
-                $fpostData = [
-                'category_type'=> 'Booostr Ecommerce',
-                'booster_id' =>Tenant('club_id'),
-                'coaid'=>41,
-                'contactname'=>isset($ordermeta['name']) ? $ordermeta['name'] : '',
-                //'memo'=>'Booostr Ecommerce',
-                'user_id' =>  $ordermeta['wpuid']??0,
-                'revenue_name'=>'4-850 Booostr Ecommerce',
-                'transaction_type'=>'I',
-                'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
-                'net_revenue'=>$net_recieved_amount,
-                'transaction_amount'=>$order_total,
-                'expense_category'=>'Revenue',
-                'receipts_issued'=> 'Yes',
-                'status'=>1,
-                'donor_name'=>$donor_name,
-                'created'=>$order->placed_at,
-                'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
-                'payement_method'=> $gateway_name,
-                'invoicenumber'=>$order->invoice_no,
-                'invoicreatedate'=>$order->placed_at,
-                'invoiceprocessingfee'=>$processing_fees,
-                'invoicesalestax'=> $sales_tax,
-                'invoiceopt'=>$order->invoice_no,
-                'deposite_date'=>($order->captured_at != null) ? $order->captured_at : $order->placed_at,
-                'transfer_refund_date'=> ($order->refunded_at != null) ? $order->refunded_at : null,
-                'record_type' => ($order->refunded_at != null) ? 'refund' : 'capture',
-            ];
+                    $fpostData = [
+                    'category_type'=> 'Booostr Ecommerce',
+                    'booster_id' =>Tenant('club_id'),
+                    'coaid'=>41,
+                    'contactname'=>isset($ordermeta['name']) ? $ordermeta['name'] : '',
+                    //'memo'=>'Booostr Ecommerce',
+                    'user_id' =>  $ordermeta['wpuid']??0,
+                    'revenue_name'=>'4-850 Booostr Ecommerce',
+                    'transaction_type'=>'I',
+                    'sales_tax_collected' => $sales_tax > 0 ? 'Yes':'No',
+                    'net_revenue'=>$net_recieved_amount,
+                    'transaction_amount'=>$order_total,
+                    'expense_category'=>'Revenue',
+                    'receipts_issued'=> 'Yes',
+                    'status'=>1,
+                    'donor_name'=>$donor_name,
+                    'created'=>$order->placed_at,
+                    'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
+                    'payement_method'=> $gateway_name,
+                    'invoicenumber'=>$order->invoice_no,
+                    'invoicreatedate'=>$order->placed_at,
+                    'invoiceprocessingfee'=>$processing_fees,
+                    'invoicesalestax'=> $sales_tax,
+                    'invoiceopt'=>$order->invoice_no,
+                    'deposite_date'=>($order->captured_at != null) ? $order->captured_at : $order->placed_at,
+                    'transfer_refund_date'=> ($order->refunded_at != null) ? $order->refunded_at : null,
+                    'record_type' => ($order->refunded_at != null) ? 'refund' : 'capture',
+                ];
 
-        }else{
-            $fpostData = [];
-        }
+            }else{
+                $fpostData = [];  
+            }
 
           $postData = json_encode([
             'contact_mgr_data'=>$contact_manager_data,
@@ -165,12 +174,10 @@ class TenantSyncService
           ]);
 
             $url = env("WP_API_URL");
-
             // $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
             //$url = ($url != '') ? $url.'/user-recipt-financial-manager-sync' : "https://staging3.booostr.co/wp-json/store-api/v1/user-recipt-sync";
             $url = ($url != '') ? $url.'/user-recipt-financial-manager-sync' : "";
          
-
             if($url != ""){
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -183,7 +190,6 @@ class TenantSyncService
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             
                 $response = curl_exec($ch);
-            
                 // Check for cURL errors
                 if (curl_errno($ch)) {
                     echo 'cURL error: ' . curl_error($ch);
@@ -192,12 +198,8 @@ class TenantSyncService
             }
 
             dump("======Order Metadata=======");
-            dump([
-                'contact_mgr_data'=>$contact_manager_data,
-                'user_recipt'=>$user_recipt,
-                'ftd_data'=> $fpostData,
-            ]);
-            
+            dump($postData);
+
             //dump($response);
             //dump($order);
            //dump($user_recipt);
