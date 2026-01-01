@@ -15,6 +15,7 @@ class DailyTenantSync extends Command
 
     public function handle()
     {
+        $this->info('Daily sync started');
         Tenant::where('status', 1)
             ->chunk(50, function ($tenants) {
 
@@ -36,7 +37,7 @@ class DailyTenantSync extends Command
                     }
                 }
             });
-
+            $this->info('Daily sync completed');
         return Command::SUCCESS;
     }
 }
