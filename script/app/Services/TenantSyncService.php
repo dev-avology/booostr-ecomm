@@ -12,6 +12,9 @@ class TenantSyncService
 {
     public function run(Tenant $tenant)
     {
+        // Tenant-specific DB is already active here
+        $this->info("starting sync for tenant: {$tenant->id}");
+
         $orders=Order::with('user','ordermeta','orderitems','orderstatus')->withCount('orderitems');
         $orders=$orders->get();
         foreach($orders as $order){
@@ -197,17 +200,18 @@ class TenantSyncService
                 curl_close($ch);
             }
 
-            dump("======Order Metadata=======");
-            dump($postData);
+           // dump("======Order Metadata=======");
+          //  dump($postData);
 
             //dump($response);
             //dump($order);
            //dump($user_recipt);
          }else{
-            dump("======Order No Metadata=========");
-            dump("======".$order->id."=========");
+           // dump("======Order No Metadata=========");
+          //  dump("======".$order->id."=========");
          }
 
         }
+        $this->info("completed sync for tenant: {$tenant->id}");
     }
 }
