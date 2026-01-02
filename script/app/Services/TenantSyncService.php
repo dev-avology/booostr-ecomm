@@ -7,13 +7,14 @@ use App\Models\Tenant;
 use App\Models\Order;
 use Carbon\Carbon;
 use App\Models\Getway;
+use Illuminate\Support\Facades\Log;
 
 class TenantSyncService
 {
     public function run(Tenant $tenant)
     {
         // Tenant-specific DB is already active here
-        $this->info("starting sync for tenant: {$tenant->id}");
+        Log::info("starting sync for tenant: {$tenant->id}");
 
         $orders=Order::with('user','ordermeta','orderitems','orderstatus')->withCount('orderitems');
         $orders=$orders->get();
@@ -212,6 +213,6 @@ class TenantSyncService
          }
 
         }
-        $this->info("completed sync for tenant: {$tenant->id}");
+        Log::info("completed sync for tenant: {$tenant->id}");
     }
 }
