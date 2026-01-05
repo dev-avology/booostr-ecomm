@@ -492,7 +492,7 @@ input#cover_fee_checkbox {
                                     <div class="button">
                                         <input type="hidden" id="shipping_fee" name="shipping_fee">
                                         <input type="hidden" id="total_price" name="total_price">
-                                        <button type="submit" class="btn submit_btn submitbtn" id="submit_btn" >{{ __('Continue Payment') }}</button>
+                                        <button type="submit" class="btn submit_btn submitbtn" id="submit_btn" >{{ __('Continue to Payment') }}</button>
                                     </div>
                                 </div>
                             </div>
@@ -799,7 +799,7 @@ input#cover_fee_checkbox {
             $('#payment-form').on('submit', function () {
                 submitBtn
                 .prop('disabled', true)
-                .text('SUBMITTING ORDER')
+                .text('PLEASE WAIT...');
                 .css({
                     backgroundColor: '#4a4a4a',
                     color: 'white',
