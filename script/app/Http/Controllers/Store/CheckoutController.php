@@ -176,7 +176,7 @@ class CheckoutController extends Controller
 
     public function direct_checkout_form_to(Request $request,$cartid='',$redirect_url='/')
     {
-        Session::flush();
+        // Session::flush();
 
         $customer=[
             "name"=>($request->name??""),
@@ -352,6 +352,7 @@ class CheckoutController extends Controller
       
         
        $free_shipping=Option::where('key','free_shipping')->first() ;
+   
 
        $free_shipping = $free_shipping ? (int)$free_shipping->value : 0;
 
@@ -400,8 +401,7 @@ class CheckoutController extends Controller
 
         }
        }
-
-      
+       
 
         $total =  Cart::total() + $shipping_price;
 
@@ -420,7 +420,8 @@ class CheckoutController extends Controller
        $cover_fee =  $credit_card_fee1 + $booster_platform_fee1;
 
 
-        return view('store.checkout.checkout-form',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee','cover_fee'));
+        return view('store.checkout.checkout-form',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee','cover_fee'
+));
     }
 
 
@@ -1042,17 +1043,20 @@ class CheckoutController extends Controller
             'amount' => round($total_amount * 100),
             'currency' => 'usd',
             'capture_method' => 'manual',
+            
             'application_fee_amount' => round($cover_fee * 100),
             'transfer_data' => [
                 'destination' => $booostr_stripe_account,
             ],
+            'payment_method_types' => ['card'],
+            'confirmation_method' => 'automatic', 
             'metadata' => [
                 'credit_card_fee' => number_format($credit_card_fee, 2),
                 'booster_platform_fee' => number_format($booster_platform_fee, 2),
                 'total_fees' => number_format($total_application_fee, 2),
                 'club_receives' => number_format($club_receives, 2),
             ],
-            'automatic_payment_methods' => ['enabled' => true],
+            // 'automatic_payment_methods' => ['enabled' => true],
         ]);
 
 
@@ -1203,6 +1207,17 @@ class CheckoutController extends Controller
                     'value' => json_encode($customer_info)
                 ]);
 
+                Session::put('customer_data', [
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'address' => $request->billing['address'] ?? '',
+                    'city' => $request->billing['city'] ?? '',
+                    'state' => $request->billing['state'] ?? '',
+                    'country' => $request->billing['country'] ?? 'United State',
+                    'zip' => $request->billing['post_code'] ?? '',
+                    'wpuid' => $request->wpuid ?? ''
+                ]);
                 // $transcation_log = new Ordermeta;
                 // $transcation_log->order_id = $order->id;
                 // $transcation_log->key = 'transcation_log';
@@ -1257,12 +1272,7 @@ class CheckoutController extends Controller
                // array_push($deletable_ids,$row->id);
             }
 
-            if(Session::has('cart') && $cartid != null){
-
-                $this->syncFormData($cartid,$order->id);
-
-                Cart::destroy($cartid);
-            }
+  
 
             $parts = parse_url($redirect_url);
 
@@ -1299,6 +1309,15 @@ class CheckoutController extends Controller
     {
 
         $order = Order::with(['ordermeta', 'orderitems'])->findOrFail($order_id);
+    
+       $meta = json_decode($order->ordermeta?->value ?? '', true);
+
+        $cartid = $meta['cart_id'] ?? Session::get('cartid');
+    
+        if ($cartid) {
+            Cart::instance($cartid);
+            Cart::checkout_restore($cartid);
+        }
 
         $gateway = Getway::where('status','!=',0)->where('namespace','App\Lib\Stripe')->first();
         $gateway_data = json_decode($gateway->data);
@@ -1354,7 +1373,8 @@ class CheckoutController extends Controller
             'cover_fee',
             'total',
             'client_secret',
-             'publishable_key'
+             'publishable_key',
+             
         ));
 
     }
@@ -1367,8 +1387,15 @@ class CheckoutController extends Controller
         try {
             
             $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($order_id);
+       
+            $meta = json_decode($order->ordermeta?->value ?? '', true);
+            $cartid = $meta['cart_id'] ?? Session::get('cartid');
             
-             $gateway = Getway::where('status','!=',0)->where('namespace','App\Lib\Stripe')->first();
+            if ($cartid) {
+                Cart::instance($cartid);
+                Cart::checkout_restore($cartid);
+            }
+                         $gateway = Getway::where('status','!=',0)->where('namespace','App\Lib\Stripe')->first();
              $gateway_data = json_decode($gateway->data);
              
          $publishable_key = $gateway->test_mode ? $gateway_data->test_publishable_key : $gateway_data->publishable_key;
@@ -1391,17 +1418,20 @@ class CheckoutController extends Controller
                     'expand' => ['outcome', 'balance_transaction'],
                 ]);
         
-                $riskLevel = $charge->outcome->risk_level ?? 'N/A';
+               $riskLevel = $charge->outcome->risk_level ?? 'not_assessed';
+
             }
             
              
                 $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();
                 $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
     
-                if($credit_card_processing_method == 'auto' && $riskLevel == 'normal' && $paymentIntent->status === 'requires_capture'){
+                
+                    if ($credit_card_processing_method == 'auto' && $riskLevel === 'normal' && $paymentIntent->status === 'requires_capture') {
                 
                             // dd($payment_data);
-                     $captured = $intent->capture();
+                     $captured = $paymentIntent->capture();
+
                      
                     if($captured->status === 'succeeded'){
                        $order->payment_status =1;
@@ -1433,10 +1463,21 @@ class CheckoutController extends Controller
 
         if($paymentIntent->status === 'succeeded' || $paymentIntent->status === 'requires_capture' ){
           
-          
+            if ($cartid) {
+                        $this->syncFormData($cartid, $order->id);
+                       Cart::destroy($cartid);
+        
+                        Session::forget([
+                            'cartid',
+                            'customer_data',
+                            'couponDiscount',
+                            'couponDiscountCode'
+                        ]);
+                    }
           if(isset($ordermeta['email']) && $ordermeta['cart_id'] !== '' ){
 
                 $this->syncFormData($ordermeta['cart_id'],$order->id);
+                
 
             }  
            //  dd($order);
@@ -1469,7 +1510,7 @@ class CheckoutController extends Controller
     
         } catch (\Exception $e) {
             
-            dd($e);
+            // dd($e);
             
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -1555,9 +1596,11 @@ class CheckoutController extends Controller
     public function paymentSuccess(Request $request)
     {
         $paymentIntentId = $request->query('payment_intent');
+     
         $status = $request->query('redirect_status');
 
         if ($status === 'succeeded') {
+            
             return view('store.checkout.payment_success', [
                 'paymentIntentId' => $paymentIntentId,
             ]);
@@ -1949,12 +1992,12 @@ class CheckoutController extends Controller
                // array_push($deletable_ids,$row->id);
             }
 
-            if(Session::has('cart') && $cartid != null){
+            // if(Session::has('cart') && $cartid != null){
 
-                $this->syncFormData($cartid,$order->id);
+            //     $this->syncFormData($cartid,$order->id);
 
-                Cart::destroy($cartid);
-            }
+            //     Cart::destroy($cartid);
+            // }
 
             $parts = parse_url($redirect_url);
 
@@ -1999,7 +2042,6 @@ class CheckoutController extends Controller
         return redirect()->away($redirect_url);
 
     }
-
 
 
 
@@ -2213,8 +2255,10 @@ class CheckoutController extends Controller
            $intent = Stripe::paymentIntent::create([
             'amount' => round($total_amount * 100), // Convert to cents
             'currency' => 'usd',
-            'payment_method_types' => ['card_present', 'card'],
+            'payment_method_types' => ['card'],
             'capture_method' => 'automatic',
+            'confirmation_method' => 'automatic',
+       
             'application_fee_amount' => round($cover_fee * 100),
             'transfer_data' => [
                 'destination' => $booostr_stripe_account, // Booostr's Stripe account
@@ -2226,6 +2270,8 @@ class CheckoutController extends Controller
                 'club_receives' => number_format($club_receives, 2),
             ],
         ]);
+        
+  
 
            return response()->json(['total_amount' => $total_amount, 'client_secret' => $intent->client_secret], 200);
 
