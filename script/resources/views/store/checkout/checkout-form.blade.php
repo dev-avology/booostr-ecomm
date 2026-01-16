@@ -472,15 +472,29 @@ input#cover_fee_checkbox {
                                             <div class="content">
                                                 <div class="checkbox shipping_render_area">
 
-                                                    <label class="checkbox-inline shipping_method"
-                                                        for="shipping{{ $shipping_methods['method_type'] }}">
-                                                        <input name="shipping_method" class="shipping_item"
-                                                            value="{{ $shipping_methods['method_type'] }}"
-                                                            data-price="{{ $shipping_methods['base_pricing'] }}"
-                                                            data-shippingInfo='{!! json_encode($shipping_methods) !!}'
-                                                            id="shipping{{ $shipping_methods['method_type'] }}"
-                                                            type="radio"> {{ $shipping_methods['label'] }}
-                                                    </label>
+                                       @foreach($shipping_options as $i => $method)
+                                          @php
+                                            $value = ($method['key'] === 'inperson_pickup') ? 'inperson_pickup' : 'delivery_shipping';
+                                          @endphp
+                                        
+                                          <label class="checkbox-inline shipping_method" for="shipping{{ $method['key'] }}">
+                                            <input name="shipping_method"
+                                                   class="shipping_item"
+                                                   value="{{ $value }}"
+                                                   data-price="{{ $method['price'] }}"
+                                                   data-shippinginfo='@json($method["info"])'
+                                                   id="shipping{{ $method['key'] }}"
+                                                   type="radio"
+                                                   {{ $i == 0 ? 'checked' : '' }}>
+                                            {{ $method['label'] }}
+                                        
+                                            @if($method['key'] === 'inperson_pickup')
+                                              <a href="javascript:void(0)" id="pickup-details-btn" style="margin-left:6px;">details</a>
+                                            @endif
+                                          </label>
+                                          <br>
+                                        @endforeach
+
 
                                                 </div>
                                             </div>
@@ -574,6 +588,32 @@ input#cover_fee_checkbox {
     </div>
   </div>
 </div>
+
+<!--shipping pick detail model-->
+@if(!empty($pickup_details))
+<div class="modal fade" id="pickupDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">In-Person Pick Up Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body" style="font-size:13px;">
+        <p>{!! nl2br(e($pickup_details['instructions'] ?? '')) !!}</p>
+
+        <hr>
+        <strong>Pick Up Address:</strong><br>
+        {{ $pickup_details['address_line1'] ?? '' }}<br>
+        @if(!empty($pickup_details['address_line2']))
+            {{ $pickup_details['address_line2'] }}<br>
+        @endif
+        {{ $pickup_details['city'] ?? '' }}, {{ $pickup_details['state'] ?? '' }} {{ $pickup_details['zip'] ?? '' }}
+      </div>
+    </div>
+  </div>
+</div>
+@endif
 
     @endsection
     @push('js')
@@ -716,3 +756,16 @@ input#cover_fee_checkbox {
 		};
         </script>
     @endpush
+    @push('js')
+    <script>
+        document.addEventListener('click', function (e) {
+          if (e.target && e.target.id === 'pickup-details-btn') {
+            var el = document.getElementById('pickupDetailsModal');
+            if (el && window.bootstrap) {
+              new bootstrap.Modal(el).show();
+            }
+          }
+        });
+    </script>
+   @endpush
+    

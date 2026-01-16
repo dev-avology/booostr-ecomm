@@ -8,6 +8,11 @@
 .error input.form-control {
     border: 1px dashed red;
 }
+.pickup-instructions-box {
+    min-height: 375px;  
+    resize: vertical;   
+}
+
 </style>
 <section class="section">
 {{-- section title --}}
@@ -819,7 +824,106 @@
             <div class="col-lg-8">
                 <div class="card">
                     <div class="card-body">
+                        <div class="from-group row mb-2">
+                            <label class="col-lg-12">Allow In-Person Pick Up?</label>
+                            <div class="col-lg-12">
+                                <select name="allow_in_person_pickup" id="allow_in_person_pickup" class="form-control">
+                                    <option value="1" {{ $allow_in_person_pickup == 1 ? 'selected' : '' }}>Enable</option>
+                                    <option value="0" {{ $allow_in_person_pickup == 0 ? 'selected' : '' }}>Disable</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Yeh section sirf jab pickup Enable ho tab dikhega -->
+            <div id="pickup-settings-section" style="display: {{ $allow_in_person_pickup == 1 ? 'block' : 'none' }}; margin-top: 20px;">
+            
+                <div class="row">
+                    <!-- LEFT SIDE: dropdown + address fields -->
+                    <div class="col-lg-7">
+            
+                        <div class="form-group mb-3">
+                            <label>Use Store Shipping Address for Pick Up?</label>
+                            <select name="use_store_address_for_pickup" id="use_store_address_for_pickup" class="form-control">
+                                <option value="yes" {{ ($pickup_details->use_store_address ?? 'yes') == 'yes' ? 'selected' : '' }}>
+                                    Yes, use the store address above
+                                </option>
+                                <option value="no" {{ ($pickup_details->use_store_address ?? 'yes') == 'no' ? 'selected' : '' }}>
+                                    No, we have a different pick up address we will enter below
+                                </option>
+                            </select>
+                        </div>
+            
+                        <!-- Custom pickup address (sirf jab "no") -->
+                        <div id="custom-pickup-address" style="display: {{ ($pickup_details->use_store_address ?? 'yes') == 'no' ? 'block' : 'none' }};">
+            
+                            <div class="form-group mb-3">
+                                <label>Pick Up Address Line 1 *</label>
+                                <input type="text" name="pickup_line1" class="form-control" required
+                                       value="{{ old('pickup_line1', $pickup_details->address_line1 ?? '') }}">
+                            </div>
+            
+                            <div class="form-group mb-3">
+                                <label>Pick Up Address Line 2</label>
+                                <input type="text" name="pickup_line2" class="form-control"
+                                       value="{{ old('pickup_line2', $pickup_details->address_line2 ?? '') }}">
+                            </div>
+            
+                            <div class="form-group mb-3">
+                                <label>Pick Up City *</label>
+                                <input type="text" name="pickup_city" class="form-control" required
+                                       value="{{ old('pickup_city', $pickup_details->city ?? '') }}">
+                            </div>
+            
+                            <div class="row">
+                                <div class="col-lg-6 form-group mb-3">
+                                    <label>Pick Up State *</label>
+                                    <select name="pickup_state" class="form-control" required>
+                                        <option value="">Choose</option>
+                                        @php
+                                            $states = [
+                                                'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware',
+                                                'Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky',
+                                                'Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi',
+                                                'Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico',
+                                                'New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania',
+                                                'Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont',
+                                                'Virginia','Washington','West Virginia','Wisconsin','Wyoming'
+                                            ];
+                                            $selectedState = old('pickup_state', $pickup_details->state ?? '');
+                                        @endphp
+                                        @foreach($states as $state)
+                                            <option value="{{ $state }}" {{ $selectedState == $state ? 'selected' : '' }}>
+                                                {{ $state }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+            
+                                <div class="col-lg-6 form-group mb-3">
+                                    <label>Pick Up Zip Code *</label>
+                                    <input type="text" name="pickup_zip" class="form-control" required
+                                           value="{{ old('pickup_zip', $pickup_details->zip ?? '') }}">
+                                </div>
+                            </div>
+            
+                        </div>
+                    </div>
+            
+                    <!-- RIGHT SIDE: instructions -->
+                    <div class="col-lg-5">
+                        <div class="form-group mb-3">
+                            <label>Pick Up Instructions</label>
+                            <textarea name="pickup_instructions" class="form-control pickup-instructions-box" required>
+                             {{ old('pickup_instructions', $pickup_details->instructions ?? "Include any instructions to the customer for coordinating pick up of their purchased items. These will be displayed on the order receipt for any customers that choose this shipping option. For example:\n\nIn-Person Pick Up is available Mondays, Wednesdays and Thursdays from 2pm-5pm, except holidays.\n\nPlease email fakeemail@fakemail.com or call 555-555-5555 to coordinate your pick up day and time. Make sure you have your order invoice and ID with you when you pick up your items.") }}
+                             </textarea>
+                            
+                        </div>
+                    </div>
+                </div>
+            
+            </div>
 
+           
                         <div class="from-group row mb-2">
                             <label for="" class="col-lg-12">{{ __('Is Free Shipping') }} : </label>
                             <div class="col-lg-12">
@@ -1562,7 +1666,30 @@ $(".basicbtn").on('click', function(e){
     }
    
 })
+$(document).ready(function() {
 
+    // Enable/Disable toggle
+    $('#allow_in_person_pickup').change(function() {
+        if ($(this).val() === '1') {
+            $('#pickup-settings-section').slideDown();
+        } else {
+            $('#pickup-settings-section').slideUp();
+        }
+    });
+
+
+    $('#use_store_address_for_pickup').change(function() {
+        if ($(this).val() === 'no') {
+            $('#custom-pickup-address').slideDown();
+        } else {
+            $('#custom-pickup-address').slideUp();
+        }
+    });
+
+    // Page load pe sahi state set karo
+    $('#allow_in_person_pickup').trigger('change');
+    $('#use_store_address_for_pickup').trigger('change');
+});
 </script>
 @endpush
 
