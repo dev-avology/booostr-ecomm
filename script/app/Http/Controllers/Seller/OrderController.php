@@ -75,6 +75,7 @@ class OrderController extends Controller
         abort_if(!getpermission('order'),401);
 
         $info=Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule','ordertable')->findorFail($id);
+
         $ordermeta=json_decode($info->ordermeta->value ?? '');
         $order_status=Category::where([['type','status'],['status',1]])->where('id','!=',3)->orderBy('featured','ASC')->get();
         $product_type = Category::where('type', 'product_type')->select('id','slug', 'name')->orderBy('id', 'ASC')->get();
@@ -1195,47 +1196,68 @@ class OrderController extends Controller
         // 3️⃣ COMPLETE FULFILLMENT
         elseif ($method === 'complete_fulfillment') {
 
-            $completeStatusId = 1; // Complete
-            $orders = Order::whereIn('id', $ids)->get();
-            $updated = [];
-
-            foreach ($orders as $order) {
-            
-                // ❌ Refunded before fulfillment
-                if ($order->payment_status == 5 && $order->status_id != 1) {
-                    continue;
-                }
-                // ❌ Skip if payment not completed
-                if ($order->payment_status != 1) {
-                    continue;
-                }
-                $order->status_id = $completeStatusId;
-                $order->save();
-                
-                if (in_array($order->order_from, [0, 4, 5])) {
-                    $this->post_order_data_POS($order, 'capture');
-                } else {
-                    $this->post_order_data($order, 'capture');
-                }
-
-                $updated[] = [
-                    'id' => $order->id,
-                    'status_id' => $order->status_id,
-                    'order_method' => $order->order_method,
-                ];
+        $completeStatusId = 1; // Complete
+    
+        // product_type categories
+        $product_type = Category::where('type', 'product_type')->select('id','slug')->get();
+        $p_types = $product_type->pluck('id')->all();
+    
+        // load nested relations (important)
+        $orders = Order::with(['orderitems.term.termcategories'])
+            ->whereIn('id', $ids)
+            ->get();
+    
+        $updated = [];
+    
+        foreach ($orders as $order) {
+    
+            // ✅ Paid only
+            if ((int)$order->payment_status !== 1) continue;
+    
+            // ❌ Skip refunded before fulfillment
+            if ((int)$order->payment_status === 5 && (int)$order->status_id !== 1) continue;
+    
+            // ✅ Decide Digital/Goods/Mixed from items (same as blade)
+            $selected_product_type = collect($order->orderitems ?? [])
+                ->flatMap(fn($item) => $item->term?->termcategories?->pluck('category_id') ?? [])
+                ->filter(fn($id) => in_array($id, $p_types))
+                ->unique()
+                ->values()
+                ->all();
+    
+            // Must be exactly one product_type and it must be digital_product
+            if (count($selected_product_type) !== 1) continue;
+    
+            $pt = $product_type->firstWhere('id', $selected_product_type[0]);
+            if (!$pt || $pt->slug !== 'digital_product') continue;
+    
+            // ✅ Now mark complete
+            $order->status_id = $completeStatusId;
+            $order->save();
+    
+            if (in_array($order->order_from, [0, 4, 5])) {
+                $this->post_order_data_POS($order, 'capture');
+            } else {
+                $this->post_order_data($order, 'capture');
             }
-            
-            
-
-            if (empty($updated)) {
-                return response()->json(['message' => 'No eligible orders to complete'], 200);
-            }
-
-            return response()->json([
-                'message' => 'Completed fulfillment for eligible orders',
-                'completed_orders' => $updated
-            ]);
+    
+            $updated[] = [
+                'id' => $order->id,
+                'status_id' => $order->status_id,
+                'order_method' => $order->order_method,
+            ];
         }
+    
+        if (empty($updated)) {
+            return response()->json(['message' => 'No eligible orders to complete'], 200);
+        }
+    
+        return response()->json([
+            'message' => 'Completed fulfillment for eligible orders',
+            'completed_orders' => $updated
+        ]);
+    }
+
         elseif ($method === 'cancel_order') {
             $updated = [];
             $admin_details = User::where('role_id', 3)->first();
