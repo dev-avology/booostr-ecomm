@@ -360,7 +360,7 @@
 
                         $shippingservice = $data['data']['shippingwithinfo']->shipping_driver ?? ''; 
                         $shipping_info =json_decode($data['data']['shippingwithinfo']->info ?? '');
-                        $shipping_level = $shipping_info->shipping_label ?? 'In-Person Pick Up';
+                        $shipping_level = $shipping_info->shipping_label;
 
                         @endphp
 
