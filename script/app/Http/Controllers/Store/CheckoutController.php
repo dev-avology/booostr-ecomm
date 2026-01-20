@@ -912,7 +912,7 @@ class CheckoutController extends Controller
             'price' => (float) $shipping_price,
             'info'  => $shipping_methods,
         ];
-        
+      
         // Pickup option (only if enabled)
         if ($allow_inperson_pickup === 1) 
         { 
@@ -948,6 +948,7 @@ class CheckoutController extends Controller
 
     public function newMakeOrder(Request $request)
     {
+
         $redirect_url=Session::has('redirect_url')?Session::get('redirect_url'):'https://www.boostr.co';
 
         if(Cart::content()->isEmpty()){
@@ -970,49 +971,62 @@ class CheckoutController extends Controller
      
         $shipping_price = 0;
         $shipping_method_label = '';
-        if ($request->order_method == 'delivery' && !empty($request->shipping_method)) {
-           
-           if($request->shipping_method == 'free_shipping'){
-             $shipping_price = 0;
-             $shipping_method_label = 'Free Shipping';
-            }else{
+         $pickup_details = [];
+        $allow_inperson_pickup = 0;
+        
+        $inperson_pickup = Option::where('key', 'inperson_pickup_details')->first();
+        if ($inperson_pickup && !empty($inperson_pickup->value)) {
+            $pickup_details = json_decode($inperson_pickup->value, true) ?? [];
+            $allow_inperson_pickup = (int)($pickup_details['enabled'] ?? 0);
+        }
+        
+        if (!empty($request->shipping_method)) {
+            
+        // ✅ In-Person Pickup selected
+        if ($request->shipping_method === 'inperson_pickup' && $allow_inperson_pickup === 1) {
+            $shipping_price = 0;
+            $shipping_method_label = 'In-Person Pick Up';
+            $order_method = 'pickup';   // important
+        }
+        // ✅ Free shipping
+        else if ($request->shipping_method === 'free_shipping') {
+            $shipping_price = 0;
+            $shipping_method_label = 'Free Shipping';
+            $order_method = 'delivery';
+        }
+        // ✅ Normal delivery shipping methods
+        else {
+            $order_method = 'delivery';
 
-            $shippingDetails= json_decode(Option::where('key','shipping_method')->first()->value,true);
+            $shippingDetails = json_decode(Option::where('key','shipping_method')->first()->value,true);
 
-            if($shippingDetails['method_type'] == 'per_item'){
-
+            if ($shippingDetails['method_type'] == 'per_item') {
                 $shipping_price = $shippingDetails['base_pricing'] + Cart::count() * $shippingDetails['pricing'];
-
                 $shipping_method_label = $shippingDetails['label'];
 
-            }else if($shippingDetails['method_type'] == 'weight_based'){
-
+            } else if ($shippingDetails['method_type'] == 'weight_based') {
                 $shipping_price = $shippingDetails['base_pricing'] + Cart::weight() * $shippingDetails['pricing'];
                 $shipping_method_label = $shippingDetails['label'];
 
-            }else if($shippingDetails['method_type'] == 'flat_rate'){
+            } else if ($shippingDetails['method_type'] == 'flat_rate') {
+                if (is_array($shippingDetails['pricing'])) {
+                    foreach ($shippingDetails['pricing'] as $index) {
+                        $from = (float)($index['from'] ?? 0);
+                        $to   = ((float)($index['to'] ?? 0) > 0) ? (float)$index['to'] : PHP_INT_MAX;
 
-
-                if(is_array($shippingDetails['pricing'])){
-                    foreach($shippingDetails['pricing'] as $index){
-        
-                    $from = (float)$index['from']??0;
-                    $to = (float) $index['to'] > 0 ?(float) $index['to']: PHP_INT_MAX;
-
-                        if($subtotal > $from && $subtotal <= $to){
+                        if ($subtotal > $from && $subtotal <= $to) {
                             $shipping_price = (float)$index['price'];
                             $shipping_method_label = $shippingDetails['label'];
                         }
                     }
                 }
-
             }
-
-           }
+        }
 
         } else {
-            $order_method = 'pickup';
+            $order_method = 'delivery';
         }
+
 
         
         // if (Session::has('couponDiscount')) {
@@ -1133,7 +1147,13 @@ class CheckoutController extends Controller
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
 
-            
+             // ✅ Save pickup details if in-person pickup selected
+             if ($request->shipping_method === 'inperson_pickup') {
+                \App\Models\Ordermeta::updateOrCreate(
+                    ['order_id' => $order->id, 'key' => 'inperson_pickup_details'],
+                    ['value' => json_encode($pickup_details)]
+                );
+            }
             // $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();
             // $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
 
@@ -1198,7 +1218,7 @@ class CheckoutController extends Controller
             if ($request->order_method == 'table') {
                 $order->ordertable()->attach($request->table);
             }
-            if ($request->order_method == 'delivery') {
+             if ($order_method == 'delivery') {
                 $delivery_info['address'] = $request->shipping['address'].' '. $request->shipping['city'].', '.$request->shipping['state'].', '.$request->shipping['country'];
                 $delivery_info['post_code'] = $request->shipping['post_code'];
                 $delivery_info['shipping_method'] = $request->shipping_method;
@@ -1231,11 +1251,10 @@ class CheckoutController extends Controller
                 $customer_info['cover_fee'] = $cover_fee;
                 $customer_info['cart_id'] = $cartid;
 
-                $order->ordermeta()->create([
-                    'key' => 'orderinfo',
-                    'value' => json_encode($customer_info)
-                ]);
-
+                 \App\Models\Ordermeta::updateOrCreate(
+                    ['order_id' => $order->id, 'key' => 'orderinfo'],
+                    ['value' => json_encode($customer_info)]
+                );
                 // $transcation_log = new Ordermeta;
                 // $transcation_log->order_id = $order->id;
                 // $transcation_log->key = 'transcation_log';
@@ -1257,7 +1276,27 @@ class CheckoutController extends Controller
             DB::commit();
             
             $club_info = tenant_club_info();
+            
+             $name = explode(' ',$request->name);
 
+            $contact_manager_data = array(
+                'first_name' => $name[0],
+                'last_name' => $name[1]??'',
+                'user_id' =>  $request->wpuid ??0,
+                'phone_number' => $request->phone,					
+                'booster_name' => $name[0],
+                'country' =>   $request->billing['country'],									
+                'address_1' => $request->billing['address'],
+                'address_2' =>  '',
+                'city' => $request->billing['city'],
+                'state' =>  $request->billing['state'],
+                'zip' =>  $request->billing['post_code'],													
+                'email' =>  $request->email,                   
+                'booster_id' =>Tenant('club_id'),
+                'booster_level_id' => 4,
+                'customer_tag' => 'online store customer',
+                'addedsource' => 'storetool',
+            );	
  
             $subtotal = 0;
             
@@ -1265,7 +1304,26 @@ class CheckoutController extends Controller
                 $subtotal = $subtotal + $row->amount*$row->qty;
             }
 
+           $user_recipt = [
+                'contact_mgr_data'=>$contact_manager_data,
+                'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
+                'receipt_title'=>$request->name,
+                'receipent_org'=>$club_info['club_name'].' Store',
+                'category'=>'ecommerce',
+                'user_id' =>  $request->wpuid ??0,
+                'amount'=>$order->total,
+                'revenue'=>$revenue,
+                'club_id' =>Tenant('club_id'),
+                'recurring'=>'one-time',
+                'camp_id'=>$order->invoice_no,
+                'order_total'=>$order->total,
+                'order_subtotal'=>$subtotal,
+            ];
 
+           $recipt =  $this->send_order_recipt($user_recipt);
+
+            \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
+            \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
 
             $prices=Orderstock::where('order_id',$order->id)->whereHas('price')->with('price')->get();
 
@@ -1319,7 +1377,7 @@ class CheckoutController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
 
-        //dd($th);
+        // dd($th);
           
             return redirect()->away($redirect_url . '/?type=error&message=Oops something wrong while saving order data');
         }
@@ -1434,7 +1492,7 @@ class CheckoutController extends Controller
                 if($credit_card_processing_method == 'auto' && $riskLevel == 'normal' && $paymentIntent->status === 'requires_capture'){
                 
                             // dd($payment_data);
-                     $captured = $intent->capture();
+                     $captured = $paymentIntent->capture();
                      
                     if($captured->status === 'succeeded'){
                        $order->payment_status =1;
@@ -1527,14 +1585,14 @@ class CheckoutController extends Controller
         $club_info = tenant_club_info();
         
         $shippingPrice = $order->shippingwithinfo['shipping_price']??0;
-        $jsonString = $order->shippingwithinfo['info'];
+        $jsonString = $order->shippingwithinfo->info ?? null;
         
         
         // Decode the JSON string into a PHP array
         $shipping_data = json_decode($jsonString, true);
 
-        $credit_card_fee = $shipping_data['credit_card_fee'];
-        $booster_platform_fee = $shipping_data['booster_platform_fee'];
+        $credit_card_fee = $shipping_data['credit_card_fee'] ?? 0;
+        $booster_platform_fee = $shipping_data['booster_platform_fee'] ??0;
         $processing_fees = $credit_card_fee+$booster_platform_fee;
 
         $revenue = $order_total-($sales_tax+$processing_fees);

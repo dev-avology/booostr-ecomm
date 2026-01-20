@@ -39,7 +39,7 @@ class Orderstatusmail extends Mailable
 
         $currency=$this->data['currency_info'];
         $orderlasttrans=json_decode($data['data']->orderlasttrans->value ?? '');
-        $amount_refunded = $orderlasttrans->amount_refunded;
+        $amount_refunded = $orderlasttrans->amount_refunded ?? 0;
         $lastdigit = $orderlasttrans->source->last4 ?? null;
         $card_number = str_pad($lastdigit, 16, "*", STR_PAD_LEFT);
 
