@@ -891,7 +891,39 @@ class CheckoutController extends Controller
         }
        }
 
-      
+        // ===== In-Person Pickup settings () =====
+        $pickup_details = [];
+        $allow_inperson_pickup = 0;
+        
+        $inperson_pickup = Option::where('key', 'inperson_pickup_details')->first();
+        
+        if ($inperson_pickup && !empty($inperson_pickup->value)) {
+            $pickup_details = json_decode($inperson_pickup->value, true) ?: [];
+            $allow_inperson_pickup = (int)($pickup_details['enabled'] ?? 0);
+        }
+        
+
+        $shipping_options = [];
+        
+        // Regular shipping option (calculated above)
+        $shipping_options[] = [
+            'key'   => $shipping_methods['method_type'],
+            'label' => $shipping_methods['label'],
+            'price' => (float) $shipping_price,
+            'info'  => $shipping_methods,
+        ];
+        
+        // Pickup option (only if enabled)
+        if ($allow_inperson_pickup === 1) 
+        { 
+            $shipping_options[] =
+             [ 'key' => 'inperson_pickup', 
+               'label' => 'In-Person Pick Up',
+              'price' => 0, 'info' => [ 'method_type' => 'inperson_pickup', 'label' => 'In-Person Pick Up', 'pricing' => 0, 'base_pricing' => 0, 
+              'details' => $pickup_details 
+            ], 
+            ]; 
+        }
 
         $total =  Cart::total() + $shipping_price;
 
@@ -910,7 +942,8 @@ class CheckoutController extends Controller
        $cover_fee =  $credit_card_fee1 + $booster_platform_fee1;
 
 
-        return view('store.checkout.new-checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee','cover_fee'));
+        return view('store.checkout.new-checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee',
+        'cover_fee','shipping_options','pickup_details','allow_inperson_pickup'));
     }
 
     public function newMakeOrder(Request $request)
@@ -1593,49 +1626,60 @@ class CheckoutController extends Controller
      
         $shipping_price = 0;
         $shipping_method_label = '';
-        if ($request->order_method == 'delivery' && !empty($request->shipping_method)) {
-           
-           if($request->shipping_method == 'free_shipping'){
-             $shipping_price = 0;
-             $shipping_method_label = 'Free Shipping';
-            }else{
+        $pickup_details = [];
+        $allow_inperson_pickup = 0;
+        
+        $inperson_pickup = Option::where('key', 'inperson_pickup_details')->first();
+        if ($inperson_pickup && !empty($inperson_pickup->value)) {
+            $pickup_details = json_decode($inperson_pickup->value, true) ?? [];
+            $allow_inperson_pickup = (int)($pickup_details['enabled'] ?? 0);
+        }
+        
+        if (!empty($request->shipping_method)) {
+            
+        // ✅ In-Person Pickup selected
+        if ($request->shipping_method === 'inperson_pickup' && $allow_inperson_pickup === 1) {
+            $shipping_price = 0;
+            $shipping_method_label = 'In-Person Pick Up';
+            $order_method = 'pickup';   // important
+        }
+        // ✅ Free shipping
+        else if ($request->shipping_method === 'free_shipping') {
+            $shipping_price = 0;
+            $shipping_method_label = 'Free Shipping';
+            $order_method = 'delivery';
+        }
+        // ✅ Normal delivery shipping methods
+        else {
+            $order_method = 'delivery';
 
-            $shippingDetails= json_decode(Option::where('key','shipping_method')->first()->value,true);
+            $shippingDetails = json_decode(Option::where('key','shipping_method')->first()->value,true);
 
-            if($shippingDetails['method_type'] == 'per_item'){
-
+            if ($shippingDetails['method_type'] == 'per_item') {
                 $shipping_price = $shippingDetails['base_pricing'] + Cart::count() * $shippingDetails['pricing'];
-
                 $shipping_method_label = $shippingDetails['label'];
 
-            }else if($shippingDetails['method_type'] == 'weight_based'){
-
+            } else if ($shippingDetails['method_type'] == 'weight_based') {
                 $shipping_price = $shippingDetails['base_pricing'] + Cart::weight() * $shippingDetails['pricing'];
                 $shipping_method_label = $shippingDetails['label'];
 
-            }else if($shippingDetails['method_type'] == 'flat_rate'){
+            } else if ($shippingDetails['method_type'] == 'flat_rate') {
+                if (is_array($shippingDetails['pricing'])) {
+                    foreach ($shippingDetails['pricing'] as $index) {
+                        $from = (float)($index['from'] ?? 0);
+                        $to   = ((float)($index['to'] ?? 0) > 0) ? (float)$index['to'] : PHP_INT_MAX;
 
-
-                if(is_array($shippingDetails['pricing'])){
-                    foreach($shippingDetails['pricing'] as $index){
-        
-
-                    $from = (float)$index['from']??0;
-                    $to = (float) $index['to'] > 0 ?(float) $index['to']: PHP_INT_MAX;
-
-                        if($subtotal > $from && $subtotal <= $to){
+                        if ($subtotal > $from && $subtotal <= $to) {
                             $shipping_price = (float)$index['price'];
                             $shipping_method_label = $shippingDetails['label'];
                         }
                     }
                 }
-
             }
-
-           }
+        }
 
         } else {
-            $order_method = 'pickup';
+            $order_method = 'delivery';
         }
 
         
@@ -1756,6 +1800,13 @@ class CheckoutController extends Controller
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
 
+             // ✅ Save pickup details if in-person pickup selected
+             if ($request->shipping_method === 'inperson_pickup') {
+                \App\Models\Ordermeta::updateOrCreate(
+                    ['order_id' => $order->id, 'key' => 'inperson_pickup_details'],
+                    ['value' => json_encode($pickup_details)]
+                );
+            }
             
             $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();
             $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
@@ -1821,7 +1872,7 @@ class CheckoutController extends Controller
             if ($request->order_method == 'table') {
                 $order->ordertable()->attach($request->table);
             }
-            if ($request->order_method == 'delivery') {
+            if ($order_method == 'delivery') {
                 $delivery_info['address'] = $request->shipping['address'].' '. $request->shipping['city'].', '.$request->shipping['state'].', '.$request->shipping['country'];
                 $delivery_info['post_code'] = $request->shipping['post_code'];
                 $delivery_info['shipping_method'] = $request->shipping_method;
@@ -1853,10 +1904,10 @@ class CheckoutController extends Controller
                 $customer_info['booster_platform_fee'] = $booster_platform_fee;
                 $customer_info['cover_fee'] = $cover_fee;
 
-                $order->ordermeta()->create([
-                    'key' => 'orderinfo',
-                    'value' => json_encode($customer_info)
-                ]);
+                \App\Models\Ordermeta::updateOrCreate(
+                    ['order_id' => $order->id, 'key' => 'orderinfo'],
+                    ['value' => json_encode($customer_info)]
+                );
 
                 $transcation_log = new Ordermeta;
                 $transcation_log->order_id = $order->id;

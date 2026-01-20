@@ -146,8 +146,18 @@ class SitesettingsController extends Controller
           $credit_card_processing_method=Option::where('key','credit_card_processing_method')->first();
           $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
 
+          $inperson_pickup = Option::where('key', 'inperson_pickup_details')->first();
+          $pickup_details = $inperson_pickup ? json_decode($inperson_pickup->value) : (object)[];
+            
+            // Allow in person pickup ka simple flag bhi (toggle ke liye)
+           $allow_in_person_pickup = $pickup_details->enabled ?? 0;
+            
+
+            Option::where('key', 'allow_in_person_pickup')->delete();
+            
            return view('seller.settings.general',compact('languages','lat_lang','address','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings',
-           'banner_logo','bannerUrlValue','credit_card_processing_method'));
+           'banner_logo','bannerUrlValue','credit_card_processing_method',
+           'inperson_pickup', 'pickup_details', 'allow_in_person_pickup'));
        }
       
     }
@@ -226,7 +236,26 @@ class SitesettingsController extends Controller
          //    $banner->move($path, 'banner.png');
          //   }
 
-
+        $pickup = [
+            'enabled'              => $request->allow_in_person_pickup ?? 0,
+            'use_store_address'    => $request->use_store_address_for_pickup ?? 'yes',
+            'address_line1'        => $request->pickup_line1 ?? '',
+            'address_line2'        => $request->pickup_line2 ?? '',
+            'city'                 => $request->pickup_city ?? '',
+            'state'                => $request->pickup_state ?? '',
+            'zip'                  => $request->pickup_zip ?? '',
+            'instructions'         => $request->pickup_instructions ?? '',
+            // phone optional tha client image mein nahi dikha, to abhi skip kiya (chahiye to add kar lena)
+        ];
+        
+        Option::updateOrCreate(
+            ['key' => 'inperson_pickup_details'],
+            ['value' => json_encode($pickup), 'autoload' => 1]
+        );
+        
+        TenantCacheClear('inperson_pickup_details');
+            
+            
          if ($request->hasFile('banner')) {
             $banner = $request->file('banner');
             $filename = $banner->getClientOriginalName();

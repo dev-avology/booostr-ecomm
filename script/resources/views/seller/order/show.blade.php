@@ -229,7 +229,9 @@
                             }
 
                         @endphp
-                        @if($info->shippingwithinfo->shipping_driver == 'local')
+    
+                        @if($info->shippingwithinfo && $info->shippingwithinfo->shipping_driver === 'local')
+
                                 @php
                                        $shippingwithinfo_price = json_decode($info->shippingwithinfo->info ?? '');
                                        $credit_card_fee = isset($shippingwithinfo_price->credit_card_fee) ? $shippingwithinfo_price->credit_card_fee : 0;
@@ -438,6 +440,47 @@
                         @if ($info->order_method == 'delivery' && !empty($info->shippingwithinfo))
                             <div id="map" class="map-canvas"></div>
                         @endif
+
+
+                        {{-- PICKUP (In-Person Pick Up details) --}}
+                    @if ($info->order_method == 'pickup' && $order_type !== 'Digital')
+                        @php
+                            // pickup details option se aa rahe hain (same as checkout)
+                            $pickupOption = \App\Models\Option::where('key', 'inperson_pickup_details')->first();
+                            $pickupData = $pickupOption && $pickupOption->value ? json_decode($pickupOption->value, true) : [];
+
+                            // details keys (as per your dump)
+                            $d = $pickupData ?? [];
+                            $a1 = $d['address_line1'] ?? '';
+                            $a2 = $d['address_line2'] ?? '';
+                            $city = $d['city'] ?? '';
+                            $state = $d['state'] ?? '';
+                            $zip = $d['zip'] ?? '';
+
+                            $instructions = trim((string)($d['instructions'] ?? ''));
+                        @endphp
+
+                        <p class="mb-0"><b>{{ __('Shipping Method') }}:</b> {{ __('In-Person Pick Up') }}</p>
+
+                        <div class="mt-3">
+                            <h6 class="mb-2"><b>{{ __('Location & Instructions') }}</b></h6>
+
+                            {{-- Address --}}
+                            <div class="mb-2">
+                                <div>{{ $a1 }}</div>
+                                @if(!empty($a2)) <div>{{ $a2 }}</div> @endif
+                                <div>{{ trim($city . ( $city && ($state || $zip) ? ', ' : '' ) . $state . ' ' . $zip) }}</div>
+                            </div>
+
+                            {{-- Instructions (same format as client screenshot) --}}
+                            @if(!empty($instructions))
+                                <div style="white-space: pre-line; color:#666;">
+                                    {{ $instructions }}
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
                     </div>
                 </div>
             @endif
