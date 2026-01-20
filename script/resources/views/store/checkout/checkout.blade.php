@@ -293,7 +293,6 @@ input#cover_fee_checkbox {
                                                             value="{{ $key }}">{{ $val }}</option>
                                                     @endforeach
                                                 </select>
-                                                {{-- <input type="text" class="location_input" id="location_state" name="billing[state]" placeholder="" required="required" value="{{ $customer['state'] }}"> --}}
                                             </div>
                                         </div>
                                         <div class="col-lg-6 col-md-6 col-12 delivery_address_country">
@@ -387,7 +386,7 @@ input#cover_fee_checkbox {
                                             <div class="form-group">
                                                 <label><i class="fa fa-envelope"></i>{{ __('Zip Code') }}<span>*</span></label>
                                                 <input type="text" id="post_code1" class="required post_code_class" name="shipping[post_code]"
-                                                    placeholder="" value="{{ $customer['zip'] }}"  data-msg="{{__('Shipping Postal Code')}}">
+                                                    placeholder="" value="{{ $customer['zip']?? ''}}"  data-msg="{{__('Shipping Postal Code')}}">
                                             </div>
                                         </div>
                                     </div>
@@ -544,22 +543,38 @@ input#cover_fee_checkbox {
                                             </ul>
                                         </div>
                                     </div>
-                                    @if ($order_settings->shipping_amount_type != 'distance')
-                                        <div class="single-widget shipping_method_area">
-                                            <h2>{{ __('Shipping Method') }}</h2>
+                                    @if ($order_settings->shipping_amount_type != 'distance' && count($shipping_options) > 0)
+                                        <div class="single-widget shipping_method_area mt-4">
+                                            <h2 class="mb-3">{{ __('Shipping Method') }}</h2>
+                                            
                                             <div class="content">
                                                 <div class="checkbox shipping_render_area">
+                                                    @foreach ($shipping_options as $method)
+                                                        <label class="checkbox-inline shipping_method d-block mb-3" 
+                                                            for="shipping{{ $method['key'] }}">
 
-                                                    <label class="checkbox-inline shipping_method"
-                                                        for="shipping{{ $shipping_methods['method_type'] }}">
-                                                        <input name="shipping_method" class="shipping_item"
-                                                            value="{{ $shipping_methods['method_type'] }}"
-                                                            data-price="{{ $shipping_methods['base_pricing'] }}"
-                                                            data-shippingInfo='{!! json_encode($shipping_methods) !!}'
-                                                            id="shipping{{ $shipping_methods['method_type'] }}"
-                                                            type="radio"> {{ $shipping_methods['label'] }}
-                                                    </label>
+                                                            <input type="radio"
+                                                                name="shipping_method"
+                                                                class="shipping_item me-2"
+                                                                id="shipping{{ $method['key'] }}"
+                                                                value="{{ $method['key'] }}"
+                                                                data-price="{{ $method['price'] }}"
+                                                                data-shippingInfo='{!! json_encode($method["info"]) !!}'
+                                                                {{ $loop->first ? 'checked' : '' }}>
 
+                                                            <span>{{ $method['label'] }}</span>
+
+                                                            @if ($method['key'] === 'inperson_pickup' && $allow_inperson_pickup === 1)
+                                                                <a href="#"
+                                                                    class="text-primary small"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#inpersonPickupModal"
+                                                                    data-pickup-details='@json($method["info"]["details"] ?? [])'>
+                                                                    (details)
+                                                                </a>
+                                                            @endif
+                                                        </label>
+                                                    @endforeach
                                                 </div>
                                             </div>
                                         </div>
@@ -664,6 +679,30 @@ input#cover_fee_checkbox {
     </div>
   </div>
 </div>
+<!-- In-Person Pick Up Modal - Simple layout like Image 1 -->
+<div class="modal fade" id="inpersonPickupModal" tabindex="-1" aria-labelledby="inpersonPickupModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content pickup-simple-modal">
+
+      <div class="modal-header pickup-simple-header">
+        <h5 class="modal-title" id="inpersonPickupModalLabel">In-Person Pick Up Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body pickup-simple-body">
+        <p class="pickup-paragraph" id="pickup_schedule_text"></p>
+        <p class="pickup-paragraph" id="pickup_contact_text"></p>
+
+        <div class="pickup-address-wrap">
+            <div class="pickup-address-title">Pick Up Address:</div>
+            <div class="pickup-address" id="pickup_address_text"></div>
+        </div>
+    </div>
+
+
+    </div>
+  </div>
+</div>
 
     @endsection
     @push('js')
@@ -697,6 +736,54 @@ input#cover_fee_checkbox {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+/* Modal pickup */
+.pickup-simple-modal{
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pickup-simple-header{
+  background: #fff;
+  border-bottom: 0;
+  padding: 18px 22px;
+}
+
+.pickup-simple-header .modal-title{
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+}
+
+.pickup-simple-body{
+  padding: 14px 22px 22px 22px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.55;
+}
+
+.pickup-paragraph{
+  margin: 8px 0 12px 0;
+}
+
+.pickup-note{
+  margin-top: 14px;
+}
+
+.pickup-address-wrap{
+  margin-top: 18px;
+}
+
+.pickup-address-title{
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 6px;
+}
+
+.pickup-address{
+  color: #666;
+}
+
     </style>
 
 
@@ -794,6 +881,59 @@ input#cover_fee_checkbox {
                 document.getElementById('payment-form').dispatchEvent(new Event('submit'));
             }
         </script>
+<script>
+$(document).ready(function () {
+  $('#inpersonPickupModal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
+
+    const details = button.data('pickup-details') || {};
+
+    if (!details || Object.keys(details).length === 0) {
+      $('#pickup_schedule_text').html('<em>Schedule not configured yet.</em>');
+      $('#pickup_contact_text').html('<em>Contact information not available.</em>');
+      $('#pickup_address_text').html('<em>Address not configured.</em>');
+      return;
+    }
+
+    const a1 = details.address_line1 || '';
+    const a2 = details.address_line2 || '';
+    const city = details.city || '';
+    const state = details.state || '';
+    const zip = details.zip || '';
+
+    let addressHtml = '';
+    if (a1) addressHtml += `${a1}<br>`;
+    if (a2) addressHtml += `${a2}<br>`;
+    addressHtml += `${city}${city && (state || zip) ? ', ' : ''}${state} ${zip}`.trim();
+
+    $('#pickup_address_text').html(addressHtml || 'Address not configured.');
+
+    const instructionsRaw = (details.instructions || '').toString().trim();
+
+    if (!instructionsRaw) {
+      $('#pickup_schedule_text').html('<em>Pick up instructions not available.</em>');
+      $('#pickup_contact_text').html('');
+      return;
+    }
+
+
+    const instructions = instructionsRaw
+      .replace(/\r\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n');
+
+
+    const scheduleMatch = instructions.match(/In-Person Pick Up is available[\s\S]*?(except holidays\.)/i);
+    const contactMatch  = instructions.match(/Please email[\s\S]*?(items\.)/i);
+
+    const scheduleText = scheduleMatch ? scheduleMatch[0].trim() : instructions.split('\n\n')[0].trim();
+    const contactText  = contactMatch ? contactMatch[0].trim() : (instructions.split('\n\n')[1] || '').trim();
+
+    $('#pickup_schedule_text').html(scheduleText);
+    $('#pickup_contact_text').html(contactText);
+  });
+});
+
+</script>
     @endpush
     @push('js')
         <script src="https://js.stripe.com/v3/"></script>
