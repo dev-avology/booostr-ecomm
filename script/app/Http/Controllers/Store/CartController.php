@@ -381,6 +381,11 @@ class CartController extends Controller
         $productcartdata['cart_tax']= Cart::tax();
         $productcartdata['cart_total']= Cart::total();
         $productcartdata['cart_count']= Cart::count();
+        
+        // ✅ cart id session me store karo (ONLY ONCE)
+        if (!session()->has('cartid')) {
+            session()->put('cartid', 'default');
+        }
         return response()->json($productcartdata);
         
     }

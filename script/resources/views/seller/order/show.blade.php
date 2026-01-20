@@ -229,9 +229,7 @@
                             }
 
                         @endphp
-    
-                        @if($info->shippingwithinfo && $info->shippingwithinfo->shipping_driver === 'local')
-
+                       @if(!empty($info->shippingwithinfo) && $info->shippingwithinfo->shipping_driver == 'local')
                                 @php
                                        $shippingwithinfo_price = json_decode($info->shippingwithinfo->info ?? '');
                                        $credit_card_fee = isset($shippingwithinfo_price->credit_card_fee) ? $shippingwithinfo_price->credit_card_fee : 0;
@@ -437,6 +435,25 @@
                             <p class="mb-0">{{ __('Address') }}: {{ $address }}</p>
                             <p class="mb-0">{{ __('Shipping Method') }}: {{ $shipping_method ?? '' }}</p>
                         @endif
+                        
+                        @if ($info->order_method == 'pickup')
+                            @php
+                                $pickup = $pickup_details ?? null; // order meta
+                            @endphp
+                        
+                            <p class="mb-0">{{ __('Shipping Method') }}: In-Person Pick Up</p>
+                        
+                            @if(!empty($pickup))
+                                <p class="mb-0"><b>Pick Up Address:</b>
+                                    {{ $pickup['address_line1'] ?? '' }} {{ $pickup['address_line2'] ?? '' }},
+                                    {{ $pickup['city'] ?? '' }}, {{ $pickup['state'] ?? '' }} {{ $pickup['zip'] ?? '' }}
+                                </p>
+                        
+                                <p class="mb-0"><b>Pick Up Instructions:</b> {{ $pickup['instructions'] ?? '' }}</p>
+                            @endif
+                        @endif
+
+
                         @if ($info->order_method == 'delivery' && !empty($info->shippingwithinfo))
                             <div id="map" class="map-canvas"></div>
                         @endif
