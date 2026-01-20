@@ -757,11 +757,20 @@ class ProductController extends Controller
 
     public function getInvoiceInfo(Request $request){
         $info = Order::with('orderlasttrans','orderitems','shippingwithinfo','ordermeta')->find($request->invoice_no);
-       
+   
         if($info){
             $shipping_method = json_decode($info->shippingwithinfo->info ?? '');
 
-            $shipping_details = ['shipping_driver' => $info->shippingwithinfo->shipping_driver,'tracking_no' => $info->shippingwithinfo->tracking_no,'shipping_method' => $shipping_method->shipping_label == 'Free Shipping' ? $shipping_method->shipping_label : $shipping_method->shipping_label .' Shipping'];
+            $shipping_details = [
+                'shipping_driver' => optional($info->shippingwithinfo)->shipping_driver,
+                'tracking_no' => optional($info->shippingwithinfo)->tracking_no,
+                'shipping_method' => isset($shipping_method->shipping_label)
+                    ? ($shipping_method->shipping_label == 'Free Shipping'
+                        ? $shipping_method->shipping_label
+                        : $shipping_method->shipping_label . ' Shipping')
+                    : 'In-Person Pick Up'
+            ];
+
 
             $orderlasttrans=json_decode($info->orderlasttrans->value ?? '');
             $timestamp = $orderlasttrans->created ?? '';
