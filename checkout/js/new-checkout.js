@@ -355,19 +355,19 @@ $(document).on('click','#applyCouponBtn',function(){
 					cartState.Rtax = parseFloat(data.tax);
 					cartState.Rdiscount = parseFloat(data.discount);
                    
-					if(data.items_on_discount !== 'all'){
-                     let items_on_discount = data.items_on_discount;
-					 let valuesArray = Object.values(items_on_discount);
-					 valuesArray.forEach(function(item){
-						if(item.discount){
-						 let netotal = (parseFloat(item.price) - parseFloat(item.discount)) * parseFloat(item.qty);
-							$('#'+item.rowId+' span.price').html('<span class="old-price">'+amount_format((parseFloat(item.price)*parseFloat(item.qty)))+'</span><span>'+amount_format(netotal)+'</span>');
-    					}else{
-							$('#'+item.rowId+' span.price').html('<span>'+amount_format((parseFloat(item.price)*parseFloat(item.qty)))+'</span>');
-						}
+				// 	if(data.items_on_discount !== 'all'){
+    //                  let items_on_discount = data.items_on_discount;
+				// 	 let valuesArray = Object.values(items_on_discount);
+				// 	 valuesArray.forEach(function(item){
+				// 		if(item.discount){
+				// 		 let netotal = (parseFloat(item.price) - parseFloat(item.discount)) * parseFloat(item.qty);
+				// 			$('#'+item.rowId+' span.price').html('<span class="old-price">'+amount_format((parseFloat(item.price)*parseFloat(item.qty)))+'</span><span>'+amount_format(netotal)+'</span>');
+    // 					}else{
+				// 			$('#'+item.rowId+' span.price').html('<span>'+amount_format((parseFloat(item.price)*parseFloat(item.qty)))+'</span>');
+				// 		}
 
-					 })
-					}
+				// 	 })
+				// 	}
 
 					calculateShipping();
 					calculateTotal(cartState);
@@ -383,30 +383,36 @@ $(document).on('click','#applyCouponBtn',function(){
 
 });
 
+function recalcCoverFee(state){
+  const feeRate = 0.029;
+  const fixedFee = 0.30;
 
+  const baseRaw = state.Rsubtotal + state.Rshipping + state.Rtax - state.Rdiscount;
+  const base = Math.max(0, baseRaw);
+
+  const fee = (base * feeRate) + fixedFee;
+  return Math.max(0, parseFloat(fee.toFixed(2)));
+}
 
 function calculateTotal(state = cartState){
+  var newtotal = state.Rsubtotal + state.Rshipping + state.Rtax - state.Rdiscount;
 
-	var newtotal = state.Rsubtotal+state.Rshipping+state.Rtax-state.Rdiscount;
+  if($('#cover_fee_checkbox').is(':checked')){
+    state.Rcover_fee = recalcCoverFee(state);
+    $('.cover_fee_amount').text(amount_format(state.Rcover_fee));
+    newtotal = newtotal + state.Rcover_fee;
+    $('.cover-fee').show();
+  } else {
+    state.Rcover_fee = 0;
+    $('.cover-fee').hide();
+    $('.cover_fee_amount').text(amount_format(0));
+  }
 
-	if($('#cover_fee_checkbox').is(':checked')){
-		$('.cover_fee_amount').text(amount_format(state.Rcover_fee));
-		newtotal = newtotal+state.Rcover_fee;
-		$('.cover-fee').show();
-	}else{
-		$('.cover-fee').hide();
-		$('.cover_fee_amount').text(amount_format(0));
-	}
+  cartState.Rtotal = newtotal;
 
-	cartState.Rtotal = newtotal;
-
-	$('.cart_subtotal').text(amount_format(state.Rsubtotal));
-	$('.cart_discount').text(amount_format(state.Rdiscount));
-	$('.shipping_fee').text(amount_format(state.Rshipping));
-	$('.cart_tax').text(amount_format(state.Rtax));
-
-
-	$('.cart_total').text(amount_format(newtotal));
-
-	
+  $('.cart_subtotal').text(amount_format(state.Rsubtotal));
+  $('.cart_discount').text(amount_format(state.Rdiscount));
+  $('.shipping_fee').text(amount_format(state.Rshipping));
+  $('.cart_tax').text(amount_format(state.Rtax));
+  $('.cart_total').text(amount_format(newtotal));
 }
