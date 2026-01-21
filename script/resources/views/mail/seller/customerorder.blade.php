@@ -146,7 +146,7 @@
         </table>
 
 
-        @if ($data['data']['status_id'] == '1' && $order_type !== 'Digital')
+        @if ($data['data']['status_id'] == '1' && $order_type !== 'Digital' && !$isPickup)
             <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff;">
                 <tr>
                     <td colspan="2">
@@ -187,8 +187,12 @@
                 $cancelDate = date_create($createdAt);
                 $cancel_date_format = date_format($cancelDate, 'm/d/Y');
             }
+           
+            $shippingWith = $data['data']['shippingwithinfo'] ?? null;  
+            $shipping_info = json_decode($shippingWith->info ?? '');
+            $isPickup = (($order->order_method ?? '') === 'pickup') || (($shipping_info->shipping_label ?? '') === 'In-Person Pick Up');
 
-            $shipping_info =json_decode($data['data']['shippingwithinfo']->info ?? '');
+
 
         @endphp
 
@@ -320,62 +324,89 @@
                 </tr>
             </tbody>
         </table>
-         @if($order_type !== 'Digital')
-        <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
+        @if($order_type !== 'Digital')
+            <table style="width:100%;max-width:700px;margin:0 auto;background-color:#fff;">
             <tbody>
-                <tr>
-                    <td colspan="2">
-                        <hr width="94%" style="border-top: 0px;" color="#e5e5e5" />
-                    </td>
-                </tr>
+                <tr><td colspan="2"><hr width="94%" style="border-top:0px;" color="#e5e5e5" /></td></tr>
+
                 <tr class="border-style">
-                    <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;"
-                        class="spac-top spac-btm">
-                        <h5
-                            style="padding-left: 20px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;
-                            ">
-                            Shipping Address:</h5>
-                        <p class="add-shipping-color"
-                            style="padding-left: 20px; font-weight: 500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px;">
-                            @php
-                                $shippping_name = $ordermeta->shipping->name;
-                                $shippping_phone = $ordermeta->shipping->phone;
-                                $shippping_address = $ordermeta->shipping->address;
-                                $shippping_city = $ordermeta->shipping->city;
-                                $shippping_state = $ordermeta->shipping->state;
-                                $shippping_country = $ordermeta->shipping->country;
-                                $shippping_post_code = $ordermeta->shipping->post_code;
+                {{-- LEFT --}}
+                <td style="width:50%;padding-left:15px;padding-right:15px;" class="spac-top spac-btm">
 
-                                // $new_shiiping_address = $shippping_name . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_address . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_city . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_state . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_country . ',<br/>&nbsp;&nbsp;&nbsp;&nbsp;' . $shippping_post_code;
+                    @if($isPickup)
+                    <h5 style="padding-left:20px;font-weight:bold;font-family:'Nunito','Segoe UI',Arial;color:#3c3c3c;font-size:16px;">
+                        In-Person Pick Up Instructions
+                    </h5>
 
-                                $new_shiiping_address = $shippping_name . '<br>' . $shippping_address . '<br>' . $shippping_city . ', ' . $shippping_state . ' ' . $shippping_post_code . '<br>' . $shippping_country . '<br>' . $shippping_phone . '<br>' . $billing_email;
+                    @php
+                        $opt = \App\Models\Option::where('key','inperson_pickup_details')->first();
+                        $pickup = $opt && $opt->value ? json_decode($opt->value, true) : [];
+                    @endphp
 
-                            @endphp
-                            {!! $new_shiiping_address !!}
+                    <p style="padding-left:20px;font-weight:500;font-family:'Nunito','Segoe UI',Arial;color:#3c3c3c;font-size:16px;">
+                        {{ $pickup['address_line1'] ?? '' }}<br>
+                        {{ $pickup['address_line2'] ?? '' }}<br>
+                        {{ ($pickup['city'] ?? '') }}{{ !empty($pickup['city']) ? ', ' : '' }}{{ $pickup['state'] ?? '' }} {{ $pickup['zip'] ?? '' }}
+                    </p>
+
+                    @if(!empty($pickup['instructions']))
+                        <p style="padding-left:20px;font-weight:500;font-family:'Nunito','Segoe UI',Arial;color:#3c3c3c;font-size:13px;white-space:pre-line;">
+                        {{ $pickup['instructions'] }}
                         </p>
-                    </td>
-                    <td style="width: 50%;padding-left: 15px;font-size: 15px; padding-right: 15px;padding-bottom: 150px;"
-                        class="spac-top spac-btm">
-                        @php 
+                    @endif
+                    @else
+                    <h5 style="padding-left:20px;font-weight:bold;font-family:'Nunito','Segoe UI',Arial;color:#3c3c3c;font-size:16px;">
+                        Shipping Address:
+                    </h5>
 
-                        $shippingservice = $data['data']['shippingwithinfo']->shipping_driver ?? ''; 
-                        $shipping_info =json_decode($data['data']['shippingwithinfo']->info ?? '');
-                        $shipping_level = $shipping_info->shipping_label;
+                    @php
+                        $ship_name = $ordermeta->shipping->name ?? '';
+                        $ship_phone = $ordermeta->shipping->phone ?? '';
+                        $ship_add = $ordermeta->shipping->address ?? '';
+                        $ship_city = $ordermeta->shipping->city ?? '';
+                        $ship_state = $ordermeta->shipping->state ?? '';
+                        $ship_country = $ordermeta->shipping->country ?? '';
+                        $ship_zip = $ordermeta->shipping->post_code ?? '';
 
-                        @endphp
+                        $new_shiiping_address =
+                        $ship_name . '<br>' .
+                        $ship_add . '<br>' .
+                        $ship_city . ', ' . $ship_state . ' ' . $ship_zip . '<br>' .
+                        $ship_country . '<br>' .
+                        $ship_phone . '<br>' .
+                        ($billing_email ?? '');
+                    @endphp
 
-                        {{-- @if ($shippingservice != 'local' && $shippingservice != 'Local' && $shippingservice != '') --}}
-                            <h5
-                                style="padding-left: 20px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;">
-                                Shipping Information:</h5>
-                            <span style="padding-left: 20px;font-weight:500; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-size: 16px;text-transform: capitalize;">{{ $shipping_level ?? ''}} Shipping
-                            </span>
-                        {{-- @endif --}}
-                    </td>
+                    <p style="padding-left:20px;font-weight:500;font-family:'Nunito','Segoe UI',Arial;color:#3c3c3c;font-size:16px;">
+                        {!! $new_shiiping_address !!}
+                    </p>
+                    @endif
+
+                </td>
+
+                {{-- RIGHT --}}
+                <td style="width:50%;padding-left:15px;padding-right:15px;padding-bottom: {{ $isPickup ? '30px' : '150px' }};"
+                    class="spac-top spac-btm">
+
+                    <h5 style="padding-left:20px;font-weight:bold;font-family:'Nunito','Segoe UI',Arial;color:#3c3c3c;font-size:16px;">
+                    Shipping Information:
+                    </h5>
+
+                    @if($isPickup)
+                    <span style="padding-left:20px;font-weight:500;font-family:'Nunito','Segoe UI',Arial;color:#3c3c3c;font-size:16px;">
+                        In-Person Pick Up
+                    </span>
+                    @else
+                    <span style="padding-left:20px;font-weight:500;font-family:'Nunito','Segoe UI',Arial;color:#3c3c3c;font-size:16px;text-transform:capitalize;">
+                        {{ $shipping_info->shipping_label ?? '' }} Shipping
+                    </span>
+                    @endif
+
+                </td>
                 </tr>
             </tbody>
-        </table>
-         @endif
+            </table>
+        @endif
 
         <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
             <tbody>
@@ -520,8 +551,10 @@
                     font-family: 'Nunito', 'Segoe UI', Arial;
                     color: #3c3c3c;
                     font-size: 16px;font-weight: 500;">
-                            @php $shipping_price=$order->shippingwithinfo->shipping_price ?? 0; @endphp
-                            {{ currency_formate($shipping_price) }}
+                    @php
+                        $shipping_price = $isPickup ? 0 : (optional($order->shippingwithinfo)->shipping_price ?? 0);
+                    @endphp
+                    {{ currency_formate($shipping_price) }}
                         </p>
                     </td>
                 </tr>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Store;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use App\Models\Term;
 use App\Models\Productoption;
 use Carbon\Carbon;
@@ -58,6 +59,7 @@ class CartController extends Controller
 
     public function makediscount(Request $request)
     {
+   
         if (Cart::count() == 0) {
              $errors['errors']['error']='Please add some product in your cart';
              return response()->json($errors,401);
@@ -239,8 +241,8 @@ class CartController extends Controller
         if ($request->id) {
             $info=Term::query()->where('type','product')->with('preview')->where('status',1)->findOrFail($request->id);
         }
-        
-        
+        Session::put('cartid', 'default');
+        Cart::instance('default');
         if ($info->is_variation == 1) {
 
 
@@ -308,16 +310,17 @@ class CartController extends Controller
                     return response()->json($errors,401);
                 }
 
-                Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $final_price, 'weight' => $final_weight, 'options' => [
+             $data =    Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $final_price, 'weight' => $final_weight, 'options' => [
                     'options'=>$price_option,
                     'sku'=>null,
                     'stock'=>null,
                     'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
                     'slug'=>$info->slug,
-                    'price_id'=>$priceids
+                    'price_id'=>$priceids,
+                    'cartid' => Session::get('cartid', 'default'),
                 ]]);
                
-                
+      
         }
         else{
             $cart_content=Cart::instance('default')->content();
@@ -370,7 +373,7 @@ class CartController extends Controller
                 
             }
 
-            Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options]);
+            Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options,'cartid' => Session::get('cartid', 'default')]);
         }
 
         $productcartdata['cart_content']=Cart::content();
