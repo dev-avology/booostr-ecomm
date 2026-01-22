@@ -355,19 +355,19 @@ $(document).on('click','#applyCouponBtn',function(){
 					cartState.Rtax = parseFloat(data.tax);
 					cartState.Rdiscount = parseFloat(data.discount);
                    
-				// 	if(data.items_on_discount !== 'all'){
-    //                  let items_on_discount = data.items_on_discount;
-				// 	 let valuesArray = Object.values(items_on_discount);
-				// 	 valuesArray.forEach(function(item){
-				// 		if(item.discount){
-				// 		 let netotal = (parseFloat(item.price) - parseFloat(item.discount)) * parseFloat(item.qty);
-				// 			$('#'+item.rowId+' span.price').html('<span class="old-price">'+amount_format((parseFloat(item.price)*parseFloat(item.qty)))+'</span><span>'+amount_format(netotal)+'</span>');
-    // 					}else{
-				// 			$('#'+item.rowId+' span.price').html('<span>'+amount_format((parseFloat(item.price)*parseFloat(item.qty)))+'</span>');
-				// 		}
+					if(data.items_on_discount !== 'all'){
+                     let items_on_discount = data.items_on_discount;
+					 let valuesArray = Object.values(items_on_discount);
+					 valuesArray.forEach(function(item){
+						if(item.discount){
+						 let netotal = (parseFloat(item.price) - parseFloat(item.discount)) * parseFloat(item.qty);
+							$('#'+item.rowId+' span.price').html('<span class="old-price">'+amount_format((parseFloat(item.price)*parseFloat(item.qty)))+'</span><span>'+amount_format(netotal)+'</span>');
+    					}else{
+							$('#'+item.rowId+' span.price').html('<span>'+amount_format((parseFloat(item.price)*parseFloat(item.qty)))+'</span>');
+						}
 
-				// 	 })
-				// 	}
+					 })
+					}
 
 					calculateShipping();
 					calculateTotal(cartState);
