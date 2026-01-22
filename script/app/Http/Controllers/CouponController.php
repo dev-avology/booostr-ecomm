@@ -21,10 +21,13 @@ class CouponController extends Controller
         $cart_count = Cart::count();
 
         $error = false;
-
+        
+        Cart::content()->each(function($item){
+            $item->setDiscountRate(0);
+        });
 
         Cart::setGlobalDiscount(0);
-        Session::forget('couponDiscountCode');
+        Session::forget(['couponDiscountCode', 'couponScope', 'couponDiscountAmount']);
 
         if (Cart::count() == 0) {
             $error = true;
@@ -81,11 +84,29 @@ class CouponController extends Controller
       }
 
         $data = [];
-        $data['subtotal'] = Cart::subtotal();
-        $data['discount'] = Cart::discount();
-        $data['tax'] = Cart::tax();
-        $data['total'] = Cart::total();
-        $data['items_on_discount'] = Cart::content();
+        $subtotal = (float) str_replace(',', '', Cart::subtotal());
+        $tax      = (float) str_replace(',', '', Cart::tax());
+
+        $scope = Session::get('couponScope'); // 'cart' or null
+        if ($scope === 'cart') {
+            $discount = (float) Session::get('couponDiscountAmount', 0);
+            $items_on_discount = 'all';
+        } else {
+            $discount = (float) str_replace(',', '', Cart::discount());
+            $items_on_discount = Cart::content();
+        }
+
+        $data = [];
+        $data['subtotal'] = $subtotal;
+        $data['discount'] = $discount;
+        $data['tax'] = $tax;
+
+      
+        $data['total'] = max(0, ($subtotal + $tax - $discount));
+
+        $data['scope'] = $scope ?? 'item';
+        $data['items_on_discount'] = $items_on_discount;
+
       
         if($error){
             $res['data'] = $data;
@@ -99,6 +120,8 @@ class CouponController extends Controller
 
     private function DiscountCart(Coupon $coupon){
       
+      $sub_total = (float) str_replace(',', '', Cart::subtotal());
+     
         if ($coupon->min_amount_option == 1) {
             if ($sub_total < $coupon->min_amount) {
                 return ['status'=>422,'error'=>'min_amount_error','msg' => 'The minumum order amount is '.number_format($coupon->min_amount,2).' for this coupon'];
@@ -113,21 +136,22 @@ class CouponController extends Controller
             }
         }
 
-        if ($coupon->is_percentage == 1) {
-            $percent= $coupon->value;
-
-        }else{
-
-            $total= (float) Cart::subtotal();
-            $flat_discount=$coupon->value;
-            $percent=($flat_discount*100)/$total;
+        // Calculate discount amount WITHOUT applying on cart items
+        if ((int)$coupon->is_percentage === 1) {
+            $discountAmount = $sub_total * ((float)$coupon->value / 100);
+        } else {
+            $discountAmount = (float)$coupon->value;
         }
 
-        Cart::setGlobalDiscount($percent);
+        $discountAmount = min($discountAmount, $sub_total);
+        $discountAmount = round($discountAmount, 2);
 
-        $discount = Cart::discount();
+        // store in session so frontend can show discount line item
+        Session::put('couponDiscountCode', $coupon->code);
+        Session::put('couponScope', 'cart');
+        Session::put('couponDiscountAmount', $discountAmount);
 
-        return ['status'=>200,'discount'=>$discount]; 
+        return ['status'=>200,'discount'=>$discountAmount];
     }
 
 
@@ -189,6 +213,8 @@ class CouponController extends Controller
             });
 
             $discount = Cart::discount();
+            Session::put('couponDiscountCode', $coupon->code);
+            Session::put('couponScope', 'item');
             return ['status'=>200,'discount'=>$discount]; 
     }
 
@@ -245,6 +271,8 @@ class CouponController extends Controller
             });
            
             $discount = Cart::discount();
+            Session::put('couponDiscountCode', $coupon->code);
+            Session::put('couponScope', 'item');
             return ['status'=>200,'discount'=>$discount]; 
     }
 
