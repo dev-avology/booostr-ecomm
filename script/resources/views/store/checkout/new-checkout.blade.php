@@ -21,7 +21,7 @@ p span.title {
 
 /* Add coupon code CSS */
 .coupon-main-div {
-    padding-left: 22px;
+    padding-left: 12px;
 }
 
 .apply-c-code .coupon-input-button {
@@ -31,28 +31,31 @@ p span.title {
 }
 
 .apply-c-code .coupon-input-button .coupon-btn {
-    
     background-color: #00c0ff;
     color: white;
-    padding: -17px; /* Note: Negative padding might be a typo; consider removing or adjusting */
+    padding: 10px 15px;
     border: none;
     border-radius: 3px;
     cursor: pointer;
     font-size: 13px;
-    width: 87px;
+    width: auto;
     height: 37px;
     padding-top: 9px;
     border-radius: 6px !important;
 }
 .shop.checkout .single-widget.get-button .btn {
-	height: 55px;
-	width: 110%;
-	line-height: 55px;
-	text-align: center;
-	border-radius: 0;
-	text-transform: uppercase;
-	color: #fff;
-	padding: 0;
+    height: 55px;
+    width: 100%;
+    line-height: 55px;
+    text-align: center;
+    border-radius: 0;
+    text-transform: uppercase;
+    color: #fff;
+    padding: 0 20px;
+    max-width: max-content;
+    margin-left: auto;
+    display: block;
+    margin-top: 40px;
 }
 .apply-c-code .coupon-input-button .c-input {
     width: 224px;
@@ -100,13 +103,20 @@ span.learn-more {
 }
 
 input#cover_fee_checkbox {
-    margin-left: -18px;
+    margin-left: -20px;
+    margin-bottom: -8px;
 }
 
 .alert.alert-success.success-sec {
     margin: 0 10px;
-    padding-left: 28px;
+    padding-left: 30px;
     background-color: #E4FFEE;
+}
+form#payment-form {
+    padding: 0 15px;
+}
+form#payment-form > .row {
+    row-gap: 20px;
 }
 
 /* Checkout form layout */
@@ -121,8 +131,53 @@ input#cover_fee_checkbox {
     align-items: flex-end;
     width: 100%;
     margin-top: 20px;
+    display:block;
 }
 
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    -webkit-appearance: none;
+    border: 1px solid #2222224a;
+    cursor: pointer;
+    border-radius: 2px;
+    flex-shrink: 0;
+    appearance: none;
+}
+
+input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+    opacity: 0;
+}
+
+input[type="checkbox"]:checked::before {
+    opacity: 1;
+}
+
+input[type="checkbox"]:checked {
+    background: #0278d2;
+}
+.shop.checkout .form .create-account {
+    display: flex;
+    gap: 5px;
+}
+.shipping-method-button-container .checkout-consent label span {
+    font-size: 12px;
+}
+.shipping-method-button-container .checkout-consent label span a {
+    color: #00BAFD;
+}
 .shipping_method_area,
 .single-widget.get-button {
     flex: 1;
@@ -151,6 +206,10 @@ input#cover_fee_checkbox {
     background-color: #0099cc;
 }
 
+.coupon-input-button input#couponInput {
+    width: auto;
+}
+
 /* Responsive adjustments */
 @media (max-width: 991px) {
     .shipping-method-button-container {
@@ -166,6 +225,15 @@ input#cover_fee_checkbox {
 
     .single-widget.get-button {
         margin-top: 10px;
+    }
+    
+    form#payment-form > .row > .col-lg-4 {
+        padding: 0;
+        width: 100%;
+        flex-basis: 100%;
+    }
+    .shop.checkout .single-widget.get-button .btn{
+        font-size: 14px;
     }
 }
 
@@ -471,8 +539,8 @@ input#cover_fee_checkbox {
                                 <!-- Shipping Method and Button Container -->
                                 <div class="shipping-method-button-container" style="justify-content: flex-end;">
                                    @if ($order_settings->shipping_amount_type != 'distance' && !empty($shipping_options) && count($shipping_options) > 0)
-                                        <div class="single-widget shipping_method_area mt-4">
-                                            <h3 class="mt-5 mb-1">{{ __('Shipping Method') }}</h3>
+                                        <div class="single-widget shipping_method_area">
+                                            <h3 class="mb-1">{{ __('Shipping Method') }}</h3>
                                     
                                             <div class="content">
                                                 <div class="checkbox shipping_render_area">
@@ -506,7 +574,24 @@ input#cover_fee_checkbox {
                                             </div>
                                         </div>
                                     @endif
-
+                                    @php 
+                                    $club_info = tenant_club_info(); 
+                             
+                                    @endphp
+                            <div class="checkout-consent mt-3">
+                                <label class="d-flex align-items-start gap-2">
+                                    <input type="checkbox" name="sms_consent" value="1">
+                                    <span>
+                                        I would like to receive recurring messages including notifications, outreach and order updates from
+                                        <strong>{{ $club_info['club_name'] }}</strong>.
+                                        By checking the box, you agree to receive {{ $club_info['club_name'] }} text message updates to the phone number provided above.
+                                        Consent is not a requirement for purchase. Message and data rates may apply.
+                                        Text HELP for help and STOP to cancel. See our
+                                        <a href="#" target="_blank">SMS Terms of Service</a> and
+                                        <a href="#" target="_blank">Privacy Policy</a>.
+                                    </span>
+                                </label>
+                            </div>
                             <div class="single-widget get-button">
                                 <div class="content">
                                     <div class="button">
@@ -516,7 +601,9 @@ input#cover_fee_checkbox {
                                     </div>
                                 </div>
                             </div>
-                                </div>
+                            
+
+                        </div>
                             </div>
                         </div>
                                 
@@ -889,7 +976,7 @@ input#cover_fee_checkbox {
             $('#payment-form').on('submit', function () {
                 submitBtn
                 .prop('disabled', true)
-                .text('PLEASE WAIT...');
+                .text('PLEASE WAIT...')
                 .css({
                     backgroundColor: '#4a4a4a',
                     color: 'white',

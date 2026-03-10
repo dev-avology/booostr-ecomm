@@ -2074,7 +2074,7 @@ private function send_order_recipts($data){
         // Check if the required fields are present
         $rules = [
             'order_total' => 'required|numeric',
-            'payment_identifiers' => 'required|in:card,terminal',
+            'payment_identifiers' => 'required|in:card,terminal,cashapp',
         ];
         
         $validator = Validator::make($request->all(), $rules);
@@ -2086,9 +2086,22 @@ private function send_order_recipts($data){
         }
         
         $order_total = $request->order_total;
+        $paymentIdentifier = $request->payment_identifiers;
         
+        if ($paymentIdentifier === 'terminal') {
+            $paymentConfig = [
+                'payment_method_types' => ['card_present'],
+            ];
+        } else {
+            $paymentConfig = [
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                ],
+            ];
+        }
+
         // Use existing helper functions for fee calculation (same as current system)
-        $credit_card_fee_raw = credit_card_fee_for_pos($order_total,$request->payment_identifiers);        // 2.9% + $0.30
+     $credit_card_fee_raw = credit_card_fee_for_pos($order_total, $paymentIdentifier);      // 2.9% + $0.30
         $booster_platform_fee_raw = booster_club_chagre($order_total); // 1.75% or 3.5%
 
         
@@ -2125,22 +2138,26 @@ private function send_order_recipts($data){
 
         try {
             // Create PaymentIntent with automatic fee transfer to Booostr
-            $intent = PaymentIntent::create([
+            $intentPayload = [
                 'amount' => round($order_total * 100), // Convert to cents
                 'currency' => 'usd',
-                'payment_method_types' => ['card_present', 'card'],
                 'capture_method' => 'automatic',
                 'application_fee_amount' => round($total_application_fee * 100),
                 'transfer_data' => [
                     'destination' => $booostr_stripe_account, // Booostr's Stripe account
                 ],
                 'metadata' => [
+                    'payment_identifier' => $paymentIdentifier,
                     'credit_card_fee' => number_format($credit_card_fee, 2),
                     'booster_platform_fee' => number_format($booster_platform_fee, 2),
                     'total_fees' => number_format($total_application_fee, 2),
                     'club_receives' => number_format($club_receives, 2),
                 ],
-            ]);
+            ];
+            
+            $intentPayload = array_merge($intentPayload, $paymentConfig);
+            
+            $intent = PaymentIntent::create($intentPayload);
 
             \Log::info($intent);
             
@@ -2161,6 +2178,7 @@ private function send_order_recipts($data){
         } catch (\Exception $e) {
             \Log::error('PaymentIntent creation failed: ' . $e->getMessage(), [
                 'order_total' => $order_total,
+                 'payment_identifier' => $paymentIdentifier,
                 'credit_card_fee' => $credit_card_fee,
                 'booster_platform_fee' => $booster_platform_fee,
                 'stripe_account_id' => $booostr_stripe_account
@@ -2550,8 +2568,13 @@ private function send_order_recipts($data){
             Cart::destroy($request->cartId);
             DB::commit();
             
-            
 
+            $reciptdata = $this->order_recipt_data($order->id);
+       
+            $recipt =  $this->send_order_recipt($reciptdata);
+        
+             
+            
                 
             return response()->json([
                 'success'  => true,

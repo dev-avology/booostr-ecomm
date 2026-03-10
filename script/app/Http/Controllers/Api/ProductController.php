@@ -22,7 +22,9 @@ use Cart;
 use DB;
 use Auth;
 use Exception;
-
+use Stancl\Tenancy\Database\Models\Domain;
+use Stripe\Stripe;
+use Stripe\PaymentMethodDomain;
 class ProductController extends Controller
 {
 
@@ -954,5 +956,182 @@ class ProductController extends Controller
 
         return response()->json($msg);
     }
+    
+    
+    public function summary(Request $request)
+    {
+        $userId = auth('web')->id();
+        $perPage = 10;
+    
+        $totalSpent = (float) DB::table('orders')
+            ->where('user_id', $userId)
+            ->sum('total');
+    
+        $orders = DB::table('orders')
+            ->leftJoin('orderitems', 'orders.id', '=', 'orderitems.order_id')
+            ->where('orders.user_id', $userId)
+            ->select(
+                'orders.id',
+                'orders.invoice_no',
+                'orders.total',
+                'orders.created_at',
+    
+                DB::raw('COUNT(orderitems.id) as items_count'),
+    
+                DB::raw("
+                    JSON_ARRAYAGG(
+                        IF(orderitems.id IS NULL, NULL,
+                            JSON_OBJECT(
+                                'qty', orderitems.qty,
+                                'amount', orderitems.amount,
+                                'info', orderitems.info
+                            )
+                        )
+                    ) as items
+                ")
+            )
+            ->groupBy(
+                'orders.id',
+                'orders.invoice_no',
+                'orders.total',
+                'orders.created_at'
+            )
+            ->orderByDesc('orders.id')
+            ->paginate($perPage);
+    
+        // JSON decode
+        $ordersData = collect($orders->items())->map(function ($o) {
+            $o->items = array_values(
+                array_filter(json_decode($o->items, true) ?? [])
+            );
+            return $o;
+        });
+    
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'purchaseCount' => $orders->total(),
+                'totalSpent' => $totalSpent,
+                'recentOrders' => $ordersData,
+                'currentPage' => $orders->currentPage(),
+                'lastPage' => $orders->lastPage(),
+            ]
+        ]);
+    }
+
+
+public function registerPaymentMethodDomain(Request $request)
+{
+    $request->validate([
+        'tenant_id' => 'required|string'
+    ]);
+
+    $tenantId = $request->tenant_id;
+
+    // 1) Get domain from CENTRAL
+    $domainRow = tenancy()->central(function () use ($tenantId) {
+        return \Stancl\Tenancy\Database\Models\Domain::where('tenant_id', $tenantId)
+            ->latest('id')
+            ->first();
+    });
+
+    if (!$domainRow?->domain) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Domain not found for tenant'
+        ], 422);
+    }
+
+    // 2) Sanitize domain
+    $domainName = strtolower(trim($domainRow->domain));
+    $domainName = preg_replace('#^https?://#', '', $domainName);
+    $domainName = preg_replace('#/.*$#', '', $domainName); // remove any path
+    $domainName = rtrim($domainName, '/');
+
+    // 3) Get Stripe secret key (Platform/Admin)
+    $gateway = \App\Models\Getway::where('status', '!=', 0)
+        ->where('namespace', '=', 'App\Lib\Stripe')
+        ->first();
+
+    $gwData = json_decode($gateway->data ?? '{}', true);
+
+    $secretKey = ($gateway?->test_mode == 1)
+        ? ($gwData['test_secret_key'] ?? null)
+        : ($gwData['secret_key'] ?? null);
+
+    if (!$secretKey) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Stripe secret key missing in gateway config'
+        ], 422);
+    }
+
+    Stripe::setApiKey($secretKey);
+
+    try {
+        // 4) Get existing domains (platform)
+        $existing = PaymentMethodDomain::all(['limit' => 100]);
+
+        // helper: map to clean list
+        $mapDomains = function ($collection) {
+            return collect($collection->data ?? [])->map(function ($d) {
+                return [
+                    'id' => $d->id,
+                    'domain_name' => $d->domain_name,
+                    'enabled' => $d->enabled,
+                    'apple_pay' => $d->apple_pay->status ?? null,
+                    'google_pay' => $d->google_pay->status ?? null,
+                    'paypal' => $d->paypal->status ?? null,
+                    'livemode' => $d->livemode,
+                    'created' => $d->created,
+                ];
+            })->values();
+        };
+
+        // 5) If already exists, return immediately
+        foreach ($existing->data as $row) {
+            if (strtolower($row->domain_name) === $domainName) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Domain already registered',
+                    'data' => [
+                        'domain' => $domainName,
+                        'stripe_id' => $row->id,
+                        'all_domains' => $mapDomains($existing),
+                    ]
+                ]);
+            }
+        }
+
+        // 6) Create new domain
+        $created = PaymentMethodDomain::create(['domain_name' => $domainName]);
+
+        // 7) Fresh list after create
+        $fresh = PaymentMethodDomain::all(['limit' => 100]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Domain registered successfully',
+            'data' => [
+                'domain' => $domainName,
+                'stripe_id' => $created->id,
+                'all_domains' => $mapDomains($fresh),
+            ]
+        ]);
+
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Stripe API error: ' . $e->getMessage()
+        ], 500);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Server error: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+
 
 }

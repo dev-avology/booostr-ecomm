@@ -949,6 +949,7 @@ class CheckoutController extends Controller
     public function newMakeOrder(Request $request)
     {
 
+
         $redirect_url=Session::has('redirect_url')?Session::get('redirect_url'):'https://www.boostr.co';
 
         if(Cart::content()->isEmpty()){
@@ -961,6 +962,8 @@ class CheckoutController extends Controller
             'phone' => 'required|max:20',
             'shipping_method' => 'required',
        ]);
+
+       $sms_consent = $request->has('sms_consent') ? 1 : 0;
 
        $order_method='delivery';
        $notify_driver='mail';
@@ -1106,21 +1109,34 @@ class CheckoutController extends Controller
 
         DB::beginTransaction();
         try {
-            if (Auth::check() == false && !$request->has('guest')) {
-                $user = User::firstOrNew(['email' => $request->email]);
-                if (!$user->id) {
-                    $user->name = $request->name;
-                    $user->email = $request->email;
-                    $user->phone = $request->phone;
-                    $user->role_id = 4;
-                    $user->meta = json_encode(['wpuid'=>$request->wpuid]);
-                    $user->password = \Hash::make($request->email);
-                    $user->save();
-                }
-                Auth::loginUsingId($user->id);
-            }
-            $order = new Order;
+          if (Auth::check() == false && !$request->has('guest')) {
+    
+        $user = User::firstOrNew(['email' => $request->email]);
 
+        // create only if new
+        if (!$user->id) {
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->phone = $request->phone;
+            $user->role_id = 4;
+            $user->password = \Hash::make($request->email);
+        }
+    
+        // ✅ ALWAYS update meta (new + existing)
+        $existingMeta = [];
+        if (!empty($user->meta)) {
+            $existingMeta = json_decode($user->meta, true) ?: [];
+        }
+    
+        $existingMeta['wpuid'] = $request->wpuid ?? 0;
+        $existingMeta['sms_consent'] = $sms_consent;
+
+        $user->meta = json_encode($existingMeta);
+        $user->save();
+    
+        Auth::loginUsingId($user->id);
+        }
+            $order = new Order;
             if (Auth::check() == true) {
                 $order->user_id = Auth::id();
             }
@@ -1146,7 +1162,8 @@ class CheckoutController extends Controller
             $order->payment_status = 0;
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
-
+            
+            
              // ✅ Save pickup details if in-person pickup selected
              if ($request->shipping_method === 'inperson_pickup') {
                 \App\Models\Ordermeta::updateOrCreate(
@@ -1250,6 +1267,7 @@ class CheckoutController extends Controller
                 $customer_info['booster_platform_fee'] = $booster_platform_fee;
                 $customer_info['cover_fee'] = $cover_fee;
                 $customer_info['cart_id'] = $cartid;
+                $customer_info['sms_consent'] = $sms_consent;
 
                  \App\Models\Ordermeta::updateOrCreate(
                     ['order_id' => $order->id, 'key' => 'orderinfo'],
@@ -1296,8 +1314,10 @@ class CheckoutController extends Controller
                 'booster_level_id' => 4,
                 'customer_tag' => 'online store customer',
                 'addedsource' => 'storetool',
+                'opt_in_tools' => $sms_consent,
             );	
- 
+            
+           
             $subtotal = 0;
             
             foreach ($order->orderitems ?? [] as $row){
@@ -1320,10 +1340,10 @@ class CheckoutController extends Controller
                 'order_subtotal'=>$subtotal,
             ];
 
-           $recipt =  $this->send_order_recipt($user_recipt);
+        //   $recipt =  $this->send_order_recipt($user_recipt);
 
-            \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
-            \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
+        //     \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
+        //     \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
 
             $prices=Orderstock::where('order_id',$order->id)->whereHas('price')->with('price')->get();
 
@@ -1377,7 +1397,7 @@ class CheckoutController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
 
-        // dd($th);
+        // dd($th);die;
           
             return redirect()->away($redirect_url . '/?type=error&message=Oops something wrong while saving order data');
         }
@@ -1386,6 +1406,41 @@ class CheckoutController extends Controller
     }
 
 
+    // private function sync_contact_to_crm($contact_manager_data)
+    // {
+    //   $postData = json_encode($contact_manager_data);
+    
+    //     $url = env("WP_API_URL");
+    //   $url = ($url != '') 
+    // ? $url . '/add-pos-contact' 
+    // : "https://staging3.booostr.co/wp-json/store-api/v1/add-pos-contact";
+    
+    //     $ch = curl_init();
+    //     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    //     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+    //     curl_setopt($ch, CURLOPT_USERAGENT, 'Tenant store');
+    //     curl_setopt($ch, CURLOPT_URL, $url);
+    //     curl_setopt($ch, CURLOPT_POST, 1);
+    //     curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+    //     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    
+    //     $response = curl_exec($ch);
+    // // dd($response);die;
+    //     if (curl_errno($ch)) {
+    //         \Log::error('CRM sync cURL error: ' . curl_error($ch));
+    //     }
+    
+    //     curl_close($ch);
+    
+    //     \Log::info('CRM sync response', [
+    //         'response' => $response
+    //     ]);
+    
+    //     return $response;
+    // }
+    
+    
     function paymentPage($order_id)
     {
 
@@ -1536,9 +1591,9 @@ class CheckoutController extends Controller
        
             $recipt =  $this->send_order_recipt($reciptdata);
 
-           // \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
+            \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
             
-          //  \App\Lib\NotifyToUser::sendEmail($order, $ordermeta['email'], 'user');
+            \App\Lib\NotifyToUser::sendEmail($order, $ordermeta['email'], 'user');
 
         }
     
@@ -1560,7 +1615,7 @@ class CheckoutController extends Controller
     
         } catch (\Exception $e) {
             
-            dd($e);
+            dd($e);die;
             
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -1617,11 +1672,13 @@ class CheckoutController extends Controller
 									'contact_tags' => '',
                                     'customer_tag' => 'online store customer',
                                     'addedsource' => 'storetool',
+                                    'opt_in_tools' => $ordermeta['sms_consent'] ?? 0,
 								);
 								
 								
 			$user_recipt = [
                 'contact_mgr_data'=>$contact_manager_data,
+                'opt_in_tools' => (int) ($ordermeta['sms_consent'] ?? 0),
                 'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
                 'receipt_title'=>$ordermeta['name'],
                 'receipent_org'=>$club_info['club_name'].' Store',
@@ -2101,7 +2158,7 @@ class CheckoutController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
 
-        //dd($th);
+        // dd($th); die;
           
             return redirect()->away($redirect_url . '/?type=error&message=Oops something wrong while saving order data');
         }
@@ -2187,11 +2244,13 @@ class CheckoutController extends Controller
 
 
         $postData = json_encode($data);
+        // dd($postData);die;
 
         $url = env("WP_API_URL");
         
         $url = ($url != '') ? $url.'/user-recipt' : "https://staging3.booostr.co/wp-json/store-api/v1/user-recipt";
 
+        // dd($url);die;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
@@ -2204,7 +2263,6 @@ class CheckoutController extends Controller
 
         $response = curl_exec($ch);
 
-        // dd($response);
 
         // Check for cURL errors
         if (curl_errno($ch)) {
@@ -2213,10 +2271,29 @@ class CheckoutController extends Controller
         curl_close($ch);
         return $response;
     }
+    
     public function success()
     {
-        Cart::instance('default')->destroy();
-        return \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
+        $order = Order::find(Session::get('order_id'));
+      
+        $cartid = Session::get('cartid');
+    
+        if(Session::has('cart') && $cartid != null){
+            $this->syncFormData($cartid, $order->id);
+            Cart::destroy($cartid);
+        }
+        
+        \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
+    
+        $orderMetaRow = \App\Models\Ordermeta::where('order_id', $order->id)
+            ->where('key', 'orderinfo')
+            ->first();
+        
+        $ordermeta = json_decode($orderMetaRow->value ?? '{}', true);
+        
+        if(!empty($ordermeta['email'])){
+            \App\Lib\NotifyToUser::sendEmail($order, $ordermeta['email'], 'user');
+        }
     }
 
     public function fail()
