@@ -1,0 +1,189 @@
+<li class="menu-header"><?php echo e(__('Dashboard')); ?></li>
+<li class="<?php echo e(Request::is('seller/dashboard*') ? 'active' : ''); ?>">
+    <a class="nav-link" href="<?php echo e(url('/seller/dashboard')); ?>">
+        <i class="fas fa-tachometer-alt"></i>
+        <span><?php echo e(__('Dashboard')); ?></span>
+    </a>
+</li>
+<?php /*
+<li class="menu-header">{{ __('Order Management') }}</li>
+<li class="{{ Request::is('seller/pos*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/pos') }}">
+     <i class="fas fa-cart-plus"></i>
+     <span>{{ __('POS') }}</span>
+ </a>
+</li>
+<li class="{{ Request::is('seller/order*') ? 'active' : '' }} {{ Request::is('seller/order*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/order') }}">
+     <i class="fas fa-box"></i>
+     <span>{{ __('Orders') }}</span>
+ </a>
+</li>
+<li class="{{ Request::is('seller/calender*') ? 'active' : '' }} {{ Request::is('seller/calender*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/calender') }}">
+     <i class="fas fa-clock"></i>
+     <span>{{ __('Calender') }}</span>
+ </a>
+</li>
+<li class="{{ Request::is('seller/orderstatus*') ? 'active' : '' }} {{ Request::is('seller/orderstatus*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/orderstatus') }}">
+     <i class="fas fa-tags"></i>
+     <span>{{ __('Order Status') }}</span>
+ </a>
+</li>
+*/ ?>
+
+
+<li class="menu-header"><?php echo e(__('Product Management')); ?></li>
+<li class="<?php echo e(Request::is('seller/product*') ? 'active' : ''); ?> <?php echo e(Request::is('seller/category*') ? 'active' : ''); ?> <?php echo e(Request::is('seller/brand*') ? 'active' : ''); ?> <?php echo e(Request::is('seller/attribute*') ? 'active' : ''); ?> <?php echo e(Request::is('seller/tag*') ? 'active' : ''); ?> <?php echo e(Request::is('seller/coupon*') ? 'active' : ''); ?>">
+    <a class="nav-link has-dropdown" href="#">
+        <i class="fas fa-box"></i>
+        <span><?php echo e(__('Products')); ?></span>
+    </a>
+    <ul class="dropdown-menu" >
+        <li class="<?php echo e(Request::is('seller/product*') ? 'active' : ''); ?>">
+            <a class="nav-link" href="<?php echo e(url('/seller/product')); ?>"><?php echo e(__('Products')); ?></a>
+        </li>
+        <li class="<?php echo e(Request::is('seller/category*') ? 'active' : ''); ?>">
+            <a class="nav-link" href="<?php echo e(url('/seller/category')); ?>"><?php echo e(__('Categories')); ?></a>
+        </li>
+        <li class="<?php echo e(Request::is('seller/brand*') ? 'active' : ''); ?>">
+            <a class="nav-link" href="<?php echo e(url('/seller/brand')); ?>"><?php echo e(__('Brands')); ?></a>
+        </li>
+        <li class="<?php echo e(Request::is('seller/attribute*') ? 'active' : ''); ?>">
+            <a class="nav-link" href="<?php echo e(url('/seller/attribute')); ?>"><?php echo e(__('Attributes')); ?></a>
+        </li>
+        <li class="<?php echo e(Request::is('seller/tag*') ? 'active' : ''); ?>">
+            <a class="nav-link" href="<?php echo e(url('/seller/tag')); ?>"><?php echo e(__('Tags')); ?></a>
+        </li>
+
+        <li class="<?php echo e(Request::is('seller/coupon*') ? 'active' : ''); ?>">
+            <a class="nav-link" href="<?php echo e(url('/seller/coupon')); ?>"><?php echo e(__('Coupons')); ?></a>
+        </li> 
+        <!-- <li>
+            <a class="nav-link" href="<?php echo e(url('/seller/features')); ?>"><?php echo e(__('Product Features')); ?></a>
+        </li> -->
+
+        <!-- <li>
+            <a class="nav-link" href="<?php echo e(url('/seller/barcode')); ?>"><?php echo e(__('Barcode Print')); ?></a>
+        </li> -->
+       
+        
+        
+       
+        <!-- <li>
+            <a class="nav-link" href="<?php echo e(url('/seller/coupon')); ?>"><?php echo e(__('Coupons')); ?></a>
+        </li> -->
+    </ul>
+</li>
+
+<li class="menu-header"><?php echo e(__('Order Management')); ?></li>
+<li class="<?php echo e(Request::is('seller/pos*') ? 'active' : ''); ?>">
+    <a class="nav-link" href="<?php echo e(url('/seller/pos')); ?>">
+     <i class="fas fa-cart-plus"></i>
+     <span><?php echo e(__('POS')); ?></span>
+ </a>
+</li>
+<?php /*
+ <li class="{{ Request::is('seller/review*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/review') }}">
+        <i class="fas fa-star-half-alt"></i>
+        <span>{{ __('Reviews') }}</span>
+    </a>
+</li>
+ <li class="menu-header">{{ __('User Management') }}</li>
+<li class="{{ Request::is('seller/user*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/user') }}">
+        <i class="fas fa-users"></i>
+        <span>{{ __('Users') }}</span>
+    </a>
+</li>
+<li class="{{ Request::is('seller/rider*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/rider') }}">
+        <i class="fas fa-motorcycle"></i>
+        <span>{{ __('Riders') }}</span>
+    </a>
+</li>
+
+<li class="menu-header">{{ __('Payment Gateway') }}</li>
+<li class="{{ Request::is('seller/payment/gateway*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/payment/gateway') }}">
+        <i class="fas fa-money-check-alt"></i>
+        <span>{{ __('Payment Gateways') }}</span>
+    </a>
+</li>
+<li class="menu-header">{{ __('Table Management') }}</li>
+<li class="{{ Request::is('seller/table*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/table') }}">
+        <i class="fas fa-table"></i>
+        <span>{{ __('Tables') }}</span>
+    </a>
+</li>
+<li class="menu-header">{{ __('Website Management') }}</li>
+<li class="{{ Request::is('seller/page*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/page') }}">
+        <i class="fas fa-file"></i>
+        <span>{{ __('Pages') }}</span>
+    </a>
+</li>
+<li class="{{ Request::is('seller/blog*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/blog') }}">
+        <i class="fas fa-blog"></i>
+        <span>{{ __('Blogs') }}</span>
+    </a>
+</li>
+<li class="{{ Request::is('seller/slider*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/slider') }}">
+        <i class="fas fa-sliders-h"></i>
+        <span>{{ __('Sliders') }}</span>
+    </a>
+</li>
+<li class="{{ Request::is('seller/special-menu*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ url('/seller/special-menu') }}">
+        <i class="fas fa-th"></i>
+        <span>{{ __('Special Menus') }}</span>
+    </a>
+</li>
+<li class="{{ Request::is('seller/banner*') ? 'active' : '' }} {{ Request::is('seller/banner*') ? 'active' : '' }}">
+    <a class="nav-link has-dropdown" href="#">
+        <i class="fas fa-box"></i>
+        <span>{{ __('Banners') }}</span>
+    </a>
+    <ul class="dropdown-menu" >
+        <li><a class="nav-link" href="{{ url('/seller/banner/short-banner') }}"><span>{{ __('Short Banner') }}</span></a></li>
+        <li><a class="nav-link" href="{{ url('/seller/banner/large-banner') }}"><span>{{ __('Large Banner') }}</span></a></li>
+    </ul>
+</li>
+<li class="{{ Request::is('seller/settings*') ? 'active' : '' }} {{ Request::is('seller/settings*') ? 'active' : '' }}">
+    <a class="nav-link has-dropdown" href="#">
+        <i class="fas fa-cog"></i>
+        <span>{{ __('Settings') }}</span>
+    </a>
+    <ul class="dropdown-menu" >
+       <li><a class="nav-link" href="{{ url('/seller/store-settings') }}"><span>{{ __('Template Settings') }}</span></a></li>
+       <li><a class="nav-link" href="{{ url('/seller/settings/custom_css_js') }}"><span>{{ __('Additional Css & Js') }}</span></a></li>
+       <li><a class="nav-link" href="{{ url('/seller/settings/pwa') }}"><span> {{ __('PWA Configuration') }}</span></a></li>
+       <li><a class="nav-link" href="{{ url('/seller/settings/seo') }}"><span>{{ __('SEO Settings') }}</span></a></li>
+   </ul>
+</li>
+*/?>
+<li class="<?php echo e(Request::is('seller/order*') ? 'active' : ''); ?> <?php echo e(Request::is('seller/order*') ? 'active' : ''); ?>">
+    <a class="nav-link" href="<?php echo e(url('/seller/order')); ?>">
+     <i class="fas fa-box"></i>
+     <span><?php echo e(__('Orders')); ?></span>
+ </a>
+</li>
+
+
+<li class="<?php echo e(Request::is('seller/page*') ? 'active' : ''); ?>">
+    <a class="nav-link" href="<?php echo e(url('/seller/page')); ?>">
+        <i class="fas fa-file"></i>
+        <span><?php echo e(__('Pages')); ?></span>
+    </a>
+</li>
+<li class="<?php echo e(Request::is('seller/site-settings/general') ? 'active' : ''); ?>">
+    <a class="nav-link" href="<?php echo e(route('seller.site-settings.show','general')); ?>">
+        <i class="fas fa-cog"></i>
+        <span><?php echo e(__('Store Setting')); ?></span>
+    </a>
+</li><?php /**PATH D:\wamp64\www\booostr-ecomm\script\resources\views/seller/sellermenu.blade.php ENDPATH**/ ?>
