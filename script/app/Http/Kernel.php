@@ -29,6 +29,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        
     ];
 
     /**
@@ -46,6 +47,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\Localization::class,
+            \App\Http\Middleware\PageCache::class,
         ],
 
         'api' => [
@@ -86,6 +88,8 @@ class Kernel extends HttpKernel
         'Isinstalled' => \App\Http\Middleware\IsinstalledMiddleware::class,
         'Avalogy' => \App\Http\Middleware\AvalogyMiddleware::class,
         'Storecheck' => \App\Http\Middleware\StoreSettingCheckMiddleware::class,
+        'page.cache' => \App\Http\Middleware\PageCache::class,
         
     ];
+
 }

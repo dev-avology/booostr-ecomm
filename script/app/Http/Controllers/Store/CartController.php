@@ -193,6 +193,7 @@ class CartController extends Controller
                     'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
                     'slug'=>$info->slug,
                     'price_id'=>$priceids
+                    
                 ]]);
                
                 
@@ -200,7 +201,7 @@ class CartController extends Controller
         else{
             $price=$info->firstprice;
             $weight=$price->weight ?? 0;
-            
+            $ticketOptions = $this->getTicketOptions($info->id);
             $options=[
                 
                 'sku'=>$price->sku,
@@ -208,6 +209,9 @@ class CartController extends Controller
                 'options'=>[],
                 'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
                 'slug'=>$info->slug,
+                'product_kind' => $ticketOptions['product_kind'],
+                'ticket_fee' => $ticketOptions['ticket_fee'],
+       
                 
                
             ];
@@ -232,7 +236,7 @@ class CartController extends Controller
 
     public function addtocart(Request $request)
     {
-        
+
        if ($request->qty == 0) {
            $errors['errors']['error']='Minimum cart quantity 1';
             return response()->json($errors,401);
@@ -244,9 +248,6 @@ class CartController extends Controller
         Session::put('cartid', 'default');
         Cart::instance('default');
         if ($info->is_variation == 1) {
-
-
-
                 $groups=[];
                 foreach ($request->option ?? [] as $key => $option) {
                     $option_values=[];
@@ -310,6 +311,7 @@ class CartController extends Controller
                     return response()->json($errors,401);
                 }
 
+                $ticketOptions = $this->getTicketOptions($info->id);
              $data =    Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $final_price, 'weight' => $final_weight, 'options' => [
                     'options'=>$price_option,
                     'sku'=>null,
@@ -318,8 +320,10 @@ class CartController extends Controller
                     'slug'=>$info->slug,
                     'price_id'=>$priceids,
                     'cartid' => Session::get('cartid', 'default'),
+                    'product_kind' => $ticketOptions['product_kind'],
+                    'ticket_fee' => $ticketOptions['ticket_fee'],
                 ]]);
-               
+             
       
         }
         else{
@@ -343,23 +347,25 @@ class CartController extends Controller
             $weight=$price->weight ?? 0;
 
             if ($price->stock_manage == 1) {
-                if ($exist_qty >= $price->qty) {
+                if ($exist_qty > $price->qty){
                     $errors['errors']['error']='Maximum stock limit is ('.$price->qty.')';
                     return response()->json($errors,401);
                 }
             }
             
+            $ticketOptions = $this->getTicketOptions($info->id);
+
             $options=[
-                
+            
                 'sku'=>$price->sku,
                 'stock'=>$price->qty,
                 'options'=>[],
                 'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
                 'slug'=>$info->slug,
-                
-               
+                'product_kind' => $ticketOptions['product_kind'],
+                'ticket_fee' => $ticketOptions['ticket_fee'],
+            
             ];
-
             
 
             if ($price->stock_manage == 1 && $price->stock_status == 1) {
@@ -372,8 +378,22 @@ class CartController extends Controller
                 return response()->json($errors,401);
                 
             }
+            
+            $cartPrice = (float) $price->price;
 
-            Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options,'cartid' => Session::get('cartid', 'default')]);
+            if (($ticketOptions['product_kind'] ?? '') === 'event_ticket') {
+                $cartPrice += (float) ($ticketOptions['ticket_fee'] ?? 0.75);
+            }
+
+            Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $cartPrice, 'weight' => $weight, 'options' => $options]);
+        }
+
+        $ticketFeeTotal = 0;
+
+        foreach (Cart::content() as $cartItem) {
+            if (($cartItem->options->product_kind ?? '') == 'event_ticket') {
+                $ticketFeeTotal += ((float) ($cartItem->options->ticket_fee ?? 0)) * (int) $cartItem->qty;
+            }
         }
 
         $productcartdata['cart_content']=Cart::content();
@@ -381,6 +401,8 @@ class CartController extends Controller
         $productcartdata['cart_tax']= Cart::tax();
         $productcartdata['cart_total']= Cart::total();
         $productcartdata['cart_count']= Cart::count();
+        $productcartdata['ticket_fee_total'] = number_format($ticketFeeTotal, 2);
+        $productcartdata['cart_total_with_ticket_fee'] = number_format(((float) str_replace(',', '', Cart::total())) + $ticketFeeTotal, 2);
         
         // ✅ cart id session me store karo (ONLY ONCE)
         if (!session()->has('cartid')) {
@@ -388,6 +410,26 @@ class CartController extends Controller
         }
         return response()->json($productcartdata);
         
+    }
+
+    private function getTicketOptions($termId)
+    {
+        $productKind = DB::table('termmetas')
+            ->where('term_id', $termId)
+            ->where('key', 'product_kind')
+            ->value('value');
+    
+        $ticketFee = DB::table('termmetas')
+            ->where('term_id', $termId)
+            ->where('key', 'ticket_fee')
+            ->value('value');
+    
+        $isTicket = trim((string) $productKind) === 'event_ticket';
+    
+        return [
+            'product_kind' => $isTicket ? 'event_ticket' : 'product',
+            'ticket_fee' => $isTicket ? (float) ($ticketFee ?: 0.75) : 0,
+        ];
     }
 
 

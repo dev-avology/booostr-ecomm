@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Tenant;
 use App\Services\TenantSyncService;
+use App\Services\StripeDomainSyncService;
 use Illuminate\Support\Facades\Log;
 
 class DailyTenantSync extends Command
@@ -21,10 +22,10 @@ class DailyTenantSync extends Command
 
                 foreach ($tenants as $tenant) {
                     try {
-                        // 🔹 Switch tenant context
                         tenancy()->initialize($tenant);
 
                         app(TenantSyncService::class)->run($tenant);
+                       // app(StripeDomainSyncService::class)->run($tenant->id);
 
                         $this->info("Synced tenant: {$tenant->id}");
                     } catch (\Throwable $e) {

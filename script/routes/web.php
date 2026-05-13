@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CouponController;
 // use App\Http\Controllers\Store\CartController
-
+use App\Http\Controllers\Store\TicketScanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -442,6 +442,4 @@ Route::group(['prefix'=>'rider', 'as' => 'rider.', 'namespace' => 'Rider','middl
 });
 
 
-
-
-
+Route::get('/ticket/scan/{uuid}', [TicketScanController::class, 'scan']);

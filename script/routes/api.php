@@ -24,13 +24,14 @@ Route::group([
     Route::post('/partner/create', 'Api\MerchantController@createmerchant');
     Route::post('/partner/login', 'Api\MerchantController@login');
     Route::post('/partner/createstore', 'Api\MerchantController@createstore');
+
 });
 
 // Route::post('/partner/createstore', 'Api\MerchantController@createstore')->middleware('auth:api');
 
 Route::group([
     'prefix'     => '/storedata',
-    'middleware' => [AvalogyMiddleware::class,StoreSettingCheckMiddleware::class, InitializeTenancyByRequestData::class, 'tenantenvironment'],
+    'middleware' => [AvalogyMiddleware::class,StoreSettingCheckMiddleware::class, InitializeTenancyByRequestData::class, 'tenantenvironment','page.cache'],
 ], function () {
     Route::get('/categories', 'Api\ProductController@categoryList');
     Route::get('/products', 'Api\ProductController@productList');
@@ -50,7 +51,8 @@ Route::group([
     Route::post('/add_product_form','Api\ProductController@addProductForm');
 
     Route::get('/products_list', 'Api\ProductController@productDropdownList');
-
+    
+    Route::post('/partner/register-payment-domain', 'Api\ProductController@registerPaymentMethodDomain');
 
     // PosApiController
 
@@ -90,4 +92,15 @@ Route::group([
     Route::get('checkout-form-redirect/{cartid}/{redirect_url}', 'Store\CheckoutController@redirect_to_checkout_form');
 
     Route::get('cron/product-price-reset', 'Seller\CronController@ProductPriceReset');
+});
+
+Route::group([
+    'prefix'     => '/storedata',
+    'middleware' => [
+        InitializeTenancyByRequestData::class,
+        'tenantenvironment',
+        'auth:web'
+    ],
+], function () {
+    Route::get('/summary', 'Api\ProductController@summary');
 });

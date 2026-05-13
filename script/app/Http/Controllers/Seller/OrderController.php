@@ -56,7 +56,8 @@ class OrderController extends Controller
        if ($request->src) {
            $orders=$orders->where('invoice_no',$request->src);
        }
-       $orders=$orders->latest()->paginate(30);
+       $orders = $orders->where('payment_status','!=',0)->latest()->paginate(30);
+       
        return view('seller.order.index',compact('request','status','product_type','request_status','orders'));
     }
 

@@ -70,6 +70,8 @@ body{
       border: 1px solid lightgrey !important;
       border-radius: 3px;
       box-shadow:unset !important;
+       max-width: 100%;
+       width:100%;
     }
     
     .checkout-main input[type=text] {

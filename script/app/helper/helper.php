@@ -6,6 +6,7 @@ use Amcoders\Lpress\Lphelper;
 use App\Models\Category;
 use App\Models\Term;
 use App\Models\Coupon;
+use App\Models\AppSequires;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
@@ -814,3 +815,12 @@ function storeLaunch(){
 // 		return response()->json(["status" => 'false', "message" => 'Something went wrong']);
 // 	}
 // }
+
+
+if (!function_exists('get_secret')) {
+    function get_secret($key, $default = null)
+    {
+        $secret = AppSequires::where('key', $key)->first();
+        return $secret ? $secret->value : $default;
+    }
+}

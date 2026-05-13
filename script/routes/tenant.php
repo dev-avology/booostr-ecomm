@@ -23,6 +23,7 @@ use App\Jobs\TenantMailJob;
 // tenant routes
 
 Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','PreventAccessFromCentralDomains','web','tenantenvironment']], function () {
+
     Auth::routes();
 
     
@@ -75,7 +76,9 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::post('/checkout/process-payment/{order_id}', 'Store\CheckoutController@processPayment')->name('checkout.processPayment');
     Route::get('/checkout/process-payment/{order_id}', 'Store\CheckoutController@processPayment')->name('checkout.processPayment');
 
-    Route::get('/payment/success', 'Store\CheckoutController@paymentSuccess')->name('checkout.success');
+    // Route::get('/payment/success', 'Store\CheckoutController@paymentSuccess')->name('checkout.success');
+    
+    Route::get('/payment/success', 'Store\CheckoutController@success')->name('checkout.success');
 
 
     Route::get('/thanks', 'Store\PageController@thanks');

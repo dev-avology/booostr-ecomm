@@ -82,6 +82,19 @@ class TenantCategorySeeder extends Seeder
           'created_at' => '2021-12-16 08:40:57',
           'updated_at' => '2021-12-16 08:40:57',
         ),
+        5 =>
+        array (
+          'id' => 6,
+          'name' => 'Online Ticketing',
+          'slug' => 'online_ticketing',
+          'type' => 'product_type',
+          'category_id' => NULL,
+          'featured' => 0,
+          'menu_status' => 0,
+          'status' => 1,
+          'created_at' => '2021-12-16 08:40:57',
+          'updated_at' => '2021-12-16 08:40:57',
+        ),
       );
 
     Category::insert($categories);

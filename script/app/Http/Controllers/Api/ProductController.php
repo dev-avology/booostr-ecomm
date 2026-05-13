@@ -22,12 +22,28 @@ use Cart;
 use DB;
 use Auth;
 use Exception;
+use Stancl\Tenancy\Database\Models\Domain;
+use Stripe\Stripe;
+use Stripe\PaymentMethodDomain;
+use Illuminate\Support\Facades\Redis;
 
 class ProductController extends Controller
 {
 
 
    public function categoryList(Request $request){
+       
+       $cacheKey = 'category_list';
+
+        $cachedData = $this->redisGet($cacheKey);
+    
+        if ($cachedData) {
+            return response()->json([
+                "status" => true,
+                "message" => "categories fetched from redis",
+                "result" => $cachedData
+            ]);
+        }
 
        //$posts=Category::where('type','category')->with('preview','icon','show_on')->withCount('products')->get();
        $posts = Category::where('type', 'category')->whereNull('category_id')
@@ -40,14 +56,41 @@ class ProductController extends Controller
 
        $product_count = Term::query()->where('type', 'product')->where('status', 1)
        ->whereIn('list_type', [0,1])->with('media', 'firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->count();
+       
+       $result = [
+        'categories' => $posts,
+        'product_count' => $product_count
+       ];
+       
+        $this->redisSet($cacheKey, $result, 600);
 
-       return response()->json(["status" => true, "message" => "products", "result" => ['categories'=>$posts,'product_count'=>$product_count]]);
+       return response()->json([
+        "status" => true,
+        "message" => "categories fetched from database",
+        "result" => $result
+       ]);
     }
 
 // Product list api
 
     public function productList(Request $request)
     {
+        
+        $category = $request->category ?? 'all';
+        $page = $request->page ?? 1;
+    
+        $cacheKey = 'product_list_category_' . $category . '_page_' . $page;
+    
+        $cachedData = $this->redisGet($cacheKey);
+    
+        if ($cachedData) {
+            return response()->json([
+                "status" => true,
+                "message" => "products fetched from redis",
+                "result" => $cachedData
+            ]);
+        }
+        
        $posts = Term::query()->where('type', 'product')->where('status', 1)
        ->whereIn('list_type', [0,1])->with('media','category','firstprice', 'lastprice','formType','optionwithcategories','price','prices')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
 
@@ -57,7 +100,17 @@ class ProductController extends Controller
             });
         }
         $posts = $posts->orderBy('order','asc')->paginate(50);
-        return response()->json(["status" => true, "message" => "products", "result" => $posts]);
+        
+        $result = $posts->toArray();
+
+        $this->redisSet($cacheKey, $result, 600);
+    
+        return response()->json([
+            "status" => true,
+            "message" => "products fetched from database",
+            "result" => $result
+        ]);
+        
     }
 
 
@@ -123,6 +176,20 @@ class ProductController extends Controller
     
     public function productDetail(Request $request,$id)
     {
+        
+        $cacheKey = 'product_detail_' . $id;
+
+        $cachedData = $this->redisGet($cacheKey);
+    
+        if ($cachedData) {
+            return response()->json([
+                "status" => true,
+                "message" => "product fetched from redis",
+                "result" => $cachedData['result'],
+                "galleries" => $cachedData['galleries']
+            ]);
+        }
+        
         $info=Term::query()->where('type','product')->where('status',1)->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo','formType')->withCount('reviews')->where('id', $id)->first();
         if(empty($info)){
             return response()->json(["status" => false, "message" => "sorry, product not found", "result" => []]);
@@ -138,12 +205,38 @@ class ProductController extends Controller
         unset($info->medias);
         unset($info->preview);
         $info->gallery=$galleries;
-        return response()->json(["status" => true, "message" => "products", "result" =>$info,"galleries"=>$galleries]);
+        
+         $result = [
+            'result' => $info,
+            'galleries' => $galleries
+        ];
+        
+        $this->redisSet($cacheKey, $result, 600);
+        
+         return response()->json([
+            "status" => true,
+            "message" => "product fetched from database",
+            "result" => $info,
+            "galleries" => $galleries
+       ]);
         
     }
 
     public function productDetailBySlug(Request $request,$id)
     {
+         $cacheKey = 'product_detail_slug_' . $id;
+
+        $cachedData = $this->redisGet($cacheKey);
+    
+        if ($cachedData) {
+            return response()->json([
+                "status" => true,
+                "message" => "product fetched from redis",
+                "result" => $cachedData['result'],
+                "galleries" => $cachedData['galleries']
+            ]);
+        }
+        
         $info=Term::query()->where('type','product')->where('status',1)->whereIn('list_type', [0,1])->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo','formType')->withCount('reviews')->where('slug', $id)->first();
         if(empty($info)){
             return response()->json(["status" => false, "message" => "sorry, product not found", "result" => []]);
@@ -159,12 +252,26 @@ class ProductController extends Controller
         unset($info->medias);
         unset($info->preview);
         $info->gallery=$galleries;
-        return response()->json(["status" => true, "message" => "products", "result" =>$info,"galleries"=>$galleries]);
+        
+        $result = [
+            'result' => $info,
+            'galleries' => $galleries
+        ];
+    
+        $this->redisSet($cacheKey, $result, 600);
+    
+        return response()->json([
+            "status" => true,
+            "message" => "product fetched from database",
+            "result" => $info,
+            "galleries" => $galleries
+        ]);
         
     }
 
     public function search(Request $request)
     {
+
         $posts = Term::query()
             ->where('type', 'product')
             ->whereIn('list_type', [0,1])
@@ -953,6 +1060,216 @@ class ProductController extends Controller
         }
 
         return response()->json($msg);
+    }
+    
+    
+    public function summary(Request $request)
+    {
+        // $userId = 2;
+        $userId = auth('web')->id();
+
+        if (empty($userId)) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'purchaseCount' => 0,
+                    'totalSpent' => 0,
+                    'recentOrders' => [],
+                    'currentPage' => 1,
+                    'lastPage' => 1,
+                ]
+            ]);
+        }
+        $perPage = 10;
+    
+        $totalSpent = (float) DB::table('orders')
+            ->where('user_id', $userId)
+            ->sum('total');
+    
+        $orders = DB::table('orders')
+            ->leftJoin('orderitems', 'orders.id', '=', 'orderitems.order_id')
+            ->where('orders.user_id', $userId)
+            ->select(
+                'orders.id',
+                'orders.invoice_no',
+                'orders.total',
+                'orders.created_at',
+    
+                DB::raw('COUNT(orderitems.id) as items_count'),
+    
+                DB::raw("
+                    JSON_ARRAYAGG(
+                        IF(orderitems.id IS NULL, NULL,
+                            JSON_OBJECT(
+                                'qty', orderitems.qty,
+                                'amount', orderitems.amount,
+                                'info', orderitems.info
+                            )
+                        )
+                    ) as items
+                ")
+            )
+            ->groupBy(
+                'orders.id',
+                'orders.invoice_no',
+                'orders.total',
+                'orders.created_at'
+            )
+            ->orderByDesc('orders.id')
+            ->paginate($perPage);
+    
+        // JSON decode
+        $ordersData = collect($orders->items())->map(function ($o) {
+            $o->items = array_values(
+                array_filter(json_decode($o->items, true) ?? [])
+            );
+            return $o;
+        });
+    
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'purchaseCount' => $orders->total(),
+                'totalSpent' => $totalSpent,
+                'recentOrders' => $ordersData,
+                'currentPage' => $orders->currentPage(),
+                'lastPage' => $orders->lastPage(),
+            ]
+        ]);
+    }
+
+
+public function registerPaymentMethodDomain(Request $request)
+{
+    $request->validate([
+        'tenant_id' => 'required|string'
+    ]);
+
+    $tenantId = $request->tenant_id;
+
+    // 1) Get domain from CENTRAL
+    $domainRow = tenancy()->central(function () use ($tenantId) {
+        return \Stancl\Tenancy\Database\Models\Domain::where('tenant_id', $tenantId)
+            ->latest('id')
+            ->first();
+    });
+
+    if (!$domainRow?->domain) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Domain not found for tenant'
+        ], 422);
+    }
+
+    // 2) Sanitize domain
+    $domainName = strtolower(trim($domainRow->domain));
+    $domainName = preg_replace('#^https?://#', '', $domainName);
+    $domainName = preg_replace('#/.*$#', '', $domainName); // remove any path
+    $domainName = rtrim($domainName, '/');
+
+    // 3) Get Stripe secret key (Platform/Admin)
+    $gateway = \App\Models\Getway::where('status', '!=', 0)
+        ->where('namespace', '=', 'App\Lib\Stripe')
+        ->first();
+
+    $gwData = json_decode($gateway->data ?? '{}', true);
+
+    $secretKey = ($gateway?->test_mode == 1)
+        ? ($gwData['test_secret_key'] ?? null)
+        : ($gwData['secret_key'] ?? null);
+
+    if (!$secretKey) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Stripe secret key missing in gateway config'
+        ], 422);
+    }
+
+    Stripe::setApiKey($secretKey);
+
+    try {
+        // 4) Get existing domains (platform)
+        $existing = PaymentMethodDomain::all(['limit' => 100]);
+
+        // helper: map to clean list
+        $mapDomains = function ($collection) {
+            return collect($collection->data ?? [])->map(function ($d) {
+                return [
+                    'id' => $d->id,
+                    'domain_name' => $d->domain_name,
+                    'enabled' => $d->enabled,
+                    'apple_pay' => $d->apple_pay->status ?? null,
+                    'google_pay' => $d->google_pay->status ?? null,
+                    'paypal' => $d->paypal->status ?? null,
+                    'livemode' => $d->livemode,
+                    'created' => $d->created,
+                ];
+            })->values();
+        };
+
+        // 5) If already exists, return immediately
+        foreach ($existing->data as $row) {
+            if (strtolower($row->domain_name) === $domainName) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Domain already registered',
+                    'data' => [
+                        'domain' => $domainName,
+                        'stripe_id' => $row->id,
+                        'all_domains' => $mapDomains($existing),
+                    ]
+                ]);
+            }
+        }
+
+        // 6) Create new domain
+        $created = PaymentMethodDomain::create(['domain_name' => $domainName]);
+
+        // 7) Fresh list after create
+        $fresh = PaymentMethodDomain::all(['limit' => 100]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Domain registered successfully',
+            'data' => [
+                'domain' => $domainName,
+                'stripe_id' => $created->id,
+                'all_domains' => $mapDomains($fresh),
+            ]
+        ]);
+
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Stripe API error: ' . $e->getMessage()
+        ], 500);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Server error: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+
+private function redisGet($key)
+{
+    $cachedData = Redis::get($key);
+
+    if ($cachedData) {
+        return json_decode($cachedData, true);
+    }
+
+    return null;
+}
+
+    private function redisSet($key, $data, $ttl = null)
+    {
+        if ($ttl) {
+            Redis::setex($key, $ttl, json_encode($data));
+        } else {
+            Redis::set($key, json_encode($data));
+        }
     }
 
 }

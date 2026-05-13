@@ -11,6 +11,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   const payment_url = document.getElementById("process_order_url")?.value;
   const submitButton = document.getElementById("submit_btn");
 
+  const billingName  = document.getElementById("customer_name")?.value?.trim()  || "";
+  const billingEmail = document.getElementById("customer_email")?.value?.trim() || "";
+  const billingPhone = document.getElementById("customer_phone")?.value?.trim() || "";
+  
+
+  
   if (!publishableKey || !clientSecret) {
     console.error("Missing Stripe publishable key or client secret");
     return;
@@ -46,8 +52,15 @@ document.addEventListener("DOMContentLoaded", async function () {
         elements,
         confirmParams: {
           return_url: returnUrl,
+          payment_method_data: {
+            billing_details: {
+              name: billingName,
+              email: billingEmail,
+              phone: billingPhone
+            }
+          }
         },
-        redirect: "if_required", // prevents unnecessary redirect
+        redirect: "if_required",
       });
 
       if (error) {

@@ -32,6 +32,7 @@ use Stripe\Stripe;
 use Stripe\Token;
 use Stripe\PaymentIntent;
 use Stripe\Terminal\ConnectionToken;
+use Illuminate\Support\Facades\Redis;
 
 class PosApiController extends Controller
 {
@@ -110,6 +111,19 @@ class PosApiController extends Controller
 
 
     public function getPosCategoryList(Request $request){
+        
+        $cacheKey = 'pos_category_list';
+
+        $cachedData = $this->redisGet($cacheKey);
+    
+        if ($cachedData) {
+            return response()->json([
+                "status" => true,
+                "message" => "Category list fetched from redis",
+                "result" => $cachedData
+            ]);
+        }
+        
        $posts = Category::where('type', 'category')->whereNull('category_id')
         ->with('preview', 'icon','recursiveChildren')
         ->withCount('products')
@@ -121,8 +135,20 @@ class PosApiController extends Controller
 
        $product_count = Term::query()->where('type', 'product')->where('status', 1)
        ->whereIn('list_type', [0,2])->with('media', 'firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->count();
+       
+       $result = [
+        'categories' => $posts,
+        'product_count' => $product_count
+       ];
 
-       return response()->json(["status" => true, "message" => "Category list fetched successfully", "result" => ['categories'=>$posts,'product_count'=>$product_count]]);
+       $this->redisSet($cacheKey, $result, 600);
+
+        return response()->json([
+            "status" => true,
+            "message" => "Category list fetched from database",
+            "result" => $result
+        ]);
+    
     }
 
 
@@ -203,6 +229,22 @@ class PosApiController extends Controller
 
     public function posProductList(Request $request)
     {
+        $category = $request->category_id ?? 'all';
+        $page = $request->page ?? 1;
+    
+        $cacheKey = 'pos_product_list_category_' . $category . '_page_' . $page;
+    
+        $cachedData = $this->redisGet($cacheKey);
+    
+        if ($cachedData) {
+            return response()->json([
+                "status" => true,
+                "message" => "products fetched from redis",
+                "result" => $cachedData
+            ]);
+        }
+        
+        
        $posts = Term::query()->where('type', 'product')->where('status', 1)
        ->whereIn('list_type', [0,2])->with('media','category','firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
 
@@ -213,7 +255,17 @@ class PosApiController extends Controller
         }
 
         $posts = $posts->latest()->paginate(50);
-        return response()->json(["status" => true, "message" => "products", "result" => $posts]);
+        
+         $result = $posts->toArray();
+
+        $this->redisSet($cacheKey, $result, 600);
+    
+        return response()->json([
+            "status" => true,
+            "message" => "products fetched from database",
+            "result" => $result
+        ]);
+        
     }
 
 
@@ -293,6 +345,22 @@ class PosApiController extends Controller
 
     public function posParentCategoryProduct(Request $request)
     {
+        
+        $categoryId = $request->category_id ?? 'all';
+        $page = $request->page ?? 1;
+    
+        $cacheKey = 'pos_parent_category_product_' . $categoryId . '_page_' . $page;
+    
+        $cachedData = $this->redisGet($cacheKey);
+    
+        if ($cachedData) {
+            return response()->json([
+                "status" => true,
+                "message" => "products fetched from redis",
+                "result" => $cachedData
+            ]);
+        }
+        
         $category = Category::find($request->category_id);
         $categoryIds = $category->recursiveChildrenIds();
 
@@ -302,8 +370,17 @@ class PosApiController extends Controller
        ->whereIn('list_type', [0,2])->whereIn('id', $termIds)->with('media','category','firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
     
         $posts = $posts->latest()->paginate(50);
+        
+        $result = $posts->toArray();
+
+        $this->redisSet($cacheKey, $result, 600);
     
-        return response()->json(["status" => true, "message" => "products", "result" => $posts]);
+        return response()->json([
+            "status" => true,
+            "message" => "products fetched from database",
+            "result" => $result
+        ]);
+    
     }
     
     
@@ -388,6 +465,19 @@ class PosApiController extends Controller
     
     public function posProductDetail(Request $request,$id)
     {
+        $cacheKey = 'pos_product_detail_' . $id;
+
+        $cachedData = $this->redisGet($cacheKey);
+    
+        if ($cachedData) {
+            return response()->json([
+                "status" => true,
+                "message" => "product fetched from redis",
+                "result" => $cachedData['result'],
+                "galleries" => $cachedData['galleries']
+            ]);
+        }
+        
         $info=Term::query()->where('type','product')->where('status',1)->whereIn('list_type', [0,2])->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo')->withCount('reviews')->where('id', $id)->first();
         if(empty($info)){
             return response()->json(["status" => false, "message" => "sorry, product not found", "result" => []],404);
@@ -403,7 +493,21 @@ class PosApiController extends Controller
         unset($info->medias);
         unset($info->preview);
         $info->gallery=$galleries;
-        return response()->json(["status" => true, "message" => "products", "result" =>$info,"galleries"=>$galleries]);
+        
+        $result = [
+            'result' => $info,
+            'galleries' => $galleries
+        ];
+    
+        $this->redisSet($cacheKey, $result, 600);
+    
+        return response()->json([
+            "status" => true,
+            "message" => "products fetched from database",
+            "result" => $info,
+            "galleries" => $galleries
+        ]);
+
         
     }
 
@@ -1229,7 +1333,9 @@ class PosApiController extends Controller
                         'options' => [
                             'tax' =>$info->prices[0]['tax'],
                             'options' => $info->prices, 'sku' => $info->prices[0]['sku'], 'stock' => null, 'price_id' => $info->prices[0]['id'],'short_description'=>($info->excerpt->value ?? ''),
-                            'preview'=>asset($info->preview->value ?? 'uploads/default.png')
+                            'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
+                            'product_kind' => $this->getTicketOptions($info->id)['product_kind'],
+                            'ticket_fee' => $this->getTicketOptions($info->id)['ticket_fee'],
                             ]
                         ]);
 
@@ -1275,6 +1381,8 @@ class PosApiController extends Controller
                     'options' => [],
                     'short_description'=>($info->excerpt->value ?? ''),
                     'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
+                    'product_kind' => $this->getTicketOptions($info->id)['product_kind'],
+                    'ticket_fee' => $this->getTicketOptions($info->id)['ticket_fee'],
                 ];
     
                 if ($price->stock_manage == 1 && $price->stock_status == 1) {
@@ -1303,6 +1411,23 @@ class PosApiController extends Controller
         $productcartdata['cart_total'] = Cart::total();
         $productcartdata['cart_count'] = Cart::count();
         return response()->json(["status" => true, "message" => 'Added to Cart Sucessfullly', "result" => $productcartdata]);
+    }
+    private function getTicketOptions($termId)
+    {
+        $productKind = DB::table('termmetas')
+            ->where('term_id', $termId)
+            ->where('key', 'product_kind')
+            ->value('value');
+    
+        $ticketFee = DB::table('termmetas')
+            ->where('term_id', $termId)
+            ->where('key', 'ticket_fee')
+            ->value('value');
+    
+        return [
+            'product_kind' => $productKind === 'event_ticket' ? 'event_ticket' : 'product',
+            'ticket_fee' => $productKind === 'event_ticket' ? (float) ($ticketFee ?? 0.75) : 0,
+        ];
     }
 
     public function addStockValidation($price,$exist_qty,$cartid){
@@ -2074,7 +2199,7 @@ private function send_order_recipts($data){
         // Check if the required fields are present
         $rules = [
             'order_total' => 'required|numeric',
-            'payment_identifiers' => 'required|in:card,terminal',
+            'payment_identifiers' => 'required|in:card,terminal,cashapp',
         ];
         
         $validator = Validator::make($request->all(), $rules);
@@ -2086,9 +2211,22 @@ private function send_order_recipts($data){
         }
         
         $order_total = $request->order_total;
+        $paymentIdentifier = $request->payment_identifiers;
         
+        if ($paymentIdentifier === 'terminal') {
+            $paymentConfig = [
+                'payment_method_types' => ['card_present'],
+            ];
+        } else {
+            $paymentConfig = [
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                ],
+            ];
+        }
+
         // Use existing helper functions for fee calculation (same as current system)
-        $credit_card_fee_raw = credit_card_fee_for_pos($order_total,$request->payment_identifiers);        // 2.9% + $0.30
+     $credit_card_fee_raw = credit_card_fee_for_pos($order_total, $paymentIdentifier);      // 2.9% + $0.30
         $booster_platform_fee_raw = booster_club_chagre($order_total); // 1.75% or 3.5%
 
         
@@ -2125,22 +2263,26 @@ private function send_order_recipts($data){
 
         try {
             // Create PaymentIntent with automatic fee transfer to Booostr
-            $intent = PaymentIntent::create([
+            $intentPayload = [
                 'amount' => round($order_total * 100), // Convert to cents
                 'currency' => 'usd',
-                'payment_method_types' => ['card_present', 'card'],
                 'capture_method' => 'automatic',
                 'application_fee_amount' => round($total_application_fee * 100),
                 'transfer_data' => [
                     'destination' => $booostr_stripe_account, // Booostr's Stripe account
                 ],
                 'metadata' => [
+                    'payment_identifier' => $paymentIdentifier,
                     'credit_card_fee' => number_format($credit_card_fee, 2),
                     'booster_platform_fee' => number_format($booster_platform_fee, 2),
                     'total_fees' => number_format($total_application_fee, 2),
                     'club_receives' => number_format($club_receives, 2),
                 ],
-            ]);
+            ];
+            
+            $intentPayload = array_merge($intentPayload, $paymentConfig);
+            
+            $intent = PaymentIntent::create($intentPayload);
 
             \Log::info($intent);
             
@@ -2161,6 +2303,7 @@ private function send_order_recipts($data){
         } catch (\Exception $e) {
             \Log::error('PaymentIntent creation failed: ' . $e->getMessage(), [
                 'order_total' => $order_total,
+                 'payment_identifier' => $paymentIdentifier,
                 'credit_card_fee' => $credit_card_fee,
                 'booster_platform_fee' => $booster_platform_fee,
                 'stripe_account_id' => $booostr_stripe_account
@@ -2550,8 +2693,13 @@ private function send_order_recipts($data){
             Cart::destroy($request->cartId);
             DB::commit();
             
-            
 
+            $reciptdata = $this->order_recipt_data($order->id);
+       
+            $recipt =  $this->send_order_recipt($reciptdata);
+        
+             
+            
                 
             return response()->json([
                 'success'  => true,
@@ -2566,6 +2714,26 @@ private function send_order_recipts($data){
                 'message' => 'Order save failed',
                 'error'   => $e->getMessage()
             ], 500);
+        }
+    }
+    
+    private function redisGet($key)
+    {
+        $cachedData = Redis::get($key);
+    
+        if ($cachedData) {
+            return json_decode($cachedData, true);
+        }
+    
+        return null;
+    }
+    
+    private function redisSet($key, $data, $ttl = null)
+    {
+        if ($ttl) {
+            Redis::setex($key, $ttl, json_encode($data));
+        } else {
+            Redis::set($key, json_encode($data));
         }
     }
     

@@ -117,19 +117,50 @@
                             </td>
                                   <td>{{ Str::limit($row->title,20) }} ({{$row->full_id}})</td>
                                   <td class="text-right"><img src="{{ asset($row->media->value ?? 'uploads/default.png') }}" height="50" alt=""></td>
+                                  
+                                @php
+                                    if ($row->is_variation == 2) {
+                                        $productTypeLabel = 'Online Ticket';
+                                    } elseif ($row->is_variation == 1) {
+                                        $productTypeLabel = 'Variations';
+                                    } else {
+                                        $productTypeLabel = 'Simple';
+                                    }
+                                @endphp
 
-                                  @if(isset($row->formType) && !empty($row->formType))
-                                    <td class="text-right"> <span style="display: inline-block;">{{ $row->is_variation == 1 ? 'Variations' : 'Simple'  }} <span style="display: block;font-size:10px;">Linked Form</span></span></td>
-                                  @else
-                                    <td class="text-right">{{ $row->is_variation == 1 ? 'Variations' : 'Simple'  }}</td>
-                                  @endif
+                                @if(isset($row->formType) && !empty($row->formType))
+                                    <td class="text-right">
+                                        <span style="display: inline-block;">
+                                            {{ $productTypeLabel }}
+                                            <span style="display: block;font-size:10px;">Linked Form</span>
+                                        </span>
+                                    </td>
+                                @else
+                                    <td class="text-right">{{ $productTypeLabel }}</td>
+                                @endif
 
 
                                   {{-- <td class="text-right">${{$row->price?->price ? number_format($row->price?->price,2) : ''}}{{ $row->is_variation == 1 ? '*' : ''  }}</td> --}}
 
-                                  <td class="text-right" style="{{ $row->price?->price == 0 ? 'font-weight: bold; color: red;' : '' }}">
-                                    ${{ $row->price?->price ? number_format($row->price?->price, 2) : '0.00' }}{{ $row->is_variation == 1 ? '*' : '' }}
-                                  </td>
+                                  @php
+                                    $basePrice = (float) ($row->price?->price ?? 0);
+                                    $ticketFee = 0;
+
+                                    if ($row->is_variation == 2) {
+                                        $ticketFee = 0.75;
+                                        if (isset($row->ticketFeeMeta)) {
+                                            $ticketFee = (float) $row->ticketFeeMeta->value;
+                                        }
+                                    }
+
+                                    $displayPrice = $basePrice + $ticketFee;
+                                @endphp
+
+                                <td class="text-right" style="{{ $basePrice == 0 ? 'font-weight: bold; color: red;' : '' }}">
+                                    ${{ number_format($displayPrice, 2) }}{{ $row->is_variation == 1 ? '*' : '' }}
+
+
+                                </td>
                                 
 
                                   
