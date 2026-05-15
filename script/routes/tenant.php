@@ -7,6 +7,7 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
 use App\Jobs\TenantMailJob;
+use App\Http\Controllers\Store\TicketScanController;
 /*
 |--------------------------------------------------------------------------
 | Tenant Routes
@@ -23,6 +24,7 @@ use App\Jobs\TenantMailJob;
 // tenant routes
 
 Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','PreventAccessFromCentralDomains','web','tenantenvironment']], function () {
+
     Auth::routes();
 
     
@@ -40,6 +42,11 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
         return redirect($clubUrl);
     });
 
+    Route::get('/ticket/scan/{uuid}', [TicketScanController::class, 'scan']);
+    
+    Route::get('/ticket/{uuid}/calendar', [TicketScanController::class, 'calendar']) ->name('ticket.calendar');
+    
+    Route::get('/ticket/{uuid}/print', [TicketScanController::class, 'print'])->name('ticket.print');
     
     Route::get('/products', 'Store\PageController@products');
     Route::get('/brand/{slug}', 'Store\PageController@brand');
@@ -75,7 +82,9 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::post('/checkout/process-payment/{order_id}', 'Store\CheckoutController@processPayment')->name('checkout.processPayment');
     Route::get('/checkout/process-payment/{order_id}', 'Store\CheckoutController@processPayment')->name('checkout.processPayment');
 
-    Route::get('/payment/success', 'Store\CheckoutController@paymentSuccess')->name('checkout.success');
+    // Route::get('/payment/success', 'Store\CheckoutController@paymentSuccess')->name('checkout.success');
+    
+    Route::get('/payment/success', 'Store\CheckoutController@success')->name('checkout.success');
 
 
     Route::get('/thanks', 'Store\PageController@thanks');

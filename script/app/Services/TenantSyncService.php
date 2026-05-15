@@ -17,6 +17,7 @@ class TenantSyncService
         Log::info("starting sync for tenant: {$tenant->id}");
 
         $orders=Order::with('user','ordermeta','orderitems','orderstatus')->withCount('orderitems');
+ 
         $orders=$orders->get();
         foreach($orders as $order){
 
@@ -77,9 +78,17 @@ class TenantSyncService
                 'customer_tag' => $customer_tag,
             );
             
+
             $subtotal = 0;
+
+            $productIds = [];            
             
             foreach ($order->orderitems ?? [] as $row){
+                
+              if (!empty($row->term->id)) {
+                    $productIds[] = (int)$row->term->id;
+                 }
+                
                 $subtotal = $subtotal + $row->amount*$row->qty;
             }
 
@@ -102,13 +111,13 @@ class TenantSyncService
     
             $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
 
-
             $user_recipt = [
                 'receipts_date'=>$order->placed_at,
                 'receipt_title'=>$receipt_title,
                 'receipent_org'=>$club_info['club_name'].' Store',
                 'category'=>'ecommerce',
                 'user_id' =>  !empty($ordermeta->wpuid) ? (int)$ordermeta->wpuid : 0,
+                'product_id' => implode(',',$productIds),
                 'amount'=>$order->total,
                 'revenue'=>$net_recieved_amount,
                 'club_id' =>Tenant('club_id'),
@@ -118,6 +127,8 @@ class TenantSyncService
                 'camp_id'=>$order->invoice_no,
                 'order_total'=>$order->total,
                 'order_subtotal'=>$subtotal,
+                'firstname' => $name[0]??'',
+                'lastname' => $name[1]??'',
             ];
 
 

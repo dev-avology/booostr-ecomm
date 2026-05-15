@@ -6,6 +6,7 @@ use Amcoders\Lpress\Lphelper;
 use App\Models\Category;
 use App\Models\Term;
 use App\Models\Coupon;
+use App\Models\AppSequires;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
@@ -43,7 +44,7 @@ function getCouponCode(){
 	$response = Http::get('https://maps.googleapis.com/maps/api/timezone/json', [
         'location' => $lat_lang[0].','.$lat_lang[1],
         'timestamp' => time(),
-        'key' => 'AIzaSyCmimJcxCmMIgBR0G0UKmQAgfr7RSS8pDg',
+        'key' => config('services.google_maps.key'),
     ]);
 
 	if($response->successful()){
@@ -814,3 +815,61 @@ function storeLaunch(){
 // 		return response()->json(["status" => 'false', "message" => 'Something went wrong']);
 // 	}
 // }
+
+
+if (!function_exists('get_secret')) {
+    function get_secret($key, $default = null)
+    {
+        $secret = AppSequires::where('key', $key)->first();
+        return $secret ? $secret->value : $default;
+    }
+}
+
+
+if (!function_exists('tenant_club_logo')) {
+
+    function tenant_club_logo()
+    {
+        if (!function_exists('tenant') || empty(tenant()->club_id)) {
+            return null;
+        }
+
+        $url = env("WP_API_URL");
+
+        $url = ($url != '')
+            ? $url . '/logo-tenant?tenant=' . tenant()->club_id
+            : 'https://staging3.booostr.co/wp-json/store-api/v1/logo-tenant?tenant=' . tenant()->club_id;
+
+        try {
+
+            $curl = curl_init();
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'GET',
+            ]);
+
+            $response = curl_exec($curl);
+
+            curl_close($curl);
+
+            $result = json_decode($response, true);
+
+            return $result['data'] ?? null;
+
+        } catch (\Throwable $e) {
+
+            \Log::warning('Tenant logo fetch failed', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+}

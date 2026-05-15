@@ -10,6 +10,15 @@
 .hide.weight{
    display:none;
 }
+
+.ticket_fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 66px;
+    max-width: 557px;
+    margin-top: 24px;
+}
+
 </style>
 @endpush
 
@@ -76,9 +85,19 @@
                               <select name="product_type" id="product_type"  class="form-control product_type ">
                                  <option value="0">{{ __('Simple Product') }}</option>
                                  <option value="1">{{ __('Variation Product') }}</option>
+                                 <option value="2">{{ __('Simple Ticket') }}</option>
                               </select>
                            </div>
                         </div>
+
+                        <div class="from-group row mb-2 ticket_instructions_area" style="display:none;">
+                              <label class="col-lg-12">{{ __('Ticket Instructions') }} :</label>
+                              <div class="col-lg-12">
+                                 <textarea name="ticket_instructions" class="form-control h-150 summernote"></textarea>
+                              </div>
+                        </div>
+
+
                      </div>
                   </div>
                </div>
@@ -128,6 +147,8 @@
                <div class="col-lg-8">
                   <div class="card card-primary">
                      <div class="card-body">
+
+                     
                         <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Name :') }} </label>
                            <div class="col-lg-12">
@@ -186,6 +207,23 @@
                                  <option value="0">{{ __('Draft') }}</option>
                               </select>
                            </div>
+                        </div>
+                        <div class="ticket_fields" style="display:none;">
+
+                           <div class="from-group row mb-2">
+                              <label class="col-lg-12">{{ __('Date & Time To Start Selling Tickets*') }} :</label>
+                              <div class="col-lg-12">
+                                 <input type="datetime-local" name="ticket_sale_start" class="form-control">
+                              </div>
+                           </div>
+
+                           <div class="from-group row mb-2">
+                              <label class="col-lg-12">{{ __('Date & Time To Stop Selling Tickets*') }} :</label>
+                              <div class="col-lg-12">
+                                 <input type="datetime-local" name="ticket_sale_end" class="form-control">
+                              </div>
+                           </div>
+
                         </div>
                      </div>
                   </div>
@@ -293,12 +331,32 @@
                <div class="col-lg-8">
                   <div class="card card-primary">
                      <div class="accordion-body card-body">
-                        <div class="from-group row mb-2">
-                           <label for="" class="col-lg-12">{{ __('Product Price') }} : </label>
-                           <div class="col-lg-12">
-                              <input type="number" step="any" class="form-control" name="price" placeholder="0.00">
-                           </div>
+                     <div class="from-group row mb-2">
+                        <div class="col-lg-4">
+                        <label class="price_label">Base Ticket Price :</label>
+                        <input type="number" step="any" class="form-control" name="price" id="base_ticket_price" placeholder="0.00" value="">
                         </div>
+
+                        <div class="col-lg-1 text-center ticket_fee_area">
+                           <h3 style="margin-top:35px;">+</h3>
+                        </div>
+                        
+                        <div class="col-lg-2 text-center ticket_fee_area">
+                           <label>{{ __('Ticket Service Fee') }}:</label>
+                           <h5>$<span id="ticket_fee">0.75</span></h5>
+                           <input type="hidden" name="ticket_fee" value="0.75">
+                        </div>
+                        
+                        <div class="col-lg-1 text-center ticket_fee_area">
+                           <h3 style="margin-top:35px;">=</h3>
+                        </div>
+
+                        <div class="col-lg-4 text-center ticket_fee_area">
+                           <label>{{ __('Total Retail Customer Price/Ticket') }}:</label>
+                           <h5>$<span id="total_ticket_price">0.75</span></h5>
+                        </div>
+                     </div>
+
                         <div class="from-group row mb-2">
                            <label for="" class="col-lg-12">{{ __('Quantity') }} : </label>
                            <div class="col-lg-12">
@@ -391,15 +449,140 @@ $(document).on('change', '.manage_stock', function() {
     }
   });
   
-$(".drop_product_type").change(function() {
-    // This function will be executed when the input value changes.
-    var inputValue = $('.drop_product_type option:selected').text();
-    if(inputValue === 'Digital Product'){
-        $('.product_weight_sec').hide();
-        return;
-    }
+  $(".drop_product_type").change(function() {
+
+var inputValue = $('.drop_product_type option:selected').text();
+
+if(inputValue === 'Digital Product'){
+    $('.product_weight_sec').hide();
+} else {
     $('.product_weight_sec').show();
+}
+
+// NEW CODE Online Ticketing
+
+// if(inputValue === 'Online Ticketing'){
+
+//     $('#product_type').val(2);
+
+//     $('.ticket_fields').show();
+
+//     $('.ticket_fee_area').show();
+    
+//     calculateTicketPrice();
+
+//     $('.single_product_price_area strong')
+//     .text('Simple Online Ticketing Pricing');
+
+//     $('.single_product_price_area p')
+//     .text('Manage your Simple Online Ticketing pricing information here.');
+
+//     $('.product_weight_sec').hide();
+
+// }
+
+
+
+if(inputValue === 'Online Ticketing'){
+
+    $('#product_type').val(2);
+
+$('#product_type').css('pointer-events', 'none');
+
+    $('.ticket_fields').show();
+
+    $('.ticket_fee_area').show();
+
+    calculateTicketPrice();
+
+    $('.single_product_price_area strong')
+    .text('Simple Online Ticketing Pricing');
+
+    $('.single_product_price_area p')
+    .text('Manage your Simple Online Ticketing pricing information here.');
+
+    $('.product_weight_sec').hide();
+
+} else {
+
+    $('#product_type').css('pointer-events', 'auto');
+
+    $('.product_weight_sec').show();
+}
+
 });
+
+function calculateTicketPrice() {
+    let basePrice = parseFloat($('#base_ticket_price').val()) || 0;
+    let fee = 0.75;
+    let total = basePrice + fee;
+
+    $('#total_ticket_price').text(basePrice > 0 ? total.toFixed(2) : '0.00');
+}
+
+function toggleTicketFields() {
+    var productTypeText = $('.drop_product_type option:selected').text().trim();
+
+    if (productTypeText === 'Online Ticketing') {
+
+        $('#product_type').val(2);
+       $('#product_type').css('pointer-events', 'none');
+
+        $('#product_type option[value="2"]').show();
+
+        $('.ticket_instructions_area').show();
+        $('.ticket_fields').show();
+        $('.ticket_fee_area').show();
+
+        $('.price_label').text('Base Ticket Price :');
+
+        $('.single_product_price_area strong').text('Simple Online Ticketing Pricing');
+        $('.single_product_price_area p').text('Manage your Simple Online Ticketing pricing information here.');
+
+        $('.product_weight_sec').hide();
+
+        calculateTicketPrice();
+
+    } else {
+
+        $('#product_type').css('pointer-events', 'auto');
+
+        if ($('#product_type').val() == 2) {
+            $('#product_type').val(0);
+        }
+
+        $('#product_type option[value="2"]').hide();
+
+        $('.ticket_instructions_area').hide();
+        $('.ticket_fields').hide();
+        $('.ticket_fee_area').hide();
+
+        $('.price_label').text('Product Price :');
+
+        $('.single_product_price_area strong').text('Simple Product Information');
+        $('.single_product_price_area p').text('Add your simple product description and necessary information from here');
+
+        $('.product_weight_sec').show();
+    }
+}
+
+$(document).on('change', '.drop_product_type, #product_type', function() {
+    setTimeout(function() {
+        toggleTicketFields();
+    }, 300);
+});
+
+$(document).on('input keyup change', '#base_ticket_price', function() {
+    calculateTicketPrice();
+});
+
+$(document).ready(function() {
+    setTimeout(function() {
+        toggleTicketFields();
+        calculateTicketPrice();
+    }, 500);
+});
+
 
 $('#form_type').on('change', function() {
     var selectedOption = $(this).find('option:selected');

@@ -54,7 +54,7 @@
         <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Select Product Type') }} : </label>
             <div class="col-lg-12">
-                <select name="categories[]" class="selectric form-control">
+                <select name="categories[]" class="selectric form-control drop_product_type">
                     @if(isset($product_type) && !empty($product_type))
                         @foreach($product_type as $row)
                          <option value="{{ $row->id }}" @if(in_array($row->id,$selected_categories)) selected @endif>{{ $row->name }}</option>
@@ -62,7 +62,23 @@
                         @endif;
                 </select>
 
-             
+            </div>
+        </div>
+        
+        
+        <div class="from-group row mb-2 ticket_type_area" style="display:none;">
+            <label class="col-lg-12">{{ __('Ticket Type') }} :</label>
+            <div class="col-lg-12">
+                <select name="product_type" id="product_type" class="form-control product_type" style="width:100%;">
+                    <option value="2" selected>{{ __('Simple Ticket') }}</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="from-group row mb-2 ticket_instructions_area" style="display:none;">
+            <label class="col-lg-12">{{ __('Ticket Instructions') }} :</label>
+            <div class="col-lg-12">
+                <textarea name="ticket_instructions" class="form-control h-150 summernote">{{ $info->ticket_instructions ?? '' }}</textarea>
             </div>
         </div>
 
@@ -160,6 +176,25 @@
                 </select>
             </div>
         </div>
+        
+        <div class="ticket_fields" style="display:none;">
+            <div class="from-group row mb-2">
+                <label class="col-lg-12">{{ __('Date & Time To Start Selling Tickets*') }} :</label>
+                <div class="col-lg-12">
+                    <input type="datetime-local" name="ticket_sale_start" class="form-control ticket_sale_start"
+                           value="{{ $info->ticket_sale_start ?? '' }}">
+                </div>
+            </div>
+        
+            <div class="from-group row mb-2">
+                <label class="col-lg-12">{{ __('Date & Time To Stop Selling Tickets*') }} :</label>
+                <div class="col-lg-12">
+                    <input type="datetime-local" name="ticket_sale_end" class="form-control"
+                           value="{{ $info->ticket_sale_end ?? '' }}">
+                </div>
+            </div>
+        </div>
+        
         <div class="from-group  mb-2">
             <button class="btn btn-primary basicbtn col-lg-2" type="submit"><i class="far fa-save"></i> {{ __('Update') }}</button>
         </div>
@@ -281,6 +316,47 @@
     
     
     });
+    
+    
+    function toggleEditTicketFields() {
+    var productTypeText = $('.drop_product_type option:selected').text().trim();
+
+    if (productTypeText === 'Online Ticketing') {
+        $('.drop_product_type').css({
+            'pointer-events': 'none',
+            'color': '#6e6c6c',
+            'background-color': '#e9ecef'
+        });
+
+        $('#product_type').val(2).css({
+            'pointer-events': 'none',
+            'color': '#6e6c6c',
+            'background-color': '#e9ecef'
+        });
+
+        $('.ticket_type_area').show();
+        $('.ticket_instructions_area').show();
+        $('.ticket_fields').show();
+
+        var startVal = $('.ticket_sale_start').val();
+        if (startVal && new Date(startVal) < new Date()) {
+            $('.ticket_sale_start').css({
+                'pointer-events': 'none',
+                'color': '#6e6c6c',
+                'background-color': '#e9ecef'
+            });
+        }
+
+    } else {
+        $('.ticket_type_area').hide();
+        $('.ticket_instructions_area').hide();
+        $('.ticket_fields').hide();
+    }
+}
+
+$(document).ready(function() {
+    toggleEditTicketFields();
+});
     
     </script>
 

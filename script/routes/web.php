@@ -439,9 +439,8 @@ Route::group(['prefix'=>'rider', 'as' => 'rider.', 'namespace' => 'Rider','middl
     Route::post('order/delivered','OrderController@delivered')->name('order.delivered');
     Route::get('order/cancel/{id}','OrderController@cancelled')->name('order.cancelled');
     Route::get('live/orders','DashboardController@live_orders')->name('live.orders');
+    
+
 });
-
-
-
 
 

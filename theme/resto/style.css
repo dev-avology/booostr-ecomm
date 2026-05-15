@@ -3843,6 +3843,18 @@ Version:	1.0
 	border-radius: 100%;
 	margin-right: 3px;
 }
+
+.shop.checkout .form .create-account input[type="checkbox"] {
+    width: 20px;
+    display: inline-block;
+    height: 20px;
+    border-radius: 100%;
+    padding: 0;
+    border-radius: 0;
+}
+.shop.checkout .form .create-account input[type="checkbox"]:checked {
+    background: #0278d2;
+}
 .shop.checkout .form .create-account label {
 	display: inline-block;
 	margin: 0;

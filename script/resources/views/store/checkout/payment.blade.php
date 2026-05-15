@@ -123,6 +123,19 @@ input#cover_fee_checkbox {
  .shop.checkout .single-widget.get-button .btn {
     top: 50px;
 }
+
+.order-summary li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ticket_fee_amount {
+    font-weight: 600;
+    color: #333;
+    min-width: 60px;
+    text-align: right;
+}
 /* Responsive (for mobile screens) */
 @media (max-width: 991px) {
     .shipping_method_area,
@@ -454,7 +467,13 @@ input#cover_fee_checkbox {
                                     @endphp
                                 </a>
                                 <span class="d-qty">{{ $item->qty }}</span>
-                                <span class="price">${{ number_format($item->amount * $item->qty, 2) }}</span>
+                                @php
+                                    $info = json_decode($item->info ?? '{}', true);
+                                    $itemTicketFee = (float)($info['ticket_fee_total'] ?? 0);
+                                    $itemDisplayPrice = ($item->amount * $item->qty) + $itemTicketFee;
+                                @endphp
+                                
+                                <span class="price">${{ number_format($itemDisplayPrice, 2) }}</span>
                             </p>
                         @endforeach
 
@@ -464,7 +483,9 @@ input#cover_fee_checkbox {
                    <ul class="order-summary">
                             <li>
                                 <span>{{ __('Subtotal') }}</span>
-                                <span class="cart_subtotal">${{ number_format($subtotal ?? 0, 2) }}</span>
+                                  <span class="cart_subtotal">
+                                    ${{ number_format(($subtotal ?? 0) + ($ticket_fee_total ?? 0), 2) }}
+                                </span>
                             </li>
                             <li>
                                 <span>(-) {{ __('Discount') }}</span>
@@ -474,10 +495,14 @@ input#cover_fee_checkbox {
                                 <span>(+) {{ __('Tax') }}</span>
                                 <span class="cart_tax">${{ number_format($tax ?? 0, 2) }}</span>
                             </li>
-                            <li class="shipping-item">
-                                <span>(+) {{ __('Delivery fee') }}</span>
-                                <span class="shipping_fee">${{ number_format($delivery_fee ?? 0, 2) }}</span>
-                            </li>
+                                @if(($delivery_fee ?? 0) > 0)
+                                <li class="shipping-item">
+                                    <span>(+) {{ __('Delivery fee') }}</span>
+                                    <span class="shipping_fee">${{ number_format($delivery_fee ?? 0, 2) }}</span>
+                                </li>
+                                @endif
+                            
+
                             <li class="cover-fee alert-success">
                                 <span>(+) {{ __('Covered Fees - thank you') }}</span>
                                 <span class="cover_fee_amount">${{ number_format($cover_fee ?? 0, 2) }}</span>
@@ -498,15 +523,20 @@ input#cover_fee_checkbox {
 </section>
 
 
+<input type="hidden" id="customer_name"  value="{{ $stripe_customer['name']  ?? '' }}">
+<input type="hidden" id="customer_email" value="{{ $stripe_customer['email'] ?? '' }}">
+<input type="hidden" id="customer_phone" value="{{ $stripe_customer['phone'] ?? '' }}">
+
 <input type="hidden" id="subtotal_hidden" value="{{ $order->subtotal ?? 0 }}">
 <input type="hidden" id="discount_hidden" value="{{ $order->discount ?? 0 }}">
 <input type="hidden" id="tax_hidden" value="{{ $order->tax ?? 0 }}">
 <input type="hidden" id="shipping_hidden" value="{{ $order->shipping->shipping_price ?? 0 }}">
 <input type="hidden" id="cover_fee_hidden" value="{{ $order->cover_fee ?? 0 }}">
+<input type="hidden" id="ticket_fee_total" value="{{ $ticket_fee_total ?? 0 }}">
 <input type="hidden" id="total_hidden" value="{{ $order->total ?? 0 }}">
 <input type="hidden" id="publishable_key" value="{{ $publishable_key }}">
 <input type="hidden" id="client_secret" value="{{$client_secret}}">
-<input type="hidden" id="order_success_url" value="{{ route('checkout.success')}}?order_id={{ $order->id }}">
+<input type="hidden" id="order_success_url" value="{{ route('checkout.processPayment', $order->id) }}">
 <input type="hidden" id="process_order_url" value="{{ route('checkout.processPayment', $order->id) }}">
 
 

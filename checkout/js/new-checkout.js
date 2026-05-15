@@ -398,7 +398,7 @@ function calculateTotal(state = cartState){
   var newtotal = state.Rsubtotal + state.Rshipping + state.Rtax - state.Rdiscount;
 
   if($('#cover_fee_checkbox').is(':checked')){
-    state.Rcover_fee = recalcCoverFee(state);
+    state.Rcover_fee = parseFloat($('#cover_fee').val()) || 0;
     $('.cover_fee_amount').text(amount_format(state.Rcover_fee));
     newtotal = newtotal + state.Rcover_fee;
     $('.cover-fee').show();

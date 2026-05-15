@@ -29,10 +29,14 @@ use App\Models\Coupon;
 use App\Models\ProductForm;
 use App\Models\Ordermeta;
 use App\Models\Orderstock;
+use App\Models\EventTicket;
 use Carbon\Carbon;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use Stripe\Charge;
+use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
@@ -409,7 +413,9 @@ class CheckoutController extends Controller
 
         $booster_platform_fee = booster_club_chagre($total);
 
-        $grand_total = $total;
+        $grand_total = $total + $credit_card_fee + $booster_platform_fee;
+        
+     
        // $grand_total = $total+$credit_card_fee + $booster_platform_fee;
        $cover_fee = $grand_total + $credit_card_fee + $booster_platform_fee;
          
@@ -670,8 +676,9 @@ class CheckoutController extends Controller
 
         $booster_platform_fee = booster_club_chagre($total);
 
-        $grand_total = $total;
-       // $grand_total = $total+$credit_card_fee + $booster_platform_fee;
+        // $grand_total = $total;
+        $grand_total = $total+$credit_card_fee + $booster_platform_fee;
+        
        $cover_fee = $grand_total + $credit_card_fee + $booster_platform_fee;
          
        $credit_card_fee1 = credit_card_fee($cover_fee);
@@ -700,13 +707,27 @@ class CheckoutController extends Controller
             Session::put('cartid',$cartid);
         }
 
-       if(Session::has('customer_data')){
+      if (Session::has('customer_data')) {
         $customer = Session::get('customer_data');
-       }else{
-         $redirect_url = str_replace('cart','store',$redirect_url);
-         return redirect()->away($redirect_url);
-       }   
+    } else {
+        $customer = [
+            "name"    => $request->name ?? '',
+            "email"   => $request->email ?? '',
+            "phone"   => $request->phone ?? '',
+            "address" => $request->address ?? '',
+            "city"    => $request->city ?? '',
+            "state"   => $request->state ?? '',
+            "country" => $request->country ?? 'USA',
+            "zip"     => $request->zip ?? '',
+            "wpuid"   => $request->wpuid ?? '',
+        ];
 
+        if ($request->has('guest')) {
+            $customer["guest"] = "1";
+        }
+
+        Session::put('customer_data', $customer);
+    }
 
         // $sata = $this->syncFormData('HQjnYclZmO', 138);
 
@@ -822,8 +843,24 @@ class CheckoutController extends Controller
         
        // dump($order_type);
 
-
-
+        $hasOnlyEventTickets = true;
+        
+        foreach (Cart::instance('default')->content() as $cartItem) {
+        
+            $productKind = DB::table('termmetas')
+                ->where('term_id', $cartItem->id)
+                ->where('key', 'product_kind')
+                ->value('value');
+        
+            if (trim((string) $productKind) !== 'event_ticket') {
+                $hasOnlyEventTickets = false;
+                break;
+            }
+        }
+        
+        if ($hasOnlyEventTickets) {
+            $order_type = 'Digital';
+        }
 
 
 
@@ -902,52 +939,98 @@ class CheckoutController extends Controller
             $allow_inperson_pickup = (int)($pickup_details['enabled'] ?? 0);
         }
         
-
+        if ($order_type === 'Digital') {
+            $shipping_price = 0;
+            $shipping_options = [];
+        }
+        
         $shipping_options = [];
         
-        // Regular shipping option (calculated above)
-        $shipping_options[] = [
-            'key'   => $shipping_methods['method_type'],
-            'label' => $shipping_methods['label'],
-            'price' => (float) $shipping_price,
-            'info'  => $shipping_methods,
-        ];
-      
-        // Pickup option (only if enabled)
-        if ($allow_inperson_pickup === 1) 
-        { 
-            $shipping_options[] =
-             [ 'key' => 'inperson_pickup', 
-               'label' => 'In-Person Pick Up',
-              'price' => 0, 'info' => [ 'method_type' => 'inperson_pickup', 'label' => 'In-Person Pick Up', 'pricing' => 0, 'base_pricing' => 0, 
-              'details' => $pickup_details 
-            ], 
-            ]; 
+        if ($order_type === 'Digital') {
+            $shipping_price = 0;
+        
+            $shipping_options[] = [
+                'key'   => 'digital_delivery',
+                'label' => 'Digital Delivery',
+                'price' => 0,
+                'info'  => [
+                    'method_type' => 'digital_delivery',
+                    'label' => 'Digital Delivery',
+                    'pricing' => 0,
+                    'base_pricing' => 0,
+                ],
+            ];
+        } else {
+            $shipping_options[] = [
+                'key'   => $shipping_methods['method_type'],
+                'label' => $shipping_methods['label'],
+                'price' => (float) $shipping_price,
+                'info'  => $shipping_methods,
+            ];
+        
+            if ($allow_inperson_pickup === 1) {
+                $shipping_options[] = [
+                    'key' => 'inperson_pickup',
+                    'label' => 'In-Person Pick Up',
+                    'price' => 0,
+                    'info' => [
+                        'method_type' => 'inperson_pickup',
+                        'label' => 'In-Person Pick Up',
+                        'pricing' => 0,
+                        'base_pricing' => 0,
+                        'details' => $pickup_details
+                    ],
+                ];
+            }
         }
+        
+        $ticket_fee_total = 0;
 
-        $total =  Cart::total() + $shipping_price;
+        foreach (Cart::instance('default')->content() as $cartItem) {
+        
+            $productKind = DB::table('termmetas')
+                ->where('term_id', $cartItem->id)
+                ->where('key', 'product_kind')
+                ->value('value');
+        
+            $ticketFee = DB::table('termmetas')
+                ->where('term_id', $cartItem->id)
+                ->where('key', 'ticket_fee')
+                ->value('value');
+        
+            if (trim((string) $productKind) === 'event_ticket') {
+                $ticket_fee_total += ((float) ($ticketFee ?: 0.75)) * (int) $cartItem->qty;
+            }
+        }
+        $total = ((float) str_replace(',', '', Cart::total())) + $shipping_price;
+
+        // $total =  Cart::total() + $shipping_price+$ticket_fee_total;
 
         $credit_card_fee = credit_card_fee($total);
 
         $booster_platform_fee = booster_club_chagre($total);
 
-        $grand_total = $total;
-       // $grand_total = $total+$credit_card_fee + $booster_platform_fee;
-       $cover_fee = $grand_total + $credit_card_fee + $booster_platform_fee;
-         
-       $credit_card_fee1 = credit_card_fee($cover_fee);
+    //   $grand_total = $total;
+        // $grand_total = $total+$credit_card_fee + $booster_platform_fee;
 
-       $booster_platform_fee1 = booster_club_chagre($cover_fee);
+     $fee_base = $total + $credit_card_fee + $booster_platform_fee;
+    //   $cover_fee = $grand_total + $credit_card_fee + $booster_platform_fee;
+
+       $credit_card_fee1 = credit_card_fee($fee_base);
+    
+       $booster_platform_fee1 = booster_club_chagre($fee_base);
 
        $cover_fee =  $credit_card_fee1 + $booster_platform_fee1;
+       
 
 
         return view('store.checkout.new-checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee',
-        'cover_fee','shipping_options','pickup_details','allow_inperson_pickup'));
+        'cover_fee','shipping_options','pickup_details','allow_inperson_pickup','ticket_fee_total'));
     }
 
     public function newMakeOrder(Request $request)
     {
+
 
         $redirect_url=Session::has('redirect_url')?Session::get('redirect_url'):'https://www.boostr.co';
 
@@ -962,6 +1045,8 @@ class CheckoutController extends Controller
             'shipping_method' => 'required',
        ]);
 
+       $sms_consent = $request->has('sms_consent') ? 1 : 0;
+
        $order_method='delivery';
        $notify_driver='mail';
        $order_settings=get_option('order_settings',true);
@@ -970,7 +1055,28 @@ class CheckoutController extends Controller
         $subtotal = Cart::subtotal();
      
         $shipping_price = 0;
-        $shipping_method_label = '';
+        
+        $hasOnlyEventTickets = true;
+
+        foreach (Cart::instance('default')->content() as $cartItem) {
+            $productKind = DB::table('termmetas')
+                ->where('term_id', $cartItem->id)
+                ->where('key', 'product_kind')
+                ->value('value');
+        
+            if (trim((string) $productKind) !== 'event_ticket') {
+                $hasOnlyEventTickets = false;
+                break;
+            }
+        }
+        
+        if ($hasOnlyEventTickets) {
+            $shipping_price = 0;
+            $shipping_method_label = 'Digital Delivery';
+            $order_method = 'digital';
+        }
+
+       
          $pickup_details = [];
         $allow_inperson_pickup = 0;
         
@@ -980,7 +1086,8 @@ class CheckoutController extends Controller
             $allow_inperson_pickup = (int)($pickup_details['enabled'] ?? 0);
         }
         
-        if (!empty($request->shipping_method)) {
+        
+        if (!$hasOnlyEventTickets && !empty($request->shipping_method)) {
             
         // ✅ In-Person Pickup selected
         if ($request->shipping_method === 'inperson_pickup' && $allow_inperson_pickup === 1) {
@@ -1027,6 +1134,11 @@ class CheckoutController extends Controller
             $order_method = 'delivery';
         }
 
+        if ($hasOnlyEventTickets) {
+            $shipping_price = 0;
+            $shipping_method_label = 'Digital Delivery';
+            $order_method = 'digital';
+        }
 
         
         // if (Session::has('couponDiscount')) {
@@ -1043,10 +1155,28 @@ class CheckoutController extends Controller
        $total_amount=str_replace(',','',Cart::total());
        $tax = Cart::tax();
 
+       $ticket_fee_total = 0;
+
+       foreach (Cart::instance('default')->content() as $cartItem) {
+       
+           $productKind = DB::table('termmetas')
+               ->where('term_id', $cartItem->id)
+               ->where('key', 'product_kind')
+               ->value('value');
+       
+           $ticketFee = DB::table('termmetas')
+               ->where('term_id', $cartItem->id)
+               ->where('key', 'ticket_fee')
+               ->value('value');
+       
+           if (trim((string) $productKind) === 'event_ticket') {
+               $ticket_fee_total += ((float) ($ticketFee ?: 0.75)) * (int) $cartItem->qty;
+           }
+       }
 
        $total_discount=str_replace(',','',Cart::discount());
 
-       $total_amount =  $total_amount + $shipping_price;
+      $total_amount = (float) $total_amount + $shipping_price;
 
        $credit_card_fee = credit_card_fee($total_amount);
 
@@ -1072,6 +1202,7 @@ class CheckoutController extends Controller
        $revenue = $total_amount-($tax + $booster_platform_fee + $credit_card_fee);
 
        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+
        //Process Payment
         $gateway_data_info = json_decode($gateway->data);
 
@@ -1083,12 +1214,20 @@ class CheckoutController extends Controller
 
         $club_receives = $total_amount - $total_application_fee;
 
-
+        $nameParts = preg_split('/\s+/', trim($request->name), 2);
+        
+        Session::put('stripe_customer_data', [
+            'first_name' => $nameParts[0] ?? '',
+            'last_name'  => $nameParts[1] ?? '',
+            'name'       => $request->name ?? '',
+            'email'      => $request->email ?? '',
+            'phone'      => $request->phone ?? '',
+        ]);
 
         $paymentIntent = PaymentIntent::create([
             'amount' => round($total_amount * 100),
             'currency' => 'usd',
-            'capture_method' => 'manual',
+            'capture_method' => 'automatic',
             'application_fee_amount' => round($cover_fee * 100),
             'transfer_data' => [
                 'destination' => $booostr_stripe_account,
@@ -1102,25 +1241,39 @@ class CheckoutController extends Controller
             'automatic_payment_methods' => ['enabled' => true],
         ]);
 
+       
 
 
         DB::beginTransaction();
         try {
-            if (Auth::check() == false && !$request->has('guest')) {
-                $user = User::firstOrNew(['email' => $request->email]);
-                if (!$user->id) {
-                    $user->name = $request->name;
-                    $user->email = $request->email;
-                    $user->phone = $request->phone;
-                    $user->role_id = 4;
-                    $user->meta = json_encode(['wpuid'=>$request->wpuid]);
-                    $user->password = \Hash::make($request->email);
-                    $user->save();
-                }
-                Auth::loginUsingId($user->id);
-            }
-            $order = new Order;
+          if (Auth::check() == false && !$request->has('guest')) {
+    
+        $user = User::firstOrNew(['email' => $request->email]);
 
+        // create only if new
+        if (!$user->id) {
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->phone = $request->phone;
+            $user->role_id = 4;
+            $user->password = \Hash::make($request->email);
+        }
+    
+        // ✅ ALWAYS update meta (new + existing)
+        $existingMeta = [];
+        if (!empty($user->meta)) {
+            $existingMeta = json_decode($user->meta, true) ?: [];
+        }
+    
+        $existingMeta['wpuid'] = $request->wpuid ?? 0;
+        $existingMeta['sms_consent'] = $sms_consent;
+
+        $user->meta = json_encode($existingMeta);
+        $user->save();
+    
+        Auth::loginUsingId($user->id);
+        }
+            $order = new Order;
             if (Auth::check() == true) {
                 $order->user_id = Auth::id();
             }
@@ -1146,7 +1299,8 @@ class CheckoutController extends Controller
             $order->payment_status = 0;
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
             $order->save();
-
+            
+            
              // ✅ Save pickup details if in-person pickup selected
              if ($request->shipping_method === 'inperson_pickup') {
                 \App\Models\Ordermeta::updateOrCreate(
@@ -1186,12 +1340,18 @@ class CheckoutController extends Controller
             $cartid = null;
 
             foreach (Cart::content() as $row) {
-
+                $productKind = DB::table('termmetas')->where('term_id', $row->id)->where('key', 'product_kind')->value('value');
+                $ticketFee = DB::table('termmetas')->where('term_id', $row->id)->where('key', 'ticket_fee')->value('value');
                 $data['order_id'] = $order->id;
                 $data['term_id'] = $row->id;
                 $data['info'] = json_encode([
                     'sku' => $row->options->sku ?? '',
-                    'options' => $row->options->options ?? []
+                    'options' => $row->options->options ?? [],
+                    'product_kind' => $productKind ?? 'product',
+                    'ticket_fee' => $ticketFee ?? 0,
+                    'ticket_fee_total' => $productKind == 'event_ticket'
+                        ? ((float) ($ticketFee ?: 0.75)) * (int) $row->qty
+                        : 0,
                 ]);
 
             //    if(isset($row->options->price_id)){
@@ -1218,7 +1378,7 @@ class CheckoutController extends Controller
             if ($request->order_method == 'table') {
                 $order->ordertable()->attach($request->table);
             }
-             if ($order_method == 'delivery') {
+             if ($order_method == 'delivery' && !$hasOnlyEventTickets) {
                 $delivery_info['address'] = $request->shipping['address'].' '. $request->shipping['city'].', '.$request->shipping['state'].', '.$request->shipping['country'];
                 $delivery_info['post_code'] = $request->shipping['post_code'];
                 $delivery_info['shipping_method'] = $request->shipping_method;
@@ -1238,6 +1398,8 @@ class CheckoutController extends Controller
                 ]);
             }
 
+            $sessionCustomer = Session::get('customer_data', []);
+            
             if (!empty($request->name) || !empty($request->email) || !empty($request->phone) || !empty($request->comment)) {
                 $customer_info['name'] = $request->name;
                 $customer_info['email'] = $request->email;
@@ -1250,7 +1412,16 @@ class CheckoutController extends Controller
                 $customer_info['booster_platform_fee'] = $booster_platform_fee;
                 $customer_info['cover_fee'] = $cover_fee;
                 $customer_info['cart_id'] = $cartid;
+                $customer_info['sms_consent'] = $sms_consent;
+                $customer_info['ticket_fee_total'] = $ticket_fee_total;
 
+                        
+                 Session::put('stripe_customer_data', [
+                        'name'  => $customer_info['name'],
+                        'email' => $customer_info['email'],
+                        'phone' => $customer_info['phone'],
+                    ]);
+                    
                  \App\Models\Ordermeta::updateOrCreate(
                     ['order_id' => $order->id, 'key' => 'orderinfo'],
                     ['value' => json_encode($customer_info)]
@@ -1296,8 +1467,10 @@ class CheckoutController extends Controller
                 'booster_level_id' => 4,
                 'customer_tag' => 'online store customer',
                 'addedsource' => 'storetool',
+                'opt_in_tools' => $sms_consent,
             );	
- 
+            
+           
             $subtotal = 0;
             
             foreach ($order->orderitems ?? [] as $row){
@@ -1320,10 +1493,10 @@ class CheckoutController extends Controller
                 'order_subtotal'=>$subtotal,
             ];
 
-           $recipt =  $this->send_order_recipt($user_recipt);
+        //   $recipt =  $this->send_order_recipt($user_recipt);
 
-            \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
-            \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
+        //     \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
+        //     \App\Lib\NotifyToUser::sendEmail($order, $request->email, 'user');
 
             $prices=Orderstock::where('order_id',$order->id)->whereHas('price')->with('price')->get();
 
@@ -1377,19 +1550,19 @@ class CheckoutController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
 
-        // dd($th);
+        // dd($th);die;
           
             return redirect()->away($redirect_url . '/?type=error&message=Oops something wrong while saving order data');
         }
         return redirect()->away($redirect_url);
 
     }
-
-
+    
+    
     function paymentPage($order_id)
     {
 
-        $order = Order::with(['ordermeta', 'orderitems'])->findOrFail($order_id);
+        $order = Order::with(['ordermeta', 'orderitems', 'shippingwithinfo'])->findOrFail($order_id);
 
         $gateway = Getway::where('status','!=',0)->where('namespace','App\Lib\Stripe')->first();
         $gateway_data = json_decode($gateway->data);
@@ -1398,6 +1571,15 @@ class CheckoutController extends Controller
 
         $meta = json_decode($order->ordermeta->value, true);
         
+       $stripe_customer = Session::get('stripe_customer_data', []);
+
+
+        $stripe_customer = [
+            'name'  => $stripe_customer['name']  ?? $meta['name']  ?? '',
+            'email' => $stripe_customer['email'] ?? $meta['email'] ?? '',
+            'phone' => $stripe_customer['phone'] ?? $meta['phone'] ?? '',
+        ];
+       
         $client_secret = null;
         
         Stripe::setApiKey($gateway->test_mode ? $gateway_data->test_secret_key : $gateway_data->secret_key);
@@ -1422,19 +1604,53 @@ class CheckoutController extends Controller
         $cover_fee = $meta['cover_fee'] ?? 0;
         
         // Delivery fee (you might store it somewhere else or calculate)
-        $delivery_fee = $order->total - $order->orderitems->sum('amount') - $cover_fee; 
+        // $delivery_fee = $order->total - $order->orderitems->sum('amount') - $cover_fee; 
+        $delivery_fee = $order->shippingwithinfo->shipping_price ?? 0;
+        
+        $hasEventTicket = false;
+
+        foreach ($order->orderitems as $item) {
+        
+            $info = json_decode($item->info ?? '{}', true);
+        
+            if (($info['product_kind'] ?? '') === 'event_ticket') {
+                $hasEventTicket = true;
+                break;
+            }
+        }
+        
+        if ($hasEventTicket) {
+            $delivery_fee = 0;
+        }
         
         // Subtotal
-        $subtotal = $order->orderitems->sum('amount');
+        $subtotal = 0;
+        $ticket_fee_total = 0;
         
-        // Discount
-        $discount = $order->discount ?? 0;
+        foreach ($order->orderitems as $item) {
         
-        // Tax
-        $tax = $order->tax ?? 0;
+            $info = json_decode($item->info ?? '{}', true);
         
-        // Total
-        $total = $order->total;
+            $subtotal += ((float)$item->amount * (int)$item->qty);
+        
+            $ticket_fee_total += (float)($info['ticket_fee_total'] ?? 0);
+        }
+        
+        $discount = (float)($order->discount ?? 0);
+        $tax = (float)($order->tax ?? 0);
+        
+$base_total = $subtotal
+    + $ticket_fee_total
+    - $discount
+    + $tax
+    + $delivery_fee;
+            
+        $credit_card_fee = (float)($meta['credit_card_fee'] ?? 0);
+        $booster_platform_fee = (float)($meta['booster_platform_fee'] ?? 0);
+        $cover_fee = (float)($meta['cover_fee'] ?? 0);
+        
+        $total = $base_total + $cover_fee;
+        // $ticket_fee_total = $meta['ticket_fee_total'] ?? 0;
 
         return view('store.checkout.payment', compact(
             'order',
@@ -1445,10 +1661,250 @@ class CheckoutController extends Controller
             'cover_fee',
             'total',
             'client_secret',
-             'publishable_key'
+             'publishable_key',
+             'stripe_customer',
+             'ticket_fee_total'
         ));
 
     }
+
+private function sendEventTickets($order, $email)
+{
+    try {
+        foreach ($order->orderitems as $item) {
+
+            $info = json_decode($item->info ?? '{}', true);
+
+            if (($info['product_kind'] ?? '') !== 'event_ticket') {
+                continue;
+            }
+
+            $tickets = [];
+
+$orderInfo = optional($order->ordermeta)->value
+    ? json_decode($order->ordermeta->value, true)
+    : [];
+
+// ✅ Fetch once (optimized)
+$termMeta = DB::table('termmetas')
+    ->where('term_id', $item->term_id)
+    ->whereIn('key', ['ticket_sale_start', 'ticket_sale_end'])
+    ->pluck('value', 'key');
+
+$eventStart = $termMeta['ticket_sale_start'] ?? null;
+$eventEnd   = $termMeta['ticket_sale_end'] ?? null;
+
+// ✅ Fetch logo once
+$clubLogo = tenant_club_logo();
+
+Log::info('Ticket QR Club Logo', ['logo' => $clubLogo]);
+
+for ($i = 1; $i <= (int) $item->qty; $i++) {
+
+    $ticketUuid = Str::uuid()->toString();
+
+    EventTicket::create([
+        'ticket_uuid' => $ticketUuid,
+        'order_id' => $order->id,
+        'order_item_id' => $item->id ?? null,
+        'term_id' => $item->term_id ?? null,
+        'attendee_name' => $orderInfo['name'] ?? null,
+        'attendee_email' => $email,
+        'attendee_phone' => $orderInfo['phone'] ?? null,
+        'event_name' => $item->term->title ?? 'Event Ticket',
+
+        'event_start_at' => $eventStart ? date('Y-m-d H:i:s', strtotime($eventStart)) : null,
+        'event_end_at'   => $eventEnd ? date('Y-m-d H:i:s', strtotime($eventEnd)) : null,
+
+        'event_date' => $eventStart ? date('Y-m-d', strtotime($eventStart)) : null,
+        'event_time' => $eventStart ? date('h:i A', strtotime($eventStart)) : null,
+
+        'event_location' => null,
+        'status' => 'active',
+    ]);
+
+    // =========================
+    // ✅ QR GENERATION START
+    // =========================
+
+    $qr = QrCode::format('png')
+        ->size(320)
+        ->margin(2)
+        ->errorCorrection('H');
+
+    if (!empty($clubLogo)) {
+
+        try {
+
+            $logoData = @file_get_contents($clubLogo);
+
+            if ($logoData !== false) {
+
+                $src = @imagecreatefromstring($logoData);
+
+                if ($src !== false) {
+
+                    // ✅ Enable alpha support
+                    imagealphablending($src, true);
+                    imagesavealpha($src, true);
+
+                    $w = imagesx($src);
+                    $h = imagesy($src);
+
+                    // ✅ Square crop size
+                    $cropSize = min($w, $h);
+
+                    // =========================
+                    // ✅ CREATE SQUARE LOGO
+                    // =========================
+
+                    $squareLogo = imagecreatetruecolor($cropSize, $cropSize);
+
+                    imagealphablending($squareLogo, false);
+                    imagesavealpha($squareLogo, true);
+
+                    $transparent = imagecolorallocatealpha($squareLogo, 0, 0, 0, 127);
+
+                    imagefill($squareLogo, 0, 0, $transparent);
+
+                    imagecopyresampled(
+                        $squareLogo,
+                        $src,
+                        0,
+                        0,
+                        ($w - $cropSize) / 2,
+                        ($h - $cropSize) / 2,
+                        $cropSize,
+                        $cropSize,
+                        $cropSize,
+                        $cropSize
+                    );
+
+                    // =========================
+                    // ✅ FINAL CANVAS
+                    // =========================
+
+                    $canvasSize = 220;
+
+                    $final = imagecreatetruecolor($canvasSize, $canvasSize);
+
+                    imagealphablending($final, false);
+                    imagesavealpha($final, true);
+
+                    $transparentFinal = imagecolorallocatealpha($final, 0, 0, 0, 127);
+
+                    imagefill($final, 0, 0, $transparentFinal);
+
+                    // =========================
+                    // ✅ DRAW WHITE CIRCLE
+                    // =========================
+
+                    $white = imagecolorallocate($final, 255, 255, 255);
+
+                    imagefilledellipse(
+                        $final,
+                        $canvasSize / 2,
+                        $canvasSize / 2,
+                        $canvasSize,
+                        $canvasSize,
+                        $white
+                    );
+
+                    // =========================
+                    // ✅ RESIZE LOGO INSIDE CIRCLE
+                    // =========================
+
+                    $logoSize = 120;
+
+                    $logoX = ($canvasSize - $logoSize) / 2;
+                    $logoY = ($canvasSize - $logoSize) / 2;
+
+                    imagealphablending($final, true);
+
+                    imagecopyresampled(
+                        $final,
+                        $squareLogo,
+                        $logoX,
+                        $logoY,
+                        0,
+                        0,
+                        $logoSize,
+                        $logoSize,
+                        $cropSize,
+                        $cropSize
+                    );
+
+                    // =========================
+                    // ✅ OUTPUT PNG
+                    // =========================
+
+                    ob_start();
+                    imagepng($final);
+                    $logoFinal = ob_get_clean();
+
+                    // ✅ Perfect center merge
+                    $qr->mergeString($logoFinal, 0.28, true);
+
+                    // =========================
+                    // ✅ CLEAN MEMORY
+                    // =========================
+
+                    imagedestroy($src);
+                    imagedestroy($squareLogo);
+                    imagedestroy($final);
+                }
+            }
+
+        } catch (\Throwable $e) {
+
+            Log::warning('QR logo merge failed', [
+                'logo' => $clubLogo,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    $qrImage = $qr->generate(url('/ticket/scan/' . $ticketUuid));
+
+    // =========================
+    // ✅ QR GENERATION END
+    // =========================
+
+    $tickets[] = [
+        'ticketUuid' => $ticketUuid,
+        'qrPng' => $qrImage,
+    ];
+}
+            Mail::send(
+                'email.event-ticket-template',
+                [
+                    'order' => $order,
+                    'item' => $item,
+                    'tickets' => $tickets,
+                ],
+                function ($message) use ($email, $item) {
+                    $clubInfo = tenant_club_info();
+                    $clubName = $clubInfo['club_name'] ?? 'Booostr';
+                    $ticketTitle = $item->term->title ?? 'Event';
+
+                    $message->to($email)
+                        ->subject('Your ' . $clubName . ' - ' . $ticketTitle . ' Tickets are inside');
+                }
+            );
+        }
+
+        return true;
+
+    } catch (\Throwable $e) {
+        Log::error('Event ticket mail failed', [
+            'email' => $email,
+            'order_id' => $order->id ?? null,
+            'message' => $e->getMessage(),
+        ]);
+
+        return false;
+    }
+}
 
     function processPayment(Request $request, $order_id)
     {
@@ -1536,9 +1992,13 @@ class CheckoutController extends Controller
        
             $recipt =  $this->send_order_recipt($reciptdata);
 
-           // \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
+            \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
             
-          //  \App\Lib\NotifyToUser::sendEmail($order, $ordermeta['email'], 'user');
+            \App\Lib\NotifyToUser::sendEmail($order, $ordermeta['email'], 'user');
+            
+            $order->load('orderitems.term');
+
+           $this->sendEventTickets($order, $ordermeta['email']);
 
         }
     
@@ -1560,7 +2020,7 @@ class CheckoutController extends Controller
     
         } catch (\Exception $e) {
             
-            dd($e);
+            dd($e);die;
             
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -1617,11 +2077,13 @@ class CheckoutController extends Controller
 									'contact_tags' => '',
                                     'customer_tag' => 'online store customer',
                                     'addedsource' => 'storetool',
+                                    'opt_in_tools' => $ordermeta['sms_consent'] ?? 0,
 								);
 								
 								
 			$user_recipt = [
                 'contact_mgr_data'=>$contact_manager_data,
+                'opt_in_tools' => (int) ($ordermeta['sms_consent'] ?? 0),
                 'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
                 'receipt_title'=>$ordermeta['name'],
                 'receipent_org'=>$club_info['club_name'].' Store',
@@ -1683,7 +2145,7 @@ class CheckoutController extends Controller
         $subtotal = Cart::subtotal();
      
         $shipping_price = 0;
-        $shipping_method_label = '';
+        
         $pickup_details = [];
         $allow_inperson_pickup = 0;
         
@@ -1738,6 +2200,12 @@ class CheckoutController extends Controller
 
         } else {
             $order_method = 'delivery';
+        }
+        
+        if ($hasOnlyEventTickets) {
+            $shipping_price = 0;
+            $shipping_method_label = 'Digital Delivery';
+            $order_method = 'digital';
         }
 
         
@@ -2101,7 +2569,7 @@ class CheckoutController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
 
-        //dd($th);
+        // dd($th); die;
           
             return redirect()->away($redirect_url . '/?type=error&message=Oops something wrong while saving order data');
         }
@@ -2187,11 +2655,13 @@ class CheckoutController extends Controller
 
 
         $postData = json_encode($data);
+        // dd($postData);die;
 
         $url = env("WP_API_URL");
         
         $url = ($url != '') ? $url.'/user-recipt' : "https://staging3.booostr.co/wp-json/store-api/v1/user-recipt";
 
+        // dd($url);die;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
@@ -2204,7 +2674,6 @@ class CheckoutController extends Controller
 
         $response = curl_exec($ch);
 
-        // dd($response);
 
         // Check for cURL errors
         if (curl_errno($ch)) {
@@ -2213,10 +2682,22 @@ class CheckoutController extends Controller
         curl_close($ch);
         return $response;
     }
-    public function success()
+    
+    public function success(Request $request)
     {
         Cart::instance('default')->destroy();
-        return \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
+    
+        $redirect_url = Session::has('redirect_url')
+            ? Session::get('redirect_url')
+            : 'https://www.boostr.co';
+    
+        $invoice = $request->query('invoice_id', '');
+    
+        return redirect()->away(
+            $redirect_url . '/?tab=thankyou&club_id=' . Tenant('club_id') .
+            '&invoice_id=' . $invoice .
+            '&type=success&message=Thanks for your purchase. Your order number is ' . $invoice
+        );
     }
 
     public function fail()

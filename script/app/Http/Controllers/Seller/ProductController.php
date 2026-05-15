@@ -105,8 +105,9 @@ class ProductController extends Controller
     } 
 
 
-    public function store(Request $request)
+      public function store(Request $request)
     {
+       
         abort_if(!getpermission('products'), 401);
         // if (postlimitcheck() == false) {
         //     $errors['errors']['error']='Maximum product limit exceeded';
@@ -128,9 +129,16 @@ class ProductController extends Controller
         ]);
 
         if ($request->product_type != 1) {
-            $validated = $request->validate([
+            $rules = [
                 'price' => 'required|max:100',
-            ]);
+            ];
+        
+            if ($request->product_type == 2) {
+                $rules['ticket_sale_start'] = 'required';
+                $rules['ticket_sale_end'] = 'required';
+            }
+        
+            $validated = $request->validate($rules);
         } else {
             $validated = $request->validate([
                 'childattribute' => 'required',
@@ -148,6 +156,37 @@ class ProductController extends Controller
             $term->is_variation = $request->product_type;
             $term->list_type = $request->list_type;
             $term->save();
+
+            if ($request->product_type == 2) {
+
+                $term->meta()->create([
+                    'key' => 'product_kind',
+                    'value' => 'event_ticket'
+                ]);
+            
+            
+                $term->meta()->create([
+                    'key' => 'ticket_sale_start',
+                    'value' => $request->ticket_sale_start
+                ]);
+            
+                $term->meta()->create([
+                    'key' => 'ticket_sale_end',
+                    'value' => $request->ticket_sale_end
+                ]);
+            
+                $term->meta()->create([
+                    'key' => 'ticket_fee',
+                    'value' => '0.75'
+                ]);
+            
+                if ($request->ticket_instructions) {
+                    $term->meta()->create([
+                        'key' => 'ticket_instructions',
+                        'value' => $request->ticket_instructions
+                    ]);
+                }
+            }
 
             if ($request->short_description) {
                 $term->meta()->create(['key' => 'excerpt', 'value' => $request->short_description]);
