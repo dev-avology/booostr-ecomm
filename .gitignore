@@ -3,6 +3,7 @@
 **/*/.DS_Store
 uploads/store_logo/*
 script/vendor
+script/storage/
 booostr.club
 booostr.club/
 !script/vendor/omnipay/stripe/

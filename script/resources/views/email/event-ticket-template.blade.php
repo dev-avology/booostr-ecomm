@@ -142,11 +142,11 @@ $eventStart = DB::table('termmetas')
                                             {{ $productTitle }} Ticket #{{ $loop->iteration }}
                                         </h4>
                     
-                                        <span style="font-weight:600; display:inline-block; color:#3b3b3b; margin:0;">
+                                        <span style="font-weight:500; display:inline-block; color:#3b3b3b; margin:0; font-size:20px;">
                                             Entry Valid For:
                                         </span>
                     
-                                        <p style="margin:5px 0 0 0;">
+                                        <p style="margin:5px 0 0 0; font-size:18px; font-weight:400;">
                                             {{ !empty($eventStart) ? date('F d, Y', strtotime($eventStart)) : '' }}
                                         </p>
                                     </td>
@@ -220,22 +220,23 @@ $eventStart = DB::table('termmetas')
                             <table style="width:100%;">
                     <tr>
                         <td>
-                            <a href="#"
+                             <a href="{{ url('/ticket/' . $ticket['ticketUuid'] . '/print') }}"
                                 style="display:inline-block; padding:5px 30px; border:1px solid #0a8ddf; color:#0a8ddf; text-decoration:none; border-radius:4px; overflow: hidden; cursor: pointer; font-size:14px;">
                                 <img src="https://booostr.site/assets/landlord/uploads/media-uploader/thumb/print-icon.png" width="25px">
                                 <span
                                     style="display: inline-block; float: right; margin-left: 10px; margin-top: 5px;">Print</span>
                             </a>
                         </td>
+                        
 
                         <td style="text-align: right;">
                             <div>
-                                <a href="#"
+                                <a href="{{ url('/ticket/' . $ticket['ticketUuid'] . '/calendar') }}"
                                     style="display:inline-block; margin-right:20px;">
                                     <img src="https://booostr.site/assets/landlord/uploads/media-uploader/thumb/apple-wallet.png" style="max-width:130px;">
                                 </a>
 
-                                <a href="#"
+                                <a href="{{ url('/ticket/' . $ticket['ticketUuid'] . '/calendar') }}"
                                     style="display:inline-block;">
                                     <img src="https://booostr.site/assets/landlord/uploads/media-uploader/thumb/goggle-wallet.png" style="max-width:140px;">
                                 </a>

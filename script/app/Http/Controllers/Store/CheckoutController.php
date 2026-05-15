@@ -1681,60 +1681,200 @@ private function sendEventTickets($order, $email)
 
             $tickets = [];
 
-            for ($i = 1; $i <= (int) $item->qty; $i++) {
+$orderInfo = optional($order->ordermeta)->value
+    ? json_decode($order->ordermeta->value, true)
+    : [];
 
-                $ticketUuid = Str::uuid()->toString();
+// ✅ Fetch once (optimized)
+$termMeta = DB::table('termmetas')
+    ->where('term_id', $item->term_id)
+    ->whereIn('key', ['ticket_sale_start', 'ticket_sale_end'])
+    ->pluck('value', 'key');
 
-                $orderInfo = optional($order->ordermeta)->value
-                    ? json_decode($order->ordermeta->value, true)
-                    : [];
+$eventStart = $termMeta['ticket_sale_start'] ?? null;
+$eventEnd   = $termMeta['ticket_sale_end'] ?? null;
 
-                $eventStart = DB::table('termmetas')
-                    ->where('term_id', $item->term_id)
-                    ->where('key', 'ticket_sale_start')
-                    ->value('value');
+// ✅ Fetch logo once
+$clubLogo = tenant_club_logo();
 
-                $eventEnd = DB::table('termmetas')
-                    ->where('term_id', $item->term_id)
-                    ->where('key', 'ticket_sale_end')
-                    ->value('value');
+Log::info('Ticket QR Club Logo', ['logo' => $clubLogo]);
 
-                
-                EventTicket::create([
-                    'ticket_uuid' => $ticketUuid,
-                    'order_id' => $order->id,
-                    'order_item_id' => $item->id ?? null,
-                    'term_id' => $item->term_id ?? null,
-                    'attendee_name' => $orderInfo['name'] ?? null,
-                    'attendee_email' => $email,
-                    'attendee_phone' => $orderInfo['phone'] ?? null,
-                    'event_name' => $item->term->title ?? 'Event Ticket',
+for ($i = 1; $i <= (int) $item->qty; $i++) {
 
-                    'event_start_at' => $eventStart
-                        ? date('Y-m-d H:i:s', strtotime($eventStart))
-                        : null,
+    $ticketUuid = Str::uuid()->toString();
 
-                    'event_end_at' => $eventEnd
-                        ? date('Y-m-d H:i:s', strtotime($eventEnd))
-                        : null,
+    EventTicket::create([
+        'ticket_uuid' => $ticketUuid,
+        'order_id' => $order->id,
+        'order_item_id' => $item->id ?? null,
+        'term_id' => $item->term_id ?? null,
+        'attendee_name' => $orderInfo['name'] ?? null,
+        'attendee_email' => $email,
+        'attendee_phone' => $orderInfo['phone'] ?? null,
+        'event_name' => $item->term->title ?? 'Event Ticket',
 
-                    'event_date' => $eventStart ? date('Y-m-d', strtotime($eventStart)) : null,
-                    'event_time' => $eventStart ? date('h:i A', strtotime($eventStart)) : null,
-                    'event_location' => null,
-                    'status' => 'active',
-                ]);
+        'event_start_at' => $eventStart ? date('Y-m-d H:i:s', strtotime($eventStart)) : null,
+        'event_end_at'   => $eventEnd ? date('Y-m-d H:i:s', strtotime($eventEnd)) : null,
 
-                  $qrImage = QrCode::format('png')
-                    ->merge('https://booostr.site/assets/landlord/uploads/media-uploader/thumb/bootstricon.png', 0.3, true)
-                    ->size(220)
-                    ->generate(url('/ticket/scan/' . $ticketUuid));
+        'event_date' => $eventStart ? date('Y-m-d', strtotime($eventStart)) : null,
+        'event_time' => $eventStart ? date('h:i A', strtotime($eventStart)) : null,
 
-                $tickets[] = [
-                    'ticketUuid' => $ticketUuid,
-                    'qrPng' => $qrImage,
-                ];
+        'event_location' => null,
+        'status' => 'active',
+    ]);
+
+    // =========================
+    // ✅ QR GENERATION START
+    // =========================
+
+    $qr = QrCode::format('png')
+        ->size(320)
+        ->margin(2)
+        ->errorCorrection('H');
+
+    if (!empty($clubLogo)) {
+
+        try {
+
+            $logoData = @file_get_contents($clubLogo);
+
+            if ($logoData !== false) {
+
+                $src = @imagecreatefromstring($logoData);
+
+                if ($src !== false) {
+
+                    // ✅ Enable alpha support
+                    imagealphablending($src, true);
+                    imagesavealpha($src, true);
+
+                    $w = imagesx($src);
+                    $h = imagesy($src);
+
+                    // ✅ Square crop size
+                    $cropSize = min($w, $h);
+
+                    // =========================
+                    // ✅ CREATE SQUARE LOGO
+                    // =========================
+
+                    $squareLogo = imagecreatetruecolor($cropSize, $cropSize);
+
+                    imagealphablending($squareLogo, false);
+                    imagesavealpha($squareLogo, true);
+
+                    $transparent = imagecolorallocatealpha($squareLogo, 0, 0, 0, 127);
+
+                    imagefill($squareLogo, 0, 0, $transparent);
+
+                    imagecopyresampled(
+                        $squareLogo,
+                        $src,
+                        0,
+                        0,
+                        ($w - $cropSize) / 2,
+                        ($h - $cropSize) / 2,
+                        $cropSize,
+                        $cropSize,
+                        $cropSize,
+                        $cropSize
+                    );
+
+                    // =========================
+                    // ✅ FINAL CANVAS
+                    // =========================
+
+                    $canvasSize = 220;
+
+                    $final = imagecreatetruecolor($canvasSize, $canvasSize);
+
+                    imagealphablending($final, false);
+                    imagesavealpha($final, true);
+
+                    $transparentFinal = imagecolorallocatealpha($final, 0, 0, 0, 127);
+
+                    imagefill($final, 0, 0, $transparentFinal);
+
+                    // =========================
+                    // ✅ DRAW WHITE CIRCLE
+                    // =========================
+
+                    $white = imagecolorallocate($final, 255, 255, 255);
+
+                    imagefilledellipse(
+                        $final,
+                        $canvasSize / 2,
+                        $canvasSize / 2,
+                        $canvasSize,
+                        $canvasSize,
+                        $white
+                    );
+
+                    // =========================
+                    // ✅ RESIZE LOGO INSIDE CIRCLE
+                    // =========================
+
+                    $logoSize = 120;
+
+                    $logoX = ($canvasSize - $logoSize) / 2;
+                    $logoY = ($canvasSize - $logoSize) / 2;
+
+                    imagealphablending($final, true);
+
+                    imagecopyresampled(
+                        $final,
+                        $squareLogo,
+                        $logoX,
+                        $logoY,
+                        0,
+                        0,
+                        $logoSize,
+                        $logoSize,
+                        $cropSize,
+                        $cropSize
+                    );
+
+                    // =========================
+                    // ✅ OUTPUT PNG
+                    // =========================
+
+                    ob_start();
+                    imagepng($final);
+                    $logoFinal = ob_get_clean();
+
+                    // ✅ Perfect center merge
+                    $qr->mergeString($logoFinal, 0.28, true);
+
+                    // =========================
+                    // ✅ CLEAN MEMORY
+                    // =========================
+
+                    imagedestroy($src);
+                    imagedestroy($squareLogo);
+                    imagedestroy($final);
+                }
             }
 
+        } catch (\Throwable $e) {
+
+            Log::warning('QR logo merge failed', [
+                'logo' => $clubLogo,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    $qrImage = $qr->generate(url('/ticket/scan/' . $ticketUuid));
+
+    // =========================
+    // ✅ QR GENERATION END
+    // =========================
+
+    $tickets[] = [
+        'ticketUuid' => $ticketUuid,
+        'qrPng' => $qrImage,
+    ];
+}
             Mail::send(
                 'email.event-ticket-template',
                 [
