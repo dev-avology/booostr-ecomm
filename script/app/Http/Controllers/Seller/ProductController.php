@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Term;
 use App\Models\Price;
+use App\Models\Orderitem;
+use App\Models\EventTicket;
 use App\Models\Productoption;
 use App\Models\Variationproductoption;
 use DB;
@@ -18,6 +20,7 @@ use Auth;
 use Error;
 use Google\Service\NetworkManagement\RerunConnectivityTestRequest;
 use GuzzleHttp\Client;
+
 
 class ProductController extends Controller
 {
@@ -961,4 +964,56 @@ class ProductController extends Controller
 
         return response()->json(["status" => true, "message" => "product list successfully", "result" => $data]);
     }
+    
+    
+    // product history add
+    
+    public function salesHistory(Request $request, $id)
+    {
+        $product = Term::with(['price', 'media'])->findOrFail($id);
+    
+          $sales = Orderitem::with(['order.ordermeta', 'eventTicket'])
+            ->where('term_id', $id);
+        
+            if ($request->filled('src')) {
+            
+                $search = $request->src;
+            
+                $sales = $sales->where(function ($q) use ($search) {
+            
+                    $q->where('info', 'LIKE', "%{$search}%")
+            
+                    ->orWhereHas('order', function ($orderQuery) use ($search) {
+                        $orderQuery->where('invoice_no', 'LIKE', "%{$search}%");
+                    })
+            
+                    ->orWhereHas('order.ordermeta', function ($metaQuery) use ($search) {
+                        $metaQuery->where('value', 'LIKE', "%{$search}%");
+                    })
+            
+                    ->orWhereHas('eventTicket', function ($ticketQuery) use ($search) {
+                        $ticketQuery->where('attendee_name', 'LIKE', "%{$search}%")
+                            ->orWhere('attendee_email', 'LIKE', "%{$search}%")
+                            ->orWhere('attendee_phone', 'LIKE', "%{$search}%")
+                            ->orWhere('ticket_uuid', 'LIKE', "%{$search}%")
+                            ->orWhere('status', 'LIKE', "%{$search}%");
+                    });
+            
+                });
+            }
+        
+        $sales = $sales->orderBy('id', 'desc')->paginate(20);
+    
+        return view('seller.product.sales-history', compact('product', 'sales'));
+    }
+    
+public function ticketStatusUpdate(Request $request)
+{
+    $ticket = EventTicket::findOrFail($request->ticket_id);
+    $ticket->status = $request->status;
+    $ticket->used_at = $request->status == 'used' ? now() : null;
+    $ticket->save();
+
+    return response()->json(['success' => true]);
+}
 }

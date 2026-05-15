@@ -320,6 +320,11 @@ Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 
 
     Route::get('product/edit/{id}/{type}', 'ProductController@edit');
     Route::get('product/clone/{id}', 'ProductController@clone')->name('product.clone');
+    
+    // add route sales product history
+    Route::get('product/{id}/sales-history', 'ProductController@salesHistory')->name('product.sales.history');
+    Route::post('product/ticket-status-update', 'ProductController@ticketStatusUpdate')->name('product.ticket.status.update');
+    
     Route::get('product/remove-price/{id}', 'ProductController@removeVariationPrice');
     Route::get('product/remove-variation-attribute/{id}', 'ProductController@removeVariationAttribute');
 

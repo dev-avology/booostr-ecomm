@@ -526,7 +526,8 @@ function toggleTicketFields() {
     if (productTypeText === 'Online Ticketing') {
 
         $('#product_type').val(2);
-       $('#product_type').css('pointer-events', 'none');
+    //   $('#product_type').css('pointer-events', 'none');
+       $('#product_type').css({'pointer-events': 'none','color': '#6e6c6c','background-color': '#e9ecef'});
 
         $('#product_type option[value="2"]').show();
 
@@ -545,7 +546,12 @@ function toggleTicketFields() {
 
     } else {
 
-        $('#product_type').css('pointer-events', 'auto');
+        // $('#product_type').css('pointer-events', 'auto');
+        $('#product_type').css({
+         'pointer-events': 'auto',
+         'color': '',
+         'background-color': ''
+      });
 
         if ($('#product_type').val() == 2) {
             $('#product_type').val(0);

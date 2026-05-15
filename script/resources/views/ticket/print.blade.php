@@ -205,6 +205,17 @@ font-family: "Roboto";
             body{
                 background:#fff;
             }
+            
+            * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
+.ticket-instructions {
+    background: #efefef !important;
+    border-radius: 8px !important;
+    padding: 15px 25px !important;
+}
         }
     </style>
 </head>
@@ -303,4 +314,16 @@ font-family: "Roboto";
 
 
 </body>
+<script>
+window.onload = function () {
+    setTimeout(function () {
+        window.print();
+    }, 500);
+};
+
+window.onafterprint = function () {
+     window.close();
+};
+</script>
+
 </html>

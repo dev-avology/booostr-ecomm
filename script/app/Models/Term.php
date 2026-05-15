@@ -226,5 +226,21 @@ class Term extends Model
         return $this->hasOne('App\Models\Termmeta')->where('key','page')->select('id','term_id','value');
     }
     
+    
+    
+    public function ticketInstructions()
+    {
+        return $this->hasOne(Termmeta::class, 'term_id')->where('key', 'ticket_instructions');
+    }
+    
+    public function ticketSaleStart()
+    {
+        return $this->hasOne(Termmeta::class, 'term_id')->where('key', 'ticket_sale_start');
+    }
+    
+    public function ticketSaleEnd()
+    {
+        return $this->hasOne(Termmeta::class, 'term_id')->where('key', 'ticket_sale_end');
+    }
 
 }

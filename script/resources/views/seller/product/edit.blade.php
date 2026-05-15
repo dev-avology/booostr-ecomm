@@ -15,6 +15,7 @@
 
 @section('product_content')
 
+
 <form class="ajaxform" action="{{ route('seller.product.update',$info->id) }}" method="post">
     @csrf
     @method("PUT")
@@ -78,7 +79,7 @@
         <div class="from-group row mb-2 ticket_instructions_area" style="display:none;">
             <label class="col-lg-12">{{ __('Ticket Instructions') }} :</label>
             <div class="col-lg-12">
-                <textarea name="ticket_instructions" class="form-control h-150 summernote">{{ $info->ticket_instructions ?? '' }}</textarea>
+                <textarea name="ticket_instructions" class="form-control h-150 summernote">{{ $info->ticketInstructions->value ?? '' }}</textarea>
             </div>
         </div>
 
@@ -182,7 +183,7 @@
                 <label class="col-lg-12">{{ __('Date & Time To Start Selling Tickets*') }} :</label>
                 <div class="col-lg-12">
                     <input type="datetime-local" name="ticket_sale_start" class="form-control ticket_sale_start"
-                           value="{{ $info->ticket_sale_start ?? '' }}">
+                           value="{{ $info->ticketSaleStart->value ?? '' }}">
                 </div>
             </div>
         
@@ -190,7 +191,7 @@
                 <label class="col-lg-12">{{ __('Date & Time To Stop Selling Tickets*') }} :</label>
                 <div class="col-lg-12">
                     <input type="datetime-local" name="ticket_sale_end" class="form-control"
-                           value="{{ $info->ticket_sale_end ?? '' }}">
+                          value="{{ $info->ticketSaleEnd->value ?? '' }}">
                 </div>
             </div>
         </div>
@@ -348,9 +349,18 @@
         }
 
     } else {
-        $('.ticket_type_area').hide();
-        $('.ticket_instructions_area').hide();
-        $('.ticket_fields').hide();
+       $('.drop_product_type').css({
+    'pointer-events': 'auto',
+    'color': '',
+    'background-color': ''
+});
+
+$('#product_type').val(0);
+
+$('.ticket_type_area').hide();
+$('.ticket_instructions_area').hide();
+$('.ticket_fields').hide();
+        
     }
 }
 
@@ -358,6 +368,10 @@ $(document).ready(function() {
     toggleEditTicketFields();
 });
     
+
+$(document).on('change', '.drop_product_type', function() {
+    toggleEditTicketFields();
+});
     </script>
 
 @endpush

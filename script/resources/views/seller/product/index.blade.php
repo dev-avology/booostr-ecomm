@@ -170,6 +170,7 @@
                                   <td class="text-right">
                                     <a class="text-primary" href="{{ route('seller.product.edit', $row->id) }}"><i class="fa fa-edit"></i></a>
                                     <a class="text-primary" href="{{ route('seller.product.clone', $row->id) }}"><i class="fa fa-clone"></i></a>
+                                    <a class="text-primary" href="{{ route('seller.product.sales.history', $row->id) }}"><i class="fa fa-list"></i></a>
                                 </td>
                             </tr>
                         @endforeach
