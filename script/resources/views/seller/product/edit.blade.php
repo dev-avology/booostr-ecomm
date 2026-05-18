@@ -323,9 +323,9 @@
     var productTypeText = $('.drop_product_type option:selected').text().trim();
 
     if (productTypeText === 'Online Ticketing') {
-$('.drop_product_type').prop('disabled', true);
+     $('.drop_product_type').prop('disabled', true);
 
-$('.drop_product_type')
+    $('.drop_product_type')
     .closest('.selectric-wrapper')
     .find('.selectric')
     .css({
@@ -355,23 +355,23 @@ $('.drop_product_type')
         }
 
     } else {
-$('.drop_product_type').prop('disabled', false);
+	$('.drop_product_type').prop('disabled', false);
 
-$('.drop_product_type')
-    .closest('.selectric-wrapper')
-    .find('.selectric')
-    .css({
-        'background': '',
-        'color': '',
-        'opacity': '',
-        'cursor': ''
-    });
+	$('.drop_product_type')
+		.closest('.selectric-wrapper')
+		.find('.selectric')
+		.css({
+			'background': '',
+			'color': '',
+			'opacity': '',
+			'cursor': ''
+		});
 
-$('#product_type').val(0);
+	$('#product_type').val(0);
 
-$('.ticket_type_area').hide();
-$('.ticket_instructions_area').hide();
-$('.ticket_fields').hide();
+	$('.ticket_type_area').hide();
+	$('.ticket_instructions_area').hide();
+	$('.ticket_fields').hide();
         
     }
 }
