@@ -69,6 +69,7 @@
                         @endif
                     @endforeach
 
+
             </div>
         </div>
         
@@ -330,21 +331,21 @@
 
     if (productTypeText === 'Online Ticketing') {
         $('.drop_product_type')
-    .prop('disabled', true)
-    .selectric('refresh');
+        .prop('disabled', true)
+        .selectric('refresh');
 
-$('.drop_product_type')
-    .closest('.selectric-wrapper')
-    .addClass('selectric-disabled');
+        $('.drop_product_type')
+            .closest('.selectric-wrapper')
+            .addClass('selectric-disabled');
 
-$('.drop_product_type')
-    .closest('.selectric-wrapper')
-    .find('.selectric')
-    .css({
-        'background': '#e9ecef',
-        'color': '#6e6c6c',
-        'opacity': '1',
-        'cursor': 'not-allowed'
+        $('.drop_product_type')
+            .closest('.selectric-wrapper')
+            .find('.selectric')
+            .css({
+                'background': '#e9ecef',
+                'color': '#6e6c6c',
+                'opacity': '1',
+                'cursor': 'not-allowed'
     });
 
         $('#product_type').val(2).css({
