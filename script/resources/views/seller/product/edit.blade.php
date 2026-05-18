@@ -330,6 +330,7 @@
     var productTypeText = $('.drop_product_type option:selected').text().trim();
 
     if (productTypeText === 'Online Ticketing') {
+<<<<<<< Updated upstream
         $('.drop_product_type')
         .prop('disabled', true)
         .selectric('refresh');
@@ -346,6 +347,18 @@
                 'color': '#6e6c6c',
                 'opacity': '1',
                 'cursor': 'not-allowed'
+=======
+$('.drop_product_type').prop('disabled', true);
+
+$('.drop_product_type')
+    .closest('.selectric-wrapper')
+    .find('.selectric')
+    .css({
+        'background': '#e9ecef',
+        'color': '#6e6c6c',
+        'opacity': '1',
+        'cursor': 'not-allowed'
+>>>>>>> Stashed changes
     });
 
         $('#product_type').val(2).css({
@@ -368,6 +381,7 @@
         }
 
     } else {
+<<<<<<< Updated upstream
         $('.drop_product_type')
     .prop('disabled', false)
     .selectric('refresh');
@@ -375,6 +389,9 @@
 $('.drop_product_type')
     .closest('.selectric-wrapper')
     .removeClass('selectric-disabled');
+=======
+$('.drop_product_type').prop('disabled', false);
+>>>>>>> Stashed changes
 
 $('.drop_product_type')
     .closest('.selectric-wrapper')
