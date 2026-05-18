@@ -216,7 +216,7 @@ class ProductController extends Controller
                     'price' => $request->price,
                     'qty' => $request->qty,
                     'sku' => $request->sku,
-                    'weight' => $request->weight,
+                    'weight' => 0,
                     'stock_manage' => $request->stock_manage,
                     'stock_status' => $request->stock_status,
                     'tax' => $request->tax
@@ -299,7 +299,8 @@ class ProductController extends Controller
         abort_if(!getpermission('products'), 401);
         $formApiData = $this->formApi();
         if ($type == 'general') {
-            $info = Term::query()->where('type', 'product')->with('tags', 'excerpt', 'description', 'termcategories','formType','formFields')->findorFail($id);
+            $info = Term::query()->where('type', 'product')->with('tags', 'excerpt', 'description', 'termcategories','formType','formFields', 'ticketInstructions',
+            'ticketSaleStart','ticketSaleEnd')->findorFail($id);
 
             // dd($info);
             $selected_categories = [];
@@ -391,7 +392,7 @@ class ProductController extends Controller
 
             DB::beginTransaction();
             try {
-                $term = Term::where('type', 'product')->with('excerpt', 'description', 'termcategories')->findorFail($id);
+                $term = Term::where('type', 'product')->with('excerpt','description','termcategories','ticketInstructions','formType', 'formFields')->findOrFail($id);
                 $term->title = $request->name;
                 $term->slug = $request->slug;
                 $term->status = $request->status;
@@ -408,6 +409,19 @@ class ProductController extends Controller
                 } else {
                     if (!empty($term->excerpt)) {
                         $term->excerpt()->delete();
+                    }
+                }
+
+                if ($request->has('ticket_instructions')) {
+                    if (empty($term->ticketInstructions)) {
+                        $term->ticketInstructions()->create([
+                            'key' => 'ticket_instructions',
+                            'value' => $request->ticket_instructions
+                        ]);
+                    } else {
+                        $term->ticketInstructions()->update([
+                            'value' => $request->ticket_instructions
+                        ]);
                     }
                 }
 
@@ -497,9 +511,9 @@ class ProductController extends Controller
                     //single price
                     $valid_price = preg_replace("/[^0-9.]/", "", $request->price);
                     if (empty($term->price)) {
-                        $term->price()->create(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => $request->weight, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status,'tax' => $request->tax]);
+                        $term->price()->create(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => 0, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status,'tax' => $request->tax]);
                     } else {
-                        $term->price()->update(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => $request->weight, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status,'tax' => $request->tax]);
+                        $term->price()->update(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => 0, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status,'tax' => $request->tax]);
                     }
                     //end single price
                 } else {

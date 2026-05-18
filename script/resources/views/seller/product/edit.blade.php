@@ -63,6 +63,12 @@
                         @endif;
                 </select>
 
+                    @foreach($product_type as $row)
+                        @if(in_array($row->id,$selected_categories))
+                            <input type="hidden" name="categories[]" value="{{ $row->id }}">
+                        @endif
+                    @endforeach
+
             </div>
         </div>
         
@@ -323,11 +329,23 @@
     var productTypeText = $('.drop_product_type option:selected').text().trim();
 
     if (productTypeText === 'Online Ticketing') {
-        $('.drop_product_type').css({
-            'pointer-events': 'none',
-            'color': '#6e6c6c',
-            'background-color': '#e9ecef'
-        });
+        $('.drop_product_type')
+    .prop('disabled', true)
+    .selectric('refresh');
+
+$('.drop_product_type')
+    .closest('.selectric-wrapper')
+    .addClass('selectric-disabled');
+
+$('.drop_product_type')
+    .closest('.selectric-wrapper')
+    .find('.selectric')
+    .css({
+        'background': '#e9ecef',
+        'color': '#6e6c6c',
+        'opacity': '1',
+        'cursor': 'not-allowed'
+    });
 
         $('#product_type').val(2).css({
             'pointer-events': 'none',
@@ -349,11 +367,23 @@
         }
 
     } else {
-       $('.drop_product_type').css({
-    'pointer-events': 'auto',
-    'color': '',
-    'background-color': ''
-});
+        $('.drop_product_type')
+    .prop('disabled', false)
+    .selectric('refresh');
+
+$('.drop_product_type')
+    .closest('.selectric-wrapper')
+    .removeClass('selectric-disabled');
+
+$('.drop_product_type')
+    .closest('.selectric-wrapper')
+    .find('.selectric')
+    .css({
+        'background': '',
+        'color': '',
+        'opacity': '',
+        'cursor': ''
+    });
 
 $('#product_type').val(0);
 
@@ -374,4 +404,17 @@ $(document).on('change', '.drop_product_type', function() {
 });
     </script>
 
+<style>
+
+.selectric-disabled {
+    pointer-events: none !important;
+    opacity: 1 !important;
+}
+
+.selectric-disabled .selectric {
+    background: #e9ecef !important;
+    color: #6e6c6c !important;
+    cursor: not-allowed !important;
+}
+</style>
 @endpush
