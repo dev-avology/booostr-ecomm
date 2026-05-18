@@ -6,9 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\EventTicket;
 use Illuminate\Support\Str;
-use PKPass\PKPass;
 use Firebase\JWT\JWT;
-use Illuminate\Support\Facades\Storage;
+
 
 class TicketScanController extends Controller
 {
@@ -146,7 +145,10 @@ class TicketScanController extends Controller
         $classId = env('GOOGLE_WALLET_CLASS_ID');
         $objectId = $issuerId . '.ticket_' . str_replace('-', '_', $ticket->ticket_uuid);
     
-        $serviceAccount = json_decode(file_get_contents(storage_path('app/wallet/google/service-account.json')), true);
+        $serviceAccount = json_decode(
+            file_get_contents(base_path('storage/app/google-wallet/service-account.json')),
+            true
+        );
     
         $payload = [
             'iss' => $serviceAccount['client_email'],
@@ -179,6 +181,37 @@ class TicketScanController extends Controller
     
         return redirect('https://pay.google.com/gp/v/save/' . $jwt);
     }
+
+    public function createGoogleWalletClass()
+{
+    $classId = env('GOOGLE_WALLET_CLASS_ID');
+
+    $client = new \Google\Client();
+    $client->setAuthConfig(base_path('storage/app/google-wallet/service-account.json'));
+    $client->addScope('https://www.googleapis.com/auth/wallet_object.issuer');
+
+    $httpClient = $client->authorize();
+
+    $response = $httpClient->post(
+        'https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass',
+        [
+            'json' => [
+                'id' => $classId,
+                'issuerName' => 'Booostr',
+                'reviewStatus' => 'UNDER_REVIEW',
+                'eventName' => [
+                    'defaultValue' => [
+                        'language' => 'en-US',
+                        'value' => 'Booostr Event Ticket'
+                    ]
+                ],
+                'hexBackgroundColor' => '#000000'
+            ]
+        ]
+    );
+
+    return json_decode($response->getBody(), true);
+}
     public function print($uuid)
     {
         $ticket = EventTicket::where('ticket_uuid', $uuid)->firstOrFail();

@@ -53,24 +53,53 @@
             </div>
         </div>
         <div class="from-group row mb-2">
-            <label for="" class="col-lg-12">{{ __('Select Product Type') }} : </label>
-            <div class="col-lg-12">
-                <select name="categories[]" class="selectric form-control drop_product_type">
-                    @if(isset($product_type) && !empty($product_type))
-                        @foreach($product_type as $row)
-                         <option value="{{ $row->id }}" @if(in_array($row->id,$selected_categories)) selected @endif>{{ $row->name }}</option>
-                        @endforeach
-                        @endif;
-                </select>
+    <label class="col-lg-12">{{ __('Select Product Type') }} :</label>
 
-                    @foreach($product_type as $row)
-                        @if(in_array($row->id,$selected_categories))
-                            <input type="hidden" name="categories[]" value="{{ $row->id }}">
-                        @endif
-                    @endforeach
+    <div class="col-lg-12">
 
-            </div>
-        </div>
+    @php
+
+$selectedProductTypeId = collect($selected_categories)
+    ->first(function ($id) use ($product_type) {
+        return $product_type->pluck('id')->contains($id);
+    });
+
+$onlineTicketing = $product_type->firstWhere('name', 'Online Ticketing');
+
+$isOnlineTicketing = $onlineTicketing
+    && $selectedProductTypeId == $onlineTicketing->id;
+
+@endphp
+
+
+<select name="categories[]"
+    class="selectric form-control drop_product_type"
+    {{ $isOnlineTicketing ? 'disabled' : '' }}>
+
+@foreach($product_type as $row)
+
+    <option value="{{ $row->id }}"
+        {{ $selectedProductTypeId == $row->id ? 'selected' : '' }}>
+
+        {{ $row->name }}
+
+    </option>
+
+@endforeach
+
+</select>
+
+
+@if($isOnlineTicketing)
+
+<input type="hidden"
+       name="categories[]"
+       value="{{ $onlineTicketing->id }}">
+
+@endif
+
+    </div>
+</div>
         
         
         <div class="from-group row mb-2 ticket_type_area" style="display:none;">
@@ -326,95 +355,34 @@
     
     
     function toggleEditTicketFields() {
-    var productTypeText = $('.drop_product_type option:selected').text().trim();
 
-    if (productTypeText === 'Online Ticketing') {
-        $('.drop_product_type')
-    .prop('disabled', true)
-    .selectric('refresh');
+var productTypeText = $('.drop_product_type option:selected').text().trim();
 
-$('.drop_product_type')
-    .closest('.selectric-wrapper')
-    .addClass('selectric-disabled');
+if (productTypeText === 'Online Ticketing') {
 
-$('.drop_product_type')
-    .closest('.selectric-wrapper')
-    .find('.selectric')
-    .css({
-        'background': '#e9ecef',
-        'color': '#6e6c6c',
-        'opacity': '1',
-        'cursor': 'not-allowed'
-    });
+    $('#product_type').val(2).prop('disabled', true);
 
-        $('#product_type').val(2).css({
-            'pointer-events': 'none',
-            'color': '#6e6c6c',
-            'background-color': '#e9ecef'
-        });
+    $('.ticket_type_area').show();
+    $('.ticket_instructions_area').show();
+    $('.ticket_fields').show();
 
-        $('.ticket_type_area').show();
-        $('.ticket_instructions_area').show();
-        $('.ticket_fields').show();
+} else {
 
-        var startVal = $('.ticket_sale_start').val();
-        if (startVal && new Date(startVal) < new Date()) {
-            $('.ticket_sale_start').css({
-                'pointer-events': 'none',
-                'color': '#6e6c6c',
-                'background-color': '#e9ecef'
-            });
-        }
+    $('#product_type').prop('disabled', false).val(0);
 
-    } else {
-        $('.drop_product_type')
-    .prop('disabled', false)
-    .selectric('refresh');
-
-$('.drop_product_type')
-    .closest('.selectric-wrapper')
-    .removeClass('selectric-disabled');
-
-$('.drop_product_type')
-    .closest('.selectric-wrapper')
-    .find('.selectric')
-    .css({
-        'background': '',
-        'color': '',
-        'opacity': '',
-        'cursor': ''
-    });
-
-$('#product_type').val(0);
-
-$('.ticket_type_area').hide();
-$('.ticket_instructions_area').hide();
-$('.ticket_fields').hide();
-        
-    }
+    $('.ticket_type_area').hide();
+    $('.ticket_instructions_area').hide();
+    $('.ticket_fields').hide();
+}
 }
 
-$(document).ready(function() {
-    toggleEditTicketFields();
+$(document).ready(function () {
+toggleEditTicketFields();
 });
-    
 
-$(document).on('change', '.drop_product_type', function() {
-    toggleEditTicketFields();
+$(document).on('change', '.drop_product_type', function () {
+toggleEditTicketFields();
 });
     </script>
 
-<style>
-
-.selectric-disabled {
-    pointer-events: none !important;
-    opacity: 1 !important;
-}
-
-.selectric-disabled .selectric {
-    background: #e9ecef !important;
-    color: #6e6c6c !important;
-    cursor: not-allowed !important;
-}
-</style>
 @endpush

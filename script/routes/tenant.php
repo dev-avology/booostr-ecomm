@@ -45,6 +45,10 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::get('/ticket/scan/{uuid}', [TicketScanController::class, 'scan']);
     
     Route::get('/ticket/{uuid}/calendar', [TicketScanController::class, 'calendar']) ->name('ticket.calendar');
+
+    Route::get('/ticket/google-wallet/{uuid}', [TicketScanController::class, 'googleWallet']);
+    
+    Route::get('/create-google-wallet-class', [TicketScanController::class, 'createGoogleWalletClass']);
     
     Route::get('/ticket/{uuid}/print', [TicketScanController::class, 'print'])->name('ticket.print');
     
