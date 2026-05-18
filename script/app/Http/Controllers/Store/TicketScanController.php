@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\EventTicket;
 use Illuminate\Support\Str;
+use PKPass\PKPass;
+use Firebase\JWT\JWT;
+use Illuminate\Support\Facades\Storage;
 
 class TicketScanController extends Controller
 {
@@ -69,6 +72,113 @@ class TicketScanController extends Controller
         ]);
     }
     
+    public function appleWallet($uuid)
+    {
+        $ticket = EventTicket::where('ticket_uuid', $uuid)->firstOrFail();
+
+        $pass = new PKPass(storage_path('app/wallet/apple/pass_certificate.p12'), env('APPLE_WALLET_CERT_PASSWORD'));
+
+        $data = [
+            'formatVersion' => 1,
+            'passTypeIdentifier' => env('APPLE_WALLET_PASS_TYPE_ID'),
+            'serialNumber' => $ticket->ticket_uuid,
+            'teamIdentifier' => env('APPLE_WALLET_TEAM_ID'),
+            'organizationName' => 'Booostr',
+            'description' => $ticket->event_name ?? 'Event Ticket',
+            'logoText' => $ticket->event_name ?? 'Event Ticket',
+            'foregroundColor' => 'rgb(0, 0, 0)',
+            'backgroundColor' => 'rgb(255, 255, 255)',
+            'eventTicket' => [
+                'primaryFields' => [
+                    [
+                        'key' => 'event',
+                        'label' => 'EVENT',
+                        'value' => $ticket->event_name ?? 'Event Ticket',
+                    ],
+                ],
+                'secondaryFields' => [
+                    [
+                        'key' => 'attendee',
+                        'label' => 'ATTENDEE',
+                        'value' => $ticket->attendee_name ?? '',
+                    ],
+                ],
+                'auxiliaryFields' => [
+                    [
+                        'key' => 'date',
+                        'label' => 'DATE',
+                        'value' => optional($ticket->event_start_at)->format('M d, Y') ?? '',
+                    ],
+                ],
+                'backFields' => [
+                    [
+                        'key' => 'ticket_id',
+                        'label' => 'Ticket ID',
+                        'value' => $ticket->ticket_uuid,
+                    ],
+                ],
+            ],
+            'barcode' => [
+                'format' => 'PKBarcodeFormatQR',
+                'message' => url('/ticket/scan/' . $ticket->ticket_uuid),
+                'messageEncoding' => 'iso-8859-1',
+            ],
+        ];
+
+        $pass->setData($data);
+
+        $pass->addFile(public_path('wallet/icon.png'));
+        $pass->addFile(public_path('wallet/logo.png'));
+
+        $pkpass = $pass->create(false);
+
+        return response($pkpass, 200, [
+            'Content-Type' => 'application/vnd.apple.pkpass',
+            'Content-Disposition' => 'attachment; filename="ticket-' . $ticket->ticket_uuid . '.pkpass"',
+        ]);
+    }
+
+    public function googleWallet($uuid)
+    {
+        $ticket = EventTicket::where('ticket_uuid', $uuid)->firstOrFail();
+    
+        $issuerId = env('GOOGLE_WALLET_ISSUER_ID');
+        $classId = env('GOOGLE_WALLET_CLASS_ID');
+        $objectId = $issuerId . '.ticket_' . str_replace('-', '_', $ticket->ticket_uuid);
+    
+        $serviceAccount = json_decode(file_get_contents(storage_path('app/wallet/google/service-account.json')), true);
+    
+        $payload = [
+            'iss' => $serviceAccount['client_email'],
+            'aud' => 'google',
+            'typ' => 'savetowallet',
+            'iat' => time(),
+            'payload' => [
+                'eventTicketObjects' => [
+                    [
+                        'id' => $objectId,
+                        'classId' => $classId,
+                        'state' => 'ACTIVE',
+                        'heroImage' => [
+                            'sourceUri' => [
+                                'uri' => asset('wallet/google-hero.png'),
+                            ],
+                        ],
+                        'ticketHolderName' => $ticket->attendee_name ?? '',
+                        'ticketNumber' => $ticket->ticket_uuid,
+                        'barcode' => [
+                            'type' => 'QR_CODE',
+                            'value' => url('/ticket/scan/' . $ticket->ticket_uuid),
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    
+        $jwt = JWT::encode($payload, $serviceAccount['private_key'], 'RS256');
+    
+        return redirect('https://pay.google.com/gp/v/save/' . $jwt);
+    }
     public function print($uuid)
     {
         $ticket = EventTicket::where('ticket_uuid', $uuid)->firstOrFail();
