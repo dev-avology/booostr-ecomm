@@ -41,10 +41,25 @@ $eventStart = DB::table('termmetas')
                             <table width="100%">
                                 <tr>
 
-                                    <td align="left">
-                                        <img src="https://booostr.site/assets/landlord/uploads/media-uploader/thumb/logobostrsitee.png"
-                                            width="90" height="90" alt="Boostr">
-                                    </td>
+                                        <td align="left">
+                                            <table cellpadding="0" cellspacing="0">
+                                                <tr>
+                                        
+                                                    <td>
+                                                        <img src="{{ $clubLogo }}"
+                                                            width="90"
+                                                            height="90"
+                                                            alt="{{ $clubName }}"
+                                                            style="border-radius:50%;">
+                                                    </td>
+                                        
+                                                    <td style="padding-left:15px; font-size:22px; font-weight:bold; color:#000;">
+                                                        {{ $clubName }}
+                                                    </td>
+                                        
+                                                </tr>
+                                            </table>
+                                        </td>
 
                                     <td align="right">
                                         <a href="https://booostr.co/main-login/"
@@ -92,19 +107,20 @@ $eventStart = DB::table('termmetas')
                             </h4>
 
                             <p style="font-size:14px; color:#000; margin-bottom:0;">
-                                Thank you for your ticket purchase for
-                                <strong>{{ $productTitle }}</strong>. 
-                                We are excited to have you at our event.
-                                Your printable ticket and QR access code are included below.
-                                Please present this ticket at the event entrance for admission.
-                                 If you have any questions or issues regarding your ticket,
-                                please contact our support team.
+                                Thank you for your ticket purchase for <strong>{{ $productTitle }}</strong>.
+                                We are really excited to have you at our event.
+                                Your printable tickets are below.
+                                Please reach out to us at
+                                <a href="mailto:{{ $clubEmail }}" style="color:#0a8ddf;">
+                                    {{ $clubEmail }}
+                                </a>
+                                with any questions or issues.
                             </p>
                             
                             <p style="font-size:14px; color:#000; margin:0;">Thank you again,</p>
 
                             <h4 style="margin-top:10px; font-size:14px; color:#000;">
-                                The Boostr Team
+                                The {{ $clubName }} Team
                             </h4>
 
                         </td>

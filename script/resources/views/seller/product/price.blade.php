@@ -17,7 +17,7 @@
 
 @section('product_content')
 <div class="tab-pane fade show active" id="general_info" role="tabpanel" aria-labelledby="home-tab4">
-   <form class="ajaxform_with_reload" action="{{ route('seller.product.update',$info->id) }}" method="post">
+<form class="ajaxform_with_reload" action="{{ route('seller.product.update',$info->id) }}" method="post">
       @csrf
       @method("PUT")
       <div class="from-group row mb-2">
@@ -26,23 +26,73 @@
             <input type="text" readonly name="name" required="" class="form-control" placeholder="Enter Product Name" value="{{ $info->title }}">
         </div>
       </div>
+      @if($selected_product_type != 'Online Ticketing')
       <div class="from-group row mb-2">
          <label for="" class="col-lg-12">{{ __('Price Type') }} : </label>
          <div class="col-lg-12">
-            <select name="product_type"  class="form-control product_type">
-            <option value="0" @if($info->is_variation == 0) selected @endif>{{ __('Simple Product') }}</option>
-            <option value="1" @if($info->is_variation == 1) selected @endif>{{ __('Variation Product') }}</option>
+            <select name="product_type" class="form-control product_type">
+               <option value="0" @if($info->is_variation == 0) selected @endif>{{ __('Simple Product') }}</option>
+               <option value="1" @if($info->is_variation == 1) selected @endif>{{ __('Variation Product') }}</option>
             </select>
          </div>
       </div>
+      @else
+         <input type="hidden" name="product_type" value="2">
+      @endif
       <input type="hidden" name="type" value="price">
+
       <div class="{{ $info->is_variation == 1 ? 'none' : '' }} single_product_area accordion-body">
-         <div class="from-group row mb-2">
-            <label for="" class="col-lg-12">{{ __('Product Price') }} : </label>
-            <div class="col-lg-12">
-               <input type="text" step="any" class="form-control product_price_input" name="price" value="@if($info->price){{ $info?->price->price ? '$'.number_format($info?->price->price, 2) : '' }}@endif" placeholder="$0.00">
-            </div>
-         </div>
+
+@if($selected_product_type == 'Online Ticketing')
+
+   <div class="row mb-4 align-items-center">
+      <div class="col-lg-4">
+         <label>Base Ticket Price</label>
+
+         <input type="number"
+                step="0.01"
+                class="form-control"
+                id="ticket_price"
+                name="price"
+                value="{{ $info->price->price ?? 0 }}">
+      </div>
+
+      <div class="col-lg-3 text-center">
+         <label>Ticket Service Fee</label>
+
+         <h5>$0.75</h5>
+
+         <input type="hidden"
+                id="ticket_fee"
+                name="ticket_fee"
+                value="0.75">
+      </div>
+
+      <div class="col-lg-4 text-center">
+         <label>Total Retail Customer Price/Ticket</label>
+
+         <h5 id="ticket_total">
+            ${{ number_format(($info->price->price ?? 0) + 0.75, 2) }}
+         </h5>
+      </div>
+   </div>
+
+@else
+
+   <div class="from-group row mb-2">
+      <label class="col-lg-12">{{ __('Product Price') }} :</label>
+
+      <div class="col-lg-12">
+         <input type="text"
+                step="any"
+                class="form-control product_price_input"
+                name="price"
+                value="@if($info->price){{ $info?->price->price ? '$'.number_format($info?->price->price, 2) : '' }}@endif"
+                placeholder="$0.00">
+      </div>
+   </div>
+
+@endif
          <div class="from-group row mb-2">
             <label for="" class="col-lg-12">{{ __('Quantity') }} : </label>
             <div class="col-lg-12">
@@ -101,7 +151,7 @@
          </div>
       </div>
   
-
+      @if($selected_product_type != 'Online Ticketing')
       <div class="variation_product_area {{ $info->is_variation == 0 ? 'none' : '' }}">
          <div id="accordion">
 
@@ -247,12 +297,36 @@
       
                         <div class="accordion-body collapse show" id="panel-body-{{$priceswithcategory->id}}" data-parent="#children_attribute_render_area">
                            <div class=" row">
+                              @if($selected_product_type == 'Online Ticketing')
+                              <div class="from-group col-lg-4">
+                                 <label>Base Ticket Price</label>
+                                 <input type="number"
+                                        step="0.01"
+                                        class="form-control variation_ticket_price"
+                                        name="childattribute[priceoption][{{$priceswithcategory->id}}][price]"
+                                        value="{{ $priceswithcategory->price }}" />
+                              </div>
+
+                              <div class="from-group col-lg-3 text-center">
+                                 <label>Ticket Service Fee</label>
+                                 <h5>$0.75</h5>
+                                 <input type="hidden" class="variation_ticket_fee" value="0.75">
+                              </div>
+
+                              <div class="from-group col-lg-5 text-center">
+                                 <label>Total Retail Customer Price/Ticket</label>
+                                 <h5 class="variation_ticket_total">
+                                    ${{ number_format(($priceswithcategory->price ?? 0) + 0.75, 2) }}
+                                 </h5>
+                              </div>
+                              @else
                               <div class="from-group col-lg-6">
                                  <label for="" >{{ __('Price :') }} </label>
                                  <div >
                                     <input type="number" step="any" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][price]" value="{{ $priceswithcategory->price }}" />
                                  </div>
                               </div>
+                              @endif
                               <div class="from-group col-lg-6  mb-2 ">
                                  <label for="">{{ __('Stock Quantity :') }} </label>
                                  <div >
@@ -311,9 +385,11 @@
 
          </div>
          
-      </div>    
+      </div> 
+       
       </div>
- 
+
+      @endif
       <div class="from-group  mb-2">
          <button class="btn btn-primary basicbtn col-lg-2 float-left" type="submit"><i class="far fa-save"></i> {{ __('Update') }}</button>
     
@@ -322,6 +398,9 @@
       </div>
    </form>
 </div>
+@php
+   $used_combination = $used_combination ?? [];
+@endphp
 <input type="hidden" id="max_short" value="{{ count($info->productoptionwithcategories) }}">
 <input type="hidden" id="parentattributes" value="{{ $attributes }}" />
 <input type="hidden" id="used_combination" value='{!! json_encode($used_combination,true) !!}' />
@@ -397,7 +476,17 @@
       });
     });
    }
+   $(document).on('keyup change', '#ticket_price', function () {
+    let price = parseFloat($(this).val()) || 0;
+    let fee = parseFloat($('#ticket_fee').val()) || 0;
+    $('#ticket_total').text('$' + (price + fee).toFixed(2));
+});
 
+$(document).on('keyup change', '.variation_ticket_price', function () {
+    let price = parseFloat($(this).val()) || 0;
+    let fee = parseFloat($(this).closest('.row').find('.variation_ticket_fee').val()) || 0;
+    $(this).closest('.row').find('.variation_ticket_total').text('$' + (price + fee).toFixed(2));
+});
 
 </script>
 

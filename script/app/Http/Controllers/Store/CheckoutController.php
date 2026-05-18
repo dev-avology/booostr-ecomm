@@ -1875,16 +1875,33 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
         'qrPng' => $qrImage,
     ];
 }
+
+            $clubInfo = tenant_club_info();
+            $clubName = $clubInfo['club_name'] ?? 'Club';
+            $clubLogo = tenant_club_logo();
+          
+            $clubEmail = $clubInfo['email']
+                ?? $clubInfo['club_email']
+                ?? $clubInfo['default_email']
+                ?? $clubInfo['contact_email']
+                ?? '';
+               Log::info('Club Email Debug', [
+                    'clubInfo' => $clubInfo,
+                    'clubEmail' => $clubEmail,
+                ]);
+
             Mail::send(
                 'email.event-ticket-template',
                 [
                     'order' => $order,
                     'item' => $item,
                     'tickets' => $tickets,
+                     'clubName' => $clubName,
+                     'clubLogo' => $clubLogo,
+                     'clubEmail' => $clubEmail,
                 ],
-                function ($message) use ($email, $item) {
-                    $clubInfo = tenant_club_info();
-                    $clubName = $clubInfo['club_name'] ?? 'Booostr';
+                function ($message) use ($email, $item, $clubName) {
+
                     $ticketTitle = $item->term->title ?? 'Event';
 
                     $message->to($email)
