@@ -252,9 +252,10 @@ $eventStart = DB::table('termmetas')
                                     <img src="https://booostr.site/assets/landlord/uploads/media-uploader/thumb/apple-wallet.png" style="max-width:130px;">
                                 </a>
 
-                                <a href="{{ url('/ticket/' . $ticket['ticketUuid'] . '/calendar') }}"
+                                <a href="{{ url('/ticket/google-wallet/' . $ticket['ticketUuid']) }}"
                                     style="display:inline-block;">
-                                    <img src="https://booostr.site/assets/landlord/uploads/media-uploader/thumb/goggle-wallet.png" style="max-width:140px;">
+                                    <img src="https://booostr.site/assets/landlord/uploads/media-uploader/thumb/goggle-wallet.png"
+                                        style="max-width:140px;">
                                 </a>
                             </div>
                         </td>

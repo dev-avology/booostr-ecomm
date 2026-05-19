@@ -45,14 +45,6 @@
             </div>
         </div> --}}
         <div class="from-group row mb-2">
-            <label for="" class="col-lg-12">{{ __('Select Product Category') }} : </label>
-            <div class="col-lg-12">
-                <select name="categories[]" multiple="" class="select2 form-control">
-                    {{NastedCategoryList('category',$selected_categories)}}
-                </select>
-            </div>
-        </div>
-        <div class="from-group row mb-2">
     <label class="col-lg-12">{{ __('Select Product Type') }} :</label>
 
     <div class="col-lg-12">
@@ -134,6 +126,15 @@ $isOnlineTicketing = $onlineTicketing
               </select>
               <input type="hidden" name="form_fields" id="form_fields" value="{{$info->formFields->value ?? ''}}">
           </div>
+        </div>
+
+        <div class="from-group row mb-2">
+            <label for="" class="col-lg-12">{{ __('Select Product Category') }} : </label>
+            <div class="col-lg-12">
+                <select name="categories[]" multiple="" class="select2 form-control">
+                    {{NastedCategoryList('category',$selected_categories)}}
+                </select>
+            </div>
         </div>
 
         <div class="from-group row mb-2">

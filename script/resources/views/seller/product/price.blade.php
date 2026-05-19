@@ -57,15 +57,23 @@
                 value="{{ $info->price->price ?? 0 }}">
       </div>
 
-      <div class="col-lg-3 text-center">
+      <div class="col-lg-1 text-center d-flex align-items-center justify-content-center">
+         <h3 class="mt-4">+</h3>
+      </div>
+
+      <div class="col-lg-2 text-center">
          <label>Ticket Service Fee</label>
 
          <h5>$0.75</h5>
 
          <input type="hidden"
-                id="ticket_fee"
-                name="ticket_fee"
-                value="0.75">
+               id="ticket_fee"
+               name="ticket_fee"
+               value="0.75">
+      </div>
+
+      <div class="col-lg-1 text-center d-flex align-items-center justify-content-center">
+         <h3 class="mt-4">=</h3>
       </div>
 
       <div class="col-lg-4 text-center">
