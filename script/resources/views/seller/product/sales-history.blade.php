@@ -37,9 +37,10 @@
     max-width: 170px;
     min-width: 170px;
     word-break: break-word;
-    line-height: 22px;
+    line-height: 18px;
     padding-right: 20px !important;
     padding-bottom: 12px !important;
+    font-size: 11px !important;
 }
 
     .dropdown-menu { min-width: 180px; }
@@ -62,6 +63,18 @@
     border-color: #d9d9d9 !important;
     color: #fff !important;
     box-shadow: none !important;
+}
+
+.ticket-action-disabled,
+.ticket-action-disabled:hover,
+.ticket-action-disabled:focus,
+.ticket-action-disabled:active {
+    background: #d9d9d9 !important;
+    border: none !important;
+    color: #fff !important;
+    box-shadow: none !important;
+    cursor: not-allowed;
+    opacity: 1;
 }
 
 .sales-history-actions-label {
@@ -437,14 +450,109 @@
         });
     }
 
+    $salesHistoryMapExportRow = function ($sale) use ($isTicket) {
+        $order = $sale->order ?? null;
+        $ordermeta = json_decode($order->ordermeta->value ?? '{}');
+
+        $fullName = $ordermeta->name ?? 'Guest User';
+        $email = $ordermeta->email ?? '-';
+        $phone = $ordermeta->phone ?? '-';
+        $variantText = '-';
+        $ticketId = '-';
+        $ticketStatus = 'Not Checked In';
+        $info = json_decode($sale->info ?? '{}', true);
+
+        if (!empty($info['options']) && is_array($info['options'])) {
+            $variantNames = [];
+
+            foreach ($info['options'] as $option) {
+                if (!empty($option['varitions']) && is_array($option['varitions'])) {
+                    foreach ($option['varitions'] as $variation) {
+                        if (!empty($variation['name'])) {
+                            $variantNames[] = $variation['name'];
+                        }
+                    }
+                }
+            }
+
+            if (!empty($variantNames)) {
+                $variantText = implode(', ', $variantNames);
+            }
+        }
+
+        $ticket = $sale->eventTicket ?? null;
+
+        if ($isTicket && $ticket) {
+            $fullName = $ticket->attendee_name ?? $fullName;
+            $email = $ticket->attendee_email ?? $email;
+            $phone = $ticket->attendee_phone ?? $phone;
+            $ticketId = $ticket->ticket_uuid ?? '-';
+
+            if ($ticket->status == 'used') {
+                $ticketStatus = 'Checked In';
+            } elseif ($ticket->status == 'cancelled') {
+                $ticketStatus = 'Cancelled & Refunded';
+            } else {
+                $ticketStatus = 'Not Checked In';
+            }
+        }
+
+        $nameParts = explode(' ', trim($fullName), 2);
+        $firstName = $nameParts[0] ?? '-';
+        $lastName = $nameParts[1] ?? '-';
+
+        if ($order && ($order->order_from == 4 || $order->order_from == 5)) {
+            $channel = 'Point of Sale';
+        } elseif ($order && $order->order_from == 0) {
+            $channel = 'POS(Web)';
+        } else {
+            $channel = 'Ecommerce';
+        }
+
+        $orderNo = '-';
+        if (!empty($order->id)) {
+            $orderNo = $order->invoice_no ?? str_pad($order->id, 7, '0', STR_PAD_LEFT);
+        }
+
+        $row = [
+            $firstName ?: '-',
+            $lastName ?: '-',
+            $email,
+            $phone,
+            !empty($order->created_at) ? date('m/d/Y', strtotime($order->created_at)) : '-',
+            $orderNo,
+            $channel,
+        ];
+
+        if ($isTicket) {
+            $row[] = $ticketId;
+            $row[] = $ticketStatus;
+        } else {
+            $row[] = $variantText;
+        }
+
+        return $row;
+    };
+
+    $salesHistoryExportHeaders = $isTicket
+        ? ['FIRST NAME', 'LAST NAME', 'EMAIL', 'PHONE', 'ORDER DATE', 'ORDER #', 'CHANNEL', 'TICKET ID', 'TICKET STATUS']
+        : ['FIRST NAME', 'LAST NAME', 'EMAIL', 'PHONE', 'ORDER DATE', 'ORDER #', 'CHANNEL', 'VARIANT ORDERED'];
+
     $crmSyncAllContacts = [];
+    $salesHistoryExportRows = [];
     foreach ($crmSyncAllQuery->orderBy('id', 'desc')->get() as $saleItem) {
         $crmSyncAllContacts[] = $crmSyncMapSale($saleItem);
+        $salesHistoryExportRows[] = $salesHistoryMapExportRow($saleItem);
     }
 @endphp
 
 <script type="application/json" id="crm-sync-contacts-page">@json($crmSyncPageContacts)</script>
 <script type="application/json" id="crm-sync-contacts-all">@json($crmSyncAllContacts)</script>
+<script type="application/json" id="sales-history-export-data">@json([
+    'headers' => $salesHistoryExportHeaders,
+    'rows' => $salesHistoryExportRows,
+    'title' => $product->title
+])</script>
 
 <div class="card purchase-history-card">
     <div class="card-body">
@@ -484,13 +592,16 @@
                             data-target="#crmSyncModal">
                         <i class="fas fa-sync-alt"></i> Edit CRM Sync
                     </button>
-                    <form class="mb-0">
+                    <form class="mb-0" id="sales_history_list_action_form" onsubmit="return false;">
                         <div class="input-group">
-                            <select class="form-control">
-                                <option>Select Action</option>
+                            <select class="form-control" id="sales_history_list_action">
+                                <option value="">Select Action</option>
+                                <option value="export_excel">Export to Excel</option>
+                                <option value="export_csv">Export to CSV</option>
+                                <option value="print">Print Results</option>
                             </select>
                             <div class="input-group-append">
-                                <button class="btn btn-primary" type="button">Submit</button>
+                                <button class="btn btn-primary" type="button" id="sales_history_list_action_submit">Submit</button>
                             </div>
                         </div>
                     </form>
@@ -611,17 +722,25 @@
 
                             <td class="text-right">
                                 @if($isTicket && !empty($ticket))
-                                    <div class="dropdown">
-                                        <button class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown">
-                                            Action
+                                    @if($ticket->status == 'cancelled')
+                                        <button class="btn btn-light btn-sm ticket-action-disabled"
+                                                type="button"
+                                                disabled>
+                                            Action <i class="fas fa-caret-down"></i>
                                         </button>
+                                    @else
+                                        <div class="dropdown">
+                                            <button class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown">
+                                                Action
+                                            </button>
 
-                                        <div class="dropdown-menu">
-                                            <a class="dropdown-item ticket-status-update" href="#" data-id="{{ $ticket->id }}" data-status="used">Checked In</a>
-                                            <a class="dropdown-item ticket-status-update" href="#" data-id="{{ $ticket->id }}" data-status="active">Not Checked In</a>
-                                            <a class="dropdown-item ticket-status-update" href="#" data-id="{{ $ticket->id }}" data-status="cancelled">Cancelled & Refunded</a>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item ticket-status-update" href="#" data-id="{{ $ticket->id }}" data-status="used">Checked In</a>
+                                                <a class="dropdown-item ticket-status-update" href="#" data-id="{{ $ticket->id }}" data-status="active">Not Checked In</a>
+                                                <a class="dropdown-item ticket-status-update" href="#" data-id="{{ $ticket->id }}" data-status="cancelled">Cancelled & Refunded</a>
+                                            </div>
                                         </div>
-                                    </div>
+                                    @endif
                                 @else
                                    <button class="btn btn-light btn-sm"
                                         style="background:#d9d9d9;color:#fff;border:none;"
@@ -727,28 +846,89 @@
     </div>
 </div>
 
+@if($isTicket)
+{{-- Ticket cancel & refund confirmation --}}
+<div class="modal fade" id="ticketCancelRefundModal" tabindex="-1" role="dialog" aria-labelledby="ticketCancelRefundModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content rounded shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ticketCancelRefundModalLabel">Confirm Cancel &amp; Refund</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to Cancel &amp; Refund this ticket? This is not reversible and will automatically refund the ticket amount to the purchaser.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="ticket_cancel_refund_confirm">Yes, Cancel Ticket</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 @endif
 
 @push('script')
 <script>
-$(document).on('click', '.ticket-status-update', function(e) {
-    e.preventDefault();
+var pendingTicketStatusUpdate = null;
 
+function submitTicketStatusUpdate(ticketId, status) {
     $.ajax({
         url: "{{ route('seller.product.ticket.status.update') }}",
         type: "POST",
         data: {
             _token: "{{ csrf_token() }}",
-            ticket_id: $(this).data('id'),
-            status: $(this).data('status')
+            ticket_id: ticketId,
+            status: status
         },
-        success: function() {
+        success: function(response) {
+            if (response && response.success === false) {
+                alert(response.message || 'Something went wrong');
+                return;
+            }
             location.reload();
         },
-        error: function() {
-            alert('Something went wrong');
+        error: function(xhr) {
+            var message = (xhr.responseJSON && xhr.responseJSON.message)
+                ? xhr.responseJSON.message
+                : 'Something went wrong';
+            alert(message);
         }
     });
+}
+
+$(document).on('click', '.ticket-status-update', function(e) {
+    e.preventDefault();
+
+    var ticketId = $(this).data('id');
+    var status = $(this).data('status');
+
+    if (status === 'cancelled') {
+        pendingTicketStatusUpdate = {
+            ticketId: ticketId,
+            status: status
+        };
+        $('#ticketCancelRefundModal').modal('show');
+        return;
+    }
+
+    submitTicketStatusUpdate(ticketId, status);
+});
+
+$('#ticket_cancel_refund_confirm').on('click', function() {
+    if (!pendingTicketStatusUpdate) {
+        return;
+    }
+
+    submitTicketStatusUpdate(pendingTicketStatusUpdate.ticketId, pendingTicketStatusUpdate.status);
+    $('#ticketCancelRefundModal').modal('hide');
+});
+
+$('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
+    pendingTicketStatusUpdate = null;
 });
 
 (function () {
@@ -926,6 +1106,141 @@ $(document).on('click', '.ticket-status-update', function(e) {
         }
 
         syncNext(0);
+    });
+})();
+
+(function () {
+    var $exportDataEl = $('#sales-history-export-data');
+    var $actionSelect = $('#sales_history_list_action');
+    var $actionSubmit = $('#sales_history_list_action_submit');
+
+    if (!$exportDataEl.length || !$actionSelect.length || !$actionSubmit.length) {
+        return;
+    }
+
+    var exportPayload = { headers: [], rows: [], title: 'Purchase History' };
+
+    try {
+        exportPayload = JSON.parse($exportDataEl.text() || '{}');
+    } catch (e) {
+        exportPayload = { headers: [], rows: [], title: 'Purchase History' };
+    }
+
+    function escapeCsvValue(value) {
+        var text = String(value == null ? '' : value);
+        if (text.search(/("|,|\r|\n)/g) >= 0) {
+            return '"' + text.replace(/"/g, '""') + '"';
+        }
+        return text;
+    }
+
+    function buildCsvContent() {
+        var lines = [];
+        lines.push(exportPayload.headers.map(escapeCsvValue).join(','));
+        (exportPayload.rows || []).forEach(function (row) {
+            lines.push((row || []).map(escapeCsvValue).join(','));
+        });
+        return lines.join('\r\n');
+    }
+
+    function downloadFile(filename, content, mimeType) {
+        var blob = new Blob([content], { type: mimeType });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    function exportToCsv() {
+        if (!(exportPayload.rows || []).length) {
+            alert('No results available to export.');
+            return;
+        }
+        var csv = buildCsvContent();
+        downloadFile('sales-history-' + Date.now() + '.csv', '\ufeff' + csv, 'text/csv;charset=utf-8;');
+    }
+
+    function exportToExcel() {
+        if (!(exportPayload.rows || []).length) {
+            alert('No results available to export.');
+            return;
+        }
+        var html = '<html><head><meta charset="UTF-8"></head><body>';
+        html += '<table border="1"><thead><tr>';
+        (exportPayload.headers || []).forEach(function (header) {
+            html += '<th>' + $('<div>').text(header).html() + '</th>';
+        });
+        html += '</tr></thead><tbody>';
+        (exportPayload.rows || []).forEach(function (row) {
+            html += '<tr>';
+            (row || []).forEach(function (cell) {
+                html += '<td>' + $('<div>').text(cell).html() + '</td>';
+            });
+            html += '</tr>';
+        });
+        html += '</tbody></table></body></html>';
+        downloadFile('sales-history-' + Date.now() + '.xls', html, 'application/vnd.ms-excel;charset=utf-8;');
+    }
+
+    function printResults() {
+        if (!(exportPayload.rows || []).length) {
+            alert('No results available to print.');
+            return;
+        }
+
+        var printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Please allow pop-ups to print results.');
+            return;
+        }
+
+        var doc = printWindow.document;
+        var title = exportPayload.title || 'Purchase History';
+        var styles = 'body{font-family:Arial,sans-serif;font-size:12px;padding:20px;color:#333;}h2{margin:0 0 16px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:left;}th{background:#f7f7f7;font-weight:700;}';
+        var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + $('<div>').text(title).html() + ' - Sales History</title><style>' + styles + '</style></head><body>';
+        html += '<h2>' + $('<div>').text(title).html() + ' - Sales History</h2>';
+        html += '<table><thead><tr>';
+        (exportPayload.headers || []).forEach(function (header) {
+            html += '<th>' + $('<div>').text(header).html() + '</th>';
+        });
+        html += '</tr></thead><tbody>';
+        (exportPayload.rows || []).forEach(function (row) {
+            html += '<tr>';
+            (row || []).forEach(function (cell) {
+                html += '<td>' + $('<div>').text(cell).html() + '</td>';
+            });
+            html += '</tr>';
+        });
+        html += '</tbody></table></body></html>';
+
+        doc.open();
+        doc.write(html);
+        doc.close();
+        printWindow.focus();
+        printWindow.print();
+    }
+
+    $actionSubmit.on('click', function () {
+        var action = $actionSelect.val();
+
+        if (!action) {
+            alert('Please select an action from the dropdown.');
+            return;
+        }
+
+        if (action === 'export_excel') {
+            exportToExcel();
+        } else if (action === 'export_csv') {
+            exportToCsv();
+        } else if (action === 'print') {
+            printResults();
+        }
+
+        $actionSelect.val('');
     });
 })();
 </script>

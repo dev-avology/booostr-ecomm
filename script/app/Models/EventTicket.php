@@ -26,4 +26,14 @@ class EventTicket extends Model
         'status',
         'used_at',
     ];
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id');
+    }
+
+    public function orderItem()
+    {
+        return $this->belongsTo(Orderitem::class, 'order_item_id');
+    }
 }

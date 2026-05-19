@@ -9,6 +9,7 @@ use App\Models\Term;
 use App\Models\Price;
 use App\Models\Orderitem;
 use App\Models\EventTicket;
+use App\Services\TicketCancelRefundService;
 use App\Models\Productoption;
 use App\Models\Variationproductoption;
 use DB;
@@ -1024,6 +1025,18 @@ class ProductController extends Controller
 public function ticketStatusUpdate(Request $request)
 {
     $ticket = EventTicket::findOrFail($request->ticket_id);
+
+    if ($request->status === 'cancelled') {
+        try {
+            app(TicketCancelRefundService::class)->handle($ticket);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
     $ticket->status = $request->status;
     $ticket->used_at = $request->status == 'used' ? now() : null;
     $ticket->save();
