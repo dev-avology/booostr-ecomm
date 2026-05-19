@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\EventTicket;
 use Illuminate\Support\Str;
 use Firebase\JWT\JWT;
+use PKPass\PKPass;
 
 
 class TicketScanController extends Controller
@@ -38,7 +39,7 @@ class TicketScanController extends Controller
     public function calendar($uuid)
     {
         $ticket = EventTicket::where('ticket_uuid', $uuid)->firstOrFail();
-    
+ 
         $title = $ticket->event_name ?? 'Event Ticket';
         $description = 'Ticket ID: ' . $ticket->ticket_uuid . '\nAttendee: ' . $ticket->attendee_name;
         $location = $ticket->event_location ?? 'Event Location';
@@ -71,72 +72,92 @@ class TicketScanController extends Controller
         ]);
     }
     
+    // public function appleWallet($uuid)
+    // {
+    //     $ticket = EventTicket::where('ticket_uuid', $uuid)->firstOrFail();
+
+    //     $certificatePath = base_path('storage/app/apple-wallet/pass_certificate.p12');
+       
+    //     $pass = new PKPass(
+    //         $certificatePath,
+    //         env('APPLE_WALLET_CERT_PASSWORD')
+    //     );
+
+    //     $data = [
+    //         'formatVersion' => 1,
+    //         'passTypeIdentifier' => env('APPLE_WALLET_PASS_TYPE_ID'),
+    //         'serialNumber' => $ticket->ticket_uuid,
+    //         'teamIdentifier' => env('APPLE_WALLET_TEAM_ID'),
+    //         'organizationName' => 'Booostr',
+    //         'description' => $ticket->event_name ?? 'Event Ticket',
+    //         'logoText' => $ticket->event_name ?? 'Event Ticket',
+    //         'foregroundColor' => 'rgb(0, 0, 0)',
+    //         'backgroundColor' => 'rgb(255, 255, 255)',
+    //         'eventTicket' => [
+    //             'primaryFields' => [
+    //                 [
+    //                     'key' => 'event',
+    //                     'label' => 'EVENT',
+    //                     'value' => $ticket->event_name ?? 'Event Ticket',
+    //                 ],
+    //             ],
+    //             'secondaryFields' => [
+    //                 [
+    //                     'key' => 'attendee',
+    //                     'label' => 'ATTENDEE',
+    //                     'value' => $ticket->attendee_name ?? '',
+    //                 ],
+    //             ],
+    //             'auxiliaryFields' => [
+    //                 [
+    //                     'key' => 'date',
+    //                     'label' => 'DATE',
+    //                     'value' => optional($ticket->event_start_at)->format('M d, Y') ?? '',
+    //                 ],
+    //             ],
+    //             'backFields' => [
+    //                 [
+    //                     'key' => 'ticket_id',
+    //                     'label' => 'Ticket ID',
+    //                     'value' => $ticket->ticket_uuid,
+    //                 ],
+    //             ],
+    //         ],
+    //         'barcodes' => [
+    //             [
+    //                 'format' => 'PKBarcodeFormatQR',
+    //                 'message' => url('/ticket/scan/' . $ticket->ticket_uuid),
+    //                 'messageEncoding' => 'iso-8859-1',
+    //             ],
+    //         ],
+    //     ];
+    //    dd($data);die;
+    //     $pass->setData($data);
+
+
+        
+    //     $pass->addFile(public_path('wallet/icon.png'));
+
+
+    //     $pkpass = $pass->create(false);
+
+    //     return response($pkpass, 200, [
+    //         'Content-Type' => 'application/vnd.apple.pkpass',
+    //         'Content-Disposition' => 'attachment; filename="ticket-' . $ticket->ticket_uuid . '.pkpass"',
+    //     ]);
+    // }
+
     public function appleWallet($uuid)
     {
-        $ticket = EventTicket::where('ticket_uuid', $uuid)->firstOrFail();
-
-        $pass = new PKPass(storage_path('app/wallet/apple/pass_certificate.p12'), env('APPLE_WALLET_CERT_PASSWORD'));
-
-        $data = [
-            'formatVersion' => 1,
-            'passTypeIdentifier' => env('APPLE_WALLET_PASS_TYPE_ID'),
-            'serialNumber' => $ticket->ticket_uuid,
-            'teamIdentifier' => env('APPLE_WALLET_TEAM_ID'),
-            'organizationName' => 'Booostr',
-            'description' => $ticket->event_name ?? 'Event Ticket',
-            'logoText' => $ticket->event_name ?? 'Event Ticket',
-            'foregroundColor' => 'rgb(0, 0, 0)',
-            'backgroundColor' => 'rgb(255, 255, 255)',
-            'eventTicket' => [
-                'primaryFields' => [
-                    [
-                        'key' => 'event',
-                        'label' => 'EVENT',
-                        'value' => $ticket->event_name ?? 'Event Ticket',
-                    ],
-                ],
-                'secondaryFields' => [
-                    [
-                        'key' => 'attendee',
-                        'label' => 'ATTENDEE',
-                        'value' => $ticket->attendee_name ?? '',
-                    ],
-                ],
-                'auxiliaryFields' => [
-                    [
-                        'key' => 'date',
-                        'label' => 'DATE',
-                        'value' => optional($ticket->event_start_at)->format('M d, Y') ?? '',
-                    ],
-                ],
-                'backFields' => [
-                    [
-                        'key' => 'ticket_id',
-                        'label' => 'Ticket ID',
-                        'value' => $ticket->ticket_uuid,
-                    ],
-                ],
-            ],
-            'barcode' => [
-                'format' => 'PKBarcodeFormatQR',
-                'message' => url('/ticket/scan/' . $ticket->ticket_uuid),
-                'messageEncoding' => 'iso-8859-1',
-            ],
-        ];
-
-        $pass->setData($data);
-
-        $pass->addFile(public_path('wallet/icon.png'));
-        $pass->addFile(public_path('wallet/logo.png'));
-
-        $pkpass = $pass->create(false);
-
-        return response($pkpass, 200, [
+        $path = base_path(
+            'storage/app/apple-wallet/Pass-Example-Generic.pkpass'
+        );
+    
+        return response()->download($path, 'ticket-test.pkpass', [
             'Content-Type' => 'application/vnd.apple.pkpass',
-            'Content-Disposition' => 'attachment; filename="ticket-' . $ticket->ticket_uuid . '.pkpass"',
+            'Content-Disposition' => 'attachment; filename="ticket-test.pkpass"',
         ]);
     }
-
     public function googleWallet($uuid)
     {
         $ticket = EventTicket::where('ticket_uuid', $uuid)->firstOrFail();
