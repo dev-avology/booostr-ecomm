@@ -155,26 +155,41 @@ class TicketScanController extends Controller
             'aud' => 'google',
             'typ' => 'savetowallet',
             'iat' => time(),
+        
             'payload' => [
                 'eventTicketObjects' => [
                     [
                         'id' => $objectId,
                         'classId' => $classId,
                         'state' => 'ACTIVE',
-                        'heroImage' => [
-                            'sourceUri' => [
-                                'uri' => asset('wallet/google-hero.png'),
-                            ],
-                        ],
-                        'ticketHolderName' => $ticket->attendee_name ?? '',
+        
+                        'ticketHolderName' => $ticket->attendee_name,
+        
                         'ticketNumber' => $ticket->ticket_uuid,
+        
+                        'eventName' => [
+                            'defaultValue' => [
+                                'language' => 'en-US',
+                                'value' => $ticket->event_name,
+                            ]
+                        ],
+        
                         'barcode' => [
                             'type' => 'QR_CODE',
-                            'value' => url('/ticket/scan/' . $ticket->ticket_uuid),
+                            'value' => $ticket->ticket_uuid,
                         ],
-                    ],
-                ],
-            ],
+        
+                        'validTimeInterval' => [
+                            'start' => [
+                                'date' => \Carbon\Carbon::parse($ticket->event_start_at)->toIso8601String(),
+                            ],
+                            'end' => [
+                                'date' => \Carbon\Carbon::parse($ticket->event_end_at)->toIso8601String(),
+                            ],
+                        ],
+                    ]
+                ]
+            ]
         ];
     
         $jwt = JWT::encode($payload, $serviceAccount['private_key'], 'RS256');
