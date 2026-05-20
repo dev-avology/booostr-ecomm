@@ -544,15 +544,21 @@
         $crmSyncAllContacts[] = $crmSyncMapSale($saleItem);
         $salesHistoryExportRows[] = $salesHistoryMapExportRow($saleItem);
     }
+
+    $exportFilenameBase = 'sales-history-' . (\Illuminate\Support\Str::slug($product->title) ?: 'product') . '-' . time();
+
 @endphp
 
 <script type="application/json" id="crm-sync-contacts-page">@json($crmSyncPageContacts)</script>
 <script type="application/json" id="crm-sync-contacts-all">@json($crmSyncAllContacts)</script>
-<script type="application/json" id="sales-history-export-data">@json([
+<script type="application/json" id="sales-history-export-data">
+{!! json_encode([
     'headers' => $salesHistoryExportHeaders,
     'rows' => $salesHistoryExportRows,
-    'title' => $product->title
-])</script>
+    'title' => $product->title,
+    'export_filename_base' => $exportFilenameBase
+]) !!}
+</script>
 
 <div class="card purchase-history-card">
     <div class="card-body">
@@ -1155,13 +1161,18 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         URL.revokeObjectURL(url);
     }
 
+    function getExportFilename(extension) {
+        var base = exportPayload.export_filename_base || ('sales-history-' + Date.now());
+        return base + '.' + extension;
+    }
+
     function exportToCsv() {
         if (!(exportPayload.rows || []).length) {
             alert('No results available to export.');
             return;
         }
         var csv = buildCsvContent();
-        downloadFile('sales-history-' + Date.now() + '.csv', '\ufeff' + csv, 'text/csv;charset=utf-8;');
+        downloadFile(getExportFilename('csv'), '\ufeff' + csv, 'text/csv;charset=utf-8;');
     }
 
     function exportToExcel() {
@@ -1183,7 +1194,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
             html += '</tr>';
         });
         html += '</tbody></table></body></html>';
-        downloadFile('sales-history-' + Date.now() + '.xls', html, 'application/vnd.ms-excel;charset=utf-8;');
+        downloadFile(getExportFilename('xls'), html, 'application/vnd.ms-excel;charset=utf-8;');
     }
 
     function printResults() {

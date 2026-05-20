@@ -32,29 +32,6 @@ class TicketCancelRefundService
         }
 
         $amounts = $this->resolveTicketAmounts($orderItem);
-        $this->processStripeRefund($order, $amounts['refund_amount']);
-        $this->sendCustomerEmail($ticket, $order, $orderItem, $amounts);
-    }
-
-    protected function resolveTicketAmounts(Orderitem $orderItem): array
-    {
-        $itemInfo = json_decode($orderItem->info ?? '{}', true);
-        $ticketFee = (float) ($itemInfo['ticket_fee'] ?? 0.75);
-        $ticketAmount = max(0, (float) $orderItem->amount);
-        $refundAmount = max(0, round($ticketAmount - $ticketFee, 2));
-
-        return [
-            'ticket_amount' => $ticketAmount,
-            'refund_amount' => $refundAmount,
-            'ticket_fee' => $ticketFee,
-        ];
-    }
-
-    protected function processStripeRefund($order, float $refundAmount): void
-    {
-        if ($refundAmount <= 0) {
-            throw new \RuntimeException('Invalid ticket refund amount.');
-        }
 
         if (empty($order->transaction_id)) {
             throw new \RuntimeException('No Stripe transaction found for this order.');
@@ -80,12 +57,57 @@ class TicketCancelRefundService
         Stripe::setApiKey($secretKey);
 
         $chargeId = $this->resolveChargeId($order->transaction_id);
+        $this->processStripeRefund($amounts['refund_amount'], $chargeId);
+        $this->sendCustomerEmail($ticket, $order, $orderItem, $amounts);
+    }
+
+    protected function resolveTicketAmounts(Orderitem $orderItem): array
+    {
+        $itemInfo = json_decode($orderItem->info ?? '{}', true);
+        $perTicketFee = (float) ($itemInfo['ticket_fee'] ?? 0.75);
+        $qty = max(1, (int) ($orderItem->qty ?? 1));
+        $lineAmount = max(0, (float) $orderItem->amount);
+
+        $ticketFeeTotal = (float) ($itemInfo['ticket_fee_total'] ?? ($perTicketFee * $qty));
+        $ticketFeeTotal = min($ticketFeeTotal, $lineAmount);
+
+        // Base (refundable) for the entire line minus all service fees, split per ticket
+        $lineBaseRefund = max(0, round($lineAmount - $ticketFeeTotal, 2));
+        $perTicketRefundBase = round($lineBaseRefund / $qty, 2);
+
+        // Per ticket total charged (display): line total / qty
+        $perTicketGross = round($lineAmount / $qty, 2);
+
+        return [
+            'ticket_amount' => $perTicketGross,
+            'refund_amount' => $perTicketRefundBase,
+            'ticket_fee' => $perTicketFee,
+        ];
+    }
+
+    protected function processStripeRefund(float $refundAmount, string $chargeId): void
+    {
+        if ($refundAmount <= 0) {
+            throw new \RuntimeException('Invalid ticket refund amount.');
+        }
+
+        $requestedCents = (int) round($refundAmount * 100);
+        $requestedCents = max(1, $requestedCents);
+
+        $charge = \Stripe\Charge::retrieve($chargeId);
+        $availableCents = (int) ($charge->amount ?? 0) - (int) ($charge->amount_refunded ?? 0);
+        if ($availableCents <= 0) {
+            throw new \RuntimeException('No refundable balance remains on this charge.');
+        }
+
+        $refundCents = min($requestedCents, $availableCents);
 
         Refund::create([
             'charge' => $chargeId,
-            'amount' => (int) round($refundAmount * 100),
+            'amount' => $refundCents,
             'refund_application_fee' => false,
-            'reverse_transfer' => true,
+            // Connected accounts often lack balance for transfer reversal in test/live; false avoids Stripe error
+            'reverse_transfer' => false,
         ]);
     }
 
