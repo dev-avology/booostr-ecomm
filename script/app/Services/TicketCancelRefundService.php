@@ -65,18 +65,10 @@ class TicketCancelRefundService
     {
         $itemInfo = json_decode($orderItem->info ?? '{}', true);
         $perTicketFee = (float) ($itemInfo['ticket_fee'] ?? 0.75);
-        $qty = max(1, (int) ($orderItem->qty ?? 1));
-        $lineAmount = max(0, (float) $orderItem->amount);
 
-        $ticketFeeTotal = (float) ($itemInfo['ticket_fee_total'] ?? ($perTicketFee * $qty));
-        $ticketFeeTotal = min($ticketFeeTotal, $lineAmount);
-
-        // Base (refundable) for the entire line minus all service fees, split per ticket
-        $lineBaseRefund = max(0, round($lineAmount - $ticketFeeTotal, 2));
-        $perTicketRefundBase = round($lineBaseRefund / $qty, 2);
-
-        // Per ticket total charged (display): line total / qty
-        $perTicketGross = round($lineAmount / $qty, 2);
+        // orderitems.amount is unit price (see seller/order: amount × qty); not line total
+        $perTicketGross = max(0, round((float) $orderItem->amount, 2));
+        $perTicketRefundBase = max(0, round($perTicketGross - $perTicketFee, 2));
 
         return [
             'ticket_amount' => $perTicketGross,

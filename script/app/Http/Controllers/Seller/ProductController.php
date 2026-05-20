@@ -986,8 +986,40 @@ class ProductController extends Controller
     public function salesHistory(Request $request, $id)
     {
         $product = Term::with(['price', 'media'])->findOrFail($id);
-    
-          $sales = Orderitem::with(['order.ordermeta', 'eventTicket'])
+
+        $isTicketProduct = (int) $product->is_variation === 2;
+
+        if ($isTicketProduct) {
+            $sales = EventTicket::with(['order.ordermeta', 'orderItem'])
+                ->where('term_id', $id);
+
+            if ($request->filled('src')) {
+                $search = $request->src;
+
+                $sales->where(function ($q) use ($search) {
+                    $q->where('attendee_name', 'LIKE', "%{$search}%")
+                        ->orWhere('attendee_email', 'LIKE', "%{$search}%")
+                        ->orWhere('attendee_phone', 'LIKE', "%{$search}%")
+                        ->orWhere('ticket_uuid', 'LIKE', "%{$search}%")
+                        ->orWhere('status', 'LIKE', "%{$search}%")
+                        ->orWhereHas('order', function ($orderQuery) use ($search) {
+                            $orderQuery->where('invoice_no', 'LIKE', "%{$search}%");
+                        })
+                        ->orWhereHas('order.ordermeta', function ($metaQuery) use ($search) {
+                            $metaQuery->where('value', 'LIKE', "%{$search}%");
+                        })
+                        ->orWhereHas('orderItem', function ($itemQuery) use ($search) {
+                            $itemQuery->where('info', 'LIKE', "%{$search}%");
+                        });
+                });
+            }
+
+            $sales = $sales->orderBy('id', 'desc')->paginate(20);
+
+            return view('seller.product.sales-history', compact('product', 'sales'));
+        }
+
+        $sales = Orderitem::with(['order.ordermeta', 'eventTicket'])
             ->where('term_id', $id);
         
             if ($request->filled('src')) {

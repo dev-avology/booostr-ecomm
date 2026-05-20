@@ -384,6 +384,37 @@
     };
 
     $crmSyncMapSale = function ($sale) use ($isTicket, $crmSyncSanitize) {
+        if ($isTicket) {
+            $ticket = $sale;
+            $order = $ticket->order ?? null;
+            $ordermeta = json_decode($order->ordermeta->value ?? '{}');
+
+            $fullName = $ticket->attendee_name ?? ($ordermeta->name ?? 'Guest User');
+            $email = $ticket->attendee_email ?? ($ordermeta->email ?? '-');
+            $phone = $ticket->attendee_phone ?? ($ordermeta->phone ?? '-');
+            $city = '';
+
+            if (is_object($ordermeta)) {
+                if (!empty($ordermeta->city)) {
+                    $city = $ordermeta->city;
+                } elseif (!empty($ordermeta->billing) && is_object($ordermeta->billing) && !empty($ordermeta->billing->city)) {
+                    $city = $ordermeta->billing->city;
+                } elseif (!empty($ordermeta->shipping) && is_object($ordermeta->shipping) && !empty($ordermeta->shipping->city)) {
+                    $city = $ordermeta->shipping->city;
+                }
+            }
+
+            $nameParts = explode(' ', trim($fullName), 2);
+
+            return [
+                'first_name' => $crmSyncSanitize($nameParts[0] ?? ''),
+                'last_name' => $crmSyncSanitize($nameParts[1] ?? ''),
+                'email' => $crmSyncSanitize($email),
+                'phone_number' => $crmSyncSanitize($phone),
+                'city' => $crmSyncSanitize($city),
+            ];
+        }
+
         $order = $sale->order ?? null;
         $ordermeta = json_decode($order->ordermeta->value ?? '{}');
 
@@ -426,31 +457,105 @@
         $crmSyncPageContacts[] = $crmSyncMapSale($saleItem);
     }
 
-    $crmSyncAllQuery = \App\Models\Orderitem::with(['order.ordermeta', 'eventTicket'])
-        ->where('term_id', $product->id);
+    $crmSyncAllQuery = $isTicket
+        ? \App\Models\EventTicket::with(['order.ordermeta', 'orderItem'])
+            ->where('term_id', $product->id)
+        : \App\Models\Orderitem::with(['order.ordermeta', 'eventTicket'])
+            ->where('term_id', $product->id);
 
     if (request()->filled('src')) {
         $crmSyncSearch = request('src');
 
-        $crmSyncAllQuery->where(function ($q) use ($crmSyncSearch) {
-            $q->where('info', 'LIKE', "%{$crmSyncSearch}%")
-                ->orWhereHas('order', function ($orderQuery) use ($crmSyncSearch) {
-                    $orderQuery->where('invoice_no', 'LIKE', "%{$crmSyncSearch}%");
-                })
-                ->orWhereHas('order.ordermeta', function ($metaQuery) use ($crmSyncSearch) {
-                    $metaQuery->where('value', 'LIKE', "%{$crmSyncSearch}%");
-                })
-                ->orWhereHas('eventTicket', function ($ticketQuery) use ($crmSyncSearch) {
-                    $ticketQuery->where('attendee_name', 'LIKE', "%{$crmSyncSearch}%")
-                        ->orWhere('attendee_email', 'LIKE', "%{$crmSyncSearch}%")
-                        ->orWhere('attendee_phone', 'LIKE', "%{$crmSyncSearch}%")
-                        ->orWhere('ticket_uuid', 'LIKE', "%{$crmSyncSearch}%")
-                        ->orWhere('status', 'LIKE', "%{$crmSyncSearch}%");
-                });
-        });
+        if ($isTicket) {
+            $crmSyncAllQuery->where(function ($q) use ($crmSyncSearch) {
+                $q->where('attendee_name', 'LIKE', "%{$crmSyncSearch}%")
+                    ->orWhere('attendee_email', 'LIKE', "%{$crmSyncSearch}%")
+                    ->orWhere('attendee_phone', 'LIKE', "%{$crmSyncSearch}%")
+                    ->orWhere('ticket_uuid', 'LIKE', "%{$crmSyncSearch}%")
+                    ->orWhere('status', 'LIKE', "%{$crmSyncSearch}%")
+                    ->orWhereHas('order', function ($orderQuery) use ($crmSyncSearch) {
+                        $orderQuery->where('invoice_no', 'LIKE', "%{$crmSyncSearch}%");
+                    })
+                    ->orWhereHas('order.ordermeta', function ($metaQuery) use ($crmSyncSearch) {
+                        $metaQuery->where('value', 'LIKE', "%{$crmSyncSearch}%");
+                    })
+                    ->orWhereHas('orderItem', function ($itemQuery) use ($crmSyncSearch) {
+                        $itemQuery->where('info', 'LIKE', "%{$crmSyncSearch}%");
+                    });
+            });
+        } else {
+            $crmSyncAllQuery->where(function ($q) use ($crmSyncSearch) {
+                $q->where('info', 'LIKE', "%{$crmSyncSearch}%")
+                    ->orWhereHas('order', function ($orderQuery) use ($crmSyncSearch) {
+                        $orderQuery->where('invoice_no', 'LIKE', "%{$crmSyncSearch}%");
+                    })
+                    ->orWhereHas('order.ordermeta', function ($metaQuery) use ($crmSyncSearch) {
+                        $metaQuery->where('value', 'LIKE', "%{$crmSyncSearch}%");
+                    })
+                    ->orWhereHas('eventTicket', function ($ticketQuery) use ($crmSyncSearch) {
+                        $ticketQuery->where('attendee_name', 'LIKE', "%{$crmSyncSearch}%")
+                            ->orWhere('attendee_email', 'LIKE', "%{$crmSyncSearch}%")
+                            ->orWhere('attendee_phone', 'LIKE', "%{$crmSyncSearch}%")
+                            ->orWhere('ticket_uuid', 'LIKE', "%{$crmSyncSearch}%")
+                            ->orWhere('status', 'LIKE', "%{$crmSyncSearch}%");
+                    });
+            });
+        }
     }
 
     $salesHistoryMapExportRow = function ($sale) use ($isTicket) {
+        if ($isTicket) {
+            $ticket = $sale;
+            $order = $ticket->order ?? null;
+            $ordermeta = json_decode($order->ordermeta->value ?? '{}');
+
+            $fullName = $ticket->attendee_name ?? ($ordermeta->name ?? 'Guest User');
+            $email = $ticket->attendee_email ?? ($ordermeta->email ?? '-');
+            $phone = $ticket->attendee_phone ?? ($ordermeta->phone ?? '-');
+            $variantText = '-';
+            $ticketId = $ticket->ticket_uuid ?? '-';
+            $ticketStatus = 'Not Checked In';
+
+            $info = json_decode((optional($ticket->orderItem)->info ?? '{}'), true);
+
+            if ($ticket->status == 'used') {
+                $ticketStatus = 'Checked In';
+            } elseif ($ticket->status == 'cancelled') {
+                $ticketStatus = 'Cancelled & Refunded';
+            } else {
+                $ticketStatus = 'Not Checked In';
+            }
+
+            $nameParts = explode(' ', trim($fullName), 2);
+            $firstName = $nameParts[0] ?? '-';
+            $lastName = $nameParts[1] ?? '-';
+
+            if ($order && ($order->order_from == 4 || $order->order_from == 5)) {
+                $channel = 'Point of Sale';
+            } elseif ($order && $order->order_from == 0) {
+                $channel = 'POS(Web)';
+            } else {
+                $channel = 'Ecommerce';
+            }
+
+            $orderNo = '-';
+            if (!empty($order->id)) {
+                $orderNo = $order->invoice_no ?? str_pad($order->id, 7, '0', STR_PAD_LEFT);
+            }
+
+            return [
+                $firstName ?: '-',
+                $lastName ?: '-',
+                $email,
+                $phone,
+                !empty($order->created_at) ? date('m/d/Y', strtotime($order->created_at)) : '-',
+                $orderNo,
+                $channel,
+                $ticketId,
+                $ticketStatus,
+            ];
+        }
+
         $order = $sale->order ?? null;
         $ordermeta = json_decode($order->ordermeta->value ?? '{}');
 
@@ -641,6 +746,14 @@
                 <tbody>
                     @forelse($sales as $sale)
                         @php
+                            if ($isTicket) {
+                                $ticket = $sale;
+                                $info = json_decode((optional($sale->orderItem)->info ?? '{}'), true);
+                            } else {
+                                $ticket = $sale->eventTicket ?? null;
+                                $info = json_decode($sale->info ?? '{}', true);
+                            }
+
                             $order = $sale->order ?? null;
                             $ordermeta = json_decode($order->ordermeta->value ?? '{}');
 
@@ -651,8 +764,6 @@
                             $variantText = '-';
                             $ticketId = '-';
                             $ticketStatus = 'Not Checked In';
-
-                            $info = json_decode($sale->info ?? '{}', true);
 
                             if (!empty($info['options']) && is_array($info['options'])) {
                                 $variantNames = [];
@@ -671,8 +782,6 @@
                                     $variantText = implode(', ', $variantNames);
                                 }
                             }
-
-                            $ticket = $sale->eventTicket ?? null;
 
                             if ($isTicket && $ticket) {
                                 $fullName = $ticket->attendee_name ?? $fullName;
