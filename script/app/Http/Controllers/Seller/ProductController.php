@@ -10,6 +10,7 @@ use App\Models\Price;
 use App\Models\Orderitem;
 use App\Models\EventTicket;
 use App\Services\TicketCancelRefundService;
+use App\Services\ProductSalesCrmSyncService;
 use App\Models\Productoption;
 use App\Models\Variationproductoption;
 use DB;
@@ -986,6 +987,7 @@ class ProductController extends Controller
     public function salesHistory(Request $request, $id)
     {
         $product = Term::with(['price', 'media'])->findOrFail($id);
+        $crmSyncStatus = $this->resolveProductCrmSyncStatus($id);
 
         $isTicketProduct = (int) $product->is_variation === 2;
 
@@ -1016,7 +1018,7 @@ class ProductController extends Controller
 
             $sales = $sales->orderBy('id', 'desc')->paginate(20);
 
-            return view('seller.product.sales-history', compact('product', 'sales'));
+            return view('seller.product.sales-history', compact('product', 'sales', 'crmSyncStatus'));
         }
 
         $sales = Orderitem::with(['order.ordermeta', 'eventTicket'])
@@ -1051,7 +1053,108 @@ class ProductController extends Controller
         
         $sales = $sales->orderBy('id', 'desc')->paginate(20);
     
-        return view('seller.product.sales-history', compact('product', 'sales'));
+        return view('seller.product.sales-history', compact('product', 'sales', 'crmSyncStatus'));
+    }
+
+    protected function resolveProductCrmSyncStatus(int $productId): array
+    {
+        $syncService = app(ProductSalesCrmSyncService::class);
+        $sync = $syncService->getActiveContinuousSyncForProduct($productId);
+
+        if ($sync && $sync->sync_status === 'syncing') {
+            $syncService->runInitialSync($sync);
+            $sync = $syncService->getActiveContinuousSyncForProduct($productId);
+        }
+
+        return $syncService->formatStatusPayload($sync);
+    }
+
+    public function crmSyncStatus($id)
+    {
+        Term::findOrFail($id);
+
+        $sync = app(ProductSalesCrmSyncService::class)->getActiveContinuousSyncForProduct($id);
+
+        return response()->json(
+            app(ProductSalesCrmSyncService::class)->formatStatusPayload($sync)
+        );
+    }
+
+    public function crmSyncEnableContinuous(Request $request, $id)
+    {
+        $product = Term::findOrFail($id);
+
+        $existing = app(ProductSalesCrmSyncService::class)->getActiveContinuousSyncForProduct($id);
+        if ($existing && $existing->sync_status === 'active') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Continuous sync is already enabled for this product.',
+                'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload($existing),
+            ], 422);
+        }
+
+        $syncMode = $request->input('sync_mode') === 'page' ? 'current_page' : 'all_results';
+
+        $sync = app(ProductSalesCrmSyncService::class)->enableContinuousSync($product, [
+            'sync_mode' => $syncMode,
+            'contact_tags' => $request->input('contact_tags', ''),
+            'crm_list_name' => $request->input('crm_list_name'),
+            'filter_state' => [
+                'src' => $request->input('src'),
+                'page' => (int) $request->input('page', 1),
+                'per_page' => (int) $request->input('per_page', 20),
+            ],
+        ], Auth::id());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Continuous sync enabled.',
+            'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload($sync),
+        ]);
+    }
+
+    public function crmSyncProcessBatch($id)
+    {
+        Term::findOrFail($id);
+
+        $sync = app(ProductSalesCrmSyncService::class)->getActiveContinuousSyncForProduct($id);
+
+        if (!$sync) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active continuous sync found for this product.',
+            ], 404);
+        }
+
+        $result = app(ProductSalesCrmSyncService::class)->processBatch($sync, true);
+
+        $sync->refresh();
+
+        return response()->json([
+            'success' => true,
+            'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload($sync),
+            'batch' => $result,
+        ]);
+    }
+
+    public function crmSyncStop($id)
+    {
+        Term::findOrFail($id);
+
+        $sync = app(ProductSalesCrmSyncService::class)->stopContinuousSync($id);
+
+        if (!$sync) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active continuous sync found for this product.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Continuous sync stopped.',
+            'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload(null),
+        ]);
     }
     
 public function ticketStatusUpdate(Request $request)

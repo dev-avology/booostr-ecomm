@@ -323,6 +323,10 @@ Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 
     
     // add route sales product history
     Route::get('product/{id}/sales-history', 'ProductController@salesHistory')->name('product.sales.history');
+    Route::get('product/{id}/crm-sync/status', 'ProductController@crmSyncStatus')->name('product.crm.sync.status');
+    Route::post('product/{id}/crm-sync/enable-continuous', 'ProductController@crmSyncEnableContinuous')->name('product.crm.sync.enable');
+    Route::post('product/{id}/crm-sync/process-batch', 'ProductController@crmSyncProcessBatch')->name('product.crm.sync.process');
+    Route::post('product/{id}/crm-sync/stop', 'ProductController@crmSyncStop')->name('product.crm.sync.stop');
     Route::post('product/ticket-status-update', 'ProductController@ticketStatusUpdate')->name('product.ticket.status.update');
     
     Route::get('product/remove-price/{id}', 'ProductController@removeVariationPrice');

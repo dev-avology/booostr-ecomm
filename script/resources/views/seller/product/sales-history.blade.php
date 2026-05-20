@@ -327,6 +327,120 @@
     opacity: 0.75;
     cursor: not-allowed;
 }
+
+#crmSyncModal .crm-sync-status-view {
+    text-align: center;
+    padding: 18px 10px 8px;
+}
+
+#crmSyncModal .crm-sync-status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+}
+
+#crmSyncModal .crm-sync-status-icon-progress {
+    width: 72px;
+    height: 72px;
+    color: #08bff3;
+    font-size: 56px;
+    line-height: 1;
+}
+
+#crmSyncModal .crm-sync-status-icon-completed {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #08bff3;
+    color: #fff;
+    font-size: 34px;
+}
+
+#crmSyncModal .crm-sync-status-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 14px;
+    line-height: 1.35;
+}
+
+#crmSyncModal .crm-sync-status-date {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 18px;
+}
+
+#crmSyncModal .crm-sync-status-date span:first-child {
+    font-weight: 700;
+    color: #333;
+}
+
+#crmSyncModal .crm-sync-status-help {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.65;
+    max-width: 360px;
+    margin: 0 auto;
+}
+
+#crmSyncModal .btn-close-crm-sync {
+    background: #08bff3;
+    border-color: #08bff3;
+    color: #fff;
+    min-width: 200px;
+    padding: 11px 28px;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+#crmSyncModal .btn-close-crm-sync:hover,
+#crmSyncModal .btn-close-crm-sync:focus {
+    background: #07a8db;
+    border-color: #07a8db;
+    color: #fff;
+    box-shadow: none;
+}
+
+#crmSyncModal .crm-sync-continuous-alert {
+    background: #fff8e6;
+    border: 1px solid #f0d58a;
+    color: #6b5a2e;
+    padding: 12px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.55;
+    margin-bottom: 18px;
+}
+
+#crmSyncModal .btn-stop-crm-sync {
+    background: #fff;
+    border: 1px solid #d9534f;
+    color: #d9534f;
+    min-width: 140px;
+    padding: 11px 20px;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+#crmSyncModal .btn-stop-crm-sync:hover,
+#crmSyncModal .btn-stop-crm-sync:focus {
+    background: #d9534f;
+    border-color: #d9534f;
+    color: #fff;
+    box-shadow: none;
+}
+
+#crmSyncModal .crm-sync-footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
 </style>
 @endsection
 
@@ -652,6 +766,16 @@
 
     $exportFilenameBase = 'sales-history-' . (\Illuminate\Support\Str::slug($product->title) ?: 'product') . '-' . time();
 
+    $crmSyncStatus = $crmSyncStatus ?? [
+        'continuous_active' => false,
+        'sync_status' => null,
+        'sync_mode' => null,
+        'last_synced_at' => null,
+        'total_synced_contacts' => 0,
+        'initial_sync_in_progress' => false,
+        'contact_tags' => '',
+    ];
+
 @endphp
 
 <script type="application/json" id="crm-sync-contacts-page">@json($crmSyncPageContacts)</script>
@@ -699,8 +823,7 @@
                 <div class="sales-history-actions-row mt-2">
                     <button type="button"
                             class="btn btn-edit-crm-sync"
-                            data-toggle="modal"
-                            data-target="#crmSyncModal">
+                            id="crm_sync_edit_btn">
                         <i class="fas fa-sync-alt"></i> Edit CRM Sync
                     </button>
                     <form class="mb-0" id="sales_history_list_action_form" onsubmit="return false;">
@@ -892,70 +1015,110 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p class="crm-sync-desc mb-0">
-                    Create a data sync of product sales history data into your CRM. Set a one-time or continual sync of this product customer contact data to your CRM custom contact groups and/or add additional contact tags to give you more supporter insights.
-                </p>
-
-                <p class="crm-sync-last-date mb-0">
-                    <span>Last Sync Date:</span> 03/24/2026 (one time)
-                </p>
-
-                <div class="form-group mb-0">
-                    <label class="crm-sync-field-label">
-                        Choose Sync recurrence for this product history user data
-                        <i class="fas fa-info-circle ml-1" title="Choose how often sales history contacts are synced to your CRM."></i>
-                    </label>
-                    <div class="crm-sync-radio-group">
-                        <div class="custom-control custom-radio">
-                            <input type="radio" id="crm_sync_onetime" name="crm_sync_recurrence" class="custom-control-input" value="one_time">
-                            <label class="custom-control-label" for="crm_sync_onetime">One-Time Sync (only current data)</label>
-                        </div>
-                        <div class="custom-control custom-radio">
-                            <input type="radio" id="crm_sync_continuous" name="crm_sync_recurrence" class="custom-control-input" value="continuous" checked>
-                            <label class="custom-control-label" for="crm_sync_continuous">Continuous Sync (current &amp; future data)</label>
-                        </div>
+                <div id="crm_sync_view_form">
+                    <div id="crm_sync_continuous_alert" class="crm-sync-continuous-alert" style="display:none;">
+                        Continuous sync is already enabled. Manual sync is not required. If you want to sync manually, please stop the continuous sync first.
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="crm-sync-field-label" for="crm_sync_pass_amount">
-                        How much of this list do you want to pass?<span class="text-danger">*</span>
-                    </label>
-                    <select id="crm_sync_pass_amount" class="form-control crm-sync-select">
-                        <option value="all" selected>All Results</option>
-                        <option value="page">Just Only this page of result</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="crm-sync-field-label" for="crm_sync_list">
-                        Choose an existing Contact Manager list or create new contact list.
-                    </label>
-                    <select id="crm_sync_list" class="form-control crm-sync-select crm-sync-select-active">
-                        <option selected>{{ $product->title }} Purchasers</option>
-                    </select>
-                </div>
-
-                <div class="form-group mb-0">
-                    <label class="crm-sync-field-label" for="crm_sync_tags_input">
-                        Add Contact Manager tags to contact record
-                    </label>
-                    <p class="crm-sync-helper mb-0">
-                        Start typing tags to choose from existing CRM tags. To add new tags, type tag and hit enter after each tag. To delete a typed tag, click the &ldquo;x&rdquo; next to it. Tags will be added when submitted.
+                    <p class="crm-sync-desc mb-0">
+                        Create a data sync of product sales history data into your CRM. Set a one-time or continual sync of this product customer contact data to your CRM custom contact groups and/or add additional contact tags to give you more supporter insights.
                     </p>
-                    <div class="crm-sync-tags-wrap mt-2" id="crm_sync_tags_wrap">
-                        <input type="text"
-                               id="crm_sync_tags_input"
-                               class="crm-sync-tags-input"
-                               placeholder=""
-                               autocomplete="off"
-                               aria-label="Add Contact Manager tags">
+
+                    <p class="crm-sync-last-date mb-0" id="crm_sync_last_date_display">
+                        <span>Last Sync Date:</span> <span id="crm_sync_last_date_value">—</span>
+                    </p>
+
+                    <div class="form-group mb-0">
+                        <label class="crm-sync-field-label">
+                            Choose Sync recurrence for this product history user data
+                            <i class="fas fa-info-circle ml-1" title="Choose how often sales history contacts are synced to your CRM."></i>
+                        </label>
+                        <div class="crm-sync-radio-group">
+                            <div class="custom-control custom-radio">
+                                <input type="radio" id="crm_sync_onetime" name="crm_sync_recurrence" class="custom-control-input" value="one_time">
+                                <label class="custom-control-label" for="crm_sync_onetime">One-Time Sync (only current data)</label>
+                            </div>
+                            <div class="custom-control custom-radio">
+                                <input type="radio" id="crm_sync_continuous" name="crm_sync_recurrence" class="custom-control-input" value="continuous" checked>
+                                <label class="custom-control-label" for="crm_sync_continuous">Continuous Sync (current &amp; future data)</label>
+                            </div>
+                        </div>
                     </div>
-                    <input type="hidden" id="crm_sync_tags" name="crm_sync_tags" value="">
+
+                    <div class="form-group">
+                        <label class="crm-sync-field-label" for="crm_sync_pass_amount">
+                            How much of this list do you want to pass?<span class="text-danger">*</span>
+                        </label>
+                        <select id="crm_sync_pass_amount" class="form-control crm-sync-select">
+                            <option value="all" selected>All Results</option>
+                            <option value="page">Just Only this page of result</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="crm-sync-field-label" for="crm_sync_list">
+                            Choose an existing Contact Manager list or create new contact list.
+                        </label>
+                        <select id="crm_sync_list" class="form-control crm-sync-select crm-sync-select-active">
+                            <option selected>{{ $product->title }} Purchasers</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label class="crm-sync-field-label" for="crm_sync_tags_input">
+                            Add Contact Manager tags to contact record
+                        </label>
+                        <p class="crm-sync-helper mb-0">
+                            Start typing tags to choose from existing CRM tags. To add new tags, type tag and hit enter after each tag. To delete a typed tag, click the &ldquo;x&rdquo; next to it. Tags will be added when submitted.
+                        </p>
+                        <div class="crm-sync-tags-wrap mt-2" id="crm_sync_tags_wrap">
+                            <input type="text"
+                                   id="crm_sync_tags_input"
+                                   class="crm-sync-tags-input"
+                                   placeholder=""
+                                   autocomplete="off"
+                                   aria-label="Add Contact Manager tags">
+                        </div>
+                        <input type="hidden" id="crm_sync_tags" name="crm_sync_tags" value="">
+                    </div>
+                </div>
+
+                <div id="crm_sync_view_progress" class="crm-sync-status-view" style="display:none;">
+                    <div class="crm-sync-status-icon crm-sync-status-icon-progress" aria-hidden="true">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <p class="crm-sync-status-title mb-0">Data Sync to CRM in progress.</p>
+                    <p class="crm-sync-status-date mb-0">
+                        <span>Sync Date:</span> <span id="crm_sync_progress_date"></span>
+                    </p>
+                    <p class="crm-sync-status-help mb-0">
+                        You can close this window while your data is syncing to your Booostr Contact Manager.
+                    </p>
+                </div>
+
+                <div id="crm_sync_view_completed" class="crm-sync-status-view" style="display:none;">
+                    <div class="crm-sync-status-icon crm-sync-status-icon-completed" aria-hidden="true">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <p class="crm-sync-status-title mb-0">Data Sync complete.</p>
+                    <p class="crm-sync-status-date mb-0">
+                        <span>Sync Date:</span> <span id="crm_sync_completed_date"></span>
+                    </p>
+                    <p class="crm-sync-status-help mb-0">
+                        We have completed your data sync to Booostr Contact Manager. You can close this window.
+                    </p>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-update-crm-sync" id="crm_sync_submit_btn">Update CRM Sync</button>
+                <div id="crm_sync_footer_form">
+                    <div class="crm-sync-footer-actions">
+                        <button type="button" class="btn btn-stop-crm-sync" id="crm_sync_stop_btn" style="display:none;">Stop Sync</button>
+                        <button type="button" class="btn btn-update-crm-sync" id="crm_sync_submit_btn">Update CRM Sync</button>
+                    </div>
+                </div>
+                <div id="crm_sync_footer_status" style="display:none;">
+                    <button type="button" class="btn btn-close-crm-sync" id="crm_sync_close_btn">Close Window</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1145,7 +1308,148 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
     var CRM_SYNC_API = 'https://app4.booostr.co/wp-json/booostr/v1/save-contact';
     var CRM_SYNC_BOOSTER_ID = 36115;
+    var CRM_SYNC_PRODUCT_ID = {{ (int) $product->id }};
+    var CRM_SYNC_STORAGE_KEY = 'crm_sync_state_' + CRM_SYNC_PRODUCT_ID;
+    var CRM_SYNC_STATUS = @json($crmSyncStatus);
+    var CRM_SYNC_ROUTES = {
+        status: "{{ route('seller.product.crm.sync.status', $product->id) }}",
+        enable: "{{ route('seller.product.crm.sync.enable', $product->id) }}",
+        process: "{{ route('seller.product.crm.sync.process', $product->id) }}",
+        stop: "{{ route('seller.product.crm.sync.stop', $product->id) }}"
+    };
+    var CRM_SYNC_PAGE_FILTERS = {
+        src: @json(request('src')),
+        page: {{ (int) $sales->currentPage() }},
+        per_page: {{ (int) $sales->perPage() }}
+    };
     var $syncBtn = $modal.find('#crm_sync_submit_btn');
+    var $stopBtn = $modal.find('#crm_sync_stop_btn');
+    var $continuousAlert = $modal.find('#crm_sync_continuous_alert');
+    var $editBtn = $('#crm_sync_edit_btn');
+    var $closeBtn = $modal.find('#crm_sync_close_btn');
+    var $viewForm = $modal.find('#crm_sync_view_form');
+    var $viewProgress = $modal.find('#crm_sync_view_progress');
+    var $viewCompleted = $modal.find('#crm_sync_view_completed');
+    var $footerForm = $modal.find('#crm_sync_footer_form');
+    var $footerStatus = $modal.find('#crm_sync_footer_status');
+    var $lastSyncDateValue = $modal.find('#crm_sync_last_date_value');
+    var currentView = 'form';
+    var syncRunning = false;
+    var continuousBatchRunning = false;
+
+    function formatSyncDateLabel(syncType) {
+        var d = new Date();
+        var mm = String(d.getMonth() + 1).padStart(2, '0');
+        var dd = String(d.getDate()).padStart(2, '0');
+        var yyyy = d.getFullYear();
+        var typeLabel = syncType === 'one_time' ? 'one time' : 'continuous';
+        return mm + '/' + dd + '/' + yyyy + ' (' + typeLabel + ')';
+    }
+
+    function readSyncState() {
+        try {
+            var raw = sessionStorage.getItem(CRM_SYNC_STORAGE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function writeSyncState(state) {
+        try {
+            if (!state) {
+                sessionStorage.removeItem(CRM_SYNC_STORAGE_KEY);
+                return;
+            }
+            sessionStorage.setItem(CRM_SYNC_STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+            // Ignore storage errors.
+        }
+    }
+
+    function updateLastSyncDateDisplay() {
+        if (CRM_SYNC_STATUS && CRM_SYNC_STATUS.last_synced_at) {
+            $lastSyncDateValue.text(CRM_SYNC_STATUS.last_synced_at + ' (continuous)');
+            return;
+        }
+
+        var state = readSyncState();
+        if (state && state.lastSyncDate) {
+            $lastSyncDateValue.text(state.lastSyncDate);
+        } else {
+            $lastSyncDateValue.text('—');
+        }
+    }
+
+    function applyContinuousUiState() {
+        var continuousActive = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_active;
+        var initialInProgress = CRM_SYNC_STATUS && CRM_SYNC_STATUS.initial_sync_in_progress;
+
+        $continuousAlert.toggle(continuousActive && !initialInProgress);
+        $stopBtn.toggle(!!continuousActive);
+        $syncBtn.prop('disabled', continuousActive || syncRunning || continuousBatchRunning);
+    }
+
+    function refreshContinuousStatus(callback) {
+        $.get(CRM_SYNC_ROUTES.status)
+            .done(function (status) {
+                CRM_SYNC_STATUS = status || CRM_SYNC_STATUS;
+                updateLastSyncDateDisplay();
+                applyContinuousUiState();
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            })
+            .fail(function () {
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            });
+    }
+
+    function showView(viewName, syncDateText) {
+        currentView = viewName;
+
+        $viewForm.toggle(viewName === 'form');
+        $viewProgress.toggle(viewName === 'progress');
+        $viewCompleted.toggle(viewName === 'completed');
+
+        $footerForm.toggle(viewName === 'form');
+        $footerStatus.toggle(viewName === 'progress' || viewName === 'completed');
+
+        if (viewName === 'progress' && syncDateText) {
+            $modal.find('#crm_sync_progress_date').text(syncDateText);
+        }
+
+        if (viewName === 'completed' && syncDateText) {
+            $modal.find('#crm_sync_completed_date').text(syncDateText);
+        }
+    }
+
+    function openModalWithState() {
+        refreshContinuousStatus(function () {
+            var state = readSyncState();
+
+            if (syncRunning || (state && state.status === 'in_progress')) {
+                showView('progress', state ? state.syncDate : '');
+            } else {
+                showView('form');
+            }
+
+            applyContinuousUiState();
+            $modal.modal('show');
+        });
+    }
+
+    function markSyncCompleted(syncDate, syncType) {
+        syncRunning = false;
+        writeSyncState({
+            status: 'idle',
+            syncType: syncType,
+            lastSyncDate: syncDate
+        });
+        updateLastSyncDateDisplay();
+    }
 
     function parseCrmContacts(elementId) {
         var $el = $('#' + elementId);
@@ -1178,33 +1482,26 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         });
     }
 
-    $syncBtn.on('click', function () {
-        if ($syncBtn.prop('disabled')) {
-            return;
-        }
+    function runBackgroundSync(contacts, contactTags, syncType, syncDate) {
+        syncRunning = true;
 
-        var passScope = $modal.find('#crm_sync_pass_amount').val();
-        var contacts = passScope === 'page'
-            ? parseCrmContacts('crm-sync-contacts-page')
-            : parseCrmContacts('crm-sync-contacts-all');
-
-        var contactTags = $.trim($hidden.val() || tags.join(','));
-
-        if (!contacts.length) {
-            alert('No contacts available to sync.');
-            return;
-        }
+        writeSyncState({
+            status: 'in_progress',
+            syncType: syncType,
+            syncDate: syncDate
+        });
 
         var successCount = 0;
         var failedCount = 0;
-        var originalText = $syncBtn.text();
-
-        $syncBtn.prop('disabled', true).text('Syncing...');
 
         function syncNext(index) {
             if (index >= contacts.length) {
-                $syncBtn.prop('disabled', false).text(originalText);
-                alert('CRM sync finished. Success: ' + successCount + ', Failed: ' + failedCount + '.');
+                markSyncCompleted(syncDate, syncType);
+
+                if ($modal.hasClass('show') && currentView === 'progress') {
+                    showView('completed', syncDate);
+                }
+
                 return;
             }
 
@@ -1221,6 +1518,165 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         }
 
         syncNext(0);
+    }
+
+    function finishInitialContinuousSync(syncDate, response) {
+        continuousBatchRunning = false;
+        syncRunning = false;
+
+        if (response && response.status) {
+            CRM_SYNC_STATUS = response.status;
+        }
+
+        updateLastSyncDateDisplay();
+        applyContinuousUiState();
+
+        if ($modal.hasClass('show') && currentView === 'progress') {
+            showView('completed', syncDate);
+        }
+    }
+
+    function runInitialContinuousSync(syncDate) {
+        if (continuousBatchRunning) {
+            return;
+        }
+
+        continuousBatchRunning = true;
+        syncRunning = true;
+        applyContinuousUiState();
+
+        $.post(CRM_SYNC_ROUTES.process, {
+            _token: "{{ csrf_token() }}"
+        })
+            .done(function (response) {
+                finishInitialContinuousSync(syncDate, response);
+            })
+            .fail(function (xhr) {
+                continuousBatchRunning = false;
+                syncRunning = false;
+                applyContinuousUiState();
+
+                var message = (xhr.responseJSON && xhr.responseJSON.message)
+                    ? xhr.responseJSON.message
+                    : 'Continuous sync failed.';
+                alert(message);
+            });
+    }
+
+    function enableContinuousSyncOnServer(syncDate) {
+        var passScope = $modal.find('#crm_sync_pass_amount').val();
+        var contactTags = $.trim($hidden.val() || tags.join(','));
+        var crmListName = $.trim($modal.find('#crm_sync_list option:selected').text() || '');
+
+        $.post(CRM_SYNC_ROUTES.enable, {
+            _token: "{{ csrf_token() }}",
+            sync_mode: passScope,
+            contact_tags: contactTags,
+            crm_list_name: crmListName,
+            src: CRM_SYNC_PAGE_FILTERS.src,
+            page: CRM_SYNC_PAGE_FILTERS.page,
+            per_page: CRM_SYNC_PAGE_FILTERS.per_page
+        })
+            .done(function (response) {
+                if (response.status) {
+                    CRM_SYNC_STATUS = response.status;
+                }
+
+                showView('progress', syncDate);
+                runInitialContinuousSync(syncDate);
+            })
+            .fail(function (xhr) {
+                var message = (xhr.responseJSON && xhr.responseJSON.message)
+                    ? xhr.responseJSON.message
+                    : 'Unable to enable continuous sync.';
+                alert(message);
+            });
+    }
+
+    $stopBtn.on('click', function () {
+        if (!confirm('Stop continuous sync for this product?')) {
+            return;
+        }
+
+        $.post(CRM_SYNC_ROUTES.stop, {
+            _token: "{{ csrf_token() }}"
+        })
+            .done(function (response) {
+                CRM_SYNC_STATUS = response.status || {
+                    continuous_active: false,
+                    initial_sync_in_progress: false,
+                    last_synced_at: null
+                };
+                applyContinuousUiState();
+                $modal.modal('hide');
+            })
+            .fail(function (xhr) {
+                var message = (xhr.responseJSON && xhr.responseJSON.message)
+                    ? xhr.responseJSON.message
+                    : 'Unable to stop continuous sync.';
+                alert(message);
+            });
+    });
+
+    $editBtn.on('click', function () {
+        openModalWithState();
+    });
+
+    $closeBtn.on('click', function () {
+        $modal.modal('hide');
+    });
+
+    $modal.on('hidden.bs.modal', function () {
+        if (currentView === 'completed') {
+            showView('form');
+        }
+    });
+
+    (function cleanupStaleSyncState() {
+        var state = readSyncState();
+        if (state && state.status === 'in_progress') {
+            writeSyncState(state.lastSyncDate ? {
+                status: 'idle',
+                syncType: state.syncType,
+                lastSyncDate: state.lastSyncDate
+            } : null);
+        }
+    })();
+
+    updateLastSyncDateDisplay();
+    applyContinuousUiState();
+
+    $syncBtn.on('click', function () {
+        if ($syncBtn.prop('disabled') || syncRunning || continuousBatchRunning) {
+            return;
+        }
+
+        if (CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_active) {
+            alert('Continuous sync is already enabled. Please stop continuous sync first if you want to sync manually.');
+            return;
+        }
+
+        var passScope = $modal.find('#crm_sync_pass_amount').val();
+        var contacts = passScope === 'page'
+            ? parseCrmContacts('crm-sync-contacts-page')
+            : parseCrmContacts('crm-sync-contacts-all');
+
+        var contactTags = $.trim($hidden.val() || tags.join(','));
+        var syncType = $modal.find('input[name="crm_sync_recurrence"]:checked').val() || 'continuous';
+        var syncDate = formatSyncDateLabel(syncType);
+
+        if (syncType === 'continuous') {
+            enableContinuousSyncOnServer(syncDate);
+            return;
+        }
+
+        if (!contacts.length) {
+            alert('No contacts available to sync.');
+            return;
+        }
+
+        showView('progress', syncDate);
+        runBackgroundSync(contacts, contactTags, syncType, syncDate);
     });
 })();
 
