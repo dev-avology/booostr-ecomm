@@ -141,8 +141,11 @@ $eventStart = DB::table('termmetas')
                             <table width="100%">
                                 <tr>
                                     <td width="220" align="center" valign="middle">
-                                        <img src="{{ $message->embedData($ticket['qrPng'], 'ticket-qr-' . $loop->index . '.png', 'image/png') }}"
-                                            width="180" height="180" style="display:block;" alt="Ticket QR Code">
+                                    <img src="{{ $ticket['qrUrl'] }}"
+                                        width="180"
+                                        height="180"
+                                        style="display:block;border:0;"
+                                        alt="Ticket QR Code">
                     
                                         <p style="font-size:11px; color:#777;">
                                             Ticket ID: {{ $ticket['ticketUuid'] }}
@@ -227,7 +230,7 @@ $eventStart = DB::table('termmetas')
                             <hr style="border:none; border-top:2px solid #ddd;">
                         </td>
                     </tr>
-                    @endforeach
+                  
 
 
                     <!-- ACTION BUTTONS -->
@@ -264,7 +267,7 @@ $eventStart = DB::table('termmetas')
 
             </td>
         </tr>
-
+                @endforeach
         <!-- DIVIDER -->
         <tr>
             <td style="padding:0px 25px;">

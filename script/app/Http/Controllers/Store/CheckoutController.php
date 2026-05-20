@@ -37,6 +37,7 @@ use Stripe\Charge;
 use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class CheckoutController extends Controller
 {
@@ -1210,8 +1211,11 @@ class CheckoutController extends Controller
 
         Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
 
-        $total_application_fee = $credit_card_fee + $booster_platform_fee;
-
+        // $total_application_fee = $credit_card_fee + $booster_platform_fee;
+        $total_application_fee = $request->cover_fee_checkbox
+        ? ($cover_fee + $ticket_fee_total)
+        : ($credit_card_fee + $booster_platform_fee + $ticket_fee_total);
+    
         $club_receives = $total_amount - $total_application_fee;
 
         $nameParts = preg_split('/\s+/', trim($request->name), 2);
@@ -1228,7 +1232,8 @@ class CheckoutController extends Controller
             'amount' => round($total_amount * 100),
             'currency' => 'usd',
             'capture_method' => 'automatic',
-            'application_fee_amount' => round($cover_fee * 100),
+            // 'application_fee_amount' => round($cover_fee * 100),
+            'application_fee_amount' => round($total_application_fee * 100),
             'transfer_data' => [
                 'destination' => $booostr_stripe_account,
             ],
@@ -1866,13 +1871,19 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
     $qrImage = $qr->generate(url('/ticket/scan/' . $ticketUuid));
 
+    $fileName = 'qr_' . $ticketUuid . '.png';
+
+    Storage::disk('public')->put('tickets/' . $fileName, $qrImage);
+
+    $qrUrl = asset('storage/tickets/' . $fileName);
+
     // =========================
     // ✅ QR GENERATION END
     // =========================
 
     $tickets[] = [
         'ticketUuid' => $ticketUuid,
-        'qrPng' => $qrImage,
+        'qrUrl' => $qrUrl,
     ];
 }
 
@@ -2804,9 +2815,33 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             
            }
 
-           $total_application_fee = $credit_card_fee + $booster_platform_fee;
+        //    $total_application_fee = $credit_card_fee + $booster_platform_fee;
 
-           $club_receives = $total_amount - $total_application_fee;
+        //    $club_receives = $total_amount - $total_application_fee;
+
+        $ticket_fee_total = 0;
+
+        foreach (Cart::instance('default')->content() as $cartItem) {
+            $productKind = DB::table('termmetas')
+                ->where('term_id', $cartItem->id)
+                ->where('key', 'product_kind')
+                ->value('value');
+
+            $ticketFee = DB::table('termmetas')
+                ->where('term_id', $cartItem->id)
+                ->where('key', 'ticket_fee')
+                ->value('value');
+
+            if (trim((string) $productKind) === 'event_ticket') {
+                $ticket_fee_total += ((float) ($ticketFee ?: 0.75)) * (int) $cartItem->qty;
+            }
+        }
+
+        $total_application_fee = $request->cover_fee_checkbox
+            ? ($cover_fee + $ticket_fee_total)
+            : ($credit_card_fee + $booster_platform_fee + $ticket_fee_total);
+
+        $club_receives = $total_amount - $total_application_fee;
 
            $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
 
@@ -2822,7 +2857,8 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             'currency' => 'usd',
             'payment_method_types' => ['card_present', 'card'],
             'capture_method' => 'automatic',
-            'application_fee_amount' => round($cover_fee * 100),
+            // 'application_fee_amount' => round($cover_fee * 100),
+            'application_fee_amount' => round($total_application_fee * 100),
             'transfer_data' => [
                 'destination' => $booostr_stripe_account, // Booostr's Stripe account
             ],
