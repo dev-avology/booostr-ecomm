@@ -394,6 +394,8 @@ class PosController extends Controller
 
            DB::commit();
 
+           trigger_product_sales_crm_sync_after_order($order->id);
+
            $name = explode(' ',$customer_info['name']??'Guset User');
            $club_info = tenant_club_info();
            $subtotal = 0;

@@ -77,11 +77,58 @@
     opacity: 1;
 }
 
+.sales-history-top {
+    margin-bottom: 18px;
+}
+
+.sales-history-desc {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 14px;
+}
+
+.sales-history-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px 20px;
+}
+
+.sales-history-search-group {
+    flex: 0 1 320px;
+    min-width: 220px;
+    max-width: 360px;
+}
+
+.sales-history-search-group label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.sales-history-actions-wrap {
+    flex: 0 1 auto;
+    margin-left: auto;
+}
+
 .sales-history-actions-label {
     font-size: 13px;
     font-weight: 700;
     color: #555;
     margin-bottom: 8px;
+    display: block;
+    text-align: right;
+}
+
+.sales-history-actions-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 12px;
 }
 
 .btn-edit-crm-sync {
@@ -92,6 +139,11 @@
     font-size: 12px;
     border-radius: 3px;
     white-space: nowrap;
+    height: 38px;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
 }
 
 .btn-edit-crm-sync:hover,
@@ -102,12 +154,28 @@
     box-shadow: none;
 }
 
-.sales-history-actions-row {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
+.sales-history-search-group .form-control {
+    height: 38px;
+}
+
+.sales-history-action-form {
+    flex: 0 1 auto;
+}
+
+.sales-history-action-form .input-group {
+    flex-wrap: nowrap;
+}
+
+.sales-history-action-form #sales_history_list_action {
+    min-width: 200px;
+    width: 200px;
+    flex: 0 0 200px;
+    padding-right: 28px;
+    height: 38px;
+}
+
+.sales-history-action-form .btn-primary {
+    height: 38px;
 }
 
 #crmSyncModal .modal-content {
@@ -174,6 +242,58 @@
 #crmSyncModal .crm-sync-field-label .fa-info-circle {
     color: #08bff3;
     font-size: 14px;
+}
+
+.crm-sync-info-wrap {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+.crm-sync-info-trigger {
+    color: #08bff3;
+    font-size: 14px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.crm-sync-info-box {
+    display: none;
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 10px);
+    transform: translateX(-50%);
+    width: 260px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    font-size: 12px;
+    font-weight: 400;
+    color: #555;
+    line-height: 1.55;
+    text-align: left;
+    z-index: 1060;
+}
+
+.crm-sync-info-box::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    transform: translateX(-50%) rotate(45deg);
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-right: 1px solid #d9d9d9;
+    border-bottom: 1px solid #d9d9d9;
+}
+
+.crm-sync-info-wrap:hover .crm-sync-info-box,
+.crm-sync-info-wrap.is-open .crm-sync-info-box {
+    display: block;
 }
 
 #crmSyncModal .crm-sync-radio-group {
@@ -776,6 +896,11 @@
         'contact_tags' => '',
     ];
 
+    $hasCrmSyncConfig = !empty($crmSyncStatus['continuous_active']) || !empty($crmSyncStatus['last_synced_at']);
+    $crmSyncButtonLabel = $hasCrmSyncConfig ? 'Edit CRM Sync' : 'Create CRM Sync';
+    $crmSyncModalTitle = $hasCrmSyncConfig ? 'Edit Booostr CRM Sync' : 'Create Booostr CRM Sync';
+    $crmSyncFooterLabel = $hasCrmSyncConfig ? 'Update CRM Sync' : 'Create CRM Sync';
+
 @endphp
 
 <script type="application/json" id="crm-sync-contacts-page">@json($crmSyncPageContacts)</script>
@@ -792,53 +917,50 @@
 <div class="card purchase-history-card">
     <div class="card-body">
 
-        <div class="row mb-3 align-items-end">
-            <div class="col-md-4">
-                <form method="GET">
-                    <label>Search</label>
-                
+        <div class="sales-history-top">
+            <p class="sales-history-desc mb-0">
+                @if($isTicket)
+                    Below is a list of total sales of {{ $product->title }} tickets online.
+                    You can update Ticket Status using the Action button.
+                @else
+                    Below is a list of total sales of {{ $product->title }}
+                    {{ $product->is_variation == 1 ? 'variant' : 'simple' }} product.
+                @endif
+            </p>
+
+            <div class="sales-history-toolbar">
+                <form method="GET" class="sales-history-search-group mb-0">
+                    <label for="sales_history_search">Search</label>
                     <input type="text"
+                           id="sales_history_search"
                            name="src"
                            class="form-control"
                            placeholder="search..."
                            value="{{ request('src') }}">
                 </form>
-                
-            </div>
 
-            <div class="col-md-5">
-                <p class="mb-0">
-                    @if($isTicket)
-                        Below is a list of total sales of {{ $product->title }} tickets online.
-                        You can update Ticket Status using the Action button.
-                    @else
-                        Below is a list of total sales of {{ $product->title }}
-                        {{ $product->is_variation == 1 ? 'variant' : 'simple' }} product.
-                    @endif
-                </p>
-            </div>
-
-            <div class="col-md-3">
-                <p class="sales-history-actions-label text-right mb-0">Sales History List Actions</p>
-                <div class="sales-history-actions-row mt-2">
-                    <button type="button"
-                            class="btn btn-edit-crm-sync"
-                            id="crm_sync_edit_btn">
-                        <i class="fas fa-sync-alt"></i> Edit CRM Sync
-                    </button>
-                    <form class="mb-0" id="sales_history_list_action_form" onsubmit="return false;">
-                        <div class="input-group">
-                            <select class="form-control" id="sales_history_list_action">
-                                <option value="">Select Action</option>
-                                <option value="export_excel">Export to Excel</option>
-                                <option value="export_csv">Export to CSV</option>
-                                <option value="print">Print Results</option>
-                            </select>
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="button" id="sales_history_list_action_submit">Submit</button>
+                <div class="sales-history-actions-wrap">
+                    <span class="sales-history-actions-label">Sales History List Actions</span>
+                    <div class="sales-history-actions-row">
+                        <form class="mb-0 sales-history-action-form" id="sales_history_list_action_form" onsubmit="return false;">
+                            <div class="input-group">
+                                <select class="form-control" id="sales_history_list_action">
+                                    <option value="">Select Action</option>
+                                    <option value="export_excel">Export to Excel</option>
+                                    <option value="export_csv">Export to CSV</option>
+                                    <option value="print">Print Results</option>
+                                </select>
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button" id="sales_history_list_action_submit">Submit</button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                        <button type="button"
+                                class="btn btn-edit-crm-sync"
+                                id="crm_sync_edit_btn">
+                            <i class="fas fa-sync-alt"></i> <span id="crm_sync_btn_label">{{ $crmSyncButtonLabel }}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1009,7 +1131,7 @@
     <div class="modal-dialog modal-dialog-centered modal-md" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="crmSyncModalLabel">Create Booostr CRM Sync</h5>
+                <h5 class="modal-title" id="crmSyncModalLabel">{{ $crmSyncModalTitle }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -1031,7 +1153,12 @@
                     <div class="form-group mb-0">
                         <label class="crm-sync-field-label">
                             Choose Sync recurrence for this product history user data
-                            <i class="fas fa-info-circle ml-1" title="Choose how often sales history contacts are synced to your CRM."></i>
+                            <span class="crm-sync-info-wrap">
+                                <i class="fas fa-info-circle crm-sync-info-trigger" aria-hidden="true"></i>
+                                <span class="crm-sync-info-box" role="tooltip">
+                                    Choose how often sales history contacts are synced to your CRM. One-Time Sync sends current data once. Continuous Sync sends current data now and automatically syncs new sales going forward.
+                                </span>
+                            </span>
                         </label>
                         <div class="crm-sync-radio-group">
                             <div class="custom-control custom-radio">
@@ -1113,7 +1240,7 @@
                 <div id="crm_sync_footer_form">
                     <div class="crm-sync-footer-actions">
                         <button type="button" class="btn btn-stop-crm-sync" id="crm_sync_stop_btn" style="display:none;">Stop Sync</button>
-                        <button type="button" class="btn btn-update-crm-sync" id="crm_sync_submit_btn">Update CRM Sync</button>
+                        <button type="button" class="btn btn-update-crm-sync" id="crm_sync_submit_btn">{{ $crmSyncFooterLabel }}</button>
                     </div>
                 </div>
                 <div id="crm_sync_footer_status" style="display:none;">
@@ -1306,6 +1433,20 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         }
     });
 
+    $modal.on('click', '.crm-sync-info-trigger', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $wrap = $(this).closest('.crm-sync-info-wrap');
+        $wrap.toggleClass('is-open');
+        $modal.find('.crm-sync-info-wrap').not($wrap).removeClass('is-open');
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.crm-sync-info-wrap').length) {
+            $modal.find('.crm-sync-info-wrap').removeClass('is-open');
+        }
+    });
+
     var CRM_SYNC_API = 'https://app4.booostr.co/wp-json/booostr/v1/save-contact';
     var CRM_SYNC_BOOSTER_ID = 36115;
     var CRM_SYNC_PRODUCT_ID = {{ (int) $product->id }};
@@ -1367,6 +1508,19 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         }
     }
 
+    function updateCrmSyncLabels() {
+        var hasConfig = CRM_SYNC_STATUS && (
+            CRM_SYNC_STATUS.continuous_active || CRM_SYNC_STATUS.last_synced_at
+        );
+        var pageLabel = hasConfig ? 'Edit CRM Sync' : 'Create CRM Sync';
+        var modalTitle = hasConfig ? 'Edit Booostr CRM Sync' : 'Create Booostr CRM Sync';
+        var footerLabel = hasConfig ? 'Update CRM Sync' : 'Create CRM Sync';
+
+        $('#crm_sync_btn_label').text(pageLabel);
+        $('#crmSyncModalLabel').text(modalTitle);
+        $syncBtn.text(footerLabel);
+    }
+
     function updateLastSyncDateDisplay() {
         if (CRM_SYNC_STATUS && CRM_SYNC_STATUS.last_synced_at) {
             $lastSyncDateValue.text(CRM_SYNC_STATUS.last_synced_at + ' (continuous)');
@@ -1395,6 +1549,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
             .done(function (status) {
                 CRM_SYNC_STATUS = status || CRM_SYNC_STATUS;
                 updateLastSyncDateDisplay();
+                updateCrmSyncLabels();
                 applyContinuousUiState();
                 if (typeof callback === 'function') {
                     callback();
@@ -1528,6 +1683,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
             CRM_SYNC_STATUS = response.status;
         }
 
+        updateCrmSyncLabels();
         updateLastSyncDateDisplay();
         applyContinuousUiState();
 
@@ -1582,6 +1738,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
                     CRM_SYNC_STATUS = response.status;
                 }
 
+                updateCrmSyncLabels();
                 showView('progress', syncDate);
                 runInitialContinuousSync(syncDate);
             })
@@ -1607,6 +1764,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
                     initial_sync_in_progress: false,
                     last_synced_at: null
                 };
+                updateCrmSyncLabels();
                 applyContinuousUiState();
                 $modal.modal('hide');
             })
@@ -1644,6 +1802,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
     })();
 
     updateLastSyncDateDisplay();
+    updateCrmSyncLabels();
     applyContinuousUiState();
 
     $syncBtn.on('click', function () {

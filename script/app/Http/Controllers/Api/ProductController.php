@@ -840,6 +840,8 @@ class ProductController extends Controller
             Cart::destroy();
 
             DB::commit();
+
+            trigger_product_sales_crm_sync_after_order($order->id);
         } catch (\Throwable $th) {
             DB::rollback();
             return $th;

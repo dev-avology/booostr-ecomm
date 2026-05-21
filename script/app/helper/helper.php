@@ -873,3 +873,17 @@ if (!function_exists('tenant_club_logo')) {
         }
     }
 }
+
+if (!function_exists('trigger_product_sales_crm_sync_after_order')) {
+    function trigger_product_sales_crm_sync_after_order(int $orderId): void
+    {
+        try {
+            app(\App\Services\ProductSalesCrmSyncService::class)->handleOrderItemsCreated($orderId);
+        } catch (\Throwable $e) {
+            \Log::warning('Product sales CRM sync after order creation failed', [
+                'order_id' => $orderId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+}

@@ -879,6 +879,8 @@ class PosApiController extends Controller
             $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($order->id);
               $this->post_order_data_pos($order);
             DB::commit();
+
+            trigger_product_sales_crm_sync_after_order($order->id);
             return response()->json(["status" => true, "message" => "Order Successfull.",'data'=>$data]);
         } catch (\Throwable $th) {
             DB::rollback();        
@@ -2692,6 +2694,8 @@ private function send_order_recipts($data){
     
             Cart::destroy($request->cartId);
             DB::commit();
+
+            trigger_product_sales_crm_sync_after_order($order->id);
             
 
             $reciptdata = $this->order_recipt_data($order->id);

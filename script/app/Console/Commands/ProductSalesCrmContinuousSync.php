@@ -11,7 +11,7 @@ class ProductSalesCrmContinuousSync extends Command
 {
     protected $signature = 'tenant:product-sales-crm-sync';
 
-    protected $description = 'Run hourly continuous CRM sync for product sales history contacts';
+    protected $description = 'Run continuous CRM sync for product sales history contacts (manual / all tenants)';
 
     public function handle(ProductSalesCrmSyncService $syncService): int
     {

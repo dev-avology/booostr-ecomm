@@ -33,12 +33,6 @@ class Kernel extends ConsoleKernel
         ->onOneServer()
         ->runInBackground();
 
-        $schedule->command('tenant:product-sales-crm-sync')
-        ->hourly()
-        ->withoutOverlapping()
-        ->onOneServer()
-        ->runInBackground();
-
     }
 
     /**

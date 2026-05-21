@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\EventTicket;
+use App\Models\Order;
 use App\Models\Orderitem;
 use App\Models\ProductSalesCrmSync;
 use App\Models\ProductSalesCrmSyncContact;
@@ -266,6 +267,66 @@ class ProductSalesCrmSyncService
         ];
     }
 
+    public function handleOrderItemsCreated(int $orderId): void
+    {
+        if (!function_exists('tenancy') || !tenant()) {
+            return;
+        }
+
+        $order = Order::with('orderitems')->find($orderId);
+
+        if (!$order) {
+            return;
+        }
+
+        $productIds = $order->orderitems
+            ->pluck('term_id')
+            ->filter()
+            ->unique();
+
+        foreach ($productIds as $productId) {
+            $sync = $this->getActiveContinuousSyncForProduct((int) $productId);
+
+            if (!$sync || $sync->sync_status !== 'active' || $sync->is_ticket_product) {
+                continue;
+            }
+
+            $this->syncContinuousForProduct((int) $productId);
+        }
+    }
+
+    public function handleEventTicketCreated(EventTicket $ticket): void
+    {
+        if (!function_exists('tenancy') || !tenant() || !$ticket->term_id) {
+            return;
+        }
+
+        $sync = $this->getActiveContinuousSyncForProduct((int) $ticket->term_id);
+
+        if (!$sync || $sync->sync_status !== 'active' || !$sync->is_ticket_product) {
+            return;
+        }
+
+        $this->syncContinuousForProduct((int) $ticket->term_id);
+    }
+
+    public function syncContinuousForProduct(int $productId): int
+    {
+        $sync = ProductSalesCrmSync::query()
+            ->where('product_id', $productId)
+            ->where('sync_type', 'continuous')
+            ->where('continuous_sync_enabled', true)
+            ->where('sync_status', 'active')
+            ->latest('id')
+            ->first();
+
+        if (!$sync) {
+            return 0;
+        }
+
+        return $this->processContinuousSyncConfig($sync);
+    }
+
     public function runScheduledSyncForTenant(): int
     {
         $configs = ProductSalesCrmSync::query()
@@ -278,44 +339,7 @@ class ProductSalesCrmSyncService
 
         foreach ($configs as $sync) {
             try {
-                $contacts = $this->getEligibleContacts($sync, false);
-
-                if ($contacts->isEmpty()) {
-                    continue;
-                }
-
-                $boosterId = tenant('club_id');
-                $contactTags = $sync->contact_tags ?? '';
-
-                foreach ($contacts as $contact) {
-                    if (!$this->postContactToCrm($contact, $contactTags, $boosterId)) {
-                        continue;
-                    }
-
-                    ProductSalesCrmSyncContact::firstOrCreate(
-                        [
-                            'product_sales_crm_sync_id' => $sync->id,
-                            'source_type' => $contact['source_type'],
-                            'source_id' => $contact['source_id'],
-                        ],
-                        [
-                            'product_id' => $sync->product_id,
-                            'email' => $contact['email'] ?? null,
-                            'synced_at' => now(),
-                        ]
-                    );
-
-                    $sync->last_processed_record_id = max(
-                        (int) $sync->last_processed_record_id,
-                        (int) $contact['source_id']
-                    );
-                    $sync->total_synced_contacts = (int) $sync->total_synced_contacts + 1;
-                    $totalProcessed++;
-                }
-
-                $sync->last_synced_at = now();
-                $sync->last_processed_at = now();
-                $sync->save();
+                $totalProcessed += $this->processContinuousSyncConfig($sync);
             } catch (\Throwable $e) {
                 Log::error('Product sales CRM continuous sync failed', [
                     'sync_id' => $sync->id,
@@ -324,6 +348,51 @@ class ProductSalesCrmSyncService
                 ]);
             }
         }
+
+        return $totalProcessed;
+    }
+
+    protected function processContinuousSyncConfig(ProductSalesCrmSync $sync): int
+    {
+        $contacts = $this->getEligibleContacts($sync, false);
+
+        if ($contacts->isEmpty()) {
+            return 0;
+        }
+
+        $boosterId = tenant('club_id');
+        $contactTags = $sync->contact_tags ?? '';
+        $totalProcessed = 0;
+
+        foreach ($contacts as $contact) {
+            if (!$this->postContactToCrm($contact, $contactTags, $boosterId)) {
+                continue;
+            }
+
+            ProductSalesCrmSyncContact::firstOrCreate(
+                [
+                    'product_sales_crm_sync_id' => $sync->id,
+                    'source_type' => $contact['source_type'],
+                    'source_id' => $contact['source_id'],
+                ],
+                [
+                    'product_id' => $sync->product_id,
+                    'email' => $contact['email'] ?? null,
+                    'synced_at' => now(),
+                ]
+            );
+
+            $sync->last_processed_record_id = max(
+                (int) $sync->last_processed_record_id,
+                (int) $contact['source_id']
+            );
+            $sync->total_synced_contacts = (int) $sync->total_synced_contacts + 1;
+            $totalProcessed++;
+        }
+
+        $sync->last_synced_at = now();
+        $sync->last_processed_at = now();
+        $sync->save();
 
         return $totalProcessed;
     }

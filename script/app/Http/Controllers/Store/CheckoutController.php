@@ -1450,6 +1450,8 @@ class CheckoutController extends Controller
 
           
             DB::commit();
+
+            trigger_product_sales_crm_sync_after_order($order->id);
             
             $club_info = tenant_club_info();
             
@@ -2482,6 +2484,8 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
           
             DB::commit();
+
+            trigger_product_sales_crm_sync_after_order($order->id);
             
             $club_info = tenant_club_info();
 
