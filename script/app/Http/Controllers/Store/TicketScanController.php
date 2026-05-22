@@ -85,7 +85,7 @@ class TicketScanController extends Controller
         $data = [
             'formatVersion' => 1,
             'passTypeIdentifier' => env('APPLE_WALLET_PASS_TYPE_ID'),
-            'serialNumber' => $ticket->ticket_uuid,
+            'serialNumber' => $ticket->id . '-' . $ticket->ticket_uuid,
             'teamIdentifier' => env('APPLE_WALLET_TEAM_ID'),
             'organizationName' => 'Booostr',
             'description' => $ticket->event_name ?? 'Event Ticket',
@@ -123,27 +123,40 @@ class TicketScanController extends Controller
                     ],
                 ],
             ],
+            
+            'barcode' => [
+                'format' => 'PKBarcodeFormatQR',
+                'message' => url('/ticket/scan/' . $ticket->ticket_uuid),
+                'messageEncoding' => 'iso-8859-1',
+            ],
+
     
-            'barcodes' => [
-                [
-                    'format' => 'PKBarcodeFormatQR',
-                    'message' => url('/ticket/scan/' . $ticket->ticket_uuid),
-                    'messageEncoding' => 'iso-8859-1',
-                ],
+        'barcodes' => [
+            [
+                'format' => 'PKBarcodeFormatQR',
+                'message' => url('/ticket/scan/' . $ticket->ticket_uuid),
+                'messageEncoding' => 'iso-8859-1',
+            ],
             ],
         ];
        
         $pass->setData($data);
     
-        $pass->addFile(public_path('wallet/icon.png'));
-        $pass->addFile(public_path('wallet/logo.png'));
+        $pass->addFile(base_path('public/wallet/icon.png'));
+        $pass->addFile(base_path('public/wallet/logo.png'));
     
         $pkpass = $pass->create(false);
+        if (!$pkpass) {
+            dd($pass->getErrors());
+        }
     
-        return response($pkpass, 200, [
-            'Content-Type' => 'application/vnd.apple.pkpass',
-            'Content-Disposition' => 'attachment; filename="ticket-' . $ticket->ticket_uuid . '.pkpass"',
-        ]);
+        return response($pkpass, 200)
+            ->header('Content-Type', 'application/vnd.apple.pkpass')
+            ->header('Content-Disposition', 'inline; filename="ticket.pkpass"')
+            ->header('Content-Transfer-Encoding', 'binary')
+            ->header('Content-Length', strlen($pkpass))
+            ->header('Cache-Control', 'private, no-store, no-cache, must-revalidate')
+            ->header('Pragma', 'public');
     }
 
     // public function appleWallet($uuid)

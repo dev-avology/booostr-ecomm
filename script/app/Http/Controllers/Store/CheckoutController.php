@@ -1873,21 +1873,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
     $qrImage = $qr->generate(url('/ticket/scan/' . $ticketUuid));
 
-    $fileName = 'qr_' . $ticketUuid . '.png';
-
-    Storage::disk('public')->put('tickets/' . $fileName, $qrImage);
-
-    $qrUrl = asset('storage/tickets/' . $fileName);
-
-    // =========================
-    // ✅ QR GENERATION END
-    // =========================
-
-    $tickets[] = [
-        'ticketUuid' => $ticketUuid,
-        'qrUrl' => $qrUrl,
-    ];
-}
+    $tickets[] = [ 'ticketUuid' => $ticketUuid, 'qrPng' => $qrImage, ]; }
 
             $clubInfo = tenant_club_info();
             $clubName = $clubInfo['club_name'] ?? 'Club';

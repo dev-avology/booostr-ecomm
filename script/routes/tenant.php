@@ -50,10 +50,10 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     
     Route::get('/create-google-wallet-class', [TicketScanController::class, 'createGoogleWalletClass']);
 
-    Route::get('/apple-wallet/{uuid}', [TicketScanController::class, 'appleWallet']);
+    Route::get('/apple-wallet/{uuid}/ticket.pkpass', [TicketScanController::class, 'appleWallet']);
     
     Route::get('/ticket/{uuid}/print', [TicketScanController::class, 'print'])->name('ticket.print');
- 
+    
     
     Route::get('/products', 'Store\PageController@products');
     Route::get('/brand/{slug}', 'Store\PageController@brand');
