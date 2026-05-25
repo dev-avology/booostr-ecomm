@@ -141,29 +141,13 @@ $eventStart = DB::table('termmetas')
                             <table width="100%">
                                 <tr>
                                     <td width="220" align="center" valign="middle">
-                                    @php
-                                        $ticketScanUrl = url('/ticket/scan/' . $ticket['ticketUuid']);
-                                        $ticketQrSvg = QrCode::size(180)
-                                            ->margin(1)
-                                            ->generate($ticketScanUrl);
-                                    @endphp
-                                    {{-- Same QrCode::generate() as ticket/print.blade.php; img wrapper for email clients --}}
-                                    <div style="position:relative;width:180px;height:180px;margin:0 auto;">
-                                        <img src="data:image/svg+xml;base64,{{ base64_encode($ticketQrSvg) }}"
-                                            width="180"
-                                            height="180"
-                                            alt="Ticket QR Code"
-                                            style="display:block;border:0;width:180px;height:180px;">
-                                        @if(!empty($clubLogo))
-                                        <div style="position:absolute;top:50%;left:50%;width:50px;height:50px;margin-top:-25px;margin-left:-25px;background:#ffffff;border-radius:50%;text-align:center;box-shadow:0 0 0 6px #ffffff;">
-                                            <img src="{{ $clubLogo }}"
-                                                width="34"
-                                                height="34"
-                                                alt=""
-                                                style="display:block;margin:8px auto 0;border:0;object-fit:contain;">
-                                        </div>
-                                        @endif
-                                    </div>
+                                    @if(!empty($ticket['qrPng']))
+                                    <img src="data:image/png;base64,{{ $ticket['qrPng'] }}"
+                                        width="180"
+                                        height="180"
+                                        alt="Ticket QR Code"
+                                        style="display:block;border:0;width:180px;height:180px;margin:0 auto;">
+                                    @endif
                     
                                         <p style="font-size:11px; color:#777;">
                                             Ticket ID: {{ $ticket['ticketUuid'] }}
