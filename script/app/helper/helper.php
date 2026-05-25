@@ -959,6 +959,44 @@ if (!function_exists('ticket_email_qr_apply_logo_overlay')) {
     }
 }
 
+if (!function_exists('ticket_email_qr_public_url')) {
+    function ticket_email_qr_public_url(string $ticketUuid): string
+    {
+        return url('/tickets/qr_' . $ticketUuid . '.png');
+    }
+}
+
+if (!function_exists('ticket_email_qr_disk_path')) {
+    function ticket_email_qr_disk_path(string $ticketUuid): string
+    {
+        return public_path('tickets/qr_' . $ticketUuid . '.png');
+    }
+}
+
+if (!function_exists('ticket_email_qr_save_file')) {
+    /**
+     * Save ticket QR PNG to public/tickets/qr_{uuid}.png (legacy path for email URLs).
+     */
+    function ticket_email_qr_save_file(string $ticketUuid, string $qrBase64): bool
+    {
+        if ($qrBase64 === '') {
+            return false;
+        }
+
+        $binary = base64_decode($qrBase64, true);
+        if ($binary === false || $binary === '') {
+            return false;
+        }
+
+        $dir = public_path('tickets');
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        return file_put_contents(ticket_email_qr_disk_path($ticketUuid), $binary) !== false;
+    }
+}
+
 if (!function_exists('ticket_email_qr_png_base64')) {
     /**
      * PNG QR + logo for ticket emails (imagick when available, else DNS2D/GD).

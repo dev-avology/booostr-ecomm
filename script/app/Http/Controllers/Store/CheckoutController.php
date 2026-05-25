@@ -1730,10 +1730,13 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
     ]);
 
     $scanUrl = url('/ticket/scan/' . $ticketUuid);
+    $qrPng = ticket_email_qr_png_base64($scanUrl, $clubLogo);
+    ticket_email_qr_save_file($ticketUuid, $qrPng);
+
     $tickets[] = [
         'ticketUuid' => $ticketUuid,
-        'qrPng' => ticket_email_qr_png_base64($scanUrl, $clubLogo),
-        'qrImageUrl' => url('/ticket/' . $ticketUuid . '/email-qr.png'),
+        'qrPng' => $qrPng,
+        'qrImageUrl' => ticket_email_qr_public_url($ticketUuid),
     ];
 }
 

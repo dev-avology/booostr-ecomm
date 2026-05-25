@@ -13,27 +13,27 @@ use PKPass\PKPass;
 class TicketScanController extends Controller
 {
     /**
-     * PNG QR for ticket emails (Gmail/SES load via URL; same image as print-style QR+logo).
+     * Serve public/tickets/qr_{uuid}.png (legacy URL used in ticket emails).
      */
-    public function emailQrPng($uuid)
+    public function ticketQrPng($uuid)
     {
-        $ticket = EventTicket::where('ticket_uuid', $uuid)->firstOrFail();
-        $scanUrl = url('/ticket/scan/' . $ticket->ticket_uuid);
-        $clubLogo = function_exists('tenant_club_logo') ? tenant_club_logo() : null;
-        $qrBase64 = ticket_email_qr_png_base64($scanUrl, $clubLogo);
+        $path = ticket_email_qr_disk_path($uuid);
 
-        if (empty($qrBase64)) {
-            abort(404);
+        if (!is_file($path)) {
+            $ticket = EventTicket::where('ticket_uuid', $uuid)->firstOrFail();
+            $scanUrl = url('/ticket/scan/' . $ticket->ticket_uuid);
+            $clubLogo = function_exists('tenant_club_logo') ? tenant_club_logo() : null;
+            $qrBase64 = ticket_email_qr_png_base64($scanUrl, $clubLogo);
+
+            if (empty($qrBase64) || !ticket_email_qr_save_file($uuid, $qrBase64)) {
+                abort(404);
+            }
         }
 
-        $binary = base64_decode($qrBase64, true);
-        if ($binary === false || $binary === '') {
-            abort(404);
-        }
-
-        return response($binary, 200)
-            ->header('Content-Type', 'image/png')
-            ->header('Cache-Control', 'private, max-age=86400');
+        return response()->file($path, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
     }
 
        public function scan($uuid)

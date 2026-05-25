@@ -44,7 +44,7 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
 
     Route::get('/ticket/scan/{uuid}', [TicketScanController::class, 'scan']);
 
-    Route::get('/ticket/{uuid}/email-qr.png', [TicketScanController::class, 'emailQrPng']);
+    Route::get('/tickets/qr_{uuid}.png', [TicketScanController::class, 'ticketQrPng']);
     
     Route::get('/ticket/{uuid}/calendar', [TicketScanController::class, 'calendar']) ->name('ticket.calendar');
 
