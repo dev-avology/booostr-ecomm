@@ -141,7 +141,7 @@ $eventStart = DB::table('termmetas')
                             <table width="100%">
                                 <tr>
                                     <td width="220" align="center" valign="middle">
-                                    <img src="{{ $ticket['qrUrl'] }}"
+                                   <img src="data:image/png;base64,{{ base64_encode($ticket['qrPng']) }}"
                                         width="180"
                                         height="180"
                                         style="display:block;border:0;"

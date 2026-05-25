@@ -1873,7 +1873,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
     $qrImage = $qr->generate(url('/ticket/scan/' . $ticketUuid));
 
-    $tickets[] = [ 'ticketUuid' => $ticketUuid, 'qrPng' => $qrImage, ]; }
+$tickets[] = [ 'ticketUuid' => $ticketUuid, 'qrPng' => $qrImage, ]; }
 
             $clubInfo = tenant_club_info();
             $clubName = $clubInfo['club_name'] ?? 'Club';
