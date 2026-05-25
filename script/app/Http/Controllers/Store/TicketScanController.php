@@ -8,6 +8,8 @@ use App\Models\EventTicket;
 use Illuminate\Support\Str;
 use Firebase\JWT\JWT;
 use PKPass\PKPass;
+use Illuminate\Support\Facades\Log;
+use GuzzleHttp\Exception\ClientException;
 
 
 class TicketScanController extends Controller
@@ -197,61 +199,177 @@ class TicketScanController extends Controller
     public function googleWallet($uuid)
     {
         $ticket = EventTicket::where('ticket_uuid', $uuid)->firstOrFail();
-    
-        $issuerId = env('GOOGLE_WALLET_ISSUER_ID');
-        $classId = env('GOOGLE_WALLET_CLASS_ID');
-        $objectId = $issuerId . '.ticket_' . str_replace('-', '_', $ticket->ticket_uuid);
-    
+
+        $issuerId = $this->googleWalletIssuerId();
+        $classId = $this->googleWalletClassId($issuerId);
+        $objectId = $this->googleWalletObjectId($issuerId, $ticket->ticket_uuid);
+        $walletObject = $this->buildGoogleWalletEventTicketObject($ticket, $classId, $objectId);
+
+        $upserted = $this->upsertGoogleWalletEventTicketObject($walletObject);
+
         $serviceAccount = json_decode(
             file_get_contents(base_path('storage/app/google-wallet/service-account.json')),
             true
         );
-    
+
+        $origins = array_values(array_filter(array_unique([
+            request()->getSchemeAndHttpHost(),
+            rtrim((string) config('app.url'), '/'),
+        ])));
+
+        $jwtObjects = $upserted
+            ? [['id' => $objectId, 'classId' => $classId]]
+            : [$walletObject];
+
         $payload = [
             'iss' => $serviceAccount['client_email'],
             'aud' => 'google',
             'typ' => 'savetowallet',
             'iat' => time(),
-        
+            'origins' => $origins,
             'payload' => [
-                'eventTicketObjects' => [
-                    [
-                        'id' => $objectId,
-                        'classId' => $classId,
-                        'state' => 'ACTIVE',
-        
-                        'ticketHolderName' => $ticket->attendee_name,
-        
-                        'ticketNumber' => $ticket->ticket_uuid,
-        
-                        'eventName' => [
-                            'defaultValue' => [
-                                'language' => 'en-US',
-                                'value' => $ticket->event_name,
-                            ]
-                        ],
-        
-                        'barcode' => [
-                            'type' => 'QR_CODE',
-                            'value' => $ticket->ticket_uuid,
-                        ],
-        
-                        'validTimeInterval' => [
-                            'start' => [
-                                'date' => \Carbon\Carbon::parse($ticket->event_start_at)->toIso8601String(),
-                            ],
-                            'end' => [
-                                'date' => \Carbon\Carbon::parse($ticket->event_end_at)->toIso8601String(),
-                            ],
-                        ],
-                    ]
-                ]
-            ]
+                'eventTicketObjects' => $jwtObjects,
+            ],
         ];
-    
+
         $jwt = JWT::encode($payload, $serviceAccount['private_key'], 'RS256');
-    
+
         return redirect('https://pay.google.com/gp/v/save/' . $jwt);
+    }
+
+    private function googleWalletIssuerId(): string
+    {
+        return trim((string) env('GOOGLE_WALLET_ISSUER_ID', ''));
+    }
+
+    private function googleWalletClassId(string $issuerId): string
+    {
+        $classId = trim((string) env('GOOGLE_WALLET_CLASS_ID', ''));
+
+        if ($classId === '' || $issuerId === '') {
+            abort(500, 'Google Wallet issuer/class is not configured.');
+        }
+
+        if (strpos($classId, '.') === false) {
+            return $issuerId . '.' . $classId;
+        }
+
+        return $classId;
+    }
+
+    private function googleWalletObjectId(string $issuerId, string $ticketUuid): string
+    {
+        $suffix = 'ticket_' . strtolower(str_replace('-', '_', $ticketUuid));
+
+        return $issuerId . '.' . $suffix;
+    }
+
+    private function googleWalletValidTimeInterval(EventTicket $ticket): ?array
+    {
+        if (empty($ticket->event_start_at)) {
+            return null;
+        }
+
+        try {
+            $startAt = \Carbon\Carbon::parse($ticket->event_start_at)->utc();
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        $interval = [
+            'start' => [
+                'date' => $startAt->format('Y-m-d\TH:i:s\Z'),
+            ],
+        ];
+
+        if (!empty($ticket->event_end_at)) {
+            try {
+                $endAt = \Carbon\Carbon::parse($ticket->event_end_at)->utc();
+                if ($endAt->greaterThan($startAt)) {
+                    $interval['end'] = [
+                        'date' => $endAt->format('Y-m-d\TH:i:s\Z'),
+                    ];
+                }
+            } catch (\Throwable $e) {
+                // Omit end when invalid; start-only interval is valid.
+            }
+        }
+
+        return $interval;
+    }
+
+    private function buildGoogleWalletEventTicketObject(EventTicket $ticket, string $classId, string $objectId): array
+    {
+        $object = [
+            'id' => $objectId,
+            'classId' => $classId,
+            'state' => 'ACTIVE',
+            'ticketHolderName' => trim((string) ($ticket->attendee_name ?: 'Guest')),
+            'ticketNumber' => (string) $ticket->ticket_uuid,
+            'barcode' => [
+                'type' => 'QR_CODE',
+                'value' => url('/ticket/scan/' . $ticket->ticket_uuid),
+                'alternateText' => substr($ticket->ticket_uuid, 0, 8),
+            ],
+        ];
+
+        $validTimeInterval = $this->googleWalletValidTimeInterval($ticket);
+        if ($validTimeInterval !== null) {
+            $object['validTimeInterval'] = $validTimeInterval;
+        }
+
+        return $object;
+    }
+
+    private function googleWalletHttpClient()
+    {
+        $client = new \Google\Client();
+        $client->setAuthConfig(base_path('storage/app/google-wallet/service-account.json'));
+        $client->addScope('https://www.googleapis.com/auth/wallet_object.issuer');
+
+        return $client->authorize();
+    }
+
+    private function upsertGoogleWalletEventTicketObject(array $object): bool
+    {
+        $httpClient = $this->googleWalletHttpClient();
+        $insertUrl = 'https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject';
+        $resourceUrl = $insertUrl . '/' . rawurlencode($object['id']);
+
+        try {
+            $httpClient->post($insertUrl, ['json' => $object]);
+
+            return true;
+        } catch (ClientException $e) {
+            $status = $e->getResponse() ? $e->getResponse()->getStatusCode() : 0;
+            $body = $e->getResponse() ? (string) $e->getResponse()->getBody() : '';
+
+            if ($status === 409) {
+                try {
+                    $httpClient->put($resourceUrl, ['json' => $object]);
+
+                    return true;
+                } catch (\Throwable $updateError) {
+                    Log::warning('Google Wallet object update failed after conflict', [
+                        'objectId' => $object['id'],
+                        'message' => $updateError->getMessage(),
+                    ]);
+                }
+            } else {
+                Log::warning('Google Wallet object insert failed', [
+                    'objectId' => $object['id'],
+                    'status' => $status,
+                    'body' => $body,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Google Wallet object upsert failed', [
+                'objectId' => $object['id'],
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return false;
     }
 
     public function createGoogleWalletClass()
