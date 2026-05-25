@@ -35,7 +35,6 @@ use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use Stripe\Charge;
 use Illuminate\Support\Str;
-use DNS2D;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -1675,80 +1674,6 @@ $base_total = $subtotal
 
     }
 
-/**
- * PNG QR for email (GD + milon/barcode). Print view keeps QrCode SVG unchanged.
- */
-private function buildTicketQrPngBase64ForEmail(string $scanUrl, ?string $clubLogo = null): string
-{
-    $qrBase64 = DNS2D::getBarcodePNG($scanUrl, 'QRCODE', 80, 80);
-    if (empty($qrBase64)) {
-        return '';
-    }
-
-    if (empty($clubLogo) || !function_exists('imagecreatefromstring')) {
-        return $qrBase64;
-    }
-
-    try {
-        $qrImg = @imagecreatefromstring(base64_decode($qrBase64));
-        if ($qrImg === false) {
-            return $qrBase64;
-        }
-
-        $logoData = @file_get_contents($clubLogo);
-        if ($logoData === false) {
-            imagedestroy($qrImg);
-            return $qrBase64;
-        }
-
-        $logoSrc = @imagecreatefromstring($logoData);
-        if ($logoSrc === false) {
-            imagedestroy($qrImg);
-            return $qrBase64;
-        }
-
-        $qrW = imagesx($qrImg);
-        $qrH = imagesy($qrImg);
-        $circleSize = (int) round(min($qrW, $qrH) * 0.28);
-        $centerX = (int) ($qrW / 2);
-        $centerY = (int) ($qrH / 2);
-
-        $white = imagecolorallocate($qrImg, 255, 255, 255);
-        imagefilledellipse($qrImg, $centerX, $centerY, $circleSize, $circleSize, $white);
-
-        $logoSize = (int) round($circleSize * 0.68);
-        $srcW = imagesx($logoSrc);
-        $srcH = imagesy($logoSrc);
-        $crop = min($srcW, $srcH);
-
-        imagecopyresampled(
-            $qrImg,
-            $logoSrc,
-            $centerX - (int) ($logoSize / 2),
-            $centerY - (int) ($logoSize / 2),
-            (int) (($srcW - $crop) / 2),
-            (int) (($srcH - $crop) / 2),
-            $logoSize,
-            $logoSize,
-            $crop,
-            $crop
-        );
-
-        imagedestroy($logoSrc);
-
-        ob_start();
-        imagepng($qrImg);
-        $merged = ob_get_clean();
-        imagedestroy($qrImg);
-
-        return base64_encode($merged);
-    } catch (\Throwable $e) {
-        Log::warning('Ticket email QR logo overlay failed', ['error' => $e->getMessage()]);
-
-        return $qrBase64;
-    }
-}
-
 private function sendEventTickets($order, $email)
 {
     try {
@@ -1807,7 +1732,8 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
     $scanUrl = url('/ticket/scan/' . $ticketUuid);
     $tickets[] = [
         'ticketUuid' => $ticketUuid,
-        'qrPng' => $this->buildTicketQrPngBase64ForEmail($scanUrl, $clubLogo),
+        'qrPng' => ticket_email_qr_png_base64($scanUrl, $clubLogo),
+        'qrImageUrl' => url('/ticket/' . $ticketUuid . '/email-qr.png'),
     ];
 }
 
@@ -1825,22 +1751,41 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
                     'clubEmail' => $clubEmail,
                 ]);
 
+            $mailViewData = [
+                'order' => $order,
+                'item' => $item,
+                'tickets' => $tickets,
+                'clubName' => $clubName,
+                'clubLogo' => $clubLogo,
+                'clubEmail' => $clubEmail,
+                'qrEmbedSrc' => [],
+            ];
+
             Mail::send(
                 'email.event-ticket-template',
-                [
-                    'order' => $order,
-                    'item' => $item,
-                    'tickets' => $tickets,
-                     'clubName' => $clubName,
-                     'clubLogo' => $clubLogo,
-                     'clubEmail' => $clubEmail,
-                ],
-                function ($message) use ($email, $item, $clubName) {
-
+                $mailViewData,
+                function ($message) use ($email, $item, $clubName, &$mailViewData, $tickets) {
                     $ticketTitle = $item->term->title ?? 'Event';
 
                     $message->to($email)
                         ->subject('Your ' . $clubName . ' - ' . $ticketTitle . ' Tickets are inside');
+
+                    foreach ($tickets as $index => $ticket) {
+                        if (empty($ticket['qrPng'])) {
+                            continue;
+                        }
+
+                        $pngBinary = base64_decode($ticket['qrPng'], true);
+                        if ($pngBinary === false || $pngBinary === '') {
+                            continue;
+                        }
+
+                        $mailViewData['qrEmbedSrc'][$ticket['ticketUuid']] = $message->embedData(
+                            $pngBinary,
+                            'ticket-qr-' . $index . '.png',
+                            'image/png'
+                        );
+                    }
                 }
             );
         }

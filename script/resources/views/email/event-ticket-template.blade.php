@@ -141,8 +141,11 @@ $eventStart = DB::table('termmetas')
                             <table width="100%">
                                 <tr>
                                     <td width="220" align="center" valign="middle">
-                                    @if(!empty($ticket['qrPng']))
-                                    <img src="data:image/png;base64,{{ $ticket['qrPng'] }}"
+                                    @php
+                                        $qrImgSrc = $qrEmbedSrc[$ticket['ticketUuid']] ?? ($ticket['qrImageUrl'] ?? null);
+                                    @endphp
+                                    @if(!empty($qrImgSrc))
+                                    <img src="{{ $qrImgSrc }}"
                                         width="180"
                                         height="180"
                                         alt="Ticket QR Code"

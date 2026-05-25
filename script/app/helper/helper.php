@@ -887,3 +887,113 @@ if (!function_exists('trigger_product_sales_crm_sync_after_order')) {
         }
     }
 }
+
+if (!function_exists('ticket_email_qr_apply_logo_overlay')) {
+    /**
+     * Merge club logo into center of QR PNG (print-style), returns raw PNG bytes.
+     */
+    function ticket_email_qr_apply_logo_overlay(string $pngBinary, ?string $clubLogo): string
+    {
+        if (empty($clubLogo) || !function_exists('imagecreatefromstring')) {
+            return $pngBinary;
+        }
+
+        try {
+            $qrImg = @imagecreatefromstring($pngBinary);
+            if ($qrImg === false) {
+                return $pngBinary;
+            }
+
+            $logoData = @file_get_contents($clubLogo);
+            if ($logoData === false) {
+                imagedestroy($qrImg);
+                return $pngBinary;
+            }
+
+            $logoSrc = @imagecreatefromstring($logoData);
+            if ($logoSrc === false) {
+                imagedestroy($qrImg);
+                return $pngBinary;
+            }
+
+            $qrW = imagesx($qrImg);
+            $qrH = imagesy($qrImg);
+            $circleSize = (int) round(min($qrW, $qrH) * 0.28);
+            $centerX = (int) ($qrW / 2);
+            $centerY = (int) ($qrH / 2);
+
+            $white = imagecolorallocate($qrImg, 255, 255, 255);
+            imagefilledellipse($qrImg, $centerX, $centerY, $circleSize, $circleSize, $white);
+
+            $logoSize = (int) round($circleSize * 0.68);
+            $srcW = imagesx($logoSrc);
+            $srcH = imagesy($logoSrc);
+            $crop = min($srcW, $srcH);
+
+            imagecopyresampled(
+                $qrImg,
+                $logoSrc,
+                $centerX - (int) ($logoSize / 2),
+                $centerY - (int) ($logoSize / 2),
+                (int) (($srcW - $crop) / 2),
+                (int) (($srcH - $crop) / 2),
+                $logoSize,
+                $logoSize,
+                $crop,
+                $crop
+            );
+
+            imagedestroy($logoSrc);
+
+            ob_start();
+            imagepng($qrImg);
+            $merged = ob_get_clean();
+            imagedestroy($qrImg);
+
+            return $merged ?: $pngBinary;
+        } catch (\Throwable $e) {
+            \Log::warning('ticket_email_qr_apply_logo_overlay failed', ['error' => $e->getMessage()]);
+
+            return $pngBinary;
+        }
+    }
+}
+
+if (!function_exists('ticket_email_qr_png_base64')) {
+    /**
+     * PNG QR + logo for ticket emails (imagick when available, else DNS2D/GD).
+     */
+    function ticket_email_qr_png_base64(string $scanUrl, ?string $clubLogo = null): string
+    {
+        if (extension_loaded('imagick')) {
+            try {
+                $pngBinary = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
+                    ->size(320)
+                    ->margin(2)
+                    ->errorCorrection('H')
+                    ->generate($scanUrl);
+
+                if (!empty($pngBinary)) {
+                    $pngBinary = ticket_email_qr_apply_logo_overlay($pngBinary, $clubLogo);
+
+                    return base64_encode($pngBinary);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('ticket_email_qr_png imagick failed', ['error' => $e->getMessage()]);
+            }
+        }
+
+        $qrBase64 = \DNS2D::getBarcodePNG($scanUrl, 'QRCODE', 80, 80);
+        if (empty($qrBase64)) {
+            return '';
+        }
+
+        if (empty($clubLogo)) {
+            return $qrBase64;
+        }
+
+        $merged = ticket_email_qr_apply_logo_overlay(base64_decode($qrBase64), $clubLogo);
+
+        return base64_encode($merged);
+    }
+}
