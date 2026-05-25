@@ -966,16 +966,24 @@ if (!function_exists('ticket_email_qr_public_url')) {
     }
 }
 
+if (!function_exists('ticket_email_qr_storage_dir')) {
+    /** tickets/ next to script/ (project root), not public/tickets */
+    function ticket_email_qr_storage_dir(): string
+    {
+        return dirname(base_path()) . DIRECTORY_SEPARATOR . 'tickets';
+    }
+}
+
 if (!function_exists('ticket_email_qr_disk_path')) {
     function ticket_email_qr_disk_path(string $ticketUuid): string
     {
-        return public_path('tickets/qr_' . $ticketUuid . '.png');
+        return ticket_email_qr_storage_dir() . DIRECTORY_SEPARATOR . 'qr_' . $ticketUuid . '.png';
     }
 }
 
 if (!function_exists('ticket_email_qr_save_file')) {
     /**
-     * Save ticket QR PNG to public/tickets/qr_{uuid}.png (legacy path for email URLs).
+     * Save ticket QR PNG to tickets/qr_{uuid}.png (legacy folder beside script/).
      */
     function ticket_email_qr_save_file(string $ticketUuid, string $qrBase64): bool
     {
@@ -988,7 +996,7 @@ if (!function_exists('ticket_email_qr_save_file')) {
             return false;
         }
 
-        $dir = public_path('tickets');
+        $dir = ticket_email_qr_storage_dir();
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
