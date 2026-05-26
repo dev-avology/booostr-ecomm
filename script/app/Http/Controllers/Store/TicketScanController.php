@@ -253,7 +253,12 @@ class TicketScanController extends Controller
         }
 
         if (!$this->ensureGoogleWalletEventTicketObject($eventTicketObject)) {
-            abort(500, 'Unable to create Google Wallet pass. Please try again later.');
+            // Google Wallet class/object approval may still be pending.
+            // Continue to JWT preview anyway so users can see the Save to Wallet screen.
+            Log::warning('Google Wallet object persistence not verified — continuing to JWT preview (class/object likely pending approval)', [
+                'objectId' => $eventTicketObject['id'] ?? null,
+                'classId' => $eventTicketObject['classId'] ?? null,
+            ]);
         }
 
         $payload = [
