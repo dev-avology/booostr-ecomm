@@ -1066,18 +1066,46 @@ class ProductController extends Controller
             $sync = $syncService->getActiveContinuousSyncForProduct($productId);
         }
 
-        return $syncService->formatStatusPayload($sync);
+        return $syncService->formatStatusPayload($sync, $productId);
     }
 
     public function crmSyncStatus($id)
     {
         Term::findOrFail($id);
 
-        $sync = app(ProductSalesCrmSyncService::class)->getActiveContinuousSyncForProduct($id);
+        $syncService = app(ProductSalesCrmSyncService::class);
+        $sync = $syncService->getActiveContinuousSyncForProduct($id);
 
         return response()->json(
-            app(ProductSalesCrmSyncService::class)->formatStatusPayload($sync)
+            $syncService->formatStatusPayload($sync, (int) $id)
         );
+    }
+
+    public function crmSyncRecordOneTime(Request $request, $id)
+    {
+        $product = Term::findOrFail($id);
+
+        $syncService = app(ProductSalesCrmSyncService::class);
+
+        $sync = $syncService->recordOneTimeSync($product, [
+            'sync_mode' => $request->input('sync_mode') === 'page' ? 'current_page' : 'all_results',
+            'contact_tags' => $request->input('contact_tags', ''),
+            'crm_list_name' => $request->input('crm_list_name'),
+            'total_synced_contacts' => (int) $request->input('total_synced_contacts', 0),
+            'filter_state' => [
+                'src' => $request->input('src'),
+                'page' => (int) $request->input('page', 1),
+                'per_page' => (int) $request->input('per_page', 20),
+            ],
+        ], Auth::id());
+
+        $activeContinuous = $syncService->getActiveContinuousSyncForProduct((int) $id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'One-time sync recorded.',
+            'status' => $syncService->formatStatusPayload($activeContinuous ?: $sync, (int) $id),
+        ]);
     }
 
     public function crmSyncEnableContinuous(Request $request, $id)
@@ -1109,7 +1137,7 @@ class ProductController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Continuous sync enabled.',
-            'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload($sync),
+            'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload($sync, (int) $id),
         ]);
     }
 
@@ -1132,7 +1160,7 @@ class ProductController extends Controller
 
         return response()->json([
             'success' => true,
-            'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload($sync),
+            'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload($sync, (int) $id),
             'batch' => $result,
         ]);
     }
@@ -1153,7 +1181,7 @@ class ProductController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Continuous sync stopped.',
-            'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload(null),
+            'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload(null, (int) $id),
         ]);
     }
     

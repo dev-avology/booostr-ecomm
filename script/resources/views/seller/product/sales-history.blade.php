@@ -261,19 +261,19 @@
 .crm-sync-info-box {
     display: none;
     position: absolute;
-    left: 50%;
-    bottom: calc(100% + 10px);
-    transform: translateX(-50%);
+    top: 50%;
+    left: calc(100% + 14px);
+    transform: translateY(-50%);
     width: 260px;
     padding: 12px 14px;
-    background: #fff;
+    background: #ededed;
     border: 1px solid #d9d9d9;
     border-radius: 4px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 400;
     color: #555;
-    line-height: 1.55;
+    line-height: 1.35;
     text-align: left;
     z-index: 1060;
 }
@@ -281,14 +281,52 @@
 .crm-sync-info-box::after {
     content: '';
     position: absolute;
-    left: 50%;
-    bottom: -6px;
-    transform: translateX(-50%) rotate(45deg);
+    top: 50%;
+    left: -6px;
+    transform: translateY(-50%) rotate(45deg);
     width: 10px;
     height: 10px;
-    background: #fff;
-    border-right: 1px solid #d9d9d9;
+    background: #ededed;
+    border-left: 1px solid #d9d9d9;
     border-bottom: 1px solid #d9d9d9;
+}
+
+.crm-sync-info-box p {
+    margin: 0 0 8px 0;
+    line-height: 1.35;
+}
+
+.crm-sync-info-box p:last-child {
+    margin-bottom: 0;
+}
+
+.crm-sync-info-box strong {
+    display: block;
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 1px;
+    line-height: 1.35;
+}
+
+@media (max-width: 575.98px) {
+    .crm-sync-info-box {
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 0;
+        right: auto;
+        transform: none;
+        width: 260px;
+        max-width: calc(100vw - 40px);
+    }
+    .crm-sync-info-box::after {
+        top: -6px;
+        left: 14px;
+        transform: rotate(45deg);
+        border-left: 1px solid #d9d9d9;
+        border-top: 1px solid #d9d9d9;
+        border-right: 0;
+        border-bottom: 0;
+    }
 }
 
 .crm-sync-info-wrap:hover .crm-sync-info-box,
@@ -896,7 +934,11 @@
         'contact_tags' => '',
     ];
 
-    $hasCrmSyncConfig = !empty($crmSyncStatus['continuous_active']) || !empty($crmSyncStatus['last_synced_at']);
+    // Create vs Edit decision is fully backend-driven:
+    // any persisted sync (one-time or continuous, any status) for this product = Edit.
+    $hasCrmSyncConfig = !empty($crmSyncStatus['has_sync_history'])
+        || !empty($crmSyncStatus['continuous_active'])
+        || !empty($crmSyncStatus['last_synced_at']);
     $crmSyncButtonLabel = $hasCrmSyncConfig ? 'Edit CRM Sync' : 'Create CRM Sync';
     $crmSyncModalTitle = $hasCrmSyncConfig ? 'Edit Booostr CRM Sync' : 'Create Booostr CRM Sync';
     $crmSyncFooterLabel = $hasCrmSyncConfig ? 'Update CRM Sync' : 'Create CRM Sync';
@@ -942,6 +984,11 @@
                 <div class="sales-history-actions-wrap">
                     <span class="sales-history-actions-label">Sales History List Actions</span>
                     <div class="sales-history-actions-row">
+                        <button type="button"
+                                class="btn btn-edit-crm-sync"
+                                id="crm_sync_edit_btn">
+                            <i class="fas fa-sync-alt"></i>&nbsp;<span id="crm_sync_btn_label">{{ $crmSyncButtonLabel }}</span>
+                        </button>
                         <form class="mb-0 sales-history-action-form" id="sales_history_list_action_form" onsubmit="return false;">
                             <div class="input-group">
                                 <select class="form-control" id="sales_history_list_action">
@@ -954,12 +1001,7 @@
                                     <button class="btn btn-primary" type="button" id="sales_history_list_action_submit">Submit</button>
                                 </div>
                             </div>
-                        </form>
-                        <button type="button"
-                                class="btn btn-edit-crm-sync"
-                                id="crm_sync_edit_btn">
-                            <i class="fas fa-sync-alt"></i> <span id="crm_sync_btn_label">{{ $crmSyncButtonLabel }}</span>
-                        </button>
+                        </form>                        
                     </div>
                 </div>
             </div>
@@ -1156,7 +1198,15 @@
                             <span class="crm-sync-info-wrap">
                                 <i class="fas fa-info-circle crm-sync-info-trigger" aria-hidden="true"></i>
                                 <span class="crm-sync-info-box" role="tooltip">
-                                    Choose how often sales history contacts are synced to your CRM. One-Time Sync sends current data once. Continuous Sync sends current data now and automatically syncs new sales going forward.
+                                    <p>Recurrence determines how often the data sync occurs. This can be updated at any time. All data syncs run a check for new data only and append any data not already captured in the CRM contact record.</p>
+                                    <p>
+                                        <strong>One-Time Sync</strong>
+                                        This means that this will only sync the data one time and will only include current data. No new data after clicking the create/update sync will be added.
+                                    </p>
+                                    <p>
+                                        <strong>Continuous Sync</strong>
+                                        This means current and future data will be synced to CRM unless it is modified in the future
+                                    </p>
                                 </span>
                             </span>
                         </label>
@@ -1456,7 +1506,8 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         status: "{{ route('seller.product.crm.sync.status', $product->id) }}",
         enable: "{{ route('seller.product.crm.sync.enable', $product->id) }}",
         process: "{{ route('seller.product.crm.sync.process', $product->id) }}",
-        stop: "{{ route('seller.product.crm.sync.stop', $product->id) }}"
+        stop: "{{ route('seller.product.crm.sync.stop', $product->id) }}",
+        recordOneTime: "{{ route('seller.product.crm.sync.record_one_time', $product->id) }}"
     };
     var CRM_SYNC_PAGE_FILTERS = {
         src: @json(request('src')),
@@ -1510,7 +1561,9 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
     function updateCrmSyncLabels() {
         var hasConfig = CRM_SYNC_STATUS && (
-            CRM_SYNC_STATUS.continuous_active || CRM_SYNC_STATUS.last_synced_at
+            CRM_SYNC_STATUS.has_sync_history
+            || CRM_SYNC_STATUS.continuous_active
+            || CRM_SYNC_STATUS.last_synced_at
         );
         var pageLabel = hasConfig ? 'Edit CRM Sync' : 'Create CRM Sync';
         var modalTitle = hasConfig ? 'Edit Booostr CRM Sync' : 'Create Booostr CRM Sync';
@@ -1637,6 +1690,33 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         });
     }
 
+    function recordOneTimeSyncOnServer(syncType, contactTags, totalSyncedContacts) {
+        if (syncType !== 'one_time' || !CRM_SYNC_ROUTES.recordOneTime) {
+            return;
+        }
+
+        var passScope = $modal.find('#crm_sync_pass_amount').val();
+        var crmListName = $.trim($modal.find('#crm_sync_list option:selected').text() || '');
+
+        $.post(CRM_SYNC_ROUTES.recordOneTime, {
+            _token: "{{ csrf_token() }}",
+            sync_mode: passScope,
+            contact_tags: contactTags,
+            crm_list_name: crmListName,
+            total_synced_contacts: totalSyncedContacts,
+            src: CRM_SYNC_PAGE_FILTERS.src,
+            page: CRM_SYNC_PAGE_FILTERS.page,
+            per_page: CRM_SYNC_PAGE_FILTERS.per_page
+        }).done(function (response) {
+            if (response && response.status) {
+                CRM_SYNC_STATUS = response.status;
+            } else if (CRM_SYNC_STATUS) {
+                CRM_SYNC_STATUS.has_sync_history = true;
+            }
+            updateCrmSyncLabels();
+        });
+    }
+
     function runBackgroundSync(contacts, contactTags, syncType, syncDate) {
         syncRunning = true;
 
@@ -1652,6 +1732,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         function syncNext(index) {
             if (index >= contacts.length) {
                 markSyncCompleted(syncDate, syncType);
+                recordOneTimeSyncOnServer(syncType, contactTags, successCount);
 
                 if ($modal.hasClass('show') && currentView === 'progress') {
                     showView('completed', syncDate);

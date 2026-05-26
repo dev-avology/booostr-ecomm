@@ -30,6 +30,38 @@ class ProductSalesCrmSyncService
             ->first();
     }
 
+    /**
+     * Has the product ever had a sync (one-time or continuous, any status)?
+     * Source of truth for Create vs Edit CRM Sync label.
+     */
+    public function hasAnySyncHistoryForProduct(int $productId): bool
+    {
+        return ProductSalesCrmSync::query()
+            ->where('product_id', $productId)
+            ->exists();
+    }
+
+    public function recordOneTimeSync(Term $product, array $options, ?int $userId = null): ProductSalesCrmSync
+    {
+        $isTicketProduct = (int) $product->is_variation === 2;
+
+        return ProductSalesCrmSync::create([
+            'product_id' => $product->id,
+            'sync_type' => 'one_time',
+            'sync_mode' => $options['sync_mode'] ?? 'all_results',
+            'continuous_sync_enabled' => false,
+            'is_ticket_product' => $isTicketProduct,
+            'contact_tags' => $options['contact_tags'] ?? '',
+            'crm_list_name' => $options['crm_list_name'] ?? null,
+            'filter_state' => $options['filter_state'] ?? [],
+            'sync_status' => 'completed',
+            'last_synced_at' => now(),
+            'last_processed_at' => now(),
+            'total_synced_contacts' => (int) ($options['total_synced_contacts'] ?? 0),
+            'created_by' => $userId,
+        ]);
+    }
+
     public function enableContinuousSync(Term $product, array $options, ?int $userId = null): ProductSalesCrmSync
     {
         $existing = $this->getActiveContinuousSyncForProduct($product->id);
@@ -467,8 +499,13 @@ class ProductSalesCrmSyncService
         }
     }
 
-    public function formatStatusPayload(?ProductSalesCrmSync $sync): array
+    public function formatStatusPayload(?ProductSalesCrmSync $sync, ?int $productId = null): array
     {
+        $productIdForHistory = $productId ?? ($sync ? $sync->product_id : null);
+        $hasSyncHistory = $productIdForHistory
+            ? $this->hasAnySyncHistoryForProduct((int) $productIdForHistory)
+            : false;
+
         if (!$sync) {
             return [
                 'continuous_active' => false,
@@ -477,6 +514,7 @@ class ProductSalesCrmSyncService
                 'last_synced_at' => null,
                 'total_synced_contacts' => 0,
                 'initial_sync_in_progress' => false,
+                'has_sync_history' => $hasSyncHistory,
             ];
         }
 
@@ -488,6 +526,7 @@ class ProductSalesCrmSyncService
             'total_synced_contacts' => (int) $sync->total_synced_contacts,
             'initial_sync_in_progress' => $sync->sync_status === 'syncing',
             'contact_tags' => $sync->contact_tags ?? '',
+            'has_sync_history' => $hasSyncHistory,
         ];
     }
 
