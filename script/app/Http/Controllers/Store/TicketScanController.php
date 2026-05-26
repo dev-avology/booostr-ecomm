@@ -252,12 +252,11 @@ class TicketScanController extends Controller
             }
         }
 
-        $this->ensureGoogleWalletEventTicketObject($eventTicketObject);
+        if (!$this->ensureGoogleWalletEventTicketObject($eventTicketObject)) {
+            abort(500, 'Unable to create Google Wallet pass. Please try again later.');
+        }
 
-        $origins = array_values(array_filter(array_unique([
-            request()->getSchemeAndHttpHost(),
-            rtrim((string) config('app.url'), '/'),
-        ])));
+        $origins = ['https://app.booostr.co'];
 
         $payload = [
             'iss' => $serviceAccount['client_email'],
@@ -266,7 +265,12 @@ class TicketScanController extends Controller
             'iat' => time(),
             'origins' => $origins,
             'payload' => [
-                'eventTicketObjects' => [$eventTicketObject],
+                'eventTicketObjects' => [
+                    [
+                        'id' => $objectId,
+                        'classId' => $classId,
+                    ],
+                ],
             ],
         ];
 
@@ -276,10 +280,10 @@ class TicketScanController extends Controller
     }
 
     /**
-     * Create the EventTicketObject in Google Wallet (or patch if it already exists)
-     * so each ticket has its own dynamic data when added to the wallet.
+     * Create (or patch) the EventTicketObject in Google Wallet.
+     * Returns true on success, false on hard failure (do NOT continue to JWT).
      */
-    private function ensureGoogleWalletEventTicketObject(array $object): void
+    private function ensureGoogleWalletEventTicketObject(array $object): bool
     {
         try {
             $client = new \Google\Client();
@@ -287,40 +291,58 @@ class TicketScanController extends Controller
             $client->addScope('https://www.googleapis.com/auth/wallet_object.issuer');
             $httpClient = $client->authorize();
 
-            $insertUrl = 'https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject';
-            $resourceUrl = $insertUrl . '/' . rawurlencode($object['id']);
+            $baseUrl = 'https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject';
+            $resourceUrl = $baseUrl . '/' . $object['id'];
 
             try {
-                $httpClient->post($insertUrl, ['json' => $object]);
-                return;
+                $httpClient->post($baseUrl, ['json' => $object]);
+
+                Log::info('Google Wallet object inserted', ['objectId' => $object['id']]);
+                return true;
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 $status = $e->getResponse() ? $e->getResponse()->getStatusCode() : 0;
+                $body = $e->getResponse() ? (string) $e->getResponse()->getBody() : '';
 
                 if ($status === 409) {
                     try {
                         $httpClient->patch($resourceUrl, ['json' => $object]);
-                        return;
-                    } catch (\Throwable $patchError) {
-                        Log::warning('Google Wallet object patch failed', [
+                        Log::info('Google Wallet object patched', ['objectId' => $object['id']]);
+                        return true;
+                    } catch (\GuzzleHttp\Exception\ClientException $patchClientError) {
+                        Log::error('Google Wallet object PATCH failed', [
                             'objectId' => $object['id'],
+                            'url' => $resourceUrl,
+                            'status' => $patchClientError->getResponse()
+                                ? $patchClientError->getResponse()->getStatusCode()
+                                : 0,
+                            'body' => $patchClientError->getResponse()
+                                ? (string) $patchClientError->getResponse()->getBody()
+                                : '',
+                        ]);
+                        return false;
+                    } catch (\Throwable $patchError) {
+                        Log::error('Google Wallet object PATCH exception', [
+                            'objectId' => $object['id'],
+                            'url' => $resourceUrl,
                             'message' => $patchError->getMessage(),
                         ]);
-                        return;
+                        return false;
                     }
                 }
 
-                $body = $e->getResponse() ? (string) $e->getResponse()->getBody() : '';
-                Log::warning('Google Wallet object insert failed', [
+                Log::error('Google Wallet object INSERT failed', [
                     'objectId' => $object['id'],
                     'status' => $status,
                     'body' => $body,
                 ]);
+                return false;
             }
         } catch (\Throwable $e) {
-            Log::warning('Google Wallet object upsert error', [
+            Log::error('Google Wallet object upsert exception', [
                 'objectId' => $object['id'] ?? null,
                 'message' => $e->getMessage(),
             ]);
+            return false;
         }
     }
 
