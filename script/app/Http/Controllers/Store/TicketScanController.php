@@ -207,39 +207,53 @@ class TicketScanController extends Controller
             true
         );
 
+        $eventTicketObject = [
+            'id' => $objectId,
+            'classId' => $classId,
+            'state' => 'ACTIVE',
+            'ticketHolderName' => $ticket->attendee_name ?: 'Guest',
+            'ticketNumber' => $ticket->ticket_uuid,
+            'eventName' => [
+                'defaultValue' => [
+                    'language' => 'en-US',
+                    'value' => $ticket->event_name ?: 'Event Ticket',
+                ],
+            ],
+            'barcode' => [
+                'type' => 'QR_CODE',
+                'value' => $ticket->ticket_uuid,
+            ],
+        ];
+
+        if (!empty($ticket->event_start_at)) {
+            try {
+                $startIso = \Carbon\Carbon::parse($ticket->event_start_at)->toIso8601String();
+                $interval = ['start' => ['date' => $startIso]];
+
+                if (!empty($ticket->event_end_at)) {
+                    $endIso = \Carbon\Carbon::parse($ticket->event_end_at)->toIso8601String();
+                    $interval['end'] = ['date' => $endIso];
+                }
+
+                $eventTicketObject['validTimeInterval'] = $interval;
+            } catch (\Throwable $e) {
+                // Skip validTimeInterval if dates are malformed
+            }
+        }
+
+        $origins = array_values(array_filter(array_unique([
+            request()->getSchemeAndHttpHost(),
+            rtrim((string) config('app.url'), '/'),
+        ])));
+
         $payload = [
             'iss' => $serviceAccount['client_email'],
             'aud' => 'google',
             'typ' => 'savetowallet',
             'iat' => time(),
+            'origins' => $origins,
             'payload' => [
-                'eventTicketObjects' => [
-                    [
-                        'id' => $objectId,
-                        'classId' => $classId,
-                        'state' => 'ACTIVE',
-                        'ticketHolderName' => $ticket->attendee_name,
-                        'ticketNumber' => $ticket->ticket_uuid,
-                        'eventName' => [
-                            'defaultValue' => [
-                                'language' => 'en-US',
-                                'value' => $ticket->event_name,
-                            ],
-                        ],
-                        'barcode' => [
-                            'type' => 'QR_CODE',
-                            'value' => $ticket->ticket_uuid,
-                        ],
-                        'validTimeInterval' => [
-                            'start' => [
-                                'date' => \Carbon\Carbon::parse($ticket->event_start_at)->toIso8601String(),
-                            ],
-                            'end' => [
-                                'date' => \Carbon\Carbon::parse($ticket->event_end_at)->toIso8601String(),
-                            ],
-                        ],
-                    ],
-                ],
+                'eventTicketObjects' => [$eventTicketObject],
             ],
         ];
 
