@@ -8,6 +8,7 @@ use App\Models\EventTicket;
 use Illuminate\Support\Str;
 use Firebase\JWT\JWT;
 use PKPass\PKPass;
+use Illuminate\Support\Facades\Log;
 
 
 class TicketScanController extends Controller
@@ -213,15 +214,25 @@ class TicketScanController extends Controller
             'state' => 'ACTIVE',
             'ticketHolderName' => $ticket->attendee_name ?: 'Guest',
             'ticketNumber' => $ticket->ticket_uuid,
-            'eventName' => [
-                'defaultValue' => [
-                    'language' => 'en-US',
-                    'value' => $ticket->event_name ?: 'Event Ticket',
-                ],
-            ],
             'barcode' => [
                 'type' => 'QR_CODE',
                 'value' => $ticket->ticket_uuid,
+                'alternateText' => substr($ticket->ticket_uuid, 0, 8),
+            ],
+        ];
+
+        $eventLabel = $ticket->event_name ?: 'Event Ticket';
+        $eventTicketObject['ticketType'] = [
+            'defaultValue' => [
+                'language' => 'en-US',
+                'value' => $eventLabel,
+            ],
+        ];
+        $eventTicketObject['textModulesData'] = [
+            [
+                'id' => 'event_name',
+                'header' => 'Event',
+                'body' => $eventLabel,
             ],
         ];
 
@@ -240,6 +251,8 @@ class TicketScanController extends Controller
                 // Skip validTimeInterval if dates are malformed
             }
         }
+
+        $this->ensureGoogleWalletEventTicketObject($eventTicketObject);
 
         $origins = array_values(array_filter(array_unique([
             request()->getSchemeAndHttpHost(),
@@ -260,6 +273,55 @@ class TicketScanController extends Controller
         $jwt = JWT::encode($payload, $serviceAccount['private_key'], 'RS256');
 
         return redirect('https://pay.google.com/gp/v/save/' . $jwt);
+    }
+
+    /**
+     * Create the EventTicketObject in Google Wallet (or patch if it already exists)
+     * so each ticket has its own dynamic data when added to the wallet.
+     */
+    private function ensureGoogleWalletEventTicketObject(array $object): void
+    {
+        try {
+            $client = new \Google\Client();
+            $client->setAuthConfig(base_path('storage/app/google-wallet/service-account.json'));
+            $client->addScope('https://www.googleapis.com/auth/wallet_object.issuer');
+            $httpClient = $client->authorize();
+
+            $insertUrl = 'https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject';
+            $resourceUrl = $insertUrl . '/' . rawurlencode($object['id']);
+
+            try {
+                $httpClient->post($insertUrl, ['json' => $object]);
+                return;
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                $status = $e->getResponse() ? $e->getResponse()->getStatusCode() : 0;
+
+                if ($status === 409) {
+                    try {
+                        $httpClient->patch($resourceUrl, ['json' => $object]);
+                        return;
+                    } catch (\Throwable $patchError) {
+                        Log::warning('Google Wallet object patch failed', [
+                            'objectId' => $object['id'],
+                            'message' => $patchError->getMessage(),
+                        ]);
+                        return;
+                    }
+                }
+
+                $body = $e->getResponse() ? (string) $e->getResponse()->getBody() : '';
+                Log::warning('Google Wallet object insert failed', [
+                    'objectId' => $object['id'],
+                    'status' => $status,
+                    'body' => $body,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Google Wallet object upsert error', [
+                'objectId' => $object['id'] ?? null,
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function createGoogleWalletClass()
