@@ -987,7 +987,12 @@ class ProductController extends Controller
     public function salesHistory(Request $request, $id)
     {
         $product = Term::with(['price', 'media'])->findOrFail($id);
+        if ($request->ajax() && (string) $request->query('crm_sync_groups', '') === '1') {
+            $result = $this->syncCrmContactGroupsData($product->title);
+            return response()->json($result, $result['success'] ? 200 : 500);
+        }
         $crmSyncStatus = $this->resolveProductCrmSyncStatus($id);
+        $crmContactGroupOptions = $this->getCrmContactGroupOptions($product->title);
 
         $isTicketProduct = (int) $product->is_variation === 2;
 
@@ -1018,7 +1023,7 @@ class ProductController extends Controller
 
             $sales = $sales->orderBy('id', 'desc')->paginate(20);
 
-            return view('seller.product.sales-history', compact('product', 'sales', 'crmSyncStatus'));
+            return view('seller.product.sales-history', compact('product', 'sales', 'crmSyncStatus', 'crmContactGroupOptions'));
         }
 
         $sales = Orderitem::with(['order.ordermeta', 'eventTicket'])
@@ -1053,7 +1058,180 @@ class ProductController extends Controller
         
         $sales = $sales->orderBy('id', 'desc')->paginate(20);
     
-        return view('seller.product.sales-history', compact('product', 'sales', 'crmSyncStatus'));
+        return view('seller.product.sales-history', compact('product', 'sales', 'crmSyncStatus', 'crmContactGroupOptions'));
+    }
+
+    protected function getCrmContactGroupOptions(string $productTitle): array
+    {
+        $defaultName = trim($productTitle . ' Purchasers');
+        $clubId = (int) tenant('club_id');
+
+        $options = [
+            ['name' => $defaultName, 'group_id' => null, 'is_default' => true],
+        ];
+
+        try {
+            $groups = DB::table('contact_groups')
+                ->where('club_id', $clubId)
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['name', 'group_id'])
+                ->toArray();
+        } catch (\Throwable $e) {
+            $groups = [];
+        }
+
+        $existing = [];
+        foreach ($options as $item) {
+            $existing[strtolower(trim($item['name']))] = true;
+        }
+
+        foreach ($groups as $group) {
+            $name = trim((string) ($group->name ?? ''));
+            $normalized = strtolower($name);
+            if ($normalized === '' || isset($existing[$normalized])) {
+                continue;
+            }
+            $options[] = [
+                'name' => $name,
+                'group_id' => isset($group->group_id) ? (string) $group->group_id : null,
+                'is_default' => false,
+            ];
+            $existing[$normalized] = true;
+        }
+
+        return $options;
+    }
+
+    protected function syncCrmContactGroupsData(string $productTitle): array
+    {
+        $clubId = (int) tenant('club_id');
+        $userId = Auth::id();
+        $hasGroupIdColumn = \Illuminate\Support\Facades\Schema::hasColumn('contact_groups', 'group_id');
+
+        $envWpUrl = trim((string) env('WP_CLUB_URL'));
+        $candidateBaseUrls = [];
+
+        if ($envWpUrl !== '') {
+            $normalizedEnvBaseUrl = $envWpUrl;
+            $wpJsonPos = stripos($normalizedEnvBaseUrl, '/wp-json/');
+            if ($wpJsonPos !== false) {
+                $normalizedEnvBaseUrl = substr($normalizedEnvBaseUrl, 0, $wpJsonPos);
+            }
+            $candidateBaseUrls[] = rtrim($normalizedEnvBaseUrl, '/');
+        }
+
+        $candidateBaseUrls[] = 'https://app4.booostr.co';
+        $candidateBaseUrls = array_values(array_unique(array_filter($candidateBaseUrls)));
+
+        try {
+            $payload = null;
+            foreach ($candidateBaseUrls as $baseUrl) {
+                $groupsApiUrl = $baseUrl . '/wp-json/store-api/v1/groups/?club_id=' . $clubId;
+                $response = \Illuminate\Support\Facades\Http::withoutVerifying()
+                    ->timeout(20)
+                    ->acceptJson()
+                    ->get($groupsApiUrl);
+
+                if (!$response->successful()) {
+                    continue;
+                }
+
+                $decoded = json_decode((string) $response->body(), true);
+                if (is_array($decoded)) {
+                    $payload = $decoded;
+                    break;
+                }
+            }
+
+            if (!is_array($payload)) {
+                return [
+                    'success' => false,
+                    'message' => 'Unable to fetch contact groups from remote API.',
+                ];
+            }
+
+            $rows = $payload['data'] ?? [];
+            if (is_string($rows)) {
+                $rows = json_decode($rows, true);
+            }
+            if (!is_array($rows)) {
+                $rows = [];
+            }
+
+            DB::transaction(function () use ($rows, $clubId, $userId, $hasGroupIdColumn) {
+                foreach ($rows as $row) {
+                    $remoteGroupId = trim((string) ($row['id'] ?? ''));
+                    $groupName = trim((string) ($row['name'] ?? ''));
+
+                    if ($remoteGroupId === '' || $groupName === '') {
+                        continue;
+                    }
+
+                    $existingByName = DB::table('contact_groups')
+                        ->where('club_id', $clubId)
+                        ->whereRaw('LOWER(name) = ?', [strtolower($groupName)])
+                        ->first();
+
+                    $existingByGroupId = null;
+                    if ($hasGroupIdColumn) {
+                        $existingByGroupId = DB::table('contact_groups')
+                            ->where('club_id', $clubId)
+                            ->where('group_id', $remoteGroupId)
+                            ->first();
+                    }
+
+                    $target = $existingByGroupId ?: $existingByName;
+                    $updateData = [
+                        'name' => $groupName,
+                        'is_active' => true,
+                        'created_by' => $userId,
+                        'updated_at' => now(),
+                    ];
+                    if ($hasGroupIdColumn) {
+                        $updateData['group_id'] = $remoteGroupId;
+                    }
+
+                    if ($target) {
+                        DB::table('contact_groups')
+                            ->where('id', $target->id)
+                            ->update($updateData);
+                        continue;
+                    }
+
+                    $insertData = [
+                        'club_id' => $clubId,
+                        'name' => $groupName,
+                        'is_active' => true,
+                        'created_by' => $userId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                    if ($hasGroupIdColumn) {
+                        $insertData['group_id'] = $remoteGroupId;
+                    }
+
+                    DB::table('contact_groups')->insert($insertData);
+                }
+            });
+
+            return [
+                'success' => true,
+                'groups' => $this->getCrmContactGroupOptions($productTitle),
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'message' => 'Unable to sync contact groups right now.',
+            ];
+        }
+    }
+
+    public function crmSyncContactGroupsSync(Request $request, $id)
+    {
+        $product = Term::findOrFail($id);
+        $result = $this->syncCrmContactGroupsData($product->title);
+        return response()->json($result, $result['success'] ? 200 : 500);
     }
 
     protected function resolveProductCrmSyncStatus(int $productId): array
@@ -1106,6 +1284,93 @@ class ProductController extends Controller
             'message' => 'One-time sync recorded.',
             'status' => $syncService->formatStatusPayload($activeContinuous ?: $sync, (int) $id),
         ]);
+    }
+
+    public function crmSyncCreateContactGroup(Request $request, $id)
+    {
+        Term::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $name = trim($validated['name']);
+        if ($name === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Contact group name is required.',
+            ], 422);
+        }
+
+        $clubId = (int) tenant('club_id');
+        $userId = Auth::id();
+
+        try {
+            $existing = DB::table('contact_groups')
+                ->where('club_id', $clubId)
+                ->whereRaw('LOWER(name) = ?', [strtolower($name)])
+                ->first();
+
+            $maxNumericGroupId = (int) DB::table('contact_groups')
+                ->where('club_id', $clubId)
+                ->whereRaw("group_id REGEXP '^[0-9]+$'")
+                ->selectRaw('COALESCE(MAX(CAST(group_id AS UNSIGNED)), 0) as max_group_id')
+                ->value('max_group_id');
+
+            if ($existing) {
+                $updates = ['updated_at' => now()];
+                if (!(bool) $existing->is_active) {
+                    $updates['is_active'] = true;
+                }
+                if (empty($existing->group_id)) {
+                    $updates['group_id'] = (string) ($maxNumericGroupId + 1);
+                }
+
+                DB::table('contact_groups')
+                    ->where('id', $existing->id)
+                    ->update($updates);
+
+                $existing = DB::table('contact_groups')
+                    ->where('id', $existing->id)
+                    ->first();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Contact group is ready.',
+                    'contact_group' => [
+                        'id' => (int) $existing->id,
+                        'name' => (string) $existing->name,
+                        'group_id' => (string) ($existing->group_id ?? ''),
+                    ],
+                ]);
+            }
+
+            $nextGroupId = (string) ($maxNumericGroupId + 1);
+            $groupId = DB::table('contact_groups')->insertGetId([
+                'club_id' => $clubId,
+                'group_id' => $nextGroupId,
+                'name' => $name,
+                'is_active' => true,
+                'created_by' => $userId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Contact group created.',
+                'contact_group' => [
+                    'id' => (int) $groupId,
+                    'name' => $name,
+                    'group_id' => $nextGroupId,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to create contact group right now.',
+            ], 500);
+        }
     }
 
     public function crmSyncEnableContinuous(Request $request, $id)

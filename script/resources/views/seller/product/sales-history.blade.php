@@ -244,6 +244,32 @@
     font-size: 14px;
 }
 
+#crmSyncModal .crm-sync-create-list-wrap {
+    margin-top: 8px;
+}
+
+#crmSyncModal .crm-sync-create-list-input {
+    height: 38px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+#crmSyncModal .crm-sync-create-list-note {
+    margin-top: 5px;
+    font-size: 11px;
+    color: #8b8b8b;
+    line-height: 1.3;
+}
+
+#crmSyncModal .crm-sync-create-list-error {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #e74c3c;
+    line-height: 1.3;
+    display: none;
+}
+
 .crm-sync-info-wrap {
     position: relative;
     display: inline-block;
@@ -948,6 +974,7 @@
 
 <script type="application/json" id="crm-sync-contacts-page">@json($crmSyncPageContacts)</script>
 <script type="application/json" id="crm-sync-contacts-all">@json($crmSyncAllContacts)</script>
+<script type="application/json" id="crm-sync-contact-groups">@json($crmContactGroupOptions ?? [])</script>
 <script type="application/json" id="sales-history-export-data">
 {!! json_encode([
     'headers' => $salesHistoryExportHeaders,
@@ -1229,7 +1256,7 @@
                         </label>
                         <select id="crm_sync_pass_amount" class="form-control crm-sync-select">
                             <option value="all" selected>All Results</option>
-                            <option value="page">Just Only this page of result</option>
+                            <option value="page">Only this page of result</option>
                         </select>
                     </div>
 
@@ -1238,8 +1265,22 @@
                             Choose an existing Contact Manager list or create new contact list.
                         </label>
                         <select id="crm_sync_list" class="form-control crm-sync-select crm-sync-select-active">
-                            <option selected>{{ $product->title }} Purchasers</option>
+                            @foreach(($crmContactGroupOptions ?? [['name' => $product->title . ' Purchasers']]) as $group)
+                                <option value="{{ $group['name'] }}"
+                                        data-group-id="{{ $group['group_id'] ?? '' }}"
+                                        @if($loop->first) selected @endif>{{ $group['name'] }}</option>
+                            @endforeach
+                            <option value="__create_new__">+ Create New Contact List</option>
                         </select>
+                        <div id="crm_sync_create_list_wrap" class="crm-sync-create-list-wrap" style="display:none;">
+                            <input type="text"
+                                   id="crm_sync_create_list_input"
+                                   class="form-control crm-sync-create-list-input"
+                                   placeholder="Type new contact list name and press Enter"
+                                   maxlength="255">
+                            <p class="crm-sync-create-list-note mb-0">Press Enter to create and select this contact list.</p>
+                            <p class="crm-sync-create-list-error mb-0" id="crm_sync_create_list_error"></p>
+                        </div>
                     </div>
 
                     <div class="form-group mb-0">
@@ -1508,7 +1549,9 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         enable: "{{ route('seller.product.crm.sync.enable', $product->id) }}",
         process: "{{ route('seller.product.crm.sync.process', $product->id) }}",
         stop: "{{ route('seller.product.crm.sync.stop', $product->id) }}",
-        recordOneTime: "{{ route('seller.product.crm.sync.record_one_time', $product->id) }}"
+        recordOneTime: "{{ route('seller.product.crm.sync.record_one_time', $product->id) }}",
+        createContactGroup: "{{ route('seller.product.crm.sync.contact_groups.create', $product->id) }}",
+        syncContactGroups: "{{ route('seller.product.sales.history', $product->id) }}"
     };
     var CRM_SYNC_PAGE_FILTERS = {
         src: @json(request('src')),
@@ -1526,9 +1569,185 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
     var $footerForm = $modal.find('#crm_sync_footer_form');
     var $footerStatus = $modal.find('#crm_sync_footer_status');
     var $lastSyncDateValue = $modal.find('#crm_sync_last_date_value');
+    var $crmSyncList = $modal.find('#crm_sync_list');
+    var $createListWrap = $modal.find('#crm_sync_create_list_wrap');
+    var $createListInput = $modal.find('#crm_sync_create_list_input');
+    var $createListError = $modal.find('#crm_sync_create_list_error');
+    var lastValidCrmListValue = $crmSyncList.val();
     var currentView = 'form';
     var syncRunning = false;
     var continuousBatchRunning = false;
+
+    function appendContactGroupOption(name, groupId, makeSelected) {
+        var normalized = $.trim(name || '');
+        if (!normalized) {
+            return;
+        }
+
+        var existing = $crmSyncList.find('option').filter(function () {
+            return $.trim($(this).val()).toLowerCase() === normalized.toLowerCase();
+        });
+
+        if (!existing.length) {
+            var $createOption = $crmSyncList.find('option[value="__create_new__"]');
+            $('<option>', {
+                value: normalized,
+                text: normalized,
+                'data-group-id': $.trim(groupId || '')
+            }).insertBefore($createOption);
+        } else if ($.trim(groupId || '') !== '') {
+            existing.attr('data-group-id', $.trim(groupId || ''));
+        }
+
+        if (makeSelected) {
+            $crmSyncList.val(normalized);
+            lastValidCrmListValue = normalized;
+        }
+    }
+
+    function refreshCrmContactGroupOptions(groups, keepSelectedName) {
+        var selectedName = $.trim(keepSelectedName || getSelectedCrmListName() || '');
+        var selectedGroupId = $.trim(getSelectedCrmListGroupId() || '');
+        var normalizedSeen = {};
+
+        $crmSyncList.find('option').not('[value="__create_new__"]').remove();
+
+        if (Array.isArray(groups)) {
+            groups.forEach(function (group) {
+                var name = $.trim((group && group.name) ? group.name : '');
+                var key = name.toLowerCase();
+                if (!name || normalizedSeen[key]) {
+                    return;
+                }
+                normalizedSeen[key] = true;
+                $('<option>', {
+                    value: name,
+                    text: name,
+                    'data-group-id': $.trim((group && group.group_id) ? group.group_id : '')
+                }).insertBefore($crmSyncList.find('option[value="__create_new__"]'));
+            });
+        }
+
+        if (selectedName) {
+            appendContactGroupOption(selectedName, selectedGroupId, true);
+        } else {
+            var firstValue = $crmSyncList.find('option:not([value="__create_new__"])').first().val() || '';
+            if (firstValue) {
+                $crmSyncList.val(firstValue);
+                lastValidCrmListValue = firstValue;
+            }
+        }
+    }
+
+    function syncContactGroupsOnLoad() {
+        $.get(CRM_SYNC_ROUTES.syncContactGroups, {
+            crm_sync_groups: 1
+        }).done(function (response) {
+            if (response && response.success && Array.isArray(response.groups)) {
+                refreshCrmContactGroupOptions(response.groups);
+            }
+        });
+    }
+
+    function createContactGroup(name) {
+        return $.post(CRM_SYNC_ROUTES.createContactGroup, {
+            _token: "{{ csrf_token() }}",
+            name: name
+        });
+    }
+
+    function showCreateListError(message) {
+        $createListError.text(message || 'Unable to create contact group.').show();
+    }
+
+    function clearCreateListError() {
+        $createListError.text('').hide();
+    }
+
+    function submitCreateContactGroup() {
+        var groupName = $.trim($createListInput.val() || '');
+        if (!groupName) {
+            showCreateListError('Please enter contact list name.');
+            $createListInput.focus();
+            return;
+        }
+
+        clearCreateListError();
+        $createListInput.prop('disabled', true);
+
+        createContactGroup(groupName)
+            .done(function (response) {
+                if (response && response.success && response.contact_group && response.contact_group.name) {
+                    appendContactGroupOption(response.contact_group.name, response.contact_group.group_id || '', true);
+                    $createListInput.val('').prop('disabled', false);
+                    $createListWrap.hide();
+                    clearCreateListError();
+                    return;
+                }
+
+                $createListInput.prop('disabled', false);
+                showCreateListError((response && response.message) ? response.message : 'Unable to create contact group.');
+            })
+            .fail(function (xhr) {
+                $createListInput.prop('disabled', false);
+                var message = (xhr.responseJSON && xhr.responseJSON.message)
+                    ? xhr.responseJSON.message
+                    : 'Unable to create contact group.';
+                showCreateListError(message);
+            });
+    }
+
+    function getSelectedCrmListName() {
+        var selected = $.trim($crmSyncList.val() || '');
+        if (selected && selected !== '__create_new__') {
+            return selected;
+        }
+        return $.trim(lastValidCrmListValue || '');
+    }
+
+    function getSelectedCrmListGroupId() {
+        var selected = $.trim($crmSyncList.val() || '');
+        if (!selected || selected === '__create_new__') {
+            selected = $.trim(lastValidCrmListValue || '');
+        }
+        if (!selected) {
+            return '';
+        }
+
+        var $option = $crmSyncList.find('option').filter(function () {
+            return $.trim($(this).val()).toLowerCase() === selected.toLowerCase();
+        }).first();
+
+        return $.trim($option.attr('data-group-id') || '');
+    }
+
+    $crmSyncList.on('focus', function () {
+        var value = $crmSyncList.val();
+        if (value && value !== '__create_new__') {
+            lastValidCrmListValue = value;
+        }
+    });
+
+    $crmSyncList.on('change', function () {
+        if ($crmSyncList.val() !== '__create_new__') {
+            lastValidCrmListValue = $crmSyncList.val();
+            $createListWrap.hide();
+            $createListInput.val('').prop('disabled', false);
+            clearCreateListError();
+            return;
+        }
+
+        clearCreateListError();
+        $createListWrap.show();
+        $createListInput.focus();
+    });
+
+    $createListInput.on('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            submitCreateContactGroup();
+        }
+    });
 
     function formatSyncDateLabel(syncType) {
         var d = new Date();
@@ -1670,7 +1889,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         }
     }
 
-    function postCrmContact(contact, contactTags) {
+    function postCrmContact(contact, contactTags, groupIds) {
         return $.ajax({
             url: CRM_SYNC_API,
             type: 'POST',
@@ -1683,7 +1902,8 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
                 email: contact.email || '',
                 phone_number: contact.phone_number || '',
                 city: contact.city || '',
-                contact_tags: contactTags
+                contact_tags: contactTags,
+                group_ids: Array.isArray(groupIds) ? groupIds : []
             })
         });
     }
@@ -1694,7 +1914,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         }
 
         var passScope = $modal.find('#crm_sync_pass_amount').val();
-        var crmListName = $.trim($modal.find('#crm_sync_list option:selected').text() || '');
+        var crmListName = getSelectedCrmListName();
 
         $.post(CRM_SYNC_ROUTES.recordOneTime, {
             _token: "{{ csrf_token() }}",
@@ -1715,7 +1935,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         });
     }
 
-    function runBackgroundSync(contacts, contactTags, syncType, syncDate) {
+    function runBackgroundSync(contacts, contactTags, syncType, syncDate, groupIds) {
         syncRunning = true;
 
         writeSyncState({
@@ -1739,7 +1959,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
                 return;
             }
 
-            postCrmContact(contacts[index], contactTags)
+            postCrmContact(contacts[index], contactTags, groupIds)
                 .done(function () {
                     successCount++;
                 })
@@ -1801,7 +2021,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
     function enableContinuousSyncOnServer(syncDate) {
         var passScope = $modal.find('#crm_sync_pass_amount').val();
         var contactTags = $.trim($hidden.val() || tags.join(','));
-        var crmListName = $.trim($modal.find('#crm_sync_list option:selected').text() || '');
+        var crmListName = getSelectedCrmListName();
 
         $.post(CRM_SYNC_ROUTES.enable, {
             _token: "{{ csrf_token() }}",
@@ -1883,6 +2103,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
     updateLastSyncDateDisplay();
     updateCrmSyncLabels();
     applyContinuousUiState();
+    syncContactGroupsOnLoad();
 
     $syncBtn.on('click', function () {
         if ($syncBtn.prop('disabled') || syncRunning || continuousBatchRunning) {
@@ -1902,6 +2123,11 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         var contactTags = $.trim($hidden.val() || tags.join(','));
         var syncType = $modal.find('input[name="crm_sync_recurrence"]:checked').val() || 'continuous';
         var syncDate = formatSyncDateLabel(syncType);
+        var selectedGroupId = $.trim(getSelectedCrmListGroupId() || '');
+        var selectedGroupIds = [];
+        if (selectedGroupId) {
+            selectedGroupIds.push(/^\d+$/.test(selectedGroupId) ? parseInt(selectedGroupId, 10) : selectedGroupId);
+        }
 
         if (syncType === 'continuous') {
             enableContinuousSyncOnServer(syncDate);
@@ -1914,7 +2140,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         }
 
         showView('progress', syncDate);
-        runBackgroundSync(contacts, contactTags, syncType, syncDate);
+        runBackgroundSync(contacts, contactTags, syncType, syncDate, selectedGroupIds);
     });
 })();
 

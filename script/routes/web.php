@@ -328,6 +328,7 @@ Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 
     Route::post('product/{id}/crm-sync/process-batch', 'ProductController@crmSyncProcessBatch')->name('product.crm.sync.process');
     Route::post('product/{id}/crm-sync/stop', 'ProductController@crmSyncStop')->name('product.crm.sync.stop');
     Route::post('product/{id}/crm-sync/record-one-time', 'ProductController@crmSyncRecordOneTime')->name('product.crm.sync.record_one_time');
+    Route::post('product/{id}/crm-sync/contact-groups', 'ProductController@crmSyncCreateContactGroup')->name('product.crm.sync.contact_groups.create');
     Route::post('product/ticket-status-update', 'ProductController@ticketStatusUpdate')->name('product.ticket.status.update');
     
     Route::get('product/remove-price/{id}', 'ProductController@removeVariationPrice');
