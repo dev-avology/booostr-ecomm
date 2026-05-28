@@ -41,6 +41,15 @@ class ProductSalesCrmSyncService
             ->exists();
     }
 
+    public function getLatestSyncForProduct(int $productId): ?ProductSalesCrmSync
+    {
+        return ProductSalesCrmSync::query()
+            ->where('product_id', $productId)
+            ->orderByRaw('COALESCE(last_synced_at, created_at) DESC')
+            ->latest('id')
+            ->first();
+    }
+
     public function recordOneTimeSync(Term $product, array $options, ?int $userId = null): ProductSalesCrmSync
     {
         $isTicketProduct = (int) $product->is_variation === 2;
@@ -506,14 +515,24 @@ class ProductSalesCrmSyncService
             ? $this->hasAnySyncHistoryForProduct((int) $productIdForHistory)
             : false;
 
+        $latestSync = $productIdForHistory
+            ? $this->getLatestSyncForProduct((int) $productIdForHistory)
+            : null;
+
+        $effectiveSync = $sync ?: $latestSync;
+        $lastSyncedAt = $effectiveSync ? optional($effectiveSync->last_synced_at)->format('m/d/Y') : null;
+        $lastSyncType = $effectiveSync ? $effectiveSync->sync_type : null;
+
         if (!$sync) {
             return [
                 'continuous_active' => false,
                 'sync_status' => null,
                 'sync_mode' => null,
-                'last_synced_at' => null,
-                'total_synced_contacts' => 0,
+                'last_synced_at' => $lastSyncedAt,
+                'last_sync_type' => $lastSyncType,
+                'total_synced_contacts' => (int) ($latestSync->total_synced_contacts ?? 0),
                 'initial_sync_in_progress' => false,
+                'contact_tags' => $latestSync->contact_tags ?? '',
                 'has_sync_history' => $hasSyncHistory,
             ];
         }
@@ -522,7 +541,8 @@ class ProductSalesCrmSyncService
             'continuous_active' => $sync->isContinuousActive(),
             'sync_status' => $sync->sync_status,
             'sync_mode' => $sync->sync_mode,
-            'last_synced_at' => optional($sync->last_synced_at)->format('m/d/Y'),
+            'last_synced_at' => $lastSyncedAt,
+            'last_sync_type' => $lastSyncType,
             'total_synced_contacts' => (int) $sync->total_synced_contacts,
             'initial_sync_in_progress' => $sync->sync_status === 'syncing',
             'contact_tags' => $sync->contact_tags ?? '',

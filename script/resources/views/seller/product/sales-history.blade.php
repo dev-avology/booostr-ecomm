@@ -932,6 +932,7 @@
         'total_synced_contacts' => 0,
         'initial_sync_in_progress' => false,
         'contact_tags' => '',
+        'last_sync_type' => null,
     ];
 
     // Create vs Edit decision is fully backend-driven:
@@ -1498,7 +1499,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
     });
 
     var CRM_SYNC_API = 'https://app4.booostr.co/wp-json/booostr/v1/save-contact';
-    var CRM_SYNC_BOOSTER_ID = 36115;
+    var CRM_SYNC_BOOSTER_ID = {{ tenant('club_id') }};
     var CRM_SYNC_PRODUCT_ID = {{ (int) $product->id }};
     var CRM_SYNC_STORAGE_KEY = 'crm_sync_state_' + CRM_SYNC_PRODUCT_ID;
     var CRM_SYNC_STATUS = @json($crmSyncStatus);
@@ -1576,16 +1577,13 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
     function updateLastSyncDateDisplay() {
         if (CRM_SYNC_STATUS && CRM_SYNC_STATUS.last_synced_at) {
-            $lastSyncDateValue.text(CRM_SYNC_STATUS.last_synced_at + ' (continuous)');
+            var typeLabel = (CRM_SYNC_STATUS.last_sync_type === 'one_time') ? 'one time' : 'continuous';
+            $lastSyncDateValue.text(CRM_SYNC_STATUS.last_synced_at + ' (' + typeLabel + ')');
             return;
         }
 
-        var state = readSyncState();
-        if (state && state.lastSyncDate) {
-            $lastSyncDateValue.text(state.lastSyncDate);
-        } else {
-            $lastSyncDateValue.text('—');
-        }
+        // Always DB-driven. Do not fallback to temporary session state.
+        $lastSyncDateValue.text('—');
     }
 
     function applyContinuousUiState() {
