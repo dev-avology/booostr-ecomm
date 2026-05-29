@@ -179,23 +179,25 @@
 }
 
 #crmSyncModal .modal-content {
-    border: none;
+    border: 1px solid #e6e6e6;
     border-radius: 4px;
     overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 #crmSyncModal .modal-header {
-    background: #08bff3;
+    background: #00aeef;
     border-bottom: none;
-    padding: 16px 20px;
+    padding: 14px 18px;
     align-items: center;
 }
 
 #crmSyncModal .modal-header .modal-title {
     color: #fff;
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 17px;
+    font-weight: 600;
     text-align: left;
+    letter-spacing: 0.01em;
 }
 
 #crmSyncModal .modal-header .close {
@@ -240,7 +242,7 @@
 }
 
 #crmSyncModal .crm-sync-field-label .fa-info-circle {
-    color: #08bff3;
+    color: #00aeef;
     font-size: 14px;
 }
 
@@ -278,7 +280,7 @@
 }
 
 .crm-sync-info-trigger {
-    color: #08bff3;
+    color: #00aeef;
     font-size: 14px;
     cursor: pointer;
     line-height: 1;
@@ -462,7 +464,7 @@
 }
 
 #crmSyncModal .crm-sync-tags-wrap.is-focused {
-    border-color: #08bff3;
+    border-color: #00aeef;
 }
 
 #crmSyncModal .crm-sync-tags-input {
@@ -489,8 +491,8 @@
 }
 
 #crmSyncModal .btn-update-crm-sync {
-    background: #08bff3;
-    border-color: #08bff3;
+    background: #00aeef;
+    border-color: #00aeef;
     color: #fff;
     min-width: 200px;
     padding: 11px 28px;
@@ -501,8 +503,8 @@
 
 #crmSyncModal .btn-update-crm-sync:hover,
 #crmSyncModal .btn-update-crm-sync:focus {
-    background: #07a8db;
-    border-color: #07a8db;
+    background: #0099d6;
+    border-color: #0099d6;
     color: #fff;
     box-shadow: none;
 }
@@ -512,79 +514,114 @@
     cursor: not-allowed;
 }
 
+#crmSyncModal.crm-sync-modal--status .modal-dialog {
+    max-width: 500px;
+}
+
+#crmSyncModal.crm-sync-modal--status .modal-body {
+    padding: 38px 42px 8px;
+}
+
+#crmSyncModal.crm-sync-modal--status .modal-footer {
+    padding: 30px 42px 38px;
+}
+
 #crmSyncModal .crm-sync-status-view {
     text-align: center;
-    padding: 18px 10px 8px;
+    padding: 0;
 }
 
 #crmSyncModal .crm-sync-status-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
 }
 
 #crmSyncModal .crm-sync-status-icon-progress {
-    width: 72px;
-    height: 72px;
-    color: #08bff3;
-    font-size: 56px;
+    width: auto;
+    height: auto;
+    color: #00aeef;
     line-height: 1;
 }
 
+#crmSyncModal .crm-sync-icon-img {
+    display: block;
+    width: 96px;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+}
+
 #crmSyncModal .crm-sync-status-icon-completed {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background: #08bff3;
-    color: #fff;
-    font-size: 34px;
+    width: auto;
+    height: auto;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+}
+
+#crmSyncModal .crm-sync-check-svg {
+    display: block;
+    width: 94px;
+    height: 94px;
+    margin: 0 auto;
+    color: #42A5F5;
 }
 
 #crmSyncModal .crm-sync-status-title {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 700;
-    color: #333;
-    margin-bottom: 14px;
-    line-height: 1.35;
+    color: #3d3d3d;
+    margin-bottom: 12px;
+    line-height: 1.4;
 }
 
 #crmSyncModal .crm-sync-status-date {
     font-size: 14px;
     color: #666;
     margin-bottom: 18px;
+    line-height: 1.45;
 }
 
 #crmSyncModal .crm-sync-status-date span:first-child {
     font-weight: 700;
-    color: #333;
+    color: #3d3d3d;
+}
+
+#crmSyncModal .crm-sync-status-date #crm_sync_progress_date,
+#crmSyncModal .crm-sync-status-date #crm_sync_completed_date {
+    font-weight: 400;
+    color: #666;
 }
 
 #crmSyncModal .crm-sync-status-help {
-    font-size: 13px;
-    color: #888;
+    font-size: 12px;
+    font-weight: 400;
+    color: #a8a8a8;
     line-height: 1.65;
-    max-width: 360px;
+    max-width: 300px;
     margin: 0 auto;
 }
 
 #crmSyncModal .btn-close-crm-sync {
-    background: #08bff3;
-    border-color: #08bff3;
+    background: #00aeef;
+    border-color: #00aeef;
     color: #fff;
     min-width: 200px;
-    padding: 11px 28px;
+    padding: 11px 32px;
     font-weight: 700;
     font-size: 14px;
     border-radius: 4px;
+    box-shadow: 0 3px 10px rgba(0, 174, 239, 0.35);
 }
 
 #crmSyncModal .btn-close-crm-sync:hover,
 #crmSyncModal .btn-close-crm-sync:focus {
-    background: #07a8db;
-    border-color: #07a8db;
+    background: #0099d6;
+    border-color: #0099d6;
     color: #fff;
-    box-shadow: none;
+    box-shadow: 0 3px 10px rgba(0, 174, 239, 0.35);
 }
 
 #crmSyncModal .crm-sync-continuous-alert {
@@ -1304,20 +1341,23 @@
 
                 <div id="crm_sync_view_progress" class="crm-sync-status-view" style="display:none;">
                     <div class="crm-sync-status-icon crm-sync-status-icon-progress" aria-hidden="true">
-                        <i class="fas fa-link"></i>
+                        <img src="{{ url('/icon/crm-sync-icon.png') }}?v=4" alt="" class="crm-sync-icon-img">
                     </div>
                     <p class="crm-sync-status-title mb-0">Data Sync to CRM in progress.</p>
                     <p class="crm-sync-status-date mb-0">
                         <span>Sync Date:</span> <span id="crm_sync_progress_date"></span>
                     </p>
                     <p class="crm-sync-status-help mb-0">
-                        You can close this window while your data is syncing to your Booostr Contact Manager.
+                        You can close this window while your data is<br>syncing to your Booostr Contact Manager.
                     </p>
                 </div>
 
                 <div id="crm_sync_view_completed" class="crm-sync-status-view" style="display:none;">
                     <div class="crm-sync-status-icon crm-sync-status-icon-completed" aria-hidden="true">
-                        <i class="fas fa-check"></i>
+                        <svg class="crm-sync-check-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                            <circle cx="50" cy="50" r="43" fill="none" stroke="currentColor" stroke-width="4.5"/>
+                            <path fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" d="M29 51 L44 66 L71 35"/>
+                        </svg>
                     </div>
                     <p class="crm-sync-status-title mb-0">Data Sync complete.</p>
                     <p class="crm-sync-status-date mb-0">
@@ -1841,6 +1881,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
         $footerForm.toggle(viewName === 'form');
         $footerStatus.toggle(viewName === 'progress' || viewName === 'completed');
+        $modal.toggleClass('crm-sync-modal--status', viewName === 'progress' || viewName === 'completed');
 
         if (viewName === 'progress' && syncDateText) {
             $modal.find('#crm_sync_progress_date').text(syncDateText);
