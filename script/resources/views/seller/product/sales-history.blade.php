@@ -1246,7 +1246,7 @@
             <div class="modal-body">
                 <div id="crm_sync_view_form">
                     <div id="crm_sync_continuous_alert" class="crm-sync-continuous-alert" style="display:none;">
-                        Continuous sync is already enabled. Manual sync is not required. If you want to sync manually, please stop the continuous sync first.
+                        Continuous sync is already enabled for this product. You can run sync again anytime to send new contacts to your CRM, or stop continuous sync if you no longer need automatic updates.
                     </div>
 
                     <p class="crm-sync-desc mb-0">
@@ -1851,7 +1851,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
         $continuousAlert.toggle(continuousActive && !initialInProgress);
         $stopBtn.toggle(!!continuousActive);
-        $syncBtn.prop('disabled', continuousActive || syncRunning || continuousBatchRunning);
+        $syncBtn.prop('disabled', syncRunning || continuousBatchRunning);
     }
 
     function refreshContinuousStatus(callback) {
@@ -2148,11 +2148,6 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
     $syncBtn.on('click', function () {
         if ($syncBtn.prop('disabled') || syncRunning || continuousBatchRunning) {
-            return;
-        }
-
-        if (CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_active) {
-            alert('Continuous sync is already enabled. Please stop continuous sync first if you want to sync manually.');
             return;
         }
 
