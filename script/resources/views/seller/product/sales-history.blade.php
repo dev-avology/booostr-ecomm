@@ -547,7 +547,7 @@
 
 #crmSyncModal .crm-sync-icon-img {
     display: block;
-    width: 96px;
+    width: 100px;
     max-width: 100%;
     height: auto;
     margin: 0 auto;
@@ -566,7 +566,7 @@
     width: 94px;
     height: 94px;
     margin: 0 auto;
-    color: #42A5F5;
+    color: #168bda;
 }
 
 #crmSyncModal .crm-sync-status-title {
@@ -596,11 +596,11 @@
 }
 
 #crmSyncModal .crm-sync-status-help {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 400;
     color: #a8a8a8;
     line-height: 1.65;
-    max-width: 300px;
+    max-width: 420px;
     margin: 0 auto;
 }
 
@@ -1341,10 +1341,10 @@
 
                 <div id="crm_sync_view_progress" class="crm-sync-status-view" style="display:none;">
                     <div class="crm-sync-status-icon crm-sync-status-icon-progress" aria-hidden="true">
-                        <img src="{{ url('/icon/crm-sync-icon.png') }}?v=4" alt="" class="crm-sync-icon-img">
+                        <img src="{{ url('/icon/sync-data-image-newww.png') }}?v=4" alt="" class="crm-sync-icon-img">
                     </div>
-                    <p class="crm-sync-status-title mb-0">Data Sync to CRM in progress.</p>
-                    <p class="crm-sync-status-date mb-0">
+                    <p class="crm-sync-status-title mb-2">Data Sync to CRM in progress.</p>
+                    <p class="crm-sync-status-date mb-4">
                         <span>Sync Date:</span> <span id="crm_sync_progress_date"></span>
                     </p>
                     <p class="crm-sync-status-help mb-0">
@@ -1355,12 +1355,12 @@
                 <div id="crm_sync_view_completed" class="crm-sync-status-view" style="display:none;">
                     <div class="crm-sync-status-icon crm-sync-status-icon-completed" aria-hidden="true">
                         <svg class="crm-sync-check-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" focusable="false">
-                            <circle cx="50" cy="50" r="43" fill="none" stroke="currentColor" stroke-width="4.5"/>
-                            <path fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" d="M29 51 L44 66 L71 35"/>
+                            <circle cx="50" cy="50" r="43" fill="none" stroke="currentColor" stroke-width="7.5"/>
+                            <path fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round" d="M29 51 L44 66 L71 35"/>
                         </svg>
                     </div>
-                    <p class="crm-sync-status-title mb-0">Data Sync complete.</p>
-                    <p class="crm-sync-status-date mb-0">
+                    <p class="crm-sync-status-title mb-2">Data Sync complete.</p>
+                    <p class="crm-sync-status-date mb-4">
                         <span>Sync Date:</span> <span id="crm_sync_completed_date"></span>
                     </p>
                     <p class="crm-sync-status-help mb-0">
