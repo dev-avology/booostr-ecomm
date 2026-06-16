@@ -24,7 +24,8 @@
                                     @php
                                         $info = get_option('invoice_data',true) ?? '';
                                         $club_info = tenant_club_info();
-                                        $shippingwithinfo = json_decode($order->shippingwithinfo->info,true);
+                                        $shippingwithinfo = json_decode(optional($order->shippingwithinfo)->info ?? '{}', true) ?: [];
+                                        $orderinfo = json_decode(optional($order->ordermeta)->value ?? '{}');
                                     @endphp
                                        
                                     <div class="invoice-bill-form">
@@ -44,11 +45,10 @@
                                     <!--<div class="shopify-logo">
                                         <img class="img-fluid" src="{{ asset('uploads/'.tenant('uid').'/logo.png') }}" alt="">
                                     </div>-->
-									@if($order->ordermeta->key == 'orderinfo')
+										@if(optional($order->ordermeta)->key == 'orderinfo')
 									  <div class="invoice-bill-form">
                                         <h5><strong>{{ __('BILL TO:') }}</strong></h5>
                                         <div class="store-name">
-            						      @php $orderinfo = json_decode($order->ordermeta->value) @endphp   
                                             <h2>{{ $orderinfo->name ?? '' }}</h2>
                                             <p>{{ $orderinfo->billing->address ?? '' }}<br>{{ $orderinfo->billing->city ?? '' }}, {{ $orderinfo->billing->state ?? '' }}</p>
                                             <p>Postal Code: {{ $orderinfo->billing->post_code ?? '' }}</p>
@@ -131,7 +131,7 @@
                                 <div class="col-lg-6">
                                     <div class="note-section">
                                         <h4>NOTES/MEMO</h4>
-                                        <p>{{ json_decode($order->ordermeta->value)->note ?? '' }}</p>
+                                        <p>{{ json_decode(optional($order->ordermeta)->value ?? '{}')->note ?? '' }}</p>
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
@@ -142,7 +142,7 @@
                                                 <td style="text-align: right;">{{ currency_formate($subtotal) }}</td>
                                             </tr>
                                             @if($order_type !== 'Digital')
-                                            @php  $shipping_price = $order->shippingwithinfo->shipping_price ?? 0; @endphp
+                                            @php  $shipping_price = optional($order->shippingwithinfo)->shipping_price ?? 0; @endphp
                                             <tr>
                                                 <td>Shipping Fee</td>
                                                 <td style="text-align: right;">{{ currency_formate($shipping_price) }}</td>
