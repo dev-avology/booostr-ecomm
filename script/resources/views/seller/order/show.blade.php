@@ -239,7 +239,7 @@
                        @if($cover_fee > 0)
                         <li class="list-group-item">
                             <div class="row align-items-center">
-                                <div class="col-9 text-right">{{ __('Support Covered Fees') }}</div>
+                                <div class="col-9 text-right">{{ __('Supporter Covered Fees') }}</div>
                                 <div class="col-3 text-right">{{ currency_formate($cover_fee) }}</div>
                             </div>
                         </li>
@@ -248,7 +248,7 @@
                         <li class="list-group-item">
                             <div class="row align-items-center">
                                 <div class="col-9 text-right">{{ __('Order Total') }}</div>
-                                <div class="col-3 text-right">{{ currency_formate($info->total-$cover_fee) }}</div>
+                                <div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
                             </div>
                         </li>
                         @php
@@ -262,7 +262,7 @@
                             <div class="row align-items-center text-grey">
                                 <div class="col-9 text-right">{{ __('Credit Card Processing ') }}</div>
                                 @if($cover_fee > 0)
-                                <div class="col-3 text-right">{{ __('Support Covered Fees') }}</div>
+                                <div class="col-3 text-right">{{ __('Supporter Covered Fees') }}</div>
                                @else
                                  <div class="col-3 text-right">{{ currency_formate($credit_card_fee) }}</div>
                                 @endif
@@ -275,7 +275,7 @@
                                 <div class="col-9 text-right">{{ __('Booostr Platform Fee') }}
                                     {{ ($pro_club) ? '(1.75%)' : '(3.5%)' }}</div>
                                 @if($cover_fee > 0)
-                                 <div class="col-3 text-right">{{ __('Support Covered Fees') }}</div>
+                                 <div class="col-3 text-right">{{ __('Supporter Covered Fees') }}</div>
                                @else
                                  <div class="col-3 text-right">{{ currency_formate($booster_platform_fee) }}</div>
                                @endif
