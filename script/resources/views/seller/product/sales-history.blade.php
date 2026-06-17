@@ -2207,6 +2207,17 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         }
 
         if (syncType === 'continuous') {
+            var convertFromOneTime = !!(CRM_SYNC_STATUS
+                && !CRM_SYNC_STATUS.continuous_active
+                && CRM_SYNC_STATUS.last_sync_type === 'one_time');
+
+            if (convertFromOneTime) {
+                var proceedContinuous = confirm('Switch this CRM sync from One-Time to Continuous? We will check for new product purchases and then confirm the continuous sync change.');
+                if (!proceedContinuous) {
+                    return;
+                }
+            }
+
             enableContinuousSyncOnServer(syncDate);
             return;
         }

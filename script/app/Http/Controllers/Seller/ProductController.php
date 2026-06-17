@@ -1266,11 +1266,20 @@ class ProductController extends Controller
         $syncService = app(ProductSalesCrmSyncService::class);
         $activeContinuous = $syncService->getActiveContinuousSyncForProduct((int) $id);
         $convertingFromContinuous = (bool) $request->boolean('convert_from_continuous');
+        $shouldConvertFromContinuous = $convertingFromContinuous || (bool) $activeContinuous;
 
         // Continuous -> one-time: run a final incremental check and stop continuous mode.
-        if ($activeContinuous && $convertingFromContinuous) {
+        if ($activeContinuous && $shouldConvertFromContinuous) {
             $syncService->syncContinuousForProduct((int) $id);
-            $syncService->stopContinuousSync((int) $id);
+            $stopped = $syncService->stopContinuousSync((int) $id);
+
+            // Fallback safety: ensure existing active config is not left running.
+            if (!$stopped) {
+                $activeContinuous->update([
+                    'continuous_sync_enabled' => false,
+                    'sync_status' => 'stopped',
+                ]);
+            }
         }
 
         $sync = $syncService->recordOneTimeSync($product, [
@@ -1285,12 +1294,10 @@ class ProductController extends Controller
             ],
         ], Auth::id());
 
-        $activeContinuous = $syncService->getActiveContinuousSyncForProduct((int) $id);
-
         return response()->json([
             'success' => true,
             'message' => 'One-time sync recorded.',
-            'status' => $syncService->formatStatusPayload($activeContinuous ?: $sync, (int) $id),
+            'status' => $syncService->formatStatusPayload($sync, (int) $id),
         ]);
     }
 
