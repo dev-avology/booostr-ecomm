@@ -1377,15 +1377,6 @@ class ProductController extends Controller
     {
         $product = Term::findOrFail($id);
 
-        $existing = app(ProductSalesCrmSyncService::class)->getActiveContinuousSyncForProduct($id);
-        if ($existing && $existing->sync_status === 'active') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Continuous sync is already enabled for this product.',
-                'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload($existing),
-            ], 422);
-        }
-
         $syncMode = $request->input('sync_mode') === 'page' ? 'current_page' : 'all_results';
 
         $sync = app(ProductSalesCrmSyncService::class)->enableContinuousSync($product, [

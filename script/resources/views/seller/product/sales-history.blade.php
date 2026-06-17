@@ -995,6 +995,7 @@
         'total_synced_contacts' => 0,
         'initial_sync_in_progress' => false,
         'contact_tags' => '',
+        'crm_list_name' => '',
         'last_sync_type' => null,
     ];
 
@@ -1614,6 +1615,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
     var $createListInput = $modal.find('#crm_sync_create_list_input');
     var $createListError = $modal.find('#crm_sync_create_list_error');
     var lastValidCrmListValue = $crmSyncList.val();
+    var originalCrmListName = '';
     var currentView = 'form';
     var syncRunning = false;
     var continuousBatchRunning = false;
@@ -1722,6 +1724,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
                     $createListInput.val('').prop('disabled', false);
                     $createListWrap.hide();
                     clearCreateListError();
+                    applyContinuousUiState();
                     return;
                 }
 
@@ -1774,12 +1777,14 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
             $createListWrap.hide();
             $createListInput.val('').prop('disabled', false);
             clearCreateListError();
+            applyContinuousUiState();
             return;
         }
 
         clearCreateListError();
         $createListWrap.show();
         $createListInput.focus();
+        applyContinuousUiState();
     });
 
     $createListInput.on('keydown', function (e) {
@@ -1845,12 +1850,46 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         $lastSyncDateValue.text('—');
     }
 
+    function hasCrmListChanged() {
+        var current = $.trim(getSelectedCrmListName() || '').toLowerCase();
+        var original = $.trim(originalCrmListName || '').toLowerCase();
+
+        return original !== '' && current !== '' && current !== original;
+    }
+
+    function prefillCrmSyncFormFromStatus() {
+        if (!CRM_SYNC_STATUS) {
+            originalCrmListName = $.trim(getSelectedCrmListName() || '');
+            return;
+        }
+
+        var listName = $.trim(CRM_SYNC_STATUS.crm_list_name || '');
+        if (listName) {
+            appendContactGroupOption(listName, '', true);
+        }
+
+        tags = $.trim(CRM_SYNC_STATUS.contact_tags || '')
+            .split(',')
+            .map(function (tag) { return $.trim(tag); })
+            .filter(function (tag) { return tag !== ''; });
+        renderTags();
+
+        if (CRM_SYNC_STATUS.last_sync_type === 'one_time') {
+            $modal.find('#crm_sync_onetime').prop('checked', true);
+        } else {
+            $modal.find('#crm_sync_continuous').prop('checked', true);
+        }
+
+        originalCrmListName = listName || $.trim(getSelectedCrmListName() || '');
+    }
+
     function applyContinuousUiState() {
         var continuousActive = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_active;
         var initialInProgress = CRM_SYNC_STATUS && CRM_SYNC_STATUS.initial_sync_in_progress;
+        var groupChanged = hasCrmListChanged();
 
-        $continuousAlert.toggle(continuousActive && !initialInProgress);
-        $stopBtn.toggle(!!continuousActive);
+        $continuousAlert.toggle(continuousActive && !initialInProgress && !groupChanged);
+        $stopBtn.toggle(!!continuousActive && !groupChanged);
         $syncBtn.prop('disabled', syncRunning || continuousBatchRunning);
     }
 
@@ -1894,6 +1933,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
     function openModalWithState() {
         refreshContinuousStatus(function () {
+            prefillCrmSyncFormFromStatus();
             var state = readSyncState();
 
             if (syncRunning || (state && state.status === 'in_progress')) {

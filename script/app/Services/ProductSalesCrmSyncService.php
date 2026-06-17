@@ -71,31 +71,68 @@ class ProductSalesCrmSyncService
         ]);
     }
 
+    public function hasContactGroupChanged(?ProductSalesCrmSync $sync, ?string $newListName): bool
+    {
+        if (!$sync) {
+            return false;
+        }
+
+        return $this->normalizeContactGroupName($sync->crm_list_name)
+            !== $this->normalizeContactGroupName($newListName);
+    }
+
     public function enableContinuousSync(Term $product, array $options, ?int $userId = null): ProductSalesCrmSync
     {
         $existing = $this->getActiveContinuousSyncForProduct($product->id);
+        $newListName = $options['crm_list_name'] ?? null;
+        $groupChanged = $this->hasContactGroupChanged($existing, $newListName);
 
-        if ($existing && $existing->sync_status === 'syncing') {
+        if ($existing && $existing->sync_status === 'syncing' && !$groupChanged) {
             return $existing;
+        }
+
+        if ($existing && $groupChanged) {
+            $this->resetSyncContactsForRestart($existing);
         }
 
         $isTicketProduct = (int) $product->is_variation === 2;
 
+        $attributes = [
+            'sync_mode' => $options['sync_mode'] ?? 'all_results',
+            'continuous_sync_enabled' => true,
+            'is_ticket_product' => $isTicketProduct,
+            'contact_tags' => $options['contact_tags'] ?? '',
+            'crm_list_name' => $newListName,
+            'filter_state' => $options['filter_state'] ?? [],
+            'sync_status' => 'syncing',
+            'created_by' => $userId,
+        ];
+
+        if ($groupChanged) {
+            $attributes['last_processed_record_id'] = null;
+            $attributes['total_synced_contacts'] = 0;
+            $attributes['last_synced_at'] = null;
+            $attributes['last_processed_at'] = null;
+        }
+
         $sync = ProductSalesCrmSync::updateOrCreate(
             ['product_id' => $product->id, 'sync_type' => 'continuous'],
-            [
-                'sync_mode' => $options['sync_mode'] ?? 'all_results',
-                'continuous_sync_enabled' => true,
-                'is_ticket_product' => $isTicketProduct,
-                'contact_tags' => $options['contact_tags'] ?? '',
-                'crm_list_name' => $options['crm_list_name'] ?? null,
-                'filter_state' => $options['filter_state'] ?? [],
-                'sync_status' => 'syncing',
-                'created_by' => $userId,
-            ]
+            $attributes
         );
 
         return $sync->fresh();
+    }
+
+    protected function resetSyncContactsForRestart(ProductSalesCrmSync $sync): void
+    {
+        ProductSalesCrmSyncContact::query()
+            ->where('product_sales_crm_sync_id', $sync->id)
+            ->delete();
+    }
+
+    protected function normalizeContactGroupName(?string $name): string
+    {
+        return strtolower(trim((string) $name));
     }
 
     public function stopContinuousSync(int $productId): ?ProductSalesCrmSync
@@ -533,6 +570,7 @@ class ProductSalesCrmSyncService
                 'total_synced_contacts' => (int) ($latestSync->total_synced_contacts ?? 0),
                 'initial_sync_in_progress' => false,
                 'contact_tags' => $latestSync->contact_tags ?? '',
+                'crm_list_name' => $latestSync->crm_list_name ?? '',
                 'has_sync_history' => $hasSyncHistory,
             ];
         }
@@ -546,6 +584,7 @@ class ProductSalesCrmSyncService
             'total_synced_contacts' => (int) $sync->total_synced_contacts,
             'initial_sync_in_progress' => $sync->sync_status === 'syncing',
             'contact_tags' => $sync->contact_tags ?? '',
+            'crm_list_name' => $sync->crm_list_name ?? '',
             'has_sync_history' => $hasSyncHistory,
         ];
     }
