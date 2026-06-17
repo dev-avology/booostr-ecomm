@@ -81,6 +81,28 @@ class ProductSalesCrmSyncService
             !== $this->normalizeContactGroupName($newListName);
     }
 
+    public function getEffectiveSyncConfigForProduct(int $productId): ?ProductSalesCrmSync
+    {
+        return $this->getActiveContinuousSyncForProduct($productId)
+            ?? $this->getLatestSyncForProduct($productId);
+    }
+
+    public function scopeChangeRequiresNewContactGroup(
+        ?ProductSalesCrmSync $previousSync,
+        string $newSyncMode,
+        ?string $newListName
+    ): bool {
+        if (!$previousSync || $previousSync->sync_mode !== 'all_results') {
+            return false;
+        }
+
+        if ($newSyncMode !== 'current_page') {
+            return false;
+        }
+
+        return !$this->hasContactGroupChanged($previousSync, $newListName);
+    }
+
     public function enableContinuousSync(Term $product, array $options, ?int $userId = null): ProductSalesCrmSync
     {
         $existing = $this->getActiveContinuousSyncForProduct($product->id);
@@ -564,7 +586,7 @@ class ProductSalesCrmSyncService
             return [
                 'continuous_active' => false,
                 'sync_status' => null,
-                'sync_mode' => null,
+                'sync_mode' => $latestSync->sync_mode ?? null,
                 'last_synced_at' => $lastSyncedAt,
                 'last_sync_type' => $lastSyncType,
                 'total_synced_contacts' => (int) ($latestSync->total_synced_contacts ?? 0),

@@ -635,6 +635,18 @@
     margin-bottom: 18px;
 }
 
+#crmSyncModal .crm-sync-page-scope-notice {
+    background: #eef9fd;
+    border: 1px solid #9edcf2;
+    color: #1f5f73;
+    padding: 12px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.55;
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+
 #crmSyncModal .btn-stop-crm-sync {
     background: #fff;
     border: 1px solid #d9534f;
@@ -1296,6 +1308,9 @@
                             <option value="all" selected>All Results</option>
                             <option value="page">Only this page of result</option>
                         </select>
+                        <p id="crm_sync_page_scope_notice" class="crm-sync-page-scope-notice mb-0" style="display:none;">
+                            To change from All Results to Only This Page Of Results, you must create a new contact group below.
+                        </p>
                     </div>
 
                     <div class="form-group">
@@ -1614,8 +1629,11 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
     var $createListWrap = $modal.find('#crm_sync_create_list_wrap');
     var $createListInput = $modal.find('#crm_sync_create_list_input');
     var $createListError = $modal.find('#crm_sync_create_list_error');
+    var $pageScopeNotice = $modal.find('#crm_sync_page_scope_notice');
+    var $passAmount = $modal.find('#crm_sync_pass_amount');
     var lastValidCrmListValue = $crmSyncList.val();
     var originalCrmListName = '';
+    var originalPassScope = 'all';
     var currentView = 'form';
     var syncRunning = false;
     var continuousBatchRunning = false;
@@ -1773,6 +1791,11 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
     $crmSyncList.on('change', function () {
         if ($crmSyncList.val() !== '__create_new__') {
+            if (isChangingAllResultsToPageScope() && !hasCrmListChanged()) {
+                promptCreateNewContactGroupForPageScope();
+                return;
+            }
+
             lastValidCrmListValue = $crmSyncList.val();
             $createListWrap.hide();
             $createListInput.val('').prop('disabled', false);
@@ -1784,6 +1807,16 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         clearCreateListError();
         $createListWrap.show();
         $createListInput.focus();
+        applyContinuousUiState();
+    });
+
+    $passAmount.on('change', function () {
+        updatePageScopeNotice();
+
+        if (isChangingAllResultsToPageScope()) {
+            promptCreateNewContactGroupForPageScope();
+        }
+
         applyContinuousUiState();
     });
 
@@ -1857,9 +1890,64 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         return original !== '' && current !== '' && current !== original;
     }
 
+    function isEditingExistingSync() {
+        return !!(CRM_SYNC_STATUS && CRM_SYNC_STATUS.has_sync_history);
+    }
+
+    function getCurrentPassScope() {
+        return $passAmount.val() || 'all';
+    }
+
+    function passScopeFromSyncMode(syncMode) {
+        return syncMode === 'current_page' ? 'page' : 'all';
+    }
+
+    function isChangingAllResultsToPageScope() {
+        return isEditingExistingSync()
+            && originalPassScope === 'all'
+            && getCurrentPassScope() === 'page';
+    }
+
+    function hasValidNewContactGroupForPageScopeChange() {
+        if (!isChangingAllResultsToPageScope()) {
+            return true;
+        }
+
+        if ($crmSyncList.val() === '__create_new__') {
+            return false;
+        }
+
+        return hasCrmListChanged();
+    }
+
+    function updatePageScopeNotice() {
+        $pageScopeNotice.toggle(
+            isChangingAllResultsToPageScope() && !hasValidNewContactGroupForPageScopeChange()
+        );
+    }
+
+    function promptCreateNewContactGroupForPageScope() {
+        alert('To change from All Results to Only This Page Of Results, please create a new contact group.');
+        $crmSyncList.val('__create_new__');
+        $createListWrap.show();
+        $createListInput.focus();
+        clearCreateListError();
+    }
+
+    function ensureValidContactGroupForPageScopeChange() {
+        if (hasValidNewContactGroupForPageScopeChange()) {
+            return true;
+        }
+
+        promptCreateNewContactGroupForPageScope();
+        return false;
+    }
+
     function prefillCrmSyncFormFromStatus() {
         if (!CRM_SYNC_STATUS) {
             originalCrmListName = $.trim(getSelectedCrmListName() || '');
+            originalPassScope = 'all';
+            updatePageScopeNotice();
             return;
         }
 
@@ -1880,7 +1968,13 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
             $modal.find('#crm_sync_continuous').prop('checked', true);
         }
 
+        originalPassScope = isEditingExistingSync()
+            ? passScopeFromSyncMode($.trim(CRM_SYNC_STATUS.sync_mode || ''))
+            : 'all';
+        $passAmount.val(originalPassScope);
+
         originalCrmListName = listName || $.trim(getSelectedCrmListName() || '');
+        updatePageScopeNotice();
     }
 
     function applyContinuousUiState() {
@@ -1891,6 +1985,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         $continuousAlert.toggle(continuousActive && !initialInProgress && !groupChanged);
         $stopBtn.toggle(!!continuousActive && !groupChanged);
         $syncBtn.prop('disabled', syncRunning || continuousBatchRunning);
+        updatePageScopeNotice();
     }
 
     function refreshContinuousStatus(callback) {
@@ -2189,6 +2284,10 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
     $syncBtn.on('click', function () {
         if ($syncBtn.prop('disabled') || syncRunning || continuousBatchRunning) {
+            return;
+        }
+
+        if (!ensureValidContactGroupForPageScopeChange()) {
             return;
         }
 

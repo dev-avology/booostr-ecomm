@@ -1234,6 +1234,26 @@ class ProductController extends Controller
         return response()->json($result, $result['success'] ? 200 : 500);
     }
 
+    protected function validateCrmSyncScopeChange(Request $request, int $productId)
+    {
+        $syncService = app(ProductSalesCrmSyncService::class);
+        $previousSync = $syncService->getEffectiveSyncConfigForProduct($productId);
+        $newSyncMode = $request->input('sync_mode') === 'page' ? 'current_page' : 'all_results';
+
+        if ($syncService->scopeChangeRequiresNewContactGroup(
+            $previousSync,
+            $newSyncMode,
+            $request->input('crm_list_name')
+        )) {
+            return response()->json([
+                'success' => false,
+                'message' => 'To change from All Results to Only This Page Of Results, please create a new contact group.',
+            ], 422);
+        }
+
+        return null;
+    }
+
     protected function resolveProductCrmSyncStatus(int $productId): array
     {
         $syncService = app(ProductSalesCrmSyncService::class);
@@ -1264,6 +1284,11 @@ class ProductController extends Controller
         $product = Term::findOrFail($id);
 
         $syncService = app(ProductSalesCrmSyncService::class);
+        $scopeValidationError = $this->validateCrmSyncScopeChange($request, (int) $id);
+        if ($scopeValidationError) {
+            return $scopeValidationError;
+        }
+
         $activeContinuous = $syncService->getActiveContinuousSyncForProduct((int) $id);
         $convertingFromContinuous = (bool) $request->boolean('convert_from_continuous');
         $shouldConvertFromContinuous = $convertingFromContinuous || (bool) $activeContinuous;
@@ -1391,6 +1416,11 @@ class ProductController extends Controller
     public function crmSyncEnableContinuous(Request $request, $id)
     {
         $product = Term::findOrFail($id);
+
+        $scopeValidationError = $this->validateCrmSyncScopeChange($request, (int) $id);
+        if ($scopeValidationError) {
+            return $scopeValidationError;
+        }
 
         $syncMode = $request->input('sync_mode') === 'page' ? 'current_page' : 'all_results';
 
