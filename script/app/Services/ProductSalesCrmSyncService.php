@@ -103,13 +103,31 @@ class ProductSalesCrmSyncService
         return !$this->hasContactGroupChanged($previousSync, $newListName);
     }
 
+    public function hasSyncModeChanged(?ProductSalesCrmSync $sync, string $newSyncMode): bool
+    {
+        if (!$sync) {
+            return false;
+        }
+
+        return $sync->sync_mode !== $newSyncMode;
+    }
+
+    public function isExpandingScopeToAllResults(?ProductSalesCrmSync $sync, string $newSyncMode): bool
+    {
+        return $sync
+            && $sync->sync_mode === 'current_page'
+            && $newSyncMode === 'all_results';
+    }
+
     public function enableContinuousSync(Term $product, array $options, ?int $userId = null): ProductSalesCrmSync
     {
         $existing = $this->getActiveContinuousSyncForProduct($product->id);
         $newListName = $options['crm_list_name'] ?? null;
+        $newSyncMode = $options['sync_mode'] ?? 'all_results';
         $groupChanged = $this->hasContactGroupChanged($existing, $newListName);
+        $scopeChanged = $this->hasSyncModeChanged($existing, $newSyncMode);
 
-        if ($existing && $existing->sync_status === 'syncing' && !$groupChanged) {
+        if ($existing && $existing->sync_status === 'syncing' && !$groupChanged && !$scopeChanged) {
             return $existing;
         }
 
@@ -120,7 +138,7 @@ class ProductSalesCrmSyncService
         $isTicketProduct = (int) $product->is_variation === 2;
 
         $attributes = [
-            'sync_mode' => $options['sync_mode'] ?? 'all_results',
+            'sync_mode' => $newSyncMode,
             'continuous_sync_enabled' => true,
             'is_ticket_product' => $isTicketProduct,
             'contact_tags' => $options['contact_tags'] ?? '',

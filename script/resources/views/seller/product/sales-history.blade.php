@@ -1908,6 +1908,16 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
             && getCurrentPassScope() === 'page';
     }
 
+    function isChangingPageScopeToAllResults() {
+        return isEditingExistingSync()
+            && originalPassScope === 'page'
+            && getCurrentPassScope() === 'all';
+    }
+
+    function hasSyncScopeChanged() {
+        return isEditingExistingSync() && originalPassScope !== getCurrentPassScope();
+    }
+
     function hasValidNewContactGroupForPageScopeChange() {
         if (!isChangingAllResultsToPageScope()) {
             return true;
@@ -1941,6 +1951,18 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
         promptCreateNewContactGroupForPageScope();
         return false;
+    }
+
+    function ensurePageScopeToAllResultsConfirmed() {
+        if (!isChangingPageScopeToAllResults()) {
+            return true;
+        }
+
+        var groupName = getSelectedCrmListName() || 'your selected contact group';
+        return confirm(
+            'Switch this CRM sync from Only This Page Of Results to All Results? '
+            + 'We will start adding all purchase records to "' + groupName + '".'
+        );
     }
 
     function prefillCrmSyncFormFromStatus() {
@@ -1981,9 +2003,10 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         var continuousActive = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_active;
         var initialInProgress = CRM_SYNC_STATUS && CRM_SYNC_STATUS.initial_sync_in_progress;
         var groupChanged = hasCrmListChanged();
+        var configChanged = groupChanged || hasSyncScopeChanged();
 
-        $continuousAlert.toggle(continuousActive && !initialInProgress && !groupChanged);
-        $stopBtn.toggle(!!continuousActive && !groupChanged);
+        $continuousAlert.toggle(continuousActive && !initialInProgress && !configChanged);
+        $stopBtn.toggle(!!continuousActive && !configChanged);
         $syncBtn.prop('disabled', syncRunning || continuousBatchRunning);
         updatePageScopeNotice();
     }
@@ -2288,6 +2311,10 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         }
 
         if (!ensureValidContactGroupForPageScopeChange()) {
+            return;
+        }
+
+        if (!ensurePageScopeToAllResultsConfirmed()) {
             return;
         }
 
