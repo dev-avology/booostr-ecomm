@@ -1989,7 +1989,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         });
     }
 
-    function recordOneTimeSyncOnServer(syncType, contactTags, totalSyncedContacts) {
+    function recordOneTimeSyncOnServer(syncType, contactTags, totalSyncedContacts, convertFromContinuous) {
         if (syncType !== 'one_time' || !CRM_SYNC_ROUTES.recordOneTime) {
             return;
         }
@@ -2002,6 +2002,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
             sync_mode: passScope,
             contact_tags: contactTags,
             crm_list_name: crmListName,
+            convert_from_continuous: convertFromContinuous ? 1 : 0,
             total_synced_contacts: totalSyncedContacts,
             src: CRM_SYNC_PAGE_FILTERS.src,
             page: CRM_SYNC_PAGE_FILTERS.page,
@@ -2016,7 +2017,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         });
     }
 
-    function runBackgroundSync(contacts, contactTags, syncType, syncDate, groupIds) {
+    function runBackgroundSync(contacts, contactTags, syncType, syncDate, groupIds, convertFromContinuous) {
         syncRunning = true;
 
         writeSyncState({
@@ -2031,7 +2032,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         function syncNext(index) {
             if (index >= contacts.length) {
                 markSyncCompleted(syncDate, syncType);
-                recordOneTimeSyncOnServer(syncType, contactTags, successCount);
+                recordOneTimeSyncOnServer(syncType, contactTags, successCount, !!convertFromContinuous);
 
                 if ($modal.hasClass('show') && currentView === 'progress') {
                     showView('completed', syncDate);
@@ -2210,13 +2211,21 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
             return;
         }
 
+        var convertFromContinuous = !!(CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_active && syncType === 'one_time');
+        if (convertFromContinuous) {
+            var proceed = confirm('Switch this CRM sync from Continuous to One-Time? We will run a final check for new purchases before confirming the change.');
+            if (!proceed) {
+                return;
+            }
+        }
+
         if (!contacts.length) {
             alert('No contacts available to sync.');
             return;
         }
 
         showView('progress', syncDate);
-        runBackgroundSync(contacts, contactTags, syncType, syncDate, selectedGroupIds);
+        runBackgroundSync(contacts, contactTags, syncType, syncDate, selectedGroupIds, convertFromContinuous);
     });
 })();
 

@@ -1264,6 +1264,14 @@ class ProductController extends Controller
         $product = Term::findOrFail($id);
 
         $syncService = app(ProductSalesCrmSyncService::class);
+        $activeContinuous = $syncService->getActiveContinuousSyncForProduct((int) $id);
+        $convertingFromContinuous = (bool) $request->boolean('convert_from_continuous');
+
+        // Continuous -> one-time: run a final incremental check and stop continuous mode.
+        if ($activeContinuous && $convertingFromContinuous) {
+            $syncService->syncContinuousForProduct((int) $id);
+            $syncService->stopContinuousSync((int) $id);
+        }
 
         $sync = $syncService->recordOneTimeSync($product, [
             'sync_mode' => $request->input('sync_mode') === 'page' ? 'current_page' : 'all_results',
