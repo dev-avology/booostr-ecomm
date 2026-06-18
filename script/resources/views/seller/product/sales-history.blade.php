@@ -2232,13 +2232,13 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
     function recordOneTimeSyncOnServer(syncType, contactTags, totalSyncedContacts, convertFromContinuous) {
         if (syncType !== 'one_time' || !CRM_SYNC_ROUTES.recordOneTime) {
-            return;
+            return $.Deferred().resolve().promise();
         }
 
         var passScope = $modal.find('#crm_sync_pass_amount').val();
         var crmListName = getSelectedCrmListName();
 
-        $.post(CRM_SYNC_ROUTES.recordOneTime, {
+        return $.post(CRM_SYNC_ROUTES.recordOneTime, {
             _token: "{{ csrf_token() }}",
             sync_mode: passScope,
             contact_tags: contactTags,
@@ -2255,6 +2255,8 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
                 CRM_SYNC_STATUS.has_sync_history = true;
             }
             updateCrmSyncLabels();
+            updateLastSyncDateDisplay();
+            applyContinuousUiState();
         });
     }
 
@@ -2273,11 +2275,13 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         function syncNext(index) {
             if (index >= contacts.length) {
                 markSyncCompleted(syncDate, syncType);
-                recordOneTimeSyncOnServer(syncType, contactTags, successCount, !!convertFromContinuous);
 
-                if ($modal.hasClass('show') && currentView === 'progress') {
-                    showView('completed', syncDate);
-                }
+                recordOneTimeSyncOnServer(syncType, contactTags, successCount, !!convertFromContinuous)
+                    .always(function () {
+                        if ($modal.hasClass('show') && currentView === 'progress') {
+                            showView('completed', syncDate);
+                        }
+                    });
 
                 return;
             }
