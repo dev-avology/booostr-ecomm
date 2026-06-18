@@ -737,136 +737,172 @@ class OrderController extends Controller
 
     public function refund($id, $silent = false)
     {
-        abort_if(!getpermission('order'),401);
+        abort_if(!getpermission('order'), 401);
 
-        $admin_details = User::where('role_id',3)->first();
+        $admin_details = User::where('role_id', 3)->first();
         $to = $admin_details->email ?? '';
 
-        $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);
+        $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($id);
 
-        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
-        $ordermeta=json_decode($order->ordermeta->value ?? '');
-
-        $gateway_data_info = json_decode($gateway->data);
-        $payment_data['test_mode']  = $gateway->test_mode;
-        $payment_data['currency']   = $gateway->currency_name ?? 'USD';
-        $payment_data['getway_id']  = $gateway->id;
-        $payment_data['amount']  = $order->total;
-        $payment_data['transaction_id']  = $order->transaction_id;
-        $payment_data['application_fee_amount']  = (float) $ordermeta->booster_platform_fee??0;
-        $payment_data['card_fee_amount']  = (float) $ordermeta->credit_card_fee??0;
-        $payment_data['refund_application_fee']  = true;
-        $payment_data['refund_card_fee']  = true;
-
-        if (!empty($gateway->data)) {
-            foreach (json_decode($gateway->data ?? '') ?? [] as $key => $info) {
-                $payment_data[$key] = $info;
-            };
+        if ((int) $order->payment_status === 5) {
+            return $this->refundResponse($silent, false, 'This order has already been refunded.');
         }
 
-    Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
-    
-    $transactionId = $payment_data['transaction_id'] ?? null;
-        if (!$transactionId) {
-            if (request()->wantsJson() || $silent) {
+        $gateway = Getway::where('status', '!=', 0)
+            ->where('namespace', '=', 'App\Lib\Stripe')
+            ->first();
+
+        if (!$gateway) {
+            return $this->refundResponse($silent, false, 'Stripe payment gateway is not configured.');
+        }
+
+        $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}');
+        $gateway_data_info = json_decode($gateway->data ?? '{}');
+
+        if (!$gateway_data_info) {
+            return $this->refundResponse($silent, false, 'Stripe gateway credentials are missing.');
+        }
+
+        try {
+            Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
+
+            $transactionId = $order->transaction_id;
+            if (!$transactionId) {
                 throw new \Exception('No transaction ID provided');
             }
-            return redirect()->back()->with('error', 'No transaction ID provided');
-        }
 
-        if (str_starts_with($transactionId, 'pi_')) {
-            $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
-            
-            $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
+            $chargeId = null;
+            if (str_starts_with($transactionId, 'pi_')) {
+                $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
 
-            $transaction_log = $paymentIntent;
-        
-            $payment_data['payment_intent'] = $paymentIntent;
-            $payment_data['payment_status'] = $paymentstatus;
-        
-            if ($paymentstatus !== 1) {
-                if (request()->wantsJson() || $silent) {
+                if ($paymentIntent->status !== 'succeeded') {
                     throw new \Exception('Payment is not in a refundable state.');
                 }
-                return redirect()->back()->with('error', 'Payment is not in a refundable state.');
-            }
-        
-        
-            $chargeId = $paymentIntent->latest_charge;
-            $payment_data['transaction_id'] = $chargeId;
-        
-            $paymentresult= $gateway->namespace::refund_payment($payment_data);
-        //  dd($paymentresult);
-            
-        } elseif (str_starts_with($transactionId, 'ch_')) {
-    
-        // $charge = \Stripe\Charge::retrieve($transactionId);
-        //  $paymentIntent = \Stripe\PaymentIntent::retrieve($charge->payment_intent);
-            
-            $payment_data['transaction_id']  = $order->transaction_id;
 
-            $paymentresult= $gateway->namespace::refund_payment($payment_data);
-    
-
-        } else {
-            if (request()->wantsJson() || $silent) {
+                $chargeId = $paymentIntent->latest_charge;
+            } elseif (str_starts_with($transactionId, 'ch_')) {
+                $chargeId = $transactionId;
+            } else {
                 throw new \Exception('Invalid transaction ID format');
             }
-            return redirect()->back()->with('error', 'Invalid transaction ID format');
-        }
 
-    
+            if (!$chargeId) {
+                throw new \Exception('Unable to resolve Stripe charge for refund.');
+            }
 
+            $charge = \Stripe\Charge::retrieve($chargeId);
 
-        if ($paymentresult['payment_status'] == '1') {
-            $order->payment_status = 5;
-            $order->status_id = $order->status_id == 1? 1: 2;
-            $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
-            $order->save();
+            if ($charge->refunded) {
+                $this->finalizeRefundedOrder($order, $charge->toArray());
 
-            $transcation_log = new Ordermeta;
-            $transcation_log->order_id = $order->id;
-            $transcation_log->key = 'transcation_log';
-            $transcation_log->value = json_encode($paymentresult['transaction_log']);
-            $transcation_log->save();
+                return $this->refundResponse($silent, true, 'Order refunded successfully', $order, $to);
+            }
 
-            $order->orderlasttrans()->update([
-                'key' => 'last_transcation_log',
-                'value' => json_encode($paymentresult['transaction_log'])
+            $applicationFee = (float) ($ordermeta->booster_platform_fee ?? 0);
+            $cardFee = (float) ($ordermeta->credit_card_fee ?? 0);
+            $coverFee = (float) ($ordermeta->cover_fee ?? 0);
+
+            $refundAmountDollars = $coverFee > 0
+                ? ((float) $order->total - $coverFee)
+                : ((float) $order->total - $applicationFee - $cardFee);
+
+            $refundAmountCents = max(1, (int) round($refundAmountDollars * 100));
+
+            $refundParams = [
+                'charge' => $chargeId,
+                'amount' => $refundAmountCents,
+            ];
+
+            if ($coverFee <= 0) {
+                $refundParams['refund_application_fee'] = true;
+            }
+
+            $refundParams['reverse_transfer'] = true;
+
+            $refund = \Stripe\Refund::create($refundParams);
+
+            if (!in_array($refund->status, ['succeeded', 'pending'], true)) {
+                throw new \Exception('Stripe refund was not completed.');
+            }
+
+            $this->finalizeRefundedOrder($order, $refund->toArray());
+
+            return $this->refundResponse($silent, true, 'Order refunded successfully', $order, $to);
+        } catch (\Throwable $e) {
+            \Log::error('Order refund failed', [
+                'order_id' => $id,
+                'transaction_id' => $order->transaction_id ?? null,
+                'error' => $e->getMessage(),
             ]);
 
-            $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($id);  
-        
-            $this->post_order_data($order,'refund');
+            return $this->refundResponse($silent, false, $e->getMessage());
+        }
+    }
+
+    protected function finalizeRefundedOrder(Order $order, array $transactionLog): void
+    {
+        $order->payment_status = 5;
+        $order->status_id = $order->status_id == 1 ? 1 : 2;
+        $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
+        $order->save();
+
+        $transcation_log = new Ordermeta;
+        $transcation_log->order_id = $order->id;
+        $transcation_log->key = 'transcation_log';
+        $transcation_log->value = json_encode($transactionLog);
+        $transcation_log->save();
+
+        if ($order->orderlasttrans) {
+            $order->orderlasttrans()->update([
+                'key' => 'last_transcation_log',
+                'value' => json_encode($transactionLog),
+            ]);
+        }
+    }
+
+    protected function refundResponse(bool $silent, bool $success, string $message, ?Order $order = null, ?string $adminEmail = null)
+    {
+        if ($success && $order) {
+            $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
+            $this->post_order_data($order, 'refund');
 
             if (!$silent) {
-                \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
+                NotifyToUser::sendEmail($order, $adminEmail ?? '', 'admin');
 
                 if ($order->notify_driver == 'mail') {
-                
-                    $ordermeta=json_decode($order->ordermeta->value ?? '');
+                    $ordermeta = json_decode($order->ordermeta->value ?? '');
                     if (!empty($ordermeta)) {
-                        $mail_to=$ordermeta->email ?? '';
+                        $mail_to = $ordermeta->email ?? '';
+                    } else {
+                        $mail_to = $order->user->email ?? '';
                     }
-                    else{
-                        $mail_to=$order->user->email ?? '';
-                    }
-                    \App\Lib\NotifyToUser::sendEmail($order, $mail_to, 'user');
-                }
 
-                if (request()->wantsJson()) {
-                    return response()->json(['message' => 'Order refunded successfully']);
+                    if (!empty($mail_to)) {
+                        NotifyToUser::sendEmail($order, $mail_to, 'user');
+                    }
                 }
-                return redirect()->back()->with('success', 'Order refunded successfully');
             }
 
-            return true;
-        } else {
-            if (request()->wantsJson() || $silent) {
-                throw new \Exception('Refund failed');
+            if ($silent) {
+                return true;
             }
-            return redirect()->back()->with('success', 'Order refunded failed');;
+
+            if (request()->wantsJson()) {
+                return response()->json(['message' => $message]);
+            }
+
+            return redirect()->back()->with('success', $message);
         }
+
+        if ($silent) {
+            throw new \Exception($message);
+        }
+
+        if (request()->wantsJson()) {
+            return response()->json(['message' => $message], 422);
+        }
+
+        return redirect()->back()->with('error', $message);
     }
 
 
