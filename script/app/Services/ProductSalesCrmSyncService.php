@@ -175,6 +175,48 @@ class ProductSalesCrmSyncService
         return strtolower(trim((string) $name));
     }
 
+    public function getPausedContinuousSyncForProduct(int $productId): ?ProductSalesCrmSync
+    {
+        return ProductSalesCrmSync::query()
+            ->where('product_id', $productId)
+            ->where('sync_type', 'continuous')
+            ->where('sync_status', 'paused')
+            ->latest('id')
+            ->first();
+    }
+
+    public function pauseContinuousSync(int $productId): ?ProductSalesCrmSync
+    {
+        $sync = $this->getActiveContinuousSyncForProduct($productId);
+
+        if (!$sync) {
+            return null;
+        }
+
+        $sync->update([
+            'continuous_sync_enabled' => false,
+            'sync_status' => 'paused',
+        ]);
+
+        return $sync->fresh();
+    }
+
+    public function restartContinuousSync(int $productId): ?ProductSalesCrmSync
+    {
+        $sync = $this->getPausedContinuousSyncForProduct($productId);
+
+        if (!$sync) {
+            return null;
+        }
+
+        $sync->update([
+            'continuous_sync_enabled' => true,
+            'sync_status' => 'active',
+        ]);
+
+        return $sync->fresh();
+    }
+
     public function stopContinuousSync(int $productId): ?ProductSalesCrmSync
     {
         $sync = $this->getActiveContinuousSyncForProduct($productId);
@@ -596,27 +638,33 @@ class ProductSalesCrmSyncService
             ? $this->getLatestSyncForProduct((int) $productIdForHistory)
             : null;
 
-        $effectiveSync = $sync ?: $latestSync;
+        $pausedSync = $productIdForHistory
+            ? $this->getPausedContinuousSyncForProduct((int) $productIdForHistory)
+            : null;
+
+        $effectiveSync = $sync ?: ($pausedSync ?: $latestSync);
         $lastSyncedAt = $effectiveSync ? optional($effectiveSync->last_synced_at)->format('m/d/Y') : null;
         $lastSyncType = $effectiveSync ? $effectiveSync->sync_type : null;
 
         if (!$sync) {
             return [
                 'continuous_active' => false,
-                'sync_status' => null,
-                'sync_mode' => $latestSync->sync_mode ?? null,
+                'continuous_paused' => (bool) $pausedSync,
+                'sync_status' => $pausedSync ? $pausedSync->sync_status : null,
+                'sync_mode' => $effectiveSync->sync_mode ?? null,
                 'last_synced_at' => $lastSyncedAt,
                 'last_sync_type' => $lastSyncType,
-                'total_synced_contacts' => (int) ($latestSync->total_synced_contacts ?? 0),
+                'total_synced_contacts' => (int) ($effectiveSync->total_synced_contacts ?? 0),
                 'initial_sync_in_progress' => false,
-                'contact_tags' => $latestSync->contact_tags ?? '',
-                'crm_list_name' => $latestSync->crm_list_name ?? '',
+                'contact_tags' => $effectiveSync->contact_tags ?? '',
+                'crm_list_name' => $effectiveSync->crm_list_name ?? '',
                 'has_sync_history' => $hasSyncHistory,
             ];
         }
 
         return [
             'continuous_active' => $sync->isContinuousActive(),
+            'continuous_paused' => false,
             'sync_status' => $sync->sync_status,
             'sync_mode' => $sync->sync_mode,
             'last_synced_at' => $lastSyncedAt,

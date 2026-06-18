@@ -651,7 +651,7 @@
     background: #fff;
     border: 1px solid #d9534f;
     color: #d9534f;
-    min-width: 140px;
+    min-width: 210px;
     padding: 11px 20px;
     font-weight: 700;
     font-size: 14px;
@@ -663,6 +663,26 @@
 #crmSyncModal .btn-stop-crm-sync:focus {
     background: #d9534f;
     border-color: #d9534f;
+    color: #fff;
+    box-shadow: none;
+}
+
+#crmSyncModal .btn-restart-crm-sync {
+    background: #fff;
+    border: 1px solid #00aeef;
+    color: #00aeef;
+    min-width: 210px;
+    padding: 11px 20px;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+#crmSyncModal .btn-restart-crm-sync:hover,
+#crmSyncModal .btn-restart-crm-sync:focus {
+    background: #00aeef;
+    border-color: #00aeef;
     color: #fff;
     box-shadow: none;
 }
@@ -1001,6 +1021,7 @@
 
     $crmSyncStatus = $crmSyncStatus ?? [
         'continuous_active' => false,
+        'continuous_paused' => false,
         'sync_status' => null,
         'sync_mode' => null,
         'last_synced_at' => null,
@@ -1259,7 +1280,10 @@
             <div class="modal-body">
                 <div id="crm_sync_view_form">
                     <div id="crm_sync_continuous_alert" class="crm-sync-continuous-alert" style="display:none;">
-                        Continuous sync is already enabled for this product. You can run sync again anytime to send new contacts to your CRM, or stop continuous sync if you no longer need automatic updates.
+                        Continuous sync is already enabled for this product. You can run sync again anytime to send new contacts to your CRM, or pause continuous sync if you need to temporarily stop automatic updates.
+                    </div>
+                    <div id="crm_sync_continuous_paused_alert" class="crm-sync-continuous-alert" style="display:none;">
+                        Continuous sync is paused for this product. Click Restart Continuous Sync to resume syncing new purchase records to your CRM.
                     </div>
 
                     <p class="crm-sync-desc mb-0">
@@ -1387,7 +1411,7 @@
             <div class="modal-footer">
                 <div id="crm_sync_footer_form">
                     <div class="crm-sync-footer-actions">
-                        <button type="button" class="btn btn-stop-crm-sync" id="crm_sync_stop_btn" style="display:none;">Stop Sync</button>
+                        <button type="button" class="btn btn-stop-crm-sync" id="crm_sync_pause_restart_btn" style="display:none;">Pause Continuous Sync</button>
                         <button type="button" class="btn btn-update-crm-sync" id="crm_sync_submit_btn">{{ $crmSyncFooterLabel }}</button>
                     </div>
                 </div>
@@ -1605,6 +1629,8 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         enable: "{{ route('seller.product.crm.sync.enable', $product->id) }}",
         process: "{{ route('seller.product.crm.sync.process', $product->id) }}",
         stop: "{{ route('seller.product.crm.sync.stop', $product->id) }}",
+        pause: "{{ route('seller.product.crm.sync.pause', $product->id) }}",
+        restart: "{{ route('seller.product.crm.sync.restart', $product->id) }}",
         recordOneTime: "{{ route('seller.product.crm.sync.record_one_time', $product->id) }}",
         createContactGroup: "{{ route('seller.product.crm.sync.contact_groups.create', $product->id) }}",
         syncContactGroups: "{{ route('seller.product.sales.history', $product->id) }}"
@@ -1615,8 +1641,9 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         per_page: {{ (int) $sales->perPage() }}
     };
     var $syncBtn = $modal.find('#crm_sync_submit_btn');
-    var $stopBtn = $modal.find('#crm_sync_stop_btn');
+    var $pauseRestartBtn = $modal.find('#crm_sync_pause_restart_btn');
     var $continuousAlert = $modal.find('#crm_sync_continuous_alert');
+    var $continuousPausedAlert = $modal.find('#crm_sync_continuous_paused_alert');
     var $editBtn = $('#crm_sync_edit_btn');
     var $closeBtn = $modal.find('#crm_sync_close_btn');
     var $viewForm = $modal.find('#crm_sync_view_form');
@@ -2044,14 +2071,39 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         updatePageScopeNotice();
     }
 
+    function isContinuousSyncFormSelected() {
+        return ($modal.find('input[name="crm_sync_recurrence"]:checked').val() || 'continuous') === 'continuous';
+    }
+
     function applyContinuousUiState() {
         var continuousActive = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_active;
+        var continuousPaused = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_paused;
         var initialInProgress = CRM_SYNC_STATUS && CRM_SYNC_STATUS.initial_sync_in_progress;
         var groupChanged = hasCrmListChanged();
         var configChanged = groupChanged || hasSyncScopeChanged();
+        var showContinuousControls = isContinuousSyncFormSelected() && !configChanged;
 
-        $continuousAlert.toggle(continuousActive && !initialInProgress && !configChanged);
-        $stopBtn.toggle(!!continuousActive && !configChanged);
+        $continuousAlert.toggle(continuousActive && !initialInProgress && showContinuousControls);
+        $continuousPausedAlert.toggle(continuousPaused && showContinuousControls);
+
+        if (showContinuousControls && (continuousActive || continuousPaused)) {
+            $pauseRestartBtn.show();
+
+            if (continuousPaused) {
+                $pauseRestartBtn
+                    .text('Restart Continuous Sync')
+                    .removeClass('btn-stop-crm-sync')
+                    .addClass('btn-restart-crm-sync');
+            } else {
+                $pauseRestartBtn
+                    .text('Pause Continuous Sync')
+                    .removeClass('btn-restart-crm-sync')
+                    .addClass('btn-stop-crm-sync');
+            }
+        } else {
+            $pauseRestartBtn.hide();
+        }
+
         $syncBtn.prop('disabled', syncRunning || continuousBatchRunning);
         updatePageScopeNotice();
     }
@@ -2294,30 +2346,56 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
             });
     }
 
-    $stopBtn.on('click', function () {
-        if (!confirm('Stop continuous sync for this product?')) {
+    $pauseRestartBtn.on('click', function () {
+        var continuousPaused = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_paused;
+
+        if (continuousPaused) {
+            $.post(CRM_SYNC_ROUTES.restart, {
+                _token: "{{ csrf_token() }}"
+            })
+                .done(function (response) {
+                    CRM_SYNC_STATUS = response.status || CRM_SYNC_STATUS;
+                    updateLastSyncDateDisplay();
+                    updateCrmSyncLabels();
+                    applyContinuousUiState();
+                })
+                .fail(function (xhr) {
+                    var message = (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : 'Unable to restart continuous sync.';
+                    alert(message);
+                });
+
             return;
         }
 
-        $.post(CRM_SYNC_ROUTES.stop, {
+        if (!confirm('Pause continuous sync for this product? You can restart it later without losing your sync settings.')) {
+            return;
+        }
+
+        $.post(CRM_SYNC_ROUTES.pause, {
             _token: "{{ csrf_token() }}"
         })
             .done(function (response) {
                 CRM_SYNC_STATUS = response.status || {
                     continuous_active: false,
-                    initial_sync_in_progress: false,
-                    last_synced_at: null
+                    continuous_paused: true,
+                    initial_sync_in_progress: false
                 };
+                updateLastSyncDateDisplay();
                 updateCrmSyncLabels();
                 applyContinuousUiState();
-                $modal.modal('hide');
             })
             .fail(function (xhr) {
                 var message = (xhr.responseJSON && xhr.responseJSON.message)
                     ? xhr.responseJSON.message
-                    : 'Unable to stop continuous sync.';
+                    : 'Unable to pause continuous sync.';
                 alert(message);
             });
+    });
+
+    $modal.find('input[name="crm_sync_recurrence"]').on('change', function () {
+        applyContinuousUiState();
     });
 
     $editBtn.on('click', function () {

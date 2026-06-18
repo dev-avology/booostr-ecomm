@@ -1485,6 +1485,51 @@ class ProductController extends Controller
             'status' => app(ProductSalesCrmSyncService::class)->formatStatusPayload(null, (int) $id),
         ]);
     }
+
+    public function crmSyncPause($id)
+    {
+        Term::findOrFail($id);
+
+        $syncService = app(ProductSalesCrmSyncService::class);
+        $sync = $syncService->pauseContinuousSync($id);
+
+        if (!$sync) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active continuous sync found for this product.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Continuous sync paused.',
+            'status' => $syncService->formatStatusPayload(null, (int) $id),
+        ]);
+    }
+
+    public function crmSyncRestart($id)
+    {
+        Term::findOrFail($id);
+
+        $syncService = app(ProductSalesCrmSyncService::class);
+        $sync = $syncService->restartContinuousSync($id);
+
+        if (!$sync) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No paused continuous sync found for this product.',
+            ], 404);
+        }
+
+        $syncService->syncContinuousForProduct((int) $id);
+        $sync->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Continuous sync restarted.',
+            'status' => $syncService->formatStatusPayload($sync, (int) $id),
+        ]);
+    }
     
 public function ticketStatusUpdate(Request $request)
 {
