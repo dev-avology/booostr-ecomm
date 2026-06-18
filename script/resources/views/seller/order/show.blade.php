@@ -118,10 +118,187 @@
 }
 
 .order-refund-card .btn-cancel-refund-process:hover,
-.order-refund-card .btn-cancel-refund-process:focus {
-    background: #a3a3a3;
-    border-color: #a3a3a3;
-    color: #fff;
+.order-refund-card .btn-cancel-refund-process:focus,
+.order-refund-card .btn-cancel-refund-process:active {
+    background: #a3a3a3 !important;
+    border-color: #a3a3a3 !important;
+    color: #fff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+#order-refund-full-details {
+    width: 100%;
+}
+
+.order-refund-details-col {
+    margin-top: 28px;
+}
+
+.order-refund-breakdown {
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.order-refund-breakdown .list-group-item {
+    padding: 14px 18px;
+}
+
+.order-refund-not-refundable-badge {
+    display: inline-block;
+    background: #fde8e8;
+    color: #d9534f;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.order-refund-total-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #d4edda;
+    border: 1px solid #b8dfc4;
+    color: #1f4d2c;
+    padding: 14px 18px;
+    margin-top: 0;
+    width: 100%;
+    font-weight: 600;
+}
+
+.order-refund-total-bar .order-refund-total-amount {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.order-refund-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.order-refund-actions-full {
+    width: 100%;
+    margin-top: 28px;
+    padding-top: 4px;
+}
+
+.order-refund-actions .btn-cancel-refund-process {
+    margin-top: 0;
+}
+
+.order-refund-actions .btn-complete-refund {
+    background: #00aeef !important;
+    border-color: #00aeef !important;
+    color: #fff !important;
+    font-weight: 700;
+    padding: 10px 22px;
+    border-radius: 4px;
+}
+
+.order-refund-actions .btn-complete-refund:hover,
+.order-refund-actions .btn-complete-refund:focus,
+.order-refund-actions .btn-complete-refund:active {
+    background: #0099d6 !important;
+    border-color: #0099d6 !important;
+    color: #fff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.order-refund-confirm-dialog {
+    max-width: 760px;
+}
+
+.order-refund-confirm-content {
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.order-refund-confirm-content .modal-body {
+    padding: 34px 28px 30px;
+}
+
+.order-refund-confirm-title {
+    font-weight: 700;
+    font-size: 22px;
+    color: #1f2d3d;
+    margin-bottom: 18px;
+    line-height: 1.35;
+}
+
+.order-refund-confirm-desc {
+    color: #6c757d;
+    font-size: 14px;
+    line-height: 1.65;
+    margin-bottom: 28px;
+    padding: 0 12px;
+}
+
+.order-refund-confirm-amount-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 12px 30px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.order-refund-confirm-amount-row .order-refund-confirm-amount-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2d3d;
+    white-space: nowrap;
+}
+
+.order-refund-confirm-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.order-refund-confirm-actions .btn-refund-go-back {
+    background: #b5b5b5 !important;
+    border-color: #b5b5b5 !important;
+    color: #fff !important;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 4px;
+}
+
+.order-refund-confirm-actions .btn-refund-go-back:hover,
+.order-refund-confirm-actions .btn-refund-go-back:focus,
+.order-refund-confirm-actions .btn-refund-go-back:active {
+    background: #a3a3a3 !important;
+    border-color: #a3a3a3 !important;
+    color: #fff !important;
+}
+
+.order-refund-confirm-actions .btn-refund-confirm-submit {
+    background: #00aeef !important;
+    border-color: #00aeef !important;
+    color: #fff !important;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 4px;
+}
+
+.order-refund-confirm-actions .btn-refund-confirm-submit:hover,
+.order-refund-confirm-actions .btn-refund-confirm-submit:focus,
+.order-refund-confirm-actions .btn-refund-confirm-submit:active {
+    background: #0099d6 !important;
+    border-color: #0099d6 !important;
+    color: #fff !important;
 }
 </style>
 @endsection
@@ -582,30 +759,6 @@
                             </button>
                         </div>
 
-                        <!-- Confirmation Modal -->
-                        <div class="modal fade" id="refundConfirmModal" tabindex="-1" role="dialog" aria-labelledby="refundConfirmModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered" role="document">
-                            <div class="modal-content rounded shadow">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="refundConfirmModalLabel">Confirm Refund</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                Are you sure you want to <strong>Cancel & Refund</strong> this order?<br>
-                                <span class="text-danger">This action is not reversible.</span>
-                            </div>
-                            <div class="modal-footer">
-                                <form method="POST" action="{{ route('seller.order.refund', $info->id) }}">
-                                    @csrf
-                                    <button type="submit" name="refund_payment" class="btn btn-danger">Yes, Refund</button>
-                                </form>
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">No, Cancel</button>
-                            </div>
-                            </div>
-                        </div>
-                        </div>
                             <!-- <div class="capture-btn">
                                 <form method="POST" action="{{ route('seller.order.refund', $info->id) }}">
                                     @csrf
@@ -830,11 +983,70 @@
     </div>
 
     <div id="order-refund-cancellation-view" style="display:none;">
+        @php
+            $refund_subtotal = 0;
+            $refund_selected_product_type = [];
+
+            foreach ($info->orderitems ?? [] as $refund_row) {
+                $refund_p_types = $product_type->pluck('id')->all();
+                $refund_selected_product_type = $refund_row->term->termcategories
+                    ->pluck('category_id')
+                    ->intersect($refund_p_types)
+                    ->values()
+                    ->all();
+
+                $refund_variations = json_decode($refund_row->info ?? '');
+                $refund_options = $refund_variations->options ?? [];
+                $refund_row_amount = $refund_row->amount;
+
+                if (!is_array($refund_options) && is_object($refund_options) && isset($refund_options->varition_options)) {
+                    $refund_row_amount = $refund_options->price;
+                }
+
+                $refund_subtotal += $refund_row_amount * $refund_row->qty;
+            }
+
+            $refund_type_count = count($refund_selected_product_type);
+            $refund_order_type = match (true) {
+                $refund_type_count > 1 => 'Mixed',
+                $refund_type_count === 1 => optional(
+                    $product_type->firstWhere('id', $refund_selected_product_type[0])
+                )->slug === 'digital_product' ? 'Digital' : 'Goods',
+                default => 'Goods',
+            };
+
+            $refund_credit_card_fee = 0;
+            $refund_booster_platform_fee = 0;
+            $refund_shipping_price = 0;
+            $refund_cover_fee = $refund_booster_platform_fee + $refund_credit_card_fee;
+
+            if (!empty($ordermeta) && $info->getway->name !== 'cash') {
+                $refund_credit_card_fee = $ordermeta->credit_card_fee ?? 0;
+                $refund_booster_platform_fee = $ordermeta->booster_platform_fee ?? 0;
+                $refund_cover_fee = $ordermeta->cover_fee ?? 0;
+            }
+
+            if (!empty($info->shippingwithinfo) && $info->shippingwithinfo->shipping_driver == 'local') {
+                $refund_shipping_info_price = json_decode($info->shippingwithinfo->info ?? '');
+                $refund_credit_card_fee = $refund_shipping_info_price->credit_card_fee ?? 0;
+                $refund_booster_platform_fee = $refund_shipping_info_price->booster_platform_fee ?? 0;
+            }
+
+            if ($info->order_method == 'delivery' && $refund_order_type !== 'Digital') {
+                $refund_shipping_price = $info->shippingwithinfo->shipping_price ?? 0;
+            }
+
+            $refund_pro_club = tenant_club_is_pro();
+            $refund_net_total = $refund_cover_fee > 0
+                ? ($info->total - $refund_cover_fee)
+                : ($info->total - $refund_credit_card_fee - $refund_booster_platform_fee);
+        @endphp
+
         <div class="card card-primary order-refund-card">
             <div class="card-body">
-                <h4 class="order-refund-title">{{ __('Order Refund & Cancellation') }}</h4>
+                <h4 class="order-refund-title" id="order-refund-section-title">{{ __('Order Refund & Cancellation') }}</h4>
                 <p class="order-refund-desc mb-0">
-                    {{ __('Refund & cancel full or partial orders. We do not charge any fees for refunds, but the full or partial original processing fee is not refunded. All refunds are handled via Stripe will be deducted from your connected bank account and sent to the customer\'s original payment method used for the transaction.') }}
+                    {{ __('Refund & cancel full or partial orders. We do not charge any fees for refunds, but the full or partial original processing fee is not refunded. All refunds are handled via Stripe will be deducted from your connected bank account and sent to the customer\'s original payment method used for the transaction. Payment processing fees cannot be refunded.') }}
                 </p>
 
                 <div class="form-group mb-0 mt-4">
@@ -843,15 +1055,222 @@
                     </label>
                     <select id="order_refund_type_select" class="form-control order-refund-select">
                         <option value="">{{ __('Choose') }}</option>
+                        <option value="full">{{ __('Refund & Cancel Full Order') }}</option>
+                        <option value="partial">{{ __('Refund & Cancel Partial Order') }}</option>
                     </select>
                 </div>
 
-                <button type="button" class="btn btn-cancel-refund-process" id="cancel-order-refund-process-btn">
-                    {{ __('Cancel Order Cancellation Process') }}
-                </button>
+                <div id="order-refund-full-details" style="display:none;">
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-lg-8 order-refund-details-col">
+                    <ul class="list-group list-group-lg list-group-flush list order-refund-breakdown">
+                        <li class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col-6"><strong>{{ __('Product') }}</strong></div>
+                                <div class="col-3 text-right"><strong>{{ __('Amount') }}</strong></div>
+                                <div class="col-3 text-right"><strong>{{ __('Total') }}</strong></div>
+                            </div>
+                        </li>
+
+                        @foreach ($info->orderitems ?? [] as $refund_row)
+                            @php
+                                $refund_variations = json_decode($refund_row->info ?? '');
+                                $refund_options = $refund_variations->options ?? [];
+                                $refund_line_amount = $refund_row->amount;
+
+                                if (!is_array($refund_options) && is_object($refund_options) && isset($refund_options->varition_options)) {
+                                    $refund_line_amount = $refund_options->price;
+                                }
+                            @endphp
+                            <li class="list-group-item">
+                                <div class="row align-items-center">
+                                    <div class="col-6">
+                                        <a href="{{ url('/seller/product/' . $refund_row->term->id . '/edit') }}">{{ $refund_row->term->title ?? '' }}
+                                            @if (!is_array($refund_options) && $refund_options == '' && !empty($refund_variations->sku))
+                                                ({{ $refund_row->term->full_id }})
+                                            @elseif(!is_array($refund_options) && $refund_options == '')
+                                                ({{ $refund_row->term->full_id }})
+                                            @endif
+                                            <br>
+                                        </a>
+                                        @if(is_array($refund_options))
+                                            @foreach ($refund_options ?? [] as $refund_key => $refund_item)
+                                                @if (is_object($refund_item) && isset($refund_item->varition_options))
+                                                    @php $refund_product_options = $refund_item->varition_options; @endphp
+                                                    @foreach($refund_item->varitions as $refund_sel_val)
+                                                        @php $refund_cur_opt_name = array_filter($refund_product_options, function ($x) use ($refund_sel_val) {
+                                                            return $x->id == $refund_sel_val->pivot->productoption_id;
+                                                        }); @endphp
+                                                        <strong>{{ reset($refund_cur_opt_name)->category->name }} : </strong>{{ $refund_sel_val->name }}<br>
+                                                    @endforeach
+                                                    <hr>
+                                                @endif
+                                            @endforeach
+                                        @elseif(is_object($refund_options) && isset($refund_options->varition_options))
+                                            @php $refund_product_options = $refund_options->varition_options; @endphp
+                                            @foreach($refund_options->varitions as $refund_sel_val)
+                                                @php $refund_cur_opt_name = array_filter($refund_product_options, function ($x) use ($refund_sel_val) {
+                                                    return $x->id == $refund_sel_val->pivot->productoption_id;
+                                                }); @endphp
+                                                <strong>{{ reset($refund_cur_opt_name)->category->name }} : </strong>{{ $refund_sel_val->name }}<br>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                    <div class="col-3 text-right">
+                                        {{ currency_formate($refund_line_amount) }} × {{ $refund_row->qty }}
+                                    </div>
+                                    <div class="col-3 text-right">
+                                        {{ currency_formate($refund_line_amount * $refund_row->qty) }}
+                                    </div>
+                                </div>
+                            </li>
+                        @endforeach
+
+                        <li class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col-9 text-right">{{ __('SubTotal') }}</div>
+                                <div class="col-3 text-right">{{ currency_formate($refund_subtotal) }}</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col-9 text-right">{{ __('Order Discount') }}@isset($info->coupon_code) ({{ $info->coupon_code }}) @endisset</div>
+                                <div class="col-3 text-right">- {{ currency_formate($info->discount) }}</div>
+                            </div>
+                        </li>
+                        @if ($info->order_method == 'delivery' && $refund_order_type !== 'Digital')
+                            <li class="list-group-item">
+                                <div class="row align-items-center">
+                                    <div class="col-6">{{ $info->shipping_info->shipping_method->name ?? '' }}</div>
+                                    <div class="col-3 text-right">{{ __('Shipping Fee') }}</div>
+                                    <div class="col-3 text-right">{{ currency_formate($refund_shipping_price) }}</div>
+                                </div>
+                            </li>
+                        @endif
+                        <li class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col-9 text-right">{{ __('Tax') }}</div>
+                                <div class="col-3 text-right">{{ currency_formate($info->tax) }}</div>
+                            </div>
+                        </li>
+                        @if($refund_cover_fee > 0)
+                            <li class="list-group-item">
+                                <div class="row align-items-center">
+                                    <div class="col-3">
+                                        <span class="order-refund-not-refundable-badge">{{ __('Not refundable') }}</span>
+                                    </div>
+                                    <div class="col-6 text-right">{{ __('Supporter Covered Fees') }}</div>
+                                    <div class="col-3 text-right">{{ currency_formate($refund_cover_fee) }}</div>
+                                </div>
+                            </li>
+                        @endif
+                        <li class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col-9 text-right">{{ __('Order Total') }}</div>
+                                <div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
+                            </div>
+                        </li>
+                        @if($info->getway->name !== 'cash')
+                            <li class="list-group-item">
+                                <div class="row align-items-center text-grey">
+                                    <div class="col-3">
+                                        <span class="order-refund-not-refundable-badge">{{ __('Not refundable') }}</span>
+                                    </div>
+                                    <div class="col-6 text-right">{{ __('Credit Card Processing ') }}</div>
+                                    @if($refund_cover_fee > 0)
+                                        <div class="col-3 text-right">{{ __('Supporter Covered Fees') }}</div>
+                                    @else
+                                        <div class="col-3 text-right">{{ currency_formate($refund_credit_card_fee) }}</div>
+                                    @endif
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="row align-items-center text-grey">
+                                    <div class="col-3">
+                                        <span class="order-refund-not-refundable-badge">{{ __('Not refundable') }}</span>
+                                    </div>
+                                    <div class="col-6 text-right">{{ __('Booostr Platform Fee') }} {{ ($refund_pro_club) ? '(1.75%)' : '(3.5%)' }}</div>
+                                    @if($refund_cover_fee > 0)
+                                        <div class="col-3 text-right">{{ __('Supporter Covered Fees') }}</div>
+                                    @else
+                                        <div class="col-3 text-right">{{ currency_formate($refund_booster_platform_fee) }}</div>
+                                    @endif
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="row align-items-center text-grey">
+                                    <div class="col-9 text-right">
+                                        {{ __('Net Order Total (Order Total - Credit Card Processing and Booostr Platform Fee)') }}
+                                    </div>
+                                    <div class="col-3 text-right">{{ currency_formate($refund_net_total) }}</div>
+                                </div>
+                            </li>
+                        @endif
+                    </ul>
+
+                    <div class="order-refund-total-bar">
+                        <span>{{ __('Total Order Refund Amount:') }}</span>
+                        <span class="order-refund-total-amount">{{ currency_formate($refund_net_total) }}</span>
+                    </div>
+                        </div>
+                    </div>
+
+                    <div class="order-refund-actions order-refund-actions-full">
+                        <button type="button" class="btn btn-cancel-refund-process" id="cancel-order-refund-process-btn-full">
+                            {{ __('Cancel Order Cancellation Process') }}
+                        </button>
+                        <button type="button"
+                            class="btn btn-complete-refund"
+                            id="complete-full-refund-btn"
+                            data-toggle="modal"
+                            data-target="#refundConfirmModal">
+                            {{ __('Complete Refund & Cancellation') }}
+                        </button>
+                    </div>
+                </div>
+
+                <div id="order-refund-simple-actions">
+                    <button type="button" class="btn btn-cancel-refund-process" id="cancel-order-refund-process-btn">
+                        {{ __('Cancel Order Cancellation Process') }}
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    @if ($info->payment_status == 1 && $info->getway->name !== 'cash')
+        <div class="modal fade" id="refundConfirmModal" tabindex="-1" role="dialog" aria-labelledby="refundConfirmModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered order-refund-confirm-dialog" role="document">
+                <div class="modal-content order-refund-confirm-content">
+                    <div class="modal-body text-center">
+                        <h5 class="order-refund-confirm-title" id="refundConfirmModalLabel">
+                            {{ __('Are you sure you want to refund & cancel order:') }} {{ $info->invoice_no }}?
+                        </h5>
+                        <p class="order-refund-confirm-desc mb-0">
+                            {{ __('Please confirm that you would like to cancel and refund this order. This action cannot be undone. To go back, click the \'No, close window and go back\' grey button. To proceed with the refund and cancellation click the \'Yes, complete refund & cancellation\' blue button.') }}
+                        </p>
+
+                        <div class="order-refund-confirm-amount-row">
+                            <span>{{ __('Total Order Refund Amount:') }}</span>
+                            <span class="order-refund-confirm-amount-value" id="refund_confirm_amount_value">{{ currency_formate($refund_net_total ?? 0) }}</span>
+                        </div>
+
+                        <div class="order-refund-confirm-actions">
+                            <button type="button" class="btn btn-refund-go-back" data-dismiss="modal">
+                                {{ __('No, close window and go back') }}
+                            </button>
+                            <form method="POST" action="{{ route('seller.order.refund', $info->id) }}" class="d-inline mb-0">
+                                @csrf
+                                <button type="submit" name="refund_payment" class="btn btn-refund-confirm-submit">
+                                    {{ __('Yes, complete refund & cancellation') }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 @endsection
 
 @push('script')
@@ -859,16 +1278,51 @@
         $(function () {
             var $orderDetailsView = $('#order-details-view');
             var $orderRefundView = $('#order-refund-cancellation-view');
+            var $orderHeaderTitle = $('.section-header h1');
+            var defaultHeaderTitle = $.trim($orderHeaderTitle.text() || '');
+            var refundHeaderTitle = @json($info->invoice_no . ' Order Details');
+            var refundTitleBase = @json(__('Order Refund & Cancellation'));
+            var orderInvoiceNo = @json($info->invoice_no);
+
+            function updateRefundSectionTitle() {
+                var selected = $('#order_refund_type_select').val();
+                $('#order-refund-section-title').text(
+                    selected ? (refundTitleBase + ': ' + orderInvoiceNo) : refundTitleBase
+                );
+            }
+
+            function updateRefundViewState() {
+                var selected = $('#order_refund_type_select').val();
+                updateRefundSectionTitle();
+
+                if (selected === 'full') {
+                    $('#order-refund-full-details').show();
+                    $('#order-refund-simple-actions').hide();
+                } else {
+                    $('#order-refund-full-details').hide();
+                    $('#order-refund-simple-actions').show();
+                }
+            }
+
+            function resetRefundCancellationView() {
+                $orderRefundView.hide();
+                $orderDetailsView.show();
+                $orderHeaderTitle.text(defaultHeaderTitle);
+                $('#order_refund_type_select').val('');
+                updateRefundViewState();
+            }
 
             $('#show-order-refund-view-btn').on('click', function () {
                 $orderDetailsView.hide();
                 $orderRefundView.show();
+                $orderHeaderTitle.text(refundHeaderTitle);
+                $('#order_refund_type_select').val('');
+                updateRefundViewState();
             });
 
-            $('#cancel-order-refund-process-btn').on('click', function () {
-                $orderRefundView.hide();
-                $orderDetailsView.show();
-            });
+            $('#order_refund_type_select').on('change', updateRefundViewState);
+
+            $('#cancel-order-refund-process-btn, #cancel-order-refund-process-btn-full').on('click', resetRefundCancellationView);
         });
     </script>
 
