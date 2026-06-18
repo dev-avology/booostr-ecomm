@@ -69,9 +69,64 @@
 .risk-level.not-assessed span {
     background-color: #a9e0ff;
 }
+
+.order-refund-card {
+    border-top: 3px solid #00aeef;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.order-refund-card .card-body {
+    padding: 28px 32px 32px;
+}
+
+.order-refund-card .order-refund-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1f2d3d;
+    margin-bottom: 16px;
+}
+
+.order-refund-card .order-refund-desc {
+    color: #6c757d;
+    font-size: 14px;
+    line-height: 1.65;
+    max-width: 920px;
+    margin-bottom: 28px;
+}
+
+.order-refund-card .order-refund-field-label {
+    font-weight: 600;
+    color: #1f2d3d;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.order-refund-card .order-refund-select {
+    max-width: 420px;
+    height: 42px;
+}
+
+.order-refund-card .btn-cancel-refund-process {
+    background: #b5b5b5;
+    border-color: #b5b5b5;
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 22px;
+    margin-top: 22px;
+    border-radius: 4px;
+}
+
+.order-refund-card .btn-cancel-refund-process:hover,
+.order-refund-card .btn-cancel-refund-process:focus {
+    background: #a3a3a3;
+    border-color: #a3a3a3;
+    color: #fff;
+}
 </style>
 @endsection
 @section('content')
+    <div id="order-details-view">
     <div class="row" id="order">
         <div class="col-12 col-lg-8">
             <div class="card card-primary">
@@ -520,9 +575,9 @@
 
                         @if ($info->payment_status == 1 && $info->getway->name !== 'cash')
                         <div class="capture-btn">
-                            <!-- Trigger Modal -->
-                            <button type="button" class="btn btn-primary float-right mt-2 text-right" 
-                                data-toggle="modal" data-target="#refundConfirmModal">
+                            <button type="button"
+                                class="btn btn-primary float-right mt-2 text-right"
+                                id="show-order-refund-view-btn">
                                 Cancel Order & Refund Payment
                             </button>
                         </div>
@@ -772,9 +827,51 @@
             </div>
         </div>
     </div>
+    </div>
+
+    <div id="order-refund-cancellation-view" style="display:none;">
+        <div class="card card-primary order-refund-card">
+            <div class="card-body">
+                <h4 class="order-refund-title">{{ __('Order Refund & Cancellation') }}</h4>
+                <p class="order-refund-desc mb-0">
+                    {{ __('Refund & cancel full or partial orders. We do not charge any fees for refunds, but the full or partial original processing fee is not refunded. All refunds are handled via Stripe will be deducted from your connected bank account and sent to the customer\'s original payment method used for the transaction.') }}
+                </p>
+
+                <div class="form-group mb-0 mt-4">
+                    <label class="order-refund-field-label d-block" for="order_refund_type_select">
+                        {{ __('Full or partial order refund & cancellation:') }}
+                    </label>
+                    <select id="order_refund_type_select" class="form-control order-refund-select">
+                        <option value="">{{ __('Choose') }}</option>
+                    </select>
+                </div>
+
+                <button type="button" class="btn btn-cancel-refund-process" id="cancel-order-refund-process-btn">
+                    {{ __('Cancel Order Cancellation Process') }}
+                </button>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('script')
+    <script>
+        $(function () {
+            var $orderDetailsView = $('#order-details-view');
+            var $orderRefundView = $('#order-refund-cancellation-view');
+
+            $('#show-order-refund-view-btn').on('click', function () {
+                $orderDetailsView.hide();
+                $orderRefundView.show();
+            });
+
+            $('#cancel-order-refund-process-btn').on('click', function () {
+                $orderRefundView.hide();
+                $orderDetailsView.show();
+            });
+        });
+    </script>
+
     @if ($info->order_method == 'delivery' && !empty($info->shippingwithinfo))
         @if (!empty($info->shippingwithinfo->lat) && !empty($info->shippingwithinfo->long))
             <script async defer
