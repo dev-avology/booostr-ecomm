@@ -687,6 +687,17 @@
     box-shadow: none;
 }
 
+#crmSyncModal .btn-stop-crm-sync.is-loading,
+#crmSyncModal .btn-restart-crm-sync.is-loading,
+#crmSyncModal .btn-stop-crm-sync:disabled,
+#crmSyncModal .btn-restart-crm-sync:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+    filter: grayscale(0.15);
+    box-shadow: none;
+}
+
 #crmSyncModal .crm-sync-footer-actions {
     display: flex;
     align-items: center;
@@ -1664,6 +1675,7 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
     var currentView = 'form';
     var syncRunning = false;
     var continuousBatchRunning = false;
+    var pauseRestartPending = false;
 
     function appendContactGroupOption(name, groupId, makeSelected) {
         var normalized = $.trim(name || '');
@@ -2075,6 +2087,14 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         return ($modal.find('input[name="crm_sync_recurrence"]:checked').val() || 'continuous') === 'continuous';
     }
 
+    function setPauseRestartBtnPending(isPending) {
+        pauseRestartPending = !!isPending;
+        $pauseRestartBtn
+            .prop('disabled', pauseRestartPending)
+            .toggleClass('is-loading', pauseRestartPending)
+            .attr('aria-busy', pauseRestartPending ? 'true' : 'false');
+    }
+
     function applyContinuousUiState() {
         var continuousActive = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_active;
         var continuousPaused = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_paused;
@@ -2102,6 +2122,12 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
             }
         } else {
             $pauseRestartBtn.hide();
+        }
+
+        if (pauseRestartPending && $pauseRestartBtn.is(':visible')) {
+            setPauseRestartBtnPending(true);
+        } else if ($pauseRestartBtn.is(':visible')) {
+            setPauseRestartBtnPending(false);
         }
 
         $syncBtn.prop('disabled', syncRunning || continuousBatchRunning);
@@ -2347,9 +2373,15 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
     }
 
     $pauseRestartBtn.on('click', function () {
+        if (pauseRestartPending || $pauseRestartBtn.prop('disabled')) {
+            return;
+        }
+
         var continuousPaused = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_paused;
 
         if (continuousPaused) {
+            setPauseRestartBtnPending(true);
+
             $.post(CRM_SYNC_ROUTES.restart, {
                 _token: "{{ csrf_token() }}"
             })
@@ -2357,13 +2389,16 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
                     CRM_SYNC_STATUS = response.status || CRM_SYNC_STATUS;
                     updateLastSyncDateDisplay();
                     updateCrmSyncLabels();
-                    applyContinuousUiState();
                 })
                 .fail(function (xhr) {
                     var message = (xhr.responseJSON && xhr.responseJSON.message)
                         ? xhr.responseJSON.message
                         : 'Unable to restart continuous sync.';
                     alert(message);
+                })
+                .always(function () {
+                    setPauseRestartBtnPending(false);
+                    applyContinuousUiState();
                 });
 
             return;
@@ -2372,6 +2407,8 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
         if (!confirm('Pause continuous sync for this product? You can restart it later without losing your sync settings.')) {
             return;
         }
+
+        setPauseRestartBtnPending(true);
 
         $.post(CRM_SYNC_ROUTES.pause, {
             _token: "{{ csrf_token() }}"
@@ -2384,13 +2421,16 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
                 };
                 updateLastSyncDateDisplay();
                 updateCrmSyncLabels();
-                applyContinuousUiState();
             })
             .fail(function (xhr) {
                 var message = (xhr.responseJSON && xhr.responseJSON.message)
                     ? xhr.responseJSON.message
                     : 'Unable to pause continuous sync.';
                 alert(message);
+            })
+            .always(function () {
+                setPauseRestartBtnPending(false);
+                applyContinuousUiState();
             });
     });
 
