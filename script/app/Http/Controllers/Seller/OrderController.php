@@ -518,6 +518,32 @@ class OrderController extends Controller
 
 
 
+    protected function resolveOrderProcessingFees(Order $order, ?array $ordermeta = null): array
+    {
+        $credit_card_fee = 0;
+        $booster_platform_fee = 0;
+
+        $shippingWithInfo = $order->shippingwithinfo;
+        if ($shippingWithInfo && !empty($shippingWithInfo->info)) {
+            $shipping_data = json_decode($shippingWithInfo->info, true) ?: [];
+
+            if (($shippingWithInfo->shipping_driver ?? '') === 'local') {
+                $credit_card_fee = (float) ($shipping_data['credit_card_fee'] ?? 0);
+                $booster_platform_fee = (float) ($shipping_data['booster_platform_fee'] ?? 0);
+            }
+        }
+
+        if ($credit_card_fee == 0 && $booster_platform_fee == 0 && !empty($ordermeta)) {
+            $credit_card_fee = (float) ($ordermeta['credit_card_fee'] ?? 0);
+            $booster_platform_fee = (float) ($ordermeta['booster_platform_fee'] ?? 0);
+        }
+
+        return [
+            'credit_card_fee' => $credit_card_fee,
+            'booster_platform_fee' => $booster_platform_fee,
+        ];
+    }
+
     public function post_order_data($order,$post_type = 'capture'){
 
         $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
@@ -527,25 +553,25 @@ class OrderController extends Controller
         $sales_tax = $order->tax;
         $order_total = $order->total;
 
-        $ordermeta=json_decode($order->ordermeta->value ?? '',true);
+        $ordermeta = json_decode(optional($order->ordermeta)->value ?? '', true) ?: [];
         
-        $name = explode(' ',$ordermeta['name']);
+        $name = explode(' ', $ordermeta['name'] ?? '');
 
         $gateway=Getway::find($order->getway_id);
 
          $contact_manager_data = array(
-									'first_name' => $name[0],
+									'first_name' => $name[0] ?? '',
 									'last_name' => $name[1]??'',
 									'user_id' =>  $ordermeta['wpuid']??0,
-									'phone_number' => $ordermeta['phone'],					
-									'booster_name' => $name[0],
-									'country' =>   $ordermeta['billing']['country'],									
-									'address_1' => $ordermeta['billing']['address'],
+									'phone_number' => $ordermeta['phone'] ?? '',					
+									'booster_name' => $name[0] ?? '',
+									'country' =>   $ordermeta['billing']['country'] ?? '',									
+									'address_1' => $ordermeta['billing']['address'] ?? '',
 									'address_2' =>  '',
-									'city' => $ordermeta['billing']['city'],
-									'state' =>  $ordermeta['billing']['state'],
-									'zip' =>  $ordermeta['billing']['post_code'],													
-									'email' =>  $ordermeta['email'],                   
+									'city' => $ordermeta['billing']['city'] ?? '',
+									'state' =>  $ordermeta['billing']['state'] ?? '',
+									'zip' =>  $ordermeta['billing']['post_code'] ?? '',													
+									'email' =>  $ordermeta['email'] ?? '',                   
 									'booster_id' =>Tenant('club_id'),
 									'booster_level_id' => 4,
 									'contact_tags' => '',
@@ -553,15 +579,10 @@ class OrderController extends Controller
                                     'addedsource' => 'storetool',
 								);	  
 
-         //$jsonString = $order->shippingwithinfo['info'];
-
-        $jsonString = $order->shippingwithinfo['info'];
-        // Decode the JSON string into a PHP array
-        $shipping_data = json_decode($jsonString, true);
-
-        $credit_card_fee = $shipping_data['credit_card_fee'];
-        $booster_platform_fee = $shipping_data['booster_platform_fee'];
-        $processing_fees = $credit_card_fee+$booster_platform_fee;
+        $fees = $this->resolveOrderProcessingFees($order, $ordermeta);
+        $credit_card_fee = $fees['credit_card_fee'];
+        $booster_platform_fee = $fees['booster_platform_fee'];
+        $processing_fees = $credit_card_fee + $booster_platform_fee;
 
         $customer_contact_data = $order->user;
 
@@ -654,20 +675,16 @@ class OrderController extends Controller
     
         if(isset($order->ordermeta)){
             $ordermeta=json_decode($order->ordermeta->value ?? '',true);
+        } else {
+            $ordermeta = [];
         }
 
         $gateway=Getway::find($order->getway_id);
 
-
-        //$jsonString = $order->shippingwithinfo['info'];
-
-        $jsonString = $order->shippingwithinfo['info'];
-        // Decode the JSON string into a PHP array
-        $shipping_data = json_decode($jsonString, true);
-
-        $credit_card_fee = $shipping_data['credit_card_fee'];
-        $booster_platform_fee = $shipping_data['booster_platform_fee'];
-        $processing_fees = $credit_card_fee+$booster_platform_fee;
+        $fees = $this->resolveOrderProcessingFees($order, is_array($ordermeta) ? $ordermeta : null);
+        $credit_card_fee = $fees['credit_card_fee'];
+        $booster_platform_fee = $fees['booster_platform_fee'];
+        $processing_fees = $credit_card_fee + $booster_platform_fee;
 
         $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
 
@@ -864,7 +881,15 @@ class OrderController extends Controller
     {
         if ($success && $order) {
             $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
-            $this->post_order_data($order, 'refund');
+
+            try {
+                $this->post_order_data($order, 'refund');
+            } catch (\Throwable $e) {
+                \Log::error('post_order_data failed after refund', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             if (!$silent) {
                 NotifyToUser::sendEmail($order, $adminEmail ?? '', 'admin');
