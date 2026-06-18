@@ -1815,6 +1815,8 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
         if (isChangingAllResultsToPageScope()) {
             promptCreateNewContactGroupForPageScope();
+        } else if (isRevertingAllResultsToPageScopeChange()) {
+            restoreOriginalContactGroupSelection();
         }
 
         applyContinuousUiState();
@@ -1938,10 +1940,53 @@ $('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
 
     function promptCreateNewContactGroupForPageScope() {
         alert('To change from All Results to Only This Page Of Results, please create a new contact group.');
+        if ($crmSyncList.val() !== '__create_new__') {
+            lastValidCrmListValue = $crmSyncList.val();
+        }
         $crmSyncList.val('__create_new__');
         $createListWrap.show();
         $createListInput.focus();
         clearCreateListError();
+    }
+
+    function resetCreateNewContactGroupUi() {
+        $createListWrap.hide();
+        $createListInput.val('').prop('disabled', false);
+        clearCreateListError();
+    }
+
+    function restoreOriginalContactGroupSelection() {
+        var listName = $.trim(originalCrmListName || lastValidCrmListValue || '');
+
+        if (!listName || listName === '__create_new__') {
+            resetCreateNewContactGroupUi();
+            if ($crmSyncList.val() === '__create_new__') {
+                var fallback = $.trim($crmSyncList.find('option').not('[value="__create_new__"]').first().val() || '');
+                if (fallback) {
+                    $crmSyncList.val(fallback);
+                    lastValidCrmListValue = fallback;
+                }
+            }
+            return;
+        }
+
+        var $matchingOption = $crmSyncList.find('option').filter(function () {
+            return $.trim($(this).val()).toLowerCase() === listName.toLowerCase()
+                && $(this).val() !== '__create_new__';
+        }).first();
+
+        if ($matchingOption.length) {
+            $crmSyncList.val($matchingOption.val());
+        } else {
+            appendContactGroupOption(listName, '', true);
+        }
+
+        lastValidCrmListValue = listName;
+        resetCreateNewContactGroupUi();
+    }
+
+    function isRevertingAllResultsToPageScopeChange() {
+        return originalPassScope === 'all' && getCurrentPassScope() === 'all';
     }
 
     function ensureValidContactGroupForPageScopeChange() {
