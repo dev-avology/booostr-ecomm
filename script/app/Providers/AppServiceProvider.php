@@ -32,5 +32,21 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Throwable $e) {
             Log::error('SES DB credentials load failed: ' . $e->getMessage());
         }
+
+        try {
+            $mailDriver = config('mail.driver', env('MAIL_MAILER', 'smtp'));
+
+            if ($mailDriver === 'smtp') {
+                $username = get_secret('MAIL_USERNAME');
+                $password = get_secret('MAIL_PASSWORD');
+
+                if (!empty($username) && !empty($password)) {
+                    Config::set('mail.username', $username);
+                    Config::set('mail.password', $password);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('SMTP DB credentials load failed: ' . $e->getMessage());
+        }
     }
 }
