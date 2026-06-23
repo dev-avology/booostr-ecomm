@@ -812,16 +812,14 @@ class OrderController extends Controller
             if ($charge->refunded) {
                 $this->finalizeRefundedOrder($order, $charge->toArray());
 
-                return $this->refundResponse($silent, true, 'Order refunded successfully', $order, $to);
+                $refundAmountDollars = $this->calculateRefundNetTotal($order, $ordermeta);
+                $stripeRefundId = $charge->refunds->data[0]->id ?? null;
+
+                return $this->refundResponse($silent, true, 'Order refunded successfully', $order, $to, $refundAmountDollars, $stripeRefundId);
             }
 
-            $applicationFee = (float) ($ordermeta->booster_platform_fee ?? 0);
-            $cardFee = (float) ($ordermeta->credit_card_fee ?? 0);
+            $refundAmountDollars = $this->calculateRefundNetTotal($order, $ordermeta);
             $coverFee = (float) ($ordermeta->cover_fee ?? 0);
-
-            $refundAmountDollars = $coverFee > 0
-                ? ((float) $order->total - $coverFee)
-                : ((float) $order->total - $applicationFee - $cardFee);
 
             $refundAmountCents = max(1, (int) round($refundAmountDollars * 100));
 
@@ -844,7 +842,7 @@ class OrderController extends Controller
 
             $this->finalizeRefundedOrder($order, $refund->toArray());
 
-            return $this->refundResponse($silent, true, 'Order refunded successfully', $order, $to);
+            return $this->refundResponse($silent, true, 'Order refunded successfully', $order, $to, $refundAmountDollars, $refund->id);
         } catch (\Throwable $e) {
             \Log::error('Order refund failed', [
                 'order_id' => $id,
@@ -877,7 +875,39 @@ class OrderController extends Controller
         }
     }
 
-    protected function refundResponse(bool $silent, bool $success, string $message, ?Order $order = null, ?string $adminEmail = null)
+    protected function calculateRefundNetTotal(Order $order, $ordermeta): float
+    {
+        $ordermeta = is_array($ordermeta) ? (object) $ordermeta : $ordermeta;
+        $applicationFee = (float) ($ordermeta->booster_platform_fee ?? 0);
+        $cardFee = (float) ($ordermeta->credit_card_fee ?? 0);
+        $coverFee = (float) ($ordermeta->cover_fee ?? 0);
+
+        return $coverFee > 0
+            ? ((float) $order->total - $coverFee)
+            : ((float) $order->total - $applicationFee - $cardFee);
+    }
+
+    protected function buildRefundReferenceId(Order $order, ?string $stripeRefundId = null): string
+    {
+        $suffix = '0000';
+
+        if (!empty($stripeRefundId)) {
+            $digits = preg_replace('/\D/', '', $stripeRefundId);
+            $suffix = substr($digits, -4) ?: substr(md5($stripeRefundId), 0, 4);
+        } else {
+            $log = json_decode(optional($order->orderlasttrans)->value ?? '{}', true);
+            $logId = is_array($log) ? ($log['id'] ?? null) : null;
+
+            if (!empty($logId)) {
+                $digits = preg_replace('/\D/', '', $logId);
+                $suffix = substr($digits, -4) ?: substr(md5($logId), 0, 4);
+            }
+        }
+
+        return $order->invoice_no . 'rfd' . str_pad($suffix, 4, '0', STR_PAD_LEFT);
+    }
+
+    protected function refundResponse(bool $silent, bool $success, string $message, ?Order $order = null, ?string $adminEmail = null, ?float $refundAmount = null, ?string $stripeRefundId = null)
     {
         if ($success && $order) {
             $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
@@ -913,10 +943,25 @@ class OrderController extends Controller
             }
 
             if (request()->wantsJson()) {
-                return response()->json(['message' => $message]);
+                return response()->json([
+                    'message' => $message,
+                    'refund' => [
+                        'invoice_no' => $order->invoice_no,
+                        'amount' => $refundAmount ?? $this->calculateRefundNetTotal($order, json_decode(optional($order->ordermeta)->value ?? '{}')),
+                        'reference_id' => $this->buildRefundReferenceId($order, $stripeRefundId),
+                    ],
+                ]);
             }
 
-            return redirect()->back()->with('success', $message);
+            $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}', true);
+            $receiptEmail = $ordermeta['email'] ?? $order->user->email ?? '';
+
+            return redirect()->back()->with('refund_success', [
+                'invoice_no' => $order->invoice_no,
+                'amount' => $refundAmount ?? $this->calculateRefundNetTotal($order, (object) $ordermeta),
+                'email' => $receiptEmail,
+                'reference_id' => $this->buildRefundReferenceId($order, $stripeRefundId),
+            ]);
         }
 
         if ($silent) {

@@ -300,10 +300,87 @@
     border-color: #0099d6 !important;
     color: #fff !important;
 }
+
+.order-refund-success-dialog {
+    max-width: 760px;
+}
+
+.order-refund-success-content {
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.order-refund-success-content .modal-body {
+    padding: 34px 28px 30px;
+}
+
+.order-refund-success-title {
+    font-weight: 700;
+    font-size: 22px;
+    color: #1f2d3d;
+    margin-bottom: 18px;
+    line-height: 1.35;
+}
+
+.order-refund-success-desc {
+    color: #6c757d;
+    font-size: 14px;
+    line-height: 1.65;
+    margin-bottom: 28px;
+    padding: 0 12px;
+}
+
+.order-refund-success-details {
+    padding: 0 12px 30px;
+}
+
+.order-refund-success-detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.order-refund-success-detail-row .order-refund-success-detail-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2d3d;
+    text-align: right;
+    word-break: break-word;
+}
+
+.order-refund-success-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.order-refund-success-actions .btn-refund-success-close {
+    background: #00aeef !important;
+    border-color: #00aeef !important;
+    color: #fff !important;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 4px;
+}
+
+.order-refund-success-actions .btn-refund-success-close:hover,
+.order-refund-success-actions .btn-refund-success-close:focus,
+.order-refund-success-actions .btn-refund-success-close:active {
+    background: #0099d6 !important;
+    border-color: #0099d6 !important;
+    color: #fff !important;
+}
 </style>
 @endsection
 @section('content')
-    @if(session('success'))
+    @php $refundSuccess = session('refund_success'); @endphp
+
+    @if(session('success') && !$refundSuccess)
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -1289,6 +1366,44 @@
             </div>
         </div>
     @endif
+
+    @if ($refundSuccess)
+        <div class="modal fade" id="refundSuccessModal" tabindex="-1" role="dialog" aria-labelledby="refundSuccessModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered order-refund-success-dialog" role="document">
+                <div class="modal-content order-refund-success-content">
+                    <div class="modal-body text-center">
+                        <h5 class="order-refund-success-title" id="refundSuccessModalLabel">
+                            {{ __('Order:') }} {{ $refundSuccess['invoice_no'] }} {{ __('has been refunded and cancelled.') }}
+                        </h5>
+                        <p class="order-refund-success-desc mb-0">
+                            {{ __('We have successfully refunded and cancelled this order. the refunded amount will be applied back to the purchasers payment method within 5-10 business days through Stripe. The details of the refund are below and the order has been updated to cancelled in your Store Manager.') }}
+                        </p>
+
+                        <div class="order-refund-success-details text-left">
+                            <div class="order-refund-success-detail-row">
+                                <span>{{ __('Total Order Refund Amount:') }}</span>
+                                <span class="order-refund-success-detail-value">{{ currency_formate($refundSuccess['amount'] ?? 0) }}</span>
+                            </div>
+                            <div class="order-refund-success-detail-row">
+                                <span>{{ __('Refund Receipt Email To:') }}</span>
+                                <span class="order-refund-success-detail-value">{{ $refundSuccess['email'] ?? '' }}</span>
+                            </div>
+                            <div class="order-refund-success-detail-row">
+                                <span>{{ __('Refund Reference ID:') }}</span>
+                                <span class="order-refund-success-detail-value">{{ $refundSuccess['reference_id'] ?? '' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="order-refund-success-actions">
+                            <button type="button" class="btn btn-refund-success-close" data-dismiss="modal">
+                                {{ __('Yes, complete refund & cancellation') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 @endsection
 
 @push('script')
@@ -1341,6 +1456,11 @@
             $('#order_refund_type_select').on('change', updateRefundViewState);
 
             $('#cancel-order-refund-process-btn, #cancel-order-refund-process-btn-full').on('click', resetRefundCancellationView);
+
+            @if ($refundSuccess)
+                resetRefundCancellationView();
+                $('#refundSuccessModal').modal('show');
+            @endif
         });
     </script>
 
