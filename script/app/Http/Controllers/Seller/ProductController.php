@@ -1063,12 +1063,8 @@ class ProductController extends Controller
 
     protected function getCrmContactGroupOptions(string $productTitle): array
     {
-        $defaultName = trim($productTitle . ' Purchasers');
         $clubId = (int) tenant('club_id');
-
-        $options = [
-            ['name' => $defaultName, 'group_id' => null, 'is_default' => true],
-        ];
+        $options = [];
 
         try {
             $groups = DB::table('contact_groups')
@@ -1082,10 +1078,6 @@ class ProductController extends Controller
         }
 
         $existing = [];
-        foreach ($options as $item) {
-            $existing[strtolower(trim($item['name']))] = true;
-        }
-
         foreach ($groups as $group) {
             $name = trim((string) ($group->name ?? ''));
             $normalized = strtolower($name);
@@ -1095,7 +1087,6 @@ class ProductController extends Controller
             $options[] = [
                 'name' => $name,
                 'group_id' => isset($group->group_id) ? (string) $group->group_id : null,
-                'is_default' => false,
             ];
             $existing[$normalized] = true;
         }

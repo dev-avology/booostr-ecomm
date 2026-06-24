@@ -1352,11 +1352,11 @@
                         <label class="crm-sync-field-label" for="crm_sync_list">
                             Choose an existing Contact Manager list or create new contact list.
                         </label>
-                        <select id="crm_sync_list" class="form-control crm-sync-select crm-sync-select-active">
-                            @foreach(($crmContactGroupOptions ?? [['name' => $product->title . ' Purchasers']]) as $group)
+                        <select id="crm_sync_list" class="form-control crm-sync-select">
+                            <option value="" selected disabled>Select contact list</option>
+                            @foreach($crmContactGroupOptions ?? [] as $group)
                                 <option value="{{ $group['name'] }}"
-                                        data-group-id="{{ $group['group_id'] ?? '' }}"
-                                        @if($loop->first) selected @endif>{{ $group['name'] }}</option>
+                                        data-group-id="{{ $group['group_id'] ?? '' }}">{{ $group['name'] }}</option>
                             @endforeach
                             <option value="__create_new__">+ Create New Contact List</option>
                         </select>
@@ -1665,15 +1665,19 @@ $(document).on('click', '.ticket-status-update', function(e) {
         if (makeSelected) {
             $crmSyncList.val(normalized);
             lastValidCrmListValue = normalized;
+            $crmSyncList.addClass('crm-sync-select-active');
         }
     }
 
     function refreshCrmContactGroupOptions(groups, keepSelectedName) {
-        var selectedName = $.trim(keepSelectedName || getSelectedCrmListName() || '');
+        var hasExplicitSelection = keepSelectedName !== undefined;
+        var selectedName = hasExplicitSelection
+            ? $.trim(keepSelectedName || '')
+            : $.trim(getSelectedCrmListName() || '');
         var selectedGroupId = $.trim(getSelectedCrmListGroupId() || '');
         var normalizedSeen = {};
 
-        $crmSyncList.find('option').not('[value="__create_new__"]').remove();
+        $crmSyncList.find('option').not('[value="__create_new__"]').not('[value=""]').remove();
 
         if (Array.isArray(groups)) {
             groups.forEach(function (group) {
@@ -1694,11 +1698,9 @@ $(document).on('click', '.ticket-status-update', function(e) {
         if (selectedName) {
             appendContactGroupOption(selectedName, selectedGroupId, true);
         } else {
-            var firstValue = $crmSyncList.find('option:not([value="__create_new__"])').first().val() || '';
-            if (firstValue) {
-                $crmSyncList.val(firstValue);
-                lastValidCrmListValue = firstValue;
-            }
+            $crmSyncList.val('').removeClass('crm-sync-select-active');
+            lastValidCrmListValue = '';
+            resetCreateNewContactGroupUi();
         }
     }
 
@@ -1707,7 +1709,7 @@ $(document).on('click', '.ticket-status-update', function(e) {
             crm_sync_groups: 1
         }).done(function (response) {
             if (response && response.success && Array.isArray(response.groups)) {
-                refreshCrmContactGroupOptions(response.groups);
+                refreshCrmContactGroupOptions(response.groups, '');
             }
         });
     }
@@ -1800,6 +1802,7 @@ $(document).on('click', '.ticket-status-update', function(e) {
             }
 
             lastValidCrmListValue = $crmSyncList.val();
+            $crmSyncList.addClass('crm-sync-select-active');
             $createListWrap.hide();
             $createListInput.val('').prop('disabled', false);
             clearCreateListError();
@@ -1963,13 +1966,8 @@ $(document).on('click', '.ticket-status-update', function(e) {
 
         if (!listName || listName === '__create_new__') {
             resetCreateNewContactGroupUi();
-            if ($crmSyncList.val() === '__create_new__') {
-                var fallback = $.trim($crmSyncList.find('option').not('[value="__create_new__"]').first().val() || '');
-                if (fallback) {
-                    $crmSyncList.val(fallback);
-                    lastValidCrmListValue = fallback;
-                }
-            }
+            $crmSyncList.val('').removeClass('crm-sync-select-active');
+            lastValidCrmListValue = '';
             return;
         }
 
@@ -2022,8 +2020,12 @@ $(document).on('click', '.ticket-status-update', function(e) {
         }
 
         var listName = $.trim(CRM_SYNC_STATUS.crm_list_name || '');
-        if (listName) {
+        if (listName && isEditingExistingSync()) {
             appendContactGroupOption(listName, '', true);
+        } else {
+            $crmSyncList.val('').removeClass('crm-sync-select-active');
+            lastValidCrmListValue = '';
+            resetCreateNewContactGroupUi();
         }
 
         tags = $.trim(CRM_SYNC_STATUS.contact_tags || '')
@@ -2446,6 +2448,16 @@ $(document).on('click', '.ticket-status-update', function(e) {
         }
 
         if (!ensurePageScopeToAllResultsConfirmed()) {
+            return;
+        }
+
+        if (!getSelectedCrmListName()) {
+            alert('Please select an existing contact list or create a new one.');
+            if ($crmSyncList.val() === '__create_new__') {
+                $createListInput.focus();
+            } else {
+                $crmSyncList.focus();
+            }
             return;
         }
 
