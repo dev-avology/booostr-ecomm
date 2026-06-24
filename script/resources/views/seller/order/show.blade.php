@@ -375,6 +375,174 @@
     border-color: #0099d6 !important;
     color: #fff !important;
 }
+
+#order-refund-partial-details .order-refund-partial-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+    margin-top: 28px;
+}
+
+.order-refund-partial-qty-sidebar {
+    flex: 0 0 195px;
+    max-width: 195px;
+}
+
+.order-refund-partial-qty-header {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1f2d3d;
+    padding: 14px 10px 14px 0;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    line-height: 1.35;
+}
+
+.order-refund-partial-qty-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 58px;
+    padding: 12px 10px 12px 0;
+    background: #e8f4fc;
+    border-bottom: 1px solid #dfeef7;
+    transition: background-color 0.2s ease;
+}
+
+.order-refund-partial-qty-row.is-selected {
+    background: #d4edda;
+}
+
+.order-refund-partial-products-panel {
+    flex: 1;
+    min-width: 0;
+}
+
+.order-refund-partial-products-panel .order-refund-breakdown {
+    width: 100%;
+}
+
+.order-refund-partial-product-row {
+    background: #e8f4fc;
+    transition: background-color 0.2s ease;
+}
+
+.order-refund-partial-product-row.is-selected {
+    background: #d4edda;
+}
+
+.order-refund-partial-qty-select {
+    width: 100%;
+    max-width: 155px;
+    height: 38px;
+    font-weight: 600;
+    color: #00aeef;
+    border-color: #b8dff3;
+    background: #fff;
+}
+
+.order-refund-partial-qty-select:focus {
+    border-color: #00aeef;
+    box-shadow: 0 0 0 0.1rem rgba(0, 174, 239, 0.2);
+}
+
+.order-refund-partial-per-item-badge {
+    display: inline-block;
+    background: #d9edf7;
+    color: #31708f;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.order-refund-partial-summary-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: #d4edda;
+    border: 1px solid #b8dfc4;
+    color: #1f4d2c;
+    padding: 18px 20px;
+    margin-top: 0;
+    width: 100%;
+}
+
+.order-refund-partial-summary-block {
+    min-width: 120px;
+}
+
+.order-refund-partial-summary-block .summary-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 4px;
+}
+
+.order-refund-partial-summary-block .summary-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1f2d3d;
+    line-height: 1.2;
+}
+
+.order-refund-partial-summary-block .summary-value-sm {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2d3d;
+}
+
+.order-refund-partial-summary-equals {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2d3d;
+    align-self: flex-end;
+    padding-bottom: 4px;
+}
+
+.order-refund-partial-summary-plus {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2d3d;
+    align-self: flex-end;
+    padding-bottom: 4px;
+}
+
+@media (max-width: 991px) {
+    .order-refund-partial-layout {
+        flex-direction: column;
+    }
+
+    .order-refund-partial-qty-sidebar {
+        flex: 0 0 auto;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .order-refund-partial-qty-header {
+        padding-left: 0;
+    }
+
+    .order-refund-partial-qty-row {
+        padding-left: 0;
+    }
+
+    .order-refund-partial-summary-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .order-refund-partial-summary-equals,
+    .order-refund-partial-summary-plus {
+        align-self: flex-start;
+    }
+}
 </style>
 @endsection
 @section('content')
@@ -1324,6 +1492,238 @@
                     </div>
                 </div>
 
+                <div id="order-refund-partial-details" style="display:none;">
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-lg-10 order-refund-details-col">
+                            <div class="order-refund-partial-layout">
+                                <div class="order-refund-partial-qty-sidebar">
+                                    <div class="order-refund-partial-qty-header">{{ __('Item Refunded & Cancelled Qty') }}</div>
+                                    @foreach ($info->orderitems ?? [] as $partial_refund_row)
+                                        @php
+                                            $partial_refund_variations = json_decode($partial_refund_row->info ?? '');
+                                            $partial_refund_options = $partial_refund_variations->options ?? [];
+                                            $partial_refund_line_amount = $partial_refund_row->amount;
+
+                                            if (!is_array($partial_refund_options) && is_object($partial_refund_options) && isset($partial_refund_options->varition_options)) {
+                                                $partial_refund_line_amount = $partial_refund_options->price;
+                                            }
+
+                                            $partial_refund_line_total = $partial_refund_line_amount * $partial_refund_row->qty;
+                                            $partial_refund_item_tax = $refund_subtotal > 0
+                                                ? (($partial_refund_line_total / $refund_subtotal) * ($info->tax ?? 0))
+                                                : 0;
+                                        @endphp
+                                        <div class="order-refund-partial-qty-row"
+                                            data-item-id="{{ $partial_refund_row->id }}"
+                                            data-unit-amount="{{ $partial_refund_line_amount }}"
+                                            data-max-qty="{{ $partial_refund_row->qty }}"
+                                            data-item-tax-total="{{ $partial_refund_item_tax }}"
+                                            data-product-title="{{ e($partial_refund_row->term->title ?? '') }}">
+                                            <select class="form-control order-refund-partial-qty-select partial-refund-qty-select">
+                                                <option value="0">{{ __('Choose Qty') }}</option>
+                                                @for ($partial_qty_option = 1; $partial_qty_option <= $partial_refund_row->qty; $partial_qty_option++)
+                                                    <option value="{{ $partial_qty_option }}">{{ $partial_qty_option }}</option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="order-refund-partial-products-panel">
+                            <ul class="list-group list-group-lg list-group-flush list order-refund-breakdown">
+                                <li class="list-group-item">
+                                    <div class="row align-items-center">
+                                        <div class="col-6"><strong>{{ __('Product') }}</strong></div>
+                                        <div class="col-3 text-right"><strong>{{ __('Amount') }}</strong></div>
+                                        <div class="col-3 text-right"><strong>{{ __('Total') }}</strong></div>
+                                    </div>
+                                </li>
+
+                                @foreach ($info->orderitems ?? [] as $partial_refund_row)
+                                    @php
+                                        $partial_refund_variations = json_decode($partial_refund_row->info ?? '');
+                                        $partial_refund_options = $partial_refund_variations->options ?? [];
+                                        $partial_refund_line_amount = $partial_refund_row->amount;
+
+                                        if (!is_array($partial_refund_options) && is_object($partial_refund_options) && isset($partial_refund_options->varition_options)) {
+                                            $partial_refund_line_amount = $partial_refund_options->price;
+                                        }
+
+                                        $partial_refund_line_total = $partial_refund_line_amount * $partial_refund_row->qty;
+                                    @endphp
+                                    <li class="list-group-item order-refund-partial-product-row" data-item-id="{{ $partial_refund_row->id }}">
+                                        <div class="row align-items-center">
+                                            <div class="col-6">
+                                                <a href="{{ url('/seller/product/' . $partial_refund_row->term->id . '/edit') }}">{{ $partial_refund_row->term->title ?? '' }}
+                                                    @if (!is_array($partial_refund_options) && $partial_refund_options == '' && !empty($partial_refund_variations->sku))
+                                                        ({{ $partial_refund_row->term->full_id }})
+                                                    @elseif(!is_array($partial_refund_options) && $partial_refund_options == '')
+                                                        ({{ $partial_refund_row->term->full_id }})
+                                                    @endif
+                                                    <br>
+                                                </a>
+                                                @if(is_array($partial_refund_options))
+                                                    @foreach ($partial_refund_options ?? [] as $partial_refund_key => $partial_refund_item)
+                                                        @if (is_object($partial_refund_item) && isset($partial_refund_item->varition_options))
+                                                            @php $partial_refund_product_options = $partial_refund_item->varition_options; @endphp
+                                                            @foreach($partial_refund_item->varitions as $partial_refund_sel_val)
+                                                                @php $partial_refund_cur_opt_name = array_filter($partial_refund_product_options, function ($x) use ($partial_refund_sel_val) {
+                                                                    return $x->id == $partial_refund_sel_val->pivot->productoption_id;
+                                                                }); @endphp
+                                                                <strong>{{ reset($partial_refund_cur_opt_name)->category->name }} : </strong>{{ $partial_refund_sel_val->name }}<br>
+                                                            @endforeach
+                                                            <hr>
+                                                        @endif
+                                                    @endforeach
+                                                @elseif(is_object($partial_refund_options) && isset($partial_refund_options->varition_options))
+                                                    @php $partial_refund_product_options = $partial_refund_options->varition_options; @endphp
+                                                    @foreach($partial_refund_options->varitions as $partial_refund_sel_val)
+                                                        @php $partial_refund_cur_opt_name = array_filter($partial_refund_product_options, function ($x) use ($partial_refund_sel_val) {
+                                                            return $x->id == $partial_refund_sel_val->pivot->productoption_id;
+                                                        }); @endphp
+                                                        <strong>{{ reset($partial_refund_cur_opt_name)->category->name }} : </strong>{{ $partial_refund_sel_val->name }}<br>
+                                                    @endforeach
+                                                @endif
+                                            </div>
+                                            <div class="col-3 text-right">
+                                                {{ currency_formate($partial_refund_line_amount) }} × {{ $partial_refund_row->qty }}
+                                            </div>
+                                            <div class="col-3 text-right">
+                                                {{ currency_formate($partial_refund_line_total) }}
+                                            </div>
+                                        </div>
+                                    </li>
+                                @endforeach
+
+                                <li class="list-group-item">
+                                    <div class="row align-items-center">
+                                        <div class="col-9 text-right">{{ __('SubTotal') }}</div>
+                                        <div class="col-3 text-right">{{ currency_formate($refund_subtotal) }}</div>
+                                    </div>
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="row align-items-center">
+                                        <div class="col-3">
+                                            <span class="order-refund-not-refundable-badge">{{ __('Not refundable') }}</span>
+                                        </div>
+                                        <div class="col-6 text-right">{{ __('Order Discount') }}@isset($info->coupon_code) ({{ $info->coupon_code }}) @endisset</div>
+                                        <div class="col-3 text-right">- {{ currency_formate($info->discount) }}</div>
+                                    </div>
+                                </li>
+                                @if ($info->order_method == 'delivery' && $refund_order_type !== 'Digital')
+                                    <li class="list-group-item">
+                                        <div class="row align-items-center">
+                                            <div class="col-6">{{ $info->shipping_info->shipping_method->name ?? '' }}</div>
+                                            <div class="col-3 text-right">{{ __('Shipping Fee') }}</div>
+                                            <div class="col-3 text-right">{{ currency_formate($refund_shipping_price) }}</div>
+                                        </div>
+                                    </li>
+                                @endif
+                                <li class="list-group-item">
+                                    <div class="row align-items-center">
+                                        <div class="col-3">
+                                            <span class="order-refund-partial-per-item-badge">{{ __('Partial Per-item Refund') }}</span>
+                                        </div>
+                                        <div class="col-6 text-right">{{ __('Tax') }}</div>
+                                        <div class="col-3 text-right">{{ currency_formate($info->tax) }}</div>
+                                    </div>
+                                </li>
+                                @if($refund_cover_fee > 0)
+                                    <li class="list-group-item">
+                                        <div class="row align-items-center">
+                                            <div class="col-3">
+                                                <span class="order-refund-not-refundable-badge">{{ __('Not refundable') }}</span>
+                                            </div>
+                                            <div class="col-6 text-right">{{ __('Supporter Covered Fees') }}</div>
+                                            <div class="col-3 text-right">{{ currency_formate($refund_cover_fee) }}</div>
+                                        </div>
+                                    </li>
+                                @endif
+                                <li class="list-group-item">
+                                    <div class="row align-items-center">
+                                        <div class="col-3">
+                                            <span class="order-refund-not-refundable-badge">{{ __('Not refundable') }}</span>
+                                        </div>
+                                        <div class="col-6 text-right">{{ __('Order Total') }}</div>
+                                        <div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
+                                    </div>
+                                </li>
+                                @if($info->getway->name !== 'cash')
+                                    <li class="list-group-item">
+                                        <div class="row align-items-center text-grey">
+                                            <div class="col-3">
+                                                <span class="order-refund-not-refundable-badge">{{ __('Not refundable') }}</span>
+                                            </div>
+                                            <div class="col-6 text-right">{{ __('Credit Card Processing ') }}</div>
+                                            @if($refund_cover_fee > 0)
+                                                <div class="col-3 text-right">{{ __('Supporter Covered Fees') }}</div>
+                                            @else
+                                                <div class="col-3 text-right">{{ currency_formate($refund_credit_card_fee) }}</div>
+                                            @endif
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="row align-items-center text-grey">
+                                            <div class="col-3">
+                                                <span class="order-refund-not-refundable-badge">{{ __('Not refundable') }}</span>
+                                            </div>
+                                            <div class="col-6 text-right">{{ __('Booostr Platform Fee') }} {{ ($refund_pro_club) ? '(1.75%)' : '(3.5%)' }}</div>
+                                            @if($refund_cover_fee > 0)
+                                                <div class="col-3 text-right">{{ __('Supporter Covered Fees') }}</div>
+                                            @else
+                                                <div class="col-3 text-right">{{ currency_formate($refund_booster_platform_fee) }}</div>
+                                            @endif
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="row align-items-center text-grey">
+                                            <div class="col-9 text-right">
+                                                {{ __('Net Order Total (Order Total - Credit Card Processing and Booostr Platform Fee)') }}
+                                            </div>
+                                            <div class="col-3 text-right">{{ currency_formate($refund_net_total) }}</div>
+                                        </div>
+                                    </li>
+                                @endif
+                            </ul>
+
+                            <div class="order-refund-partial-summary-bar">
+                                <div class="order-refund-partial-summary-block">
+                                    <span class="summary-label">{{ __('Partial Order Refund Amount:') }}</span>
+                                    <span class="summary-value" id="partial_refund_items_label">{{ __('0 items selected') }}</span>
+                                </div>
+                                <div class="order-refund-partial-summary-block">
+                                    <span class="summary-label">{{ __('item refund total') }}</span>
+                                    <span class="summary-value-sm" id="partial_refund_item_total">{{ currency_formate(0) }}</span>
+                                </div>
+                                <span class="order-refund-partial-summary-plus">+</span>
+                                <div class="order-refund-partial-summary-block">
+                                    <span class="summary-label">{{ __('item total tax') }}</span>
+                                    <span class="summary-value-sm" id="partial_refund_tax_total">{{ currency_formate(0) }}</span>
+                                </div>
+                                <span class="order-refund-partial-summary-equals">=</span>
+                                <div class="order-refund-partial-summary-block">
+                                    <span class="summary-label">{{ __('total refund amount') }}</span>
+                                    <span class="summary-value" id="partial_refund_grand_total">{{ currency_formate(0) }}</span>
+                                </div>
+                            </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="order-refund-actions order-refund-actions-full">
+                        <button type="button" class="btn btn-cancel-refund-process" id="cancel-order-refund-process-btn-partial">
+                            {{ __('Cancel Order Cancellation Process') }}
+                        </button>
+                        <button type="button"
+                            class="btn btn-complete-refund"
+                            id="complete-partial-refund-btn"
+                            disabled>
+                            {{ __('Complete Refund & Cancellation') }}
+                        </button>
+                    </div>
+                </div>
+
                 <div id="order-refund-simple-actions">
                     <button type="button" class="btn btn-cancel-refund-process" id="cancel-order-refund-process-btn">
                         {{ __('Cancel Order Cancellation Process') }}
@@ -1416,6 +1816,74 @@
             var refundHeaderTitle = @json($info->invoice_no . ' Order Details');
             var refundTitleBase = @json(__('Order Refund & Cancellation'));
             var orderInvoiceNo = @json($info->invoice_no);
+            var refundCurrencyIcon = @json(get_option('currency_data', true)->currency_icon ?? '$');
+
+            function formatRefundMoney(amount) {
+                return refundCurrencyIcon + parseFloat(amount || 0).toFixed(2);
+            }
+
+            function syncPartialRefundRowHeights() {
+                $('.order-refund-partial-qty-row').each(function (index) {
+                    var $qtyRow = $(this);
+                    var $productRow = $('.order-refund-partial-product-row').eq(index);
+
+                    if ($productRow.length) {
+                        $qtyRow.css('min-height', $productRow.outerHeight());
+                    }
+                });
+            }
+
+            function updatePartialRefundSummary() {
+                var selectedLabels = [];
+                var itemRefundTotal = 0;
+                var itemTaxTotal = 0;
+
+                $('.order-refund-partial-qty-row').each(function () {
+                    var $qtyRow = $(this);
+                    var itemId = $qtyRow.data('item-id');
+                    var $productRow = $('.order-refund-partial-product-row[data-item-id="' + itemId + '"]');
+                    var selectedQty = parseInt($qtyRow.find('.partial-refund-qty-select').val(), 10) || 0;
+                    var maxQty = parseInt($qtyRow.data('max-qty'), 10) || 1;
+                    var unitAmount = parseFloat($qtyRow.data('unit-amount')) || 0;
+                    var lineTaxTotal = parseFloat($qtyRow.data('item-tax-total')) || 0;
+                    var productTitle = $qtyRow.data('product-title') || '';
+
+                    if (selectedQty > 0) {
+                        $qtyRow.addClass('is-selected');
+                        $productRow.addClass('is-selected');
+                        var lineRefund = unitAmount * selectedQty;
+                        var lineTax = (lineTaxTotal / maxQty) * selectedQty;
+                        itemRefundTotal += lineRefund;
+                        itemTaxTotal += lineTax;
+                        selectedLabels.push(selectedQty + ' x ' + productTitle);
+                    } else {
+                        $qtyRow.removeClass('is-selected');
+                        $productRow.removeClass('is-selected');
+                    }
+                });
+
+                var grandTotal = itemRefundTotal + itemTaxTotal;
+
+                if (selectedLabels.length > 0) {
+                    $('#partial_refund_items_label').text(selectedLabels.join(', '));
+                    $('#complete-partial-refund-btn').prop('disabled', false);
+                } else {
+                    $('#partial_refund_items_label').text(@json(__('0 items selected')));
+                    $('#complete-partial-refund-btn').prop('disabled', true);
+                }
+
+                $('#partial_refund_item_total').text(formatRefundMoney(itemRefundTotal));
+                $('#partial_refund_tax_total').text(formatRefundMoney(itemTaxTotal));
+                $('#partial_refund_grand_total').text(formatRefundMoney(grandTotal));
+
+                syncPartialRefundRowHeights();
+            }
+
+            function resetPartialRefundSelections() {
+                $('.partial-refund-qty-select').val('0');
+                $('.order-refund-partial-qty-row, .order-refund-partial-product-row').removeClass('is-selected');
+                updatePartialRefundSummary();
+            }
 
             function updateRefundSectionTitle() {
                 var selected = $('#order_refund_type_select').val();
@@ -1430,10 +1898,19 @@
 
                 if (selected === 'full') {
                     $('#order-refund-full-details').show();
+                    $('#order-refund-partial-details').hide();
                     $('#order-refund-simple-actions').hide();
+                } else if (selected === 'partial') {
+                    $('#order-refund-full-details').hide();
+                    $('#order-refund-partial-details').show();
+                    $('#order-refund-simple-actions').hide();
+                    updatePartialRefundSummary();
+                    setTimeout(syncPartialRefundRowHeights, 50);
                 } else {
                     $('#order-refund-full-details').hide();
+                    $('#order-refund-partial-details').hide();
                     $('#order-refund-simple-actions').show();
+                    resetPartialRefundSelections();
                 }
             }
 
@@ -1442,6 +1919,7 @@
                 $orderDetailsView.show();
                 $orderHeaderTitle.text(defaultHeaderTitle);
                 $('#order_refund_type_select').val('');
+                resetPartialRefundSelections();
                 updateRefundViewState();
             }
 
@@ -1455,7 +1933,9 @@
 
             $('#order_refund_type_select').on('change', updateRefundViewState);
 
-            $('#cancel-order-refund-process-btn, #cancel-order-refund-process-btn-full').on('click', resetRefundCancellationView);
+            $(document).on('change', '.partial-refund-qty-select', updatePartialRefundSummary);
+
+            $('#cancel-order-refund-process-btn, #cancel-order-refund-process-btn-full, #cancel-order-refund-process-btn-partial').on('click', resetRefundCancellationView);
 
             @if (request()->query('refund') && !$refundSuccess && $info->payment_status == 1 && $info->getway->name !== 'cash')
                 $orderDetailsView.hide();
