@@ -756,6 +756,10 @@ class OrderController extends Controller
     {
         abort_if(!getpermission('order'), 401);
 
+        if (!$silent && request()->has('partial_refund_payment')) {
+            return $this->processPartialRefund($id);
+        }
+
         $admin_details = User::where('role_id', 3)->first();
         $to = $admin_details->email ?? '';
 
@@ -970,6 +974,316 @@ class OrderController extends Controller
 
         if (request()->wantsJson()) {
             return response()->json(['message' => $message], 422);
+        }
+
+        return redirect()->back()->with('error', $message);
+    }
+
+    public function processPartialRefund($id)
+    {
+        abort_if(!getpermission('order'), 401);
+
+        $admin_details = User::where('role_id', 3)->first();
+        $adminEmail = $admin_details->email ?? '';
+
+        $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems.term', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($id);
+
+        if ((int) $order->payment_status === 5) {
+            return $this->partialRefundResponse(false, 'This order has already been fully refunded.');
+        }
+
+        $selectedItems = json_decode(request()->input('partial_refund_items', '[]'), true);
+        if (!is_array($selectedItems) || empty($selectedItems)) {
+            return $this->partialRefundResponse(false, 'Please select at least one item to refund.');
+        }
+
+        try {
+            $refundDetails = $this->buildPartialRefundDetails($order, $selectedItems);
+        } catch (\Throwable $e) {
+            return $this->partialRefundResponse(false, $e->getMessage());
+        }
+
+        $gateway = Getway::where('status', '!=', 0)
+            ->where('namespace', '=', 'App\Lib\Stripe')
+            ->first();
+
+        if (!$gateway) {
+            return $this->partialRefundResponse(false, 'Stripe payment gateway is not configured.');
+        }
+
+        $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}');
+        $gateway_data_info = json_decode($gateway->data ?? '{}');
+
+        if (!$gateway_data_info) {
+            return $this->partialRefundResponse(false, 'Stripe gateway credentials are missing.');
+        }
+
+        $netRefundable = $this->calculateRefundNetTotal($order, $ordermeta);
+        $alreadyRefunded = $this->getTotalPartialRefundedAmount($order);
+
+        if (($alreadyRefunded + $refundDetails['grand_total']) > ($netRefundable + 0.01)) {
+            return $this->partialRefundResponse(false, 'Refund amount exceeds the remaining refundable balance for this order.');
+        }
+
+        try {
+            Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
+
+            $transactionId = $order->transaction_id;
+            if (!$transactionId) {
+                throw new \Exception('No transaction ID provided');
+            }
+
+            $chargeId = null;
+            if (str_starts_with($transactionId, 'pi_')) {
+                $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
+
+                if ($paymentIntent->status !== 'succeeded') {
+                    throw new \Exception('Payment is not in a refundable state.');
+                }
+
+                $chargeId = $paymentIntent->latest_charge;
+            } elseif (str_starts_with($transactionId, 'ch_')) {
+                $chargeId = $transactionId;
+            } else {
+                throw new \Exception('Invalid transaction ID format');
+            }
+
+            if (!$chargeId) {
+                throw new \Exception('Unable to resolve Stripe charge for refund.');
+            }
+
+            $refundAmountCents = max(1, (int) round($refundDetails['grand_total'] * 100));
+
+            $refundParams = [
+                'charge' => $chargeId,
+                'amount' => $refundAmountCents,
+                'reverse_transfer' => true,
+            ];
+
+            $refund = \Stripe\Refund::create($refundParams);
+
+            if (!in_array($refund->status, ['succeeded', 'pending'], true)) {
+                throw new \Exception('Stripe refund was not completed.');
+            }
+
+            $this->finalizePartialRefundedOrder($order, $refund->toArray(), $refundDetails);
+
+            return $this->partialRefundResponse(true, 'Partial refund completed successfully', $order, $refundDetails, $refund->id, $adminEmail);
+        } catch (\Throwable $e) {
+            \Log::error('Partial order refund failed', [
+                'order_id' => $id,
+                'transaction_id' => $order->transaction_id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->partialRefundResponse(false, $e->getMessage());
+        }
+    }
+
+    protected function getOrderItemUnitAmount($orderItem): float
+    {
+        $variations = json_decode($orderItem->info ?? '');
+        $options = $variations->options ?? [];
+        $amount = (float) $orderItem->amount;
+
+        if (!is_array($options) && is_object($options) && isset($options->varition_options)) {
+            $amount = (float) $options->price;
+        }
+
+        return $amount;
+    }
+
+    protected function getOrderItemsSubtotal(Order $order): float
+    {
+        $subtotal = 0;
+
+        foreach ($order->orderitems as $orderItem) {
+            $subtotal += $this->getOrderItemUnitAmount($orderItem) * (int) $orderItem->qty;
+        }
+
+        return $subtotal;
+    }
+
+    protected function getPartialRefundedQuantities(Order $order): array
+    {
+        $meta = Ordermeta::where('order_id', $order->id)->where('key', 'partial_refunded_items')->first();
+
+        return json_decode($meta->value ?? '{}', true) ?: [];
+    }
+
+    protected function getTotalPartialRefundedAmount(Order $order): float
+    {
+        $meta = Ordermeta::where('order_id', $order->id)->where('key', 'partial_refund_logs')->first();
+        $logs = json_decode($meta->value ?? '[]', true) ?: [];
+
+        return (float) array_sum(array_map(function ($log) {
+            return (float) ($log['amount'] ?? 0);
+        }, $logs));
+    }
+
+    protected function buildPartialRefundDetails(Order $order, array $selectedItems): array
+    {
+        $subtotal = $this->getOrderItemsSubtotal($order);
+        $refundedQuantities = $this->getPartialRefundedQuantities($order);
+        $items = [];
+        $itemTotal = 0;
+        $taxTotal = 0;
+
+        foreach ($selectedItems as $selectedItem) {
+            $itemId = (int) ($selectedItem['item_id'] ?? 0);
+            $qty = (int) ($selectedItem['qty'] ?? 0);
+
+            if ($itemId <= 0 || $qty <= 0) {
+                throw new \Exception('Invalid item selection for partial refund.');
+            }
+
+            $orderItem = $order->orderitems->firstWhere('id', $itemId);
+            if (!$orderItem) {
+                throw new \Exception('One or more selected items were not found on this order.');
+            }
+
+            $alreadyRefundedQty = (int) ($refundedQuantities[$itemId] ?? 0);
+            $remainingQty = (int) $orderItem->qty - $alreadyRefundedQty;
+
+            if ($qty > $remainingQty) {
+                throw new \Exception('Selected quantity exceeds the remaining refundable quantity for one or more items.');
+            }
+
+            $unitAmount = $this->getOrderItemUnitAmount($orderItem);
+            $lineTotal = $unitAmount * (int) $orderItem->qty;
+            $lineTaxTotal = $subtotal > 0 ? (($lineTotal / $subtotal) * (float) ($order->tax ?? 0)) : 0;
+            $refundLineAmount = $unitAmount * $qty;
+            $refundLineTax = ((int) $orderItem->qty > 0)
+                ? ($lineTaxTotal / (int) $orderItem->qty) * $qty
+                : 0;
+
+            $items[] = [
+                'item_id' => $itemId,
+                'qty' => $qty,
+                'label' => $qty . ' x ' . ($orderItem->term->title ?? 'Item'),
+                'amount' => round($refundLineAmount, 2),
+                'tax' => round($refundLineTax, 2),
+            ];
+
+            $itemTotal += $refundLineAmount;
+            $taxTotal += $refundLineTax;
+        }
+
+        if (empty($items)) {
+            throw new \Exception('Please select at least one item to refund.');
+        }
+
+        return [
+            'items' => $items,
+            'item_total' => round($itemTotal, 2),
+            'tax_total' => round($taxTotal, 2),
+            'grand_total' => round($itemTotal + $taxTotal, 2),
+        ];
+    }
+
+    protected function finalizePartialRefundedOrder(Order $order, array $transactionLog, array $refundDetails): void
+    {
+        $refundedQuantities = $this->getPartialRefundedQuantities($order);
+
+        foreach ($refundDetails['items'] as $item) {
+            $itemId = (int) $item['item_id'];
+            $refundedQuantities[$itemId] = (int) ($refundedQuantities[$itemId] ?? 0) + (int) $item['qty'];
+        }
+
+        $partialRefundedItemsMeta = Ordermeta::firstOrNew([
+            'order_id' => $order->id,
+            'key' => 'partial_refunded_items',
+        ]);
+        $partialRefundedItemsMeta->value = json_encode($refundedQuantities);
+        $partialRefundedItemsMeta->save();
+
+        $partialRefundLogsMeta = Ordermeta::where('order_id', $order->id)->where('key', 'partial_refund_logs')->first();
+        $logs = json_decode($partialRefundLogsMeta->value ?? '[]', true) ?: [];
+        $logs[] = [
+            'amount' => $refundDetails['grand_total'],
+            'items' => $refundDetails['items'],
+            'stripe_refund_id' => $transactionLog['id'] ?? null,
+            'refunded_at' => Carbon::now()->setTimezone(config('app.timezone'))->toDateTimeString(),
+        ];
+
+        if ($partialRefundLogsMeta) {
+            $partialRefundLogsMeta->value = json_encode($logs);
+            $partialRefundLogsMeta->save();
+        } else {
+            $partialRefundLogsMeta = new Ordermeta;
+            $partialRefundLogsMeta->order_id = $order->id;
+            $partialRefundLogsMeta->key = 'partial_refund_logs';
+            $partialRefundLogsMeta->value = json_encode($logs);
+            $partialRefundLogsMeta->save();
+        }
+
+        $transcation_log = new Ordermeta;
+        $transcation_log->order_id = $order->id;
+        $transcation_log->key = 'transcation_log';
+        $transcation_log->value = json_encode($transactionLog);
+        $transcation_log->save();
+
+        if ($order->orderlasttrans) {
+            $order->orderlasttrans()->update([
+                'key' => 'last_transcation_log',
+                'value' => json_encode($transactionLog),
+            ]);
+        }
+
+        $allItemsFullyRefunded = true;
+        foreach ($order->orderitems as $orderItem) {
+            $refundedQty = (int) ($refundedQuantities[$orderItem->id] ?? 0);
+            if ($refundedQty < (int) $orderItem->qty) {
+                $allItemsFullyRefunded = false;
+                break;
+            }
+        }
+
+        if ($allItemsFullyRefunded) {
+            $order->payment_status = 5;
+            $order->status_id = $order->status_id == 1 ? 1 : 2;
+            $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
+        }
+
+        $order->save();
+    }
+
+    protected function partialRefundResponse(bool $success, string $message, ?Order $order = null, ?array $refundDetails = null, ?string $stripeRefundId = null, ?string $adminEmail = null)
+    {
+        if ($success && $order && $refundDetails) {
+            $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
+
+            try {
+                $this->post_order_data($order, 'refund');
+            } catch (\Throwable $e) {
+                \Log::error('post_order_data failed after partial refund', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            NotifyToUser::sendEmail($order, $adminEmail ?? '', 'admin');
+
+            if ($order->notify_driver == 'mail') {
+                $ordermeta = json_decode($order->ordermeta->value ?? '');
+                $mail_to = $ordermeta->email ?? $order->user->email ?? '';
+
+                if (!empty($mail_to)) {
+                    NotifyToUser::sendEmail($order, $mail_to, 'user');
+                }
+            }
+
+            $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}', true);
+            $receiptEmail = $ordermeta['email'] ?? $order->user->email ?? '';
+
+            return redirect()->back()->with('partial_refund_success', [
+                'invoice_no' => $order->invoice_no,
+                'items' => $refundDetails['items'],
+                'tax_total' => $refundDetails['tax_total'],
+                'amount' => $refundDetails['grand_total'],
+                'email' => $receiptEmail,
+                'reference_id' => $this->buildRefundReferenceId($order, $stripeRefundId),
+            ]);
         }
 
         return redirect()->back()->with('error', $message);

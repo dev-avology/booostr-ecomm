@@ -222,41 +222,30 @@
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
-.order-refund-confirm-content .modal-body {
-    padding: 34px 28px 30px;
+.order-refund-confirm-content .modal-body,
+.order-refund-success-content .modal-body {
+    padding: 40px 36px 32px;
+    text-align: left;
 }
 
-.order-refund-confirm-title {
+.order-refund-confirm-title,
+.order-refund-success-title {
     font-weight: 700;
     font-size: 22px;
     color: #1f2d3d;
-    margin-bottom: 18px;
+    margin: 0 0 18px;
     line-height: 1.35;
+    text-align: center;
 }
 
-.order-refund-confirm-desc {
+.order-refund-confirm-desc,
+.order-refund-success-desc {
     color: #6c757d;
     font-size: 14px;
     line-height: 1.65;
     margin-bottom: 28px;
-    padding: 0 12px;
-}
-
-.order-refund-confirm-amount-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 0 12px 30px;
-    font-weight: 600;
-    color: #4a5568;
-}
-
-.order-refund-confirm-amount-row .order-refund-confirm-amount-value {
-    font-size: 20px;
-    font-weight: 700;
-    color: #1f2d3d;
-    white-space: nowrap;
+    padding: 0;
+    text-align: left;
 }
 
 .order-refund-confirm-actions {
@@ -301,6 +290,52 @@
     color: #fff !important;
 }
 
+.order-refund-partial-confirm-details {
+    text-align: left;
+    padding: 0 0 28px;
+}
+
+.order-refund-partial-confirm-detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+    color: #1f2d3d;
+    font-size: 16px;
+}
+
+.order-refund-partial-confirm-detail-row .detail-label,
+.order-refund-partial-confirm-detail-row .detail-value,
+.order-refund-partial-confirm-detail-row strong {
+    font-weight: 700;
+    color: #1f2d3d;
+    font-size: 16px;
+}
+
+.order-refund-partial-confirm-detail-row .detail-label {
+    flex: 1;
+    line-height: 1.45;
+    text-align: left;
+}
+
+.order-refund-partial-confirm-detail-row .detail-value {
+    white-space: nowrap;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.order-refund-partial-confirm-detail-row.is-total {
+    padding-top: 8px;
+}
+
+.order-refund-partial-confirm-detail-row.is-total .detail-label,
+.order-refund-partial-confirm-detail-row.is-total .detail-value {
+    font-weight: 700;
+    font-size: 16px;
+    color: #1f2d3d;
+}
+
 .order-refund-success-dialog {
     max-width: 760px;
 }
@@ -311,38 +346,20 @@
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
-.order-refund-success-content .modal-body {
-    padding: 34px 28px 30px;
-}
-
-.order-refund-success-title {
-    font-weight: 700;
-    font-size: 22px;
-    color: #1f2d3d;
-    margin-bottom: 18px;
-    line-height: 1.35;
-}
-
-.order-refund-success-desc {
-    color: #6c757d;
-    font-size: 14px;
-    line-height: 1.65;
-    margin-bottom: 28px;
-    padding: 0 12px;
-}
-
-.order-refund-success-details {
-    padding: 0 12px 30px;
-}
-
 .order-refund-success-detail-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
     padding: 8px 0;
-    font-weight: 600;
-    color: #4a5568;
+    color: #1f2d3d;
+    font-size: 16px;
+}
+
+.order-refund-success-detail-row strong {
+    font-weight: 700;
+    color: #1f2d3d;
+    font-size: 16px;
 }
 
 .order-refund-success-detail-row .order-refund-success-detail-value {
@@ -351,6 +368,7 @@
     color: #1f2d3d;
     text-align: right;
     word-break: break-word;
+    flex-shrink: 0;
 }
 
 .order-refund-success-actions {
@@ -546,9 +564,12 @@
 </style>
 @endsection
 @section('content')
-    @php $refundSuccess = session('refund_success'); @endphp
+    @php
+        $refundSuccess = session('refund_success');
+        $partialRefundSuccess = session('partial_refund_success');
+    @endphp
 
-    @if(session('success') && !$refundSuccess)
+    @if(session('success') && !$refundSuccess && !$partialRefundSuccess)
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -1737,7 +1758,7 @@
         <div class="modal fade" id="refundConfirmModal" tabindex="-1" role="dialog" aria-labelledby="refundConfirmModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered order-refund-confirm-dialog" role="document">
                 <div class="modal-content order-refund-confirm-content">
-                    <div class="modal-body text-center">
+                    <div class="modal-body">
                         <h5 class="order-refund-confirm-title" id="refundConfirmModalLabel">
                             {{ __('Are you sure you want to refund & cancel order:') }} {{ $info->invoice_no }}?
                         </h5>
@@ -1745,9 +1766,11 @@
                             {{ __('Please confirm that you would like to cancel and refund this order. This action cannot be undone. To go back, click the \'No, close window and go back\' grey button. To proceed with the refund and cancellation click the \'Yes, complete refund & cancellation\' blue button.') }}
                         </p>
 
-                        <div class="order-refund-confirm-amount-row">
-                            <span>{{ __('Total Order Refund Amount:') }}</span>
-                            <span class="order-refund-confirm-amount-value" id="refund_confirm_amount_value">{{ currency_formate($refund_net_total ?? 0) }}</span>
+                        <div class="order-refund-partial-confirm-details">
+                            <div class="order-refund-partial-confirm-detail-row is-total">
+                                <strong class="detail-label">{{ __('Total Order Refund Amount:') }}</strong>
+                                <strong class="detail-value" id="refund_confirm_amount_value">{{ currency_formate($refund_net_total ?? 0) }}</strong>
+                            </div>
                         </div>
 
                         <div class="order-refund-confirm-actions">
@@ -1765,13 +1788,43 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="partialRefundConfirmModal" tabindex="-1" role="dialog" aria-labelledby="partialRefundConfirmModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered order-refund-confirm-dialog" role="document">
+                <div class="modal-content order-refund-confirm-content">
+                    <div class="modal-body">
+                        <h5 class="order-refund-confirm-title" id="partialRefundConfirmModalLabel">
+                            {{ __('Are you sure you want to refund & cancel items from order:') }} {{ $info->invoice_no }}?
+                        </h5>
+                        <p class="order-refund-confirm-desc mb-0">
+                            {{ __('Please confirm that you would like to cancel and refund items from this order. This action cannot be undone. To go back, click the \'No, close window and go back\' grey button. To proceed with the refund and cancellation click the \'Yes, complete refund & cancellation\' blue button.') }}
+                        </p>
+
+                        <div id="partial_refund_confirm_details" class="order-refund-partial-confirm-details"></div>
+
+                        <div class="order-refund-confirm-actions">
+                            <button type="button" class="btn btn-refund-go-back" data-dismiss="modal">
+                                {{ __('No, close window and go back') }}
+                            </button>
+                            <form method="POST" action="{{ route('seller.order.refund', $info->id) }}" class="d-inline mb-0" id="partialRefundConfirmForm">
+                                @csrf
+                                <input type="hidden" name="partial_refund_items" id="partial_refund_items_input" value="">
+                                <button type="submit" name="partial_refund_payment" class="btn btn-refund-confirm-submit" id="partial_refund_confirm_submit_btn">
+                                    {{ __('Yes, complete refund & cancellation') }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endif
 
     @if ($refundSuccess)
         <div class="modal fade" id="refundSuccessModal" tabindex="-1" role="dialog" aria-labelledby="refundSuccessModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered order-refund-success-dialog" role="document">
                 <div class="modal-content order-refund-success-content">
-                    <div class="modal-body text-center">
+                    <div class="modal-body">
                         <h5 class="order-refund-success-title" id="refundSuccessModalLabel">
                             {{ __('Order:') }} {{ $refundSuccess['invoice_no'] }} {{ __('has been refunded and cancelled.') }}
                         </h5>
@@ -1779,18 +1832,66 @@
                             {{ __('We have successfully refunded and cancelled this order. the refunded amount will be applied back to the purchasers payment method within 5-10 business days through Stripe. The details of the refund are below and the order has been updated to cancelled in your Store Manager.') }}
                         </p>
 
-                        <div class="order-refund-success-details text-left">
-                            <div class="order-refund-success-detail-row">
-                                <span>{{ __('Total Order Refund Amount:') }}</span>
-                                <span class="order-refund-success-detail-value">{{ currency_formate($refundSuccess['amount'] ?? 0) }}</span>
+                        <div class="order-refund-partial-confirm-details">
+                            <div class="order-refund-partial-confirm-detail-row is-total">
+                                <strong class="detail-label">{{ __('Total Order Refund Amount:') }}</strong>
+                                <strong class="detail-value">{{ currency_formate($refundSuccess['amount'] ?? 0) }}</strong>
                             </div>
                             <div class="order-refund-success-detail-row">
-                                <span>{{ __('Refund Receipt Email To:') }}</span>
-                                <span class="order-refund-success-detail-value">{{ $refundSuccess['email'] ?? '' }}</span>
+                                <strong>{{ __('Refund Receipt Email To:') }}</strong>
+                                <strong class="order-refund-success-detail-value">{{ $refundSuccess['email'] ?? '' }}</strong>
                             </div>
                             <div class="order-refund-success-detail-row">
-                                <span>{{ __('Refund Reference ID:') }}</span>
-                                <span class="order-refund-success-detail-value">{{ $refundSuccess['reference_id'] ?? '' }}</span>
+                                <strong>{{ __('Refund Reference ID:') }}</strong>
+                                <strong class="order-refund-success-detail-value">{{ $refundSuccess['reference_id'] ?? '' }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="order-refund-success-actions">
+                            <button type="button" class="btn btn-refund-success-close" data-dismiss="modal">
+                                {{ __('Yes, complete refund & cancellation') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if ($partialRefundSuccess)
+        <div class="modal fade" id="partialRefundSuccessModal" tabindex="-1" role="dialog" aria-labelledby="partialRefundSuccessModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered order-refund-success-dialog" role="document">
+                <div class="modal-content order-refund-success-content">
+                    <div class="modal-body">
+                        <h5 class="order-refund-success-title" id="partialRefundSuccessModalLabel">
+                            {{ __('The below items from order:') }} {{ $partialRefundSuccess['invoice_no'] }} {{ __('have been refunded and cancelled.') }}
+                        </h5>
+                        <p class="order-refund-success-desc mb-0">
+                            {{ __('We have successfully refunded and cancelled the items below from this order. the refunded amount will be applied back to the purchasers payment method within 5-10 business days through Stripe. The details of the refund are below and the order has been updated to cancelled in your Store Manager.') }}
+                        </p>
+
+                        <div class="order-refund-partial-confirm-details">
+                            @foreach ($partialRefundSuccess['items'] ?? [] as $partialSuccessItem)
+                                <div class="order-refund-partial-confirm-detail-row">
+                                    <strong class="detail-label">{{ __('Refund & Cancel:') }} {{ $partialSuccessItem['label'] ?? '' }}:</strong>
+                                    <strong class="detail-value">{{ currency_formate($partialSuccessItem['amount'] ?? 0) }}</strong>
+                                </div>
+                            @endforeach
+                            <div class="order-refund-partial-confirm-detail-row">
+                                <strong class="detail-label">{{ __('Refund: Partial Tax On Items:') }}</strong>
+                                <strong class="detail-value">{{ currency_formate($partialRefundSuccess['tax_total'] ?? 0) }}</strong>
+                            </div>
+                            <div class="order-refund-partial-confirm-detail-row is-total">
+                                <strong class="detail-label">{{ __('Total Order Refund Amount:') }}</strong>
+                                <strong class="detail-value">{{ currency_formate($partialRefundSuccess['amount'] ?? 0) }}</strong>
+                            </div>
+                            <div class="order-refund-success-detail-row">
+                                <strong>{{ __('Refund Receipt Email To:') }}</strong>
+                                <strong class="order-refund-success-detail-value">{{ $partialRefundSuccess['email'] ?? '' }}</strong>
+                            </div>
+                            <div class="order-refund-success-detail-row">
+                                <strong>{{ __('Refund Reference ID:') }}</strong>
+                                <strong class="order-refund-success-detail-value">{{ $partialRefundSuccess['reference_id'] ?? '' }}</strong>
                             </div>
                         </div>
 
@@ -1833,15 +1934,14 @@
                 });
             }
 
-            function updatePartialRefundSummary() {
-                var selectedLabels = [];
+            function getPartialRefundSelectionData() {
+                var items = [];
                 var itemRefundTotal = 0;
                 var itemTaxTotal = 0;
 
                 $('.order-refund-partial-qty-row').each(function () {
                     var $qtyRow = $(this);
                     var itemId = $qtyRow.data('item-id');
-                    var $productRow = $('.order-refund-partial-product-row[data-item-id="' + itemId + '"]');
                     var selectedQty = parseInt($qtyRow.find('.partial-refund-qty-select').val(), 10) || 0;
                     var maxQty = parseInt($qtyRow.data('max-qty'), 10) || 1;
                     var unitAmount = parseFloat($qtyRow.data('unit-amount')) || 0;
@@ -1849,20 +1949,80 @@
                     var productTitle = $qtyRow.data('product-title') || '';
 
                     if (selectedQty > 0) {
-                        $qtyRow.addClass('is-selected');
-                        $productRow.addClass('is-selected');
                         var lineRefund = unitAmount * selectedQty;
                         var lineTax = (lineTaxTotal / maxQty) * selectedQty;
                         itemRefundTotal += lineRefund;
                         itemTaxTotal += lineTax;
-                        selectedLabels.push(selectedQty + ' x ' + productTitle);
+                        items.push({
+                            item_id: itemId,
+                            qty: selectedQty,
+                            label: selectedQty + ' x ' + productTitle,
+                            amount: lineRefund,
+                            tax: lineTax
+                        });
+                    }
+                });
+
+                return {
+                    items: items,
+                    itemRefundTotal: itemRefundTotal,
+                    itemTaxTotal: itemTaxTotal,
+                    grandTotal: itemRefundTotal + itemTaxTotal
+                };
+            }
+
+            function escapeRefundHtml(text) {
+                return $('<div>').text(text || '').html();
+            }
+
+            function populatePartialRefundConfirmModal() {
+                var data = getPartialRefundSelectionData();
+                var refundCancelLabel = @json(__('Refund & Cancel:'));
+                var partialTaxLabel = @json(__('Refund: Partial Tax On Items:'));
+                var totalLabel = @json(__('Total Order Refund Amount:'));
+                var html = '';
+
+                data.items.forEach(function (item) {
+                    html += '<div class="order-refund-partial-confirm-detail-row">'
+                        + '<strong class="detail-label">' + refundCancelLabel + ' ' + escapeRefundHtml(item.label) + ':</strong>'
+                        + '<strong class="detail-value">' + formatRefundMoney(item.amount) + '</strong>'
+                        + '</div>';
+                });
+
+                html += '<div class="order-refund-partial-confirm-detail-row">'
+                    + '<strong class="detail-label">' + partialTaxLabel + '</strong>'
+                    + '<strong class="detail-value">' + formatRefundMoney(data.itemTaxTotal) + '</strong>'
+                    + '</div>';
+
+                html += '<div class="order-refund-partial-confirm-detail-row is-total">'
+                    + '<strong class="detail-label">' + totalLabel + '</strong>'
+                    + '<strong class="detail-value">' + formatRefundMoney(data.grandTotal) + '</strong>'
+                    + '</div>';
+
+                $('#partial_refund_confirm_details').html(html);
+                $('#partial_refund_items_input').val(JSON.stringify(data.items));
+            }
+
+            function updatePartialRefundSummary() {
+                var data = getPartialRefundSelectionData();
+                var selectedLabels = data.items.map(function (item) {
+                    return item.label;
+                });
+
+                $('.order-refund-partial-qty-row').each(function () {
+                    var $qtyRow = $(this);
+                    var itemId = $qtyRow.data('item-id');
+                    var $productRow = $('.order-refund-partial-product-row[data-item-id="' + itemId + '"]');
+                    var selectedQty = parseInt($qtyRow.find('.partial-refund-qty-select').val(), 10) || 0;
+
+                    if (selectedQty > 0) {
+                        $qtyRow.addClass('is-selected');
+                        $productRow.addClass('is-selected');
                     } else {
                         $qtyRow.removeClass('is-selected');
                         $productRow.removeClass('is-selected');
                     }
                 });
-
-                var grandTotal = itemRefundTotal + itemTaxTotal;
 
                 if (selectedLabels.length > 0) {
                     $('#partial_refund_items_label').text(selectedLabels.join(', '));
@@ -1872,9 +2032,9 @@
                     $('#complete-partial-refund-btn').prop('disabled', true);
                 }
 
-                $('#partial_refund_item_total').text(formatRefundMoney(itemRefundTotal));
-                $('#partial_refund_tax_total').text(formatRefundMoney(itemTaxTotal));
-                $('#partial_refund_grand_total').text(formatRefundMoney(grandTotal));
+                $('#partial_refund_item_total').text(formatRefundMoney(data.itemRefundTotal));
+                $('#partial_refund_tax_total').text(formatRefundMoney(data.itemTaxTotal));
+                $('#partial_refund_grand_total').text(formatRefundMoney(data.grandTotal));
 
                 syncPartialRefundRowHeights();
             }
@@ -1935,9 +2095,20 @@
 
             $(document).on('change', '.partial-refund-qty-select', updatePartialRefundSummary);
 
+            $('#complete-partial-refund-btn').on('click', function () {
+                var data = getPartialRefundSelectionData();
+
+                if (!data.items.length) {
+                    return;
+                }
+
+                populatePartialRefundConfirmModal();
+                $('#partialRefundConfirmModal').modal('show');
+            });
+
             $('#cancel-order-refund-process-btn, #cancel-order-refund-process-btn-full, #cancel-order-refund-process-btn-partial').on('click', resetRefundCancellationView);
 
-            @if (request()->query('refund') && !$refundSuccess && $info->payment_status == 1 && $info->getway->name !== 'cash')
+            @if (request()->query('refund') && !$refundSuccess && !$partialRefundSuccess && $info->payment_status == 1 && $info->getway->name !== 'cash')
                 $orderDetailsView.hide();
                 $orderRefundView.show();
                 $orderHeaderTitle.text(refundHeaderTitle);
@@ -1945,7 +2116,10 @@
                 updateRefundViewState();
             @endif
 
-            @if ($refundSuccess)
+            @if ($partialRefundSuccess)
+                resetRefundCancellationView();
+                $('#partialRefundSuccessModal').modal('show');
+            @elseif ($refundSuccess)
                 resetRefundCancellationView();
                 $('#refundSuccessModal').modal('show');
             @endif
