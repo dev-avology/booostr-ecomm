@@ -15,7 +15,10 @@ use App\Models\Ordershipping;
 use Auth;
 use DB;
 use App\Models\Getway;
+use App\Models\EventTicket;
 use Carbon\Carbon;
+use App\Services\TicketCancelRefundService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Arr;
 use Stripe\Stripe;
 
@@ -814,12 +817,12 @@ class OrderController extends Controller
             $charge = \Stripe\Charge::retrieve($chargeId);
 
             if ($charge->refunded) {
-                $this->finalizeRefundedOrder($order, $charge->toArray());
+                $cancelledTickets = $this->finalizeRefundedOrder($order, $charge->toArray());
 
                 $refundAmountDollars = $this->calculateRefundNetTotal($order, $ordermeta);
                 $stripeRefundId = $charge->refunds->data[0]->id ?? null;
 
-                return $this->refundResponse($silent, true, 'Order refunded successfully', $order, $to, $refundAmountDollars, $stripeRefundId);
+                return $this->refundResponse($silent, true, 'Order refunded successfully', $order, $to, $refundAmountDollars, $stripeRefundId, $cancelledTickets);
             }
 
             $refundAmountDollars = $this->calculateRefundNetTotal($order, $ordermeta);
@@ -844,9 +847,9 @@ class OrderController extends Controller
                 throw new \Exception('Stripe refund was not completed.');
             }
 
-            $this->finalizeRefundedOrder($order, $refund->toArray());
+            $cancelledTickets = $this->finalizeRefundedOrder($order, $refund->toArray());
 
-            return $this->refundResponse($silent, true, 'Order refunded successfully', $order, $to, $refundAmountDollars, $refund->id);
+            return $this->refundResponse($silent, true, 'Order refunded successfully', $order, $to, $refundAmountDollars, $refund->id, $cancelledTickets);
         } catch (\Throwable $e) {
             \Log::error('Order refund failed', [
                 'order_id' => $id,
@@ -858,7 +861,7 @@ class OrderController extends Controller
         }
     }
 
-    protected function finalizeRefundedOrder(Order $order, array $transactionLog): void
+    protected function finalizeRefundedOrder(Order $order, array $transactionLog): Collection
     {
         $order->payment_status = 5;
         $order->status_id = $order->status_id == 1 ? 1 : 2;
@@ -877,6 +880,102 @@ class OrderController extends Controller
                 'value' => json_encode($transactionLog),
             ]);
         }
+
+        return $this->cancelEventTicketsForOrder($order);
+    }
+
+    protected function cancelEventTicketsForOrder(Order $order, ?array $refundedItems = null): Collection
+    {
+        $cancelledTickets = collect();
+
+        if ($refundedItems === null) {
+            $tickets = EventTicket::where('order_id', $order->id)
+                ->where('status', '!=', 'cancelled')
+                ->orderBy('id')
+                ->get();
+
+            foreach ($tickets as $ticket) {
+                $ticket->status = 'cancelled';
+                $ticket->used_at = null;
+                $ticket->save();
+                $cancelledTickets->push($ticket);
+            }
+
+            return $cancelledTickets;
+        }
+
+        foreach ($refundedItems as $item) {
+            $itemId = (int) ($item['item_id'] ?? 0);
+            $qty = (int) ($item['qty'] ?? 0);
+
+            if ($itemId <= 0 || $qty <= 0) {
+                continue;
+            }
+
+            $tickets = EventTicket::where('order_id', $order->id)
+                ->where('order_item_id', $itemId)
+                ->where('status', '!=', 'cancelled')
+                ->orderBy('id')
+                ->limit($qty)
+                ->get();
+
+            foreach ($tickets as $ticket) {
+                $ticket->status = 'cancelled';
+                $ticket->used_at = null;
+                $ticket->save();
+                $cancelledTickets->push($ticket);
+            }
+        }
+
+        return $cancelledTickets;
+    }
+
+    protected function sendTicketCancelledRefundEmails(
+        Order $order,
+        Collection $cancelledTickets,
+        ?float $orderRefundTotal = null,
+        ?string $stripeRefundId = null,
+        ?array $refundDetails = null
+    ): void {
+        if ($cancelledTickets->isEmpty()) {
+            return;
+        }
+
+        $context = [
+            'reference_id' => $this->buildRefundReferenceId($order, $stripeRefundId),
+            'order_refund_total' => $orderRefundTotal,
+            'item_refunds' => $this->buildTicketRefundItemMap($refundDetails['items'] ?? []),
+        ];
+
+        try {
+            app(TicketCancelRefundService::class)->sendCancelledEmailsForTickets($cancelledTickets, $order, $context);
+        } catch (\Throwable $e) {
+            \Log::error('Ticket cancel refund emails failed after order refund.', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    protected function buildTicketRefundItemMap(array $refundItems): array
+    {
+        $itemRefunds = [];
+
+        foreach ($refundItems as $item) {
+            $itemId = (int) ($item['item_id'] ?? 0);
+            $qty = max(1, (int) ($item['qty'] ?? 1));
+
+            if ($itemId <= 0) {
+                continue;
+            }
+
+            $itemRefunds[$itemId] = [
+                'amount_per_unit' => round((float) ($item['amount'] ?? 0) / $qty, 2),
+                'tax_per_unit' => round((float) ($item['tax'] ?? 0) / $qty, 2),
+            ];
+        }
+
+        return $itemRefunds;
     }
 
     protected function calculateRefundNetTotal(Order $order, $ordermeta): float
@@ -911,7 +1010,7 @@ class OrderController extends Controller
         return $order->invoice_no . 'rfd' . str_pad($suffix, 4, '0', STR_PAD_LEFT);
     }
 
-    protected function refundResponse(bool $silent, bool $success, string $message, ?Order $order = null, ?string $adminEmail = null, ?float $refundAmount = null, ?string $stripeRefundId = null)
+    protected function refundResponse(bool $silent, bool $success, string $message, ?Order $order = null, ?string $adminEmail = null, ?float $refundAmount = null, ?string $stripeRefundId = null, ?Collection $cancelledTickets = null)
     {
         if ($success && $order) {
             $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
@@ -926,6 +1025,13 @@ class OrderController extends Controller
             }
 
             if (!$silent) {
+                $this->sendTicketCancelledRefundEmails(
+                    $order,
+                    $cancelledTickets ?? collect(),
+                    $refundAmount ?? $this->calculateRefundNetTotal($order, json_decode(optional($order->ordermeta)->value ?? '{}')),
+                    $stripeRefundId
+                );
+
                 NotifyToUser::sendEmail($order, $adminEmail ?? '', 'admin');
 
                 if ($order->notify_driver == 'mail') {
@@ -1066,9 +1172,9 @@ class OrderController extends Controller
                 throw new \Exception('Stripe refund was not completed.');
             }
 
-            $this->finalizePartialRefundedOrder($order, $refund->toArray(), $refundDetails);
+            $cancelledTickets = $this->finalizePartialRefundedOrder($order, $refund->toArray(), $refundDetails);
 
-            return $this->partialRefundResponse(true, 'Partial refund completed successfully', $order, $refundDetails, $refund->id, $adminEmail);
+            return $this->partialRefundResponse(true, 'Partial refund completed successfully', $order, $refundDetails, $refund->id, $adminEmail, $cancelledTickets);
         } catch (\Throwable $e) {
             \Log::error('Partial order refund failed', [
                 'order_id' => $id,
@@ -1181,7 +1287,7 @@ class OrderController extends Controller
         ];
     }
 
-    protected function finalizePartialRefundedOrder(Order $order, array $transactionLog, array $refundDetails): void
+    protected function finalizePartialRefundedOrder(Order $order, array $transactionLog, array $refundDetails): Collection
     {
         $refundedQuantities = $this->getPartialRefundedQuantities($order);
 
@@ -1246,9 +1352,11 @@ class OrderController extends Controller
         }
 
         $order->save();
+
+        return $this->cancelEventTicketsForOrder($order, $refundDetails['items'] ?? []);
     }
 
-    protected function partialRefundResponse(bool $success, string $message, ?Order $order = null, ?array $refundDetails = null, ?string $stripeRefundId = null, ?string $adminEmail = null)
+    protected function partialRefundResponse(bool $success, string $message, ?Order $order = null, ?array $refundDetails = null, ?string $stripeRefundId = null, ?string $adminEmail = null, ?Collection $cancelledTickets = null)
     {
         if ($success && $order && $refundDetails) {
             $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
@@ -1261,6 +1369,14 @@ class OrderController extends Controller
                     'error' => $e->getMessage(),
                 ]);
             }
+
+            $this->sendTicketCancelledRefundEmails(
+                $order,
+                $cancelledTickets ?? collect(),
+                $refundDetails['grand_total'] ?? null,
+                $stripeRefundId,
+                $refundDetails
+            );
 
             NotifyToUser::sendEmail($order, $adminEmail ?? '', 'admin');
 

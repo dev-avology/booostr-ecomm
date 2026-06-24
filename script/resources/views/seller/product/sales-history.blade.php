@@ -1249,7 +1249,7 @@
                                             <div class="dropdown-menu">
                                                 <a class="dropdown-item ticket-status-update" href="#" data-id="{{ $ticket->id }}" data-status="used">Checked In</a>
                                                 <a class="dropdown-item ticket-status-update" href="#" data-id="{{ $ticket->id }}" data-status="active">Not Checked In</a>
-                                                <a class="dropdown-item ticket-status-update" href="#" data-id="{{ $ticket->id }}" data-status="cancelled">Cancelled & Refunded</a>
+                                                <a class="dropdown-item ticket-status-update" href="#" data-id="{{ $ticket->id }}" data-status="cancelled" data-order-id="{{ $order->id ?? '' }}">Cancelled & Refunded</a>
                                             </div>
                                         </div>
                                     @endif
@@ -1434,35 +1434,10 @@
     </div>
 </div>
 
-@if($isTicket)
-{{-- Ticket cancel & refund confirmation --}}
-<div class="modal fade" id="ticketCancelRefundModal" tabindex="-1" role="dialog" aria-labelledby="ticketCancelRefundModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content rounded shadow">
-            <div class="modal-header">
-                <h5 class="modal-title" id="ticketCancelRefundModalLabel">Confirm Cancel &amp; Refund</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to Cancel &amp; Refund this ticket? This is not reversible and will automatically refund the ticket amount to the purchaser.
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" id="ticket_cancel_refund_confirm">Yes, Cancel Ticket</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
-
 @endif
 
 @push('script')
 <script>
-var pendingTicketStatusUpdate = null;
-
 function submitTicketStatusUpdate(ticketId, status) {
     $.ajax({
         url: "{{ route('seller.product.ticket.status.update') }}",
@@ -1495,28 +1470,17 @@ $(document).on('click', '.ticket-status-update', function(e) {
     var status = $(this).data('status');
 
     if (status === 'cancelled') {
-        pendingTicketStatusUpdate = {
-            ticketId: ticketId,
-            status: status
-        };
-        $('#ticketCancelRefundModal').modal('show');
+        var orderId = $(this).data('order-id');
+        if (!orderId) {
+            alert('Order not found for this ticket.');
+            return;
+        }
+
+        window.location.href = @json(url('/seller/order')) + '/' + orderId + '?refund=1';
         return;
     }
 
     submitTicketStatusUpdate(ticketId, status);
-});
-
-$('#ticket_cancel_refund_confirm').on('click', function() {
-    if (!pendingTicketStatusUpdate) {
-        return;
-    }
-
-    submitTicketStatusUpdate(pendingTicketStatusUpdate.ticketId, pendingTicketStatusUpdate.status);
-    $('#ticketCancelRefundModal').modal('hide');
-});
-
-$('#ticketCancelRefundModal').on('hidden.bs.modal', function() {
-    pendingTicketStatusUpdate = null;
 });
 
 (function () {

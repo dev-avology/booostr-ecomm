@@ -78,6 +78,24 @@
                             <span style="color:#888;font-size:12px;"> (service fees are not refundable)</span>
                         </p>
 
+                        @if(!empty($refund_tax))
+                        <p style="margin:0 0 18px 0;">
+                            <strong>Refund Tax:</strong> {{ $refund_tax }}
+                        </p>
+                        @endif
+
+                        @if(!empty($order_refund_total))
+                        <p style="margin:0 0 18px 0;">
+                            <strong>Total Order Refund Amount:</strong> {{ $order_refund_total }}
+                        </p>
+                        @endif
+
+                        @if(!empty($refund_reference_id))
+                        <p style="margin:0 0 18px 0;">
+                            <strong>Refund Reference ID:</strong> {{ $refund_reference_id }}
+                        </p>
+                        @endif
+
                         <p style="margin:0 0 18px 0;">
                             This ticket was purchased as part of order:
                             <a href="{{ $order_url }}" style="color:#08bff3;text-decoration:underline;font-weight:700;">{{ $order_number }}</a>

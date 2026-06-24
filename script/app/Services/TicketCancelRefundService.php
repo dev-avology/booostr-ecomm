@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Mail\TicketCancelledRefundMail;
 use App\Models\EventTicket;
 use App\Models\Getway;
+use App\Models\Order;
 use App\Models\Orderitem;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -58,7 +59,63 @@ class TicketCancelRefundService
 
         $chargeId = $this->resolveChargeId($order->transaction_id);
         $this->processStripeRefund($amounts['refund_amount'], $chargeId);
-        $this->sendCustomerEmail($ticket, $order, $orderItem, $amounts);
+        $this->sendCancelledTicketEmail($ticket, $order, $orderItem, $amounts);
+    }
+
+    public function sendCancelledEmailsForTickets(iterable $tickets, Order $order, array $refundContext = []): void
+    {
+        $itemRefunds = $refundContext['item_refunds'] ?? [];
+
+        foreach ($tickets as $ticket) {
+            $orderItem = Orderitem::with('term')->find($ticket->order_item_id);
+            if (!$orderItem) {
+                continue;
+            }
+
+            $itemInfo = json_decode($orderItem->info ?? '{}', true);
+            if (($itemInfo['product_kind'] ?? '') !== 'event_ticket') {
+                continue;
+            }
+
+            $amounts = $this->resolveTicketAmounts($orderItem);
+            $overrides = [];
+
+            if (!empty($refundContext['reference_id'])) {
+                $overrides['refund_reference_id'] = $refundContext['reference_id'];
+            }
+
+            if (!empty($refundContext['order_refund_total'])) {
+                $overrides['order_refund_total'] = (float) $refundContext['order_refund_total'];
+            }
+
+            $itemRefund = $itemRefunds[$ticket->order_item_id] ?? null;
+            if (is_array($itemRefund)) {
+                if (isset($itemRefund['amount_per_unit'])) {
+                    $overrides['refund_amount'] = (float) $itemRefund['amount_per_unit'];
+                }
+                if (!empty($itemRefund['tax_per_unit'])) {
+                    $overrides['refund_tax'] = (float) $itemRefund['tax_per_unit'];
+                }
+            }
+
+            $this->sendCancelledTicketEmail($ticket, $order, $orderItem, $amounts, $overrides);
+        }
+    }
+
+    public function sendCancelledTicketEmail(
+        EventTicket $ticket,
+        $order,
+        Orderitem $orderItem,
+        ?array $amounts = null,
+        array $overrides = []
+    ): void {
+        $amounts = $amounts ?? $this->resolveTicketAmounts($orderItem);
+
+        if (isset($overrides['refund_amount'])) {
+            $amounts['refund_amount'] = (float) $overrides['refund_amount'];
+        }
+
+        $this->sendCustomerEmail($ticket, $order, $orderItem, $amounts, $overrides);
     }
 
     protected function resolveTicketAmounts(Orderitem $orderItem): array
@@ -126,7 +183,7 @@ class TicketCancelRefundService
         throw new \RuntimeException('Invalid Stripe transaction ID format.');
     }
 
-    protected function sendCustomerEmail(EventTicket $ticket, $order, Orderitem $orderItem, array $amounts): void
+    protected function sendCustomerEmail(EventTicket $ticket, $order, Orderitem $orderItem, array $amounts, array $overrides = []): void
     {
         $email = trim((string) ($ticket->attendee_email ?? ''));
         if ($email === '' || $email === '-') {
@@ -170,6 +227,18 @@ class TicketCancelRefundService
             'club_email' => $clubEmail,
             'club_logo' => $clubLogo,
         ];
+
+        if (!empty($overrides['refund_reference_id'])) {
+            $mailData['refund_reference_id'] = $overrides['refund_reference_id'];
+        }
+
+        if (!empty($overrides['refund_tax'])) {
+            $mailData['refund_tax'] = $this->formatMoney((float) $overrides['refund_tax']);
+        }
+
+        if (!empty($overrides['order_refund_total'])) {
+            $mailData['order_refund_total'] = $this->formatMoney((float) $overrides['order_refund_total']);
+        }
 
         try {
             Mail::to($email)->send(new TicketCancelledRefundMail($mailData));
