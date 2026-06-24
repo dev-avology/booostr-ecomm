@@ -1457,6 +1457,14 @@
 
             $('#cancel-order-refund-process-btn, #cancel-order-refund-process-btn-full').on('click', resetRefundCancellationView);
 
+            @if (request()->query('refund') && !$refundSuccess && $info->payment_status == 1 && $info->getway->name !== 'cash')
+                $orderDetailsView.hide();
+                $orderRefundView.show();
+                $orderHeaderTitle.text(refundHeaderTitle);
+                $('#order_refund_type_select').val('full');
+                updateRefundViewState();
+            @endif
+
             @if ($refundSuccess)
                 resetRefundCancellationView();
                 $('#refundSuccessModal').modal('show');

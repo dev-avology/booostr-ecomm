@@ -332,8 +332,21 @@ $(document).ready(function() {
             $('#captureModal').modal('show');
         } else if (method === 'complete_fulfillment'){ 
             $('#fulfillModal').modal('show'); 
-        } else if (method === 'cancel_order'){ 
-            $('#cancelModal').modal('show'); 
+        } else if (method === 'cancel_order'){
+            let checked = $('input[name="ids[]"]:checked');
+
+            if (checked.length === 0) {
+                alert('Please select at least one order.');
+                return;
+            }
+
+            if (checked.length > 1) {
+                alert('Please select only one order to cancel and refund.');
+                return;
+            }
+
+            let orderId = checked.first().val();
+            window.location.href = @json(url('/seller/order')) + '/' + orderId + '?refund=1';
         } else if (method === 'mark_pending'){ 
             $('#pendingModal').modal('show'); 
         } else if (method === 'delete'){ 
