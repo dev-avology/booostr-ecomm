@@ -1225,6 +1225,41 @@ class ProductController extends Controller
         return response()->json($result, $result['success'] ? 200 : 500);
     }
 
+    protected function parseCrmSyncedContactsPayload($payload): array
+    {
+        if (is_string($payload)) {
+            $decoded = json_decode($payload, true);
+            $payload = is_array($decoded) ? $decoded : [];
+        }
+
+        if (!is_array($payload)) {
+            return [];
+        }
+
+        $contacts = [];
+
+        foreach ($payload as $contact) {
+            if (!is_array($contact)) {
+                continue;
+            }
+
+            $sourceType = trim((string) ($contact['source_type'] ?? ''));
+            $sourceId = (int) ($contact['source_id'] ?? 0);
+
+            if ($sourceType === '' || $sourceId <= 0) {
+                continue;
+            }
+
+            $contacts[] = [
+                'source_type' => $sourceType,
+                'source_id' => $sourceId,
+                'email' => $contact['email'] ?? null,
+            ];
+        }
+
+        return $contacts;
+    }
+
     protected function validateCrmSyncScopeChange(Request $request, int $productId)
     {
         $syncService = app(ProductSalesCrmSyncService::class);
@@ -1303,6 +1338,7 @@ class ProductController extends Controller
             'contact_tags' => $request->input('contact_tags', ''),
             'crm_list_name' => $request->input('crm_list_name'),
             'total_synced_contacts' => (int) $request->input('total_synced_contacts', 0),
+            'synced_contacts' => $this->parseCrmSyncedContactsPayload($request->input('synced_contacts')),
             'filter_state' => [
                 'src' => $request->input('src'),
                 'page' => (int) $request->input('page', 1),

@@ -785,6 +785,8 @@
             $nameParts = explode(' ', trim($fullName), 2);
 
             return [
+                'source_type' => 'event_ticket',
+                'source_id' => (int) ($ticket->id ?? 0),
                 'first_name' => $crmSyncSanitize($nameParts[0] ?? ''),
                 'last_name' => $crmSyncSanitize($nameParts[1] ?? ''),
                 'email' => $crmSyncSanitize($email),
@@ -822,6 +824,8 @@
         $nameParts = explode(' ', trim($fullName), 2);
 
         return [
+            'source_type' => 'orderitem',
+            'source_id' => (int) ($sale->id ?? 0),
             'first_name' => $crmSyncSanitize($nameParts[0] ?? ''),
             'last_name' => $crmSyncSanitize($nameParts[1] ?? ''),
             'email' => $crmSyncSanitize($email),
@@ -1636,10 +1640,78 @@ $(document).on('click', '.ticket-status-update', function(e) {
     var lastValidCrmListValue = $crmSyncList.val();
     var originalCrmListName = '';
     var originalPassScope = 'all';
+    var pageScopeContactGroupName = '';
+    var pageScopeContactGroupId = '';
     var currentView = 'form';
     var syncRunning = false;
     var continuousBatchRunning = false;
     var pauseRestartPending = false;
+
+    function getPageScopeGroupStorageKey() {
+        var originalKey = $.trim(originalCrmListName || 'default')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '_')
+            .substring(0, 60);
+
+        return 'crm_page_scope_group_' + CRM_SYNC_PRODUCT_ID + '_' + originalKey;
+    }
+
+    function readPageScopeContactGroup() {
+        try {
+            var raw = sessionStorage.getItem(getPageScopeGroupStorageKey());
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function writePageScopeContactGroup(name, groupId) {
+        try {
+            if (!$.trim(name || '')) {
+                sessionStorage.removeItem(getPageScopeGroupStorageKey());
+                return;
+            }
+
+            sessionStorage.setItem(getPageScopeGroupStorageKey(), JSON.stringify({
+                name: $.trim(name || ''),
+                group_id: $.trim(groupId || '')
+            }));
+        } catch (e) {
+            // Ignore storage errors.
+        }
+    }
+
+    function rememberPageScopeContactGroup(name, groupId) {
+        pageScopeContactGroupName = $.trim(name || '');
+        pageScopeContactGroupId = $.trim(groupId || '');
+        writePageScopeContactGroup(pageScopeContactGroupName, pageScopeContactGroupId);
+    }
+
+    function loadStoredPageScopeContactGroup() {
+        var stored = readPageScopeContactGroup();
+        if (!stored || !$.trim(stored.name || '')) {
+            return;
+        }
+
+        pageScopeContactGroupName = $.trim(stored.name || '');
+        pageScopeContactGroupId = $.trim(stored.group_id || '');
+    }
+
+    function applyPageScopeContactGroupIfAvailable() {
+        if (!isChangingAllResultsToPageScope() || !pageScopeContactGroupName) {
+            return false;
+        }
+
+        var original = $.trim(originalCrmListName || '').toLowerCase();
+        if (pageScopeContactGroupName.toLowerCase() === original) {
+            return false;
+        }
+
+        appendContactGroupOption(pageScopeContactGroupName, pageScopeContactGroupId, true);
+        resetCreateNewContactGroupUi();
+        updatePageScopeNotice();
+        return true;
+    }
 
     function appendContactGroupOption(name, groupId, makeSelected) {
         var normalized = $.trim(name || '');
@@ -1709,7 +1781,14 @@ $(document).on('click', '.ticket-status-update', function(e) {
             crm_sync_groups: 1
         }).done(function (response) {
             if (response && response.success && Array.isArray(response.groups)) {
-                refreshCrmContactGroupOptions(response.groups, '');
+                var keepName = $.trim(
+                    getSelectedCrmListName()
+                    || lastValidCrmListValue
+                    || originalCrmListName
+                    || ''
+                );
+                refreshCrmContactGroupOptions(response.groups, keepName);
+                applyContinuousUiState();
             }
         });
     }
@@ -1744,6 +1823,12 @@ $(document).on('click', '.ticket-status-update', function(e) {
             .done(function (response) {
                 if (response && response.success && response.contact_group && response.contact_group.name) {
                     appendContactGroupOption(response.contact_group.name, response.contact_group.group_id || '', true);
+                    if (isChangingAllResultsToPageScope()) {
+                        rememberPageScopeContactGroup(
+                            response.contact_group.name,
+                            response.contact_group.group_id || ''
+                        );
+                    }
                     $createListInput.val('').prop('disabled', false);
                     $createListWrap.hide();
                     clearCreateListError();
@@ -1797,8 +1882,14 @@ $(document).on('click', '.ticket-status-update', function(e) {
     $crmSyncList.on('change', function () {
         if ($crmSyncList.val() !== '__create_new__') {
             if (isChangingAllResultsToPageScope() && !hasCrmListChanged()) {
-                promptCreateNewContactGroupForPageScope();
+                if (!applyPageScopeContactGroupIfAvailable()) {
+                    promptCreateNewContactGroupForPageScope();
+                }
                 return;
+            }
+
+            if (isChangingAllResultsToPageScope() && hasCrmListChanged()) {
+                rememberPageScopeContactGroup(getSelectedCrmListName(), getSelectedCrmListGroupId());
             }
 
             lastValidCrmListValue = $crmSyncList.val();
@@ -1820,7 +1911,9 @@ $(document).on('click', '.ticket-status-update', function(e) {
         updatePageScopeNotice();
 
         if (isChangingAllResultsToPageScope()) {
-            promptCreateNewContactGroupForPageScope();
+            if (!applyPageScopeContactGroupIfAvailable()) {
+                promptCreateNewContactGroupForPageScope();
+            }
         } else if (isRevertingAllResultsToPageScopeChange()) {
             restoreOriginalContactGroupSelection();
         }
@@ -1895,7 +1988,15 @@ $(document).on('click', '.ticket-status-update', function(e) {
         var current = $.trim(getSelectedCrmListName() || '').toLowerCase();
         var original = $.trim(originalCrmListName || '').toLowerCase();
 
-        return original !== '' && current !== '' && current !== original;
+        if (!current || current === '__create_new__') {
+            return false;
+        }
+
+        if (!original) {
+            return true;
+        }
+
+        return current !== original;
     }
 
     function isEditingExistingSync() {
@@ -1935,7 +2036,21 @@ $(document).on('click', '.ticket-status-update', function(e) {
             return false;
         }
 
-        return hasCrmListChanged();
+        if (hasCrmListChanged()) {
+            return true;
+        }
+
+        if (pageScopeContactGroupName) {
+            var current = $.trim(getSelectedCrmListName() || '').toLowerCase();
+            var remembered = pageScopeContactGroupName.toLowerCase();
+            var original = $.trim(originalCrmListName || '').toLowerCase();
+
+            if (current === remembered && remembered !== original) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     function updatePageScopeNotice() {
@@ -2046,6 +2161,7 @@ $(document).on('click', '.ticket-status-update', function(e) {
         $passAmount.val(originalPassScope);
 
         originalCrmListName = listName || $.trim(getSelectedCrmListName() || '');
+        loadStoredPageScopeContactGroup();
         updatePageScopeNotice();
     }
 
@@ -2066,7 +2182,9 @@ $(document).on('click', '.ticket-status-update', function(e) {
         var continuousPaused = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_paused;
         var initialInProgress = CRM_SYNC_STATUS && CRM_SYNC_STATUS.initial_sync_in_progress;
         var groupChanged = hasCrmListChanged();
-        var configChanged = groupChanged || hasSyncScopeChanged();
+        var configChanged = groupChanged
+            || hasSyncScopeChanged()
+            || (isChangingAllResultsToPageScope() && hasValidNewContactGroupForPageScopeChange());
         var showContinuousControls = isContinuousSyncFormSelected() && !configChanged;
 
         $continuousAlert.toggle(continuousActive && !initialInProgress && showContinuousControls);
@@ -2196,7 +2314,7 @@ $(document).on('click', '.ticket-status-update', function(e) {
         });
     }
 
-    function recordOneTimeSyncOnServer(syncType, contactTags, totalSyncedContacts, convertFromContinuous) {
+    function recordOneTimeSyncOnServer(syncType, contactTags, totalSyncedContacts, convertFromContinuous, syncedContacts) {
         if (syncType !== 'one_time' || !CRM_SYNC_ROUTES.recordOneTime) {
             return $.Deferred().resolve().promise();
         }
@@ -2211,6 +2329,7 @@ $(document).on('click', '.ticket-status-update', function(e) {
             crm_list_name: crmListName,
             convert_from_continuous: convertFromContinuous ? 1 : 0,
             total_synced_contacts: totalSyncedContacts,
+            synced_contacts: JSON.stringify(syncedContacts || []),
             src: CRM_SYNC_PAGE_FILTERS.src,
             page: CRM_SYNC_PAGE_FILTERS.page,
             per_page: CRM_SYNC_PAGE_FILTERS.per_page
@@ -2237,12 +2356,13 @@ $(document).on('click', '.ticket-status-update', function(e) {
 
         var successCount = 0;
         var failedCount = 0;
+        var syncedContacts = [];
 
         function syncNext(index) {
             if (index >= contacts.length) {
                 markSyncCompleted(syncDate, syncType);
 
-                recordOneTimeSyncOnServer(syncType, contactTags, successCount, !!convertFromContinuous)
+                recordOneTimeSyncOnServer(syncType, contactTags, successCount, !!convertFromContinuous, syncedContacts)
                     .always(function () {
                         if ($modal.hasClass('show') && currentView === 'progress') {
                             showView('completed', syncDate);
@@ -2255,6 +2375,13 @@ $(document).on('click', '.ticket-status-update', function(e) {
             postCrmContact(contacts[index], contactTags, groupIds)
                 .done(function () {
                     successCount++;
+                    if (contacts[index].source_type && contacts[index].source_id) {
+                        syncedContacts.push({
+                            source_type: contacts[index].source_type,
+                            source_id: contacts[index].source_id,
+                            email: contacts[index].email || ''
+                        });
+                    }
                 })
                 .fail(function () {
                     failedCount++;

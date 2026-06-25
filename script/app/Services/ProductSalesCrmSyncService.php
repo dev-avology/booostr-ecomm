@@ -54,7 +54,7 @@ class ProductSalesCrmSyncService
     {
         $isTicketProduct = (int) $product->is_variation === 2;
 
-        return ProductSalesCrmSync::create([
+        $sync = ProductSalesCrmSync::create([
             'product_id' => $product->id,
             'sync_type' => 'one_time',
             'sync_mode' => $options['sync_mode'] ?? 'all_results',
@@ -69,6 +69,10 @@ class ProductSalesCrmSyncService
             'total_synced_contacts' => (int) ($options['total_synced_contacts'] ?? 0),
             'created_by' => $userId,
         ]);
+
+        $this->storeSyncedContacts($sync, $options['synced_contacts'] ?? []);
+
+        return $sync->fresh();
     }
 
     public function hasContactGroupChanged(?ProductSalesCrmSync $sync, ?string $newListName): bool
@@ -160,7 +164,101 @@ class ProductSalesCrmSyncService
             $attributes
         );
 
+        if (!$existing && !$groupChanged) {
+            $this->inheritSyncedContactsFromProductHistory($sync->fresh());
+        }
+
         return $sync->fresh();
+    }
+
+    protected function storeSyncedContacts(ProductSalesCrmSync $sync, array $contacts): void
+    {
+        $storedCount = 0;
+        $maxSourceId = (int) $sync->last_processed_record_id;
+
+        foreach ($contacts as $contact) {
+            $sourceType = trim((string) ($contact['source_type'] ?? ''));
+            $sourceId = (int) ($contact['source_id'] ?? 0);
+
+            if ($sourceType === '' || $sourceId <= 0) {
+                continue;
+            }
+
+            ProductSalesCrmSyncContact::firstOrCreate(
+                [
+                    'product_sales_crm_sync_id' => $sync->id,
+                    'source_type' => $sourceType,
+                    'source_id' => $sourceId,
+                ],
+                [
+                    'product_id' => $sync->product_id,
+                    'email' => $contact['email'] ?? null,
+                    'synced_at' => now(),
+                ]
+            );
+
+            $storedCount++;
+            $maxSourceId = max($maxSourceId, $sourceId);
+        }
+
+        if ($storedCount > 0) {
+            $sync->update([
+                'total_synced_contacts' => $storedCount,
+                'last_processed_record_id' => $maxSourceId > 0 ? $maxSourceId : $sync->last_processed_record_id,
+            ]);
+        }
+    }
+
+    protected function inheritSyncedContactsFromProductHistory(ProductSalesCrmSync $sync): int
+    {
+        $previousContacts = ProductSalesCrmSyncContact::query()
+            ->where('product_id', $sync->product_id)
+            ->where('product_sales_crm_sync_id', '!=', $sync->id)
+            ->orderByDesc('synced_at')
+            ->get()
+            ->unique(function ($row) {
+                return $row->source_type . ':' . $row->source_id;
+            });
+
+        if ($previousContacts->isEmpty()) {
+            return 0;
+        }
+
+        $imported = 0;
+        $maxSourceId = (int) $sync->last_processed_record_id;
+
+        foreach ($previousContacts as $contact) {
+            $record = ProductSalesCrmSyncContact::firstOrCreate(
+                [
+                    'product_sales_crm_sync_id' => $sync->id,
+                    'source_type' => $contact->source_type,
+                    'source_id' => $contact->source_id,
+                ],
+                [
+                    'product_id' => $sync->product_id,
+                    'email' => $contact->email,
+                    'synced_at' => $contact->synced_at ?? now(),
+                ]
+            );
+
+            if ($record->wasRecentlyCreated) {
+                $imported++;
+            }
+
+            $maxSourceId = max($maxSourceId, (int) $contact->source_id);
+        }
+
+        if ($imported > 0) {
+            $sync->update([
+                'total_synced_contacts' => ProductSalesCrmSyncContact::query()
+                    ->where('product_sales_crm_sync_id', $sync->id)
+                    ->count(),
+                'last_processed_record_id' => $maxSourceId > 0 ? $maxSourceId : $sync->last_processed_record_id,
+                'last_synced_at' => $sync->last_synced_at ?? now(),
+            ]);
+        }
+
+        return $imported;
     }
 
     protected function resetSyncContactsForRestart(ProductSalesCrmSync $sync): void
