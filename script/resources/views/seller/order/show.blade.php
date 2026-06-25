@@ -397,35 +397,46 @@
 #order-refund-partial-details .order-refund-partial-layout {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
+    gap: 0;
     width: 100%;
     margin-top: 28px;
 }
 
 .order-refund-partial-qty-sidebar {
-    flex: 0 0 195px;
-    max-width: 195px;
+    flex: 0 0 220px;
+    max-width: 220px;
 }
 
 .order-refund-partial-qty-header {
-    font-weight: 700;
-    font-size: 14px;
-    color: #1f2d3d;
-    padding: 14px 10px 14px 0;
-    min-height: 52px;
+    padding: 14px 18px;
+    margin: 0;
+    min-height: 0;
     display: flex;
     align-items: center;
-    line-height: 1.35;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-right: none;
+    border-radius: 4px 0 0 0;
+    line-height: 1.5;
+    font-size: 1rem;
+}
+
+.order-refund-partial-qty-header strong,
+.order-refund-partial-products-panel .order-refund-breakdown > .list-group-item:first-child strong {
+    font-weight: 700;
+    color: #6c757d;
 }
 
 .order-refund-partial-qty-row {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    min-height: 58px;
-    padding: 12px 10px 12px 0;
+    box-sizing: border-box;
+    min-height: 0;
+    padding: 14px 18px;
     background: #e8f4fc;
-    border-bottom: 1px solid #dfeef7;
+    border-left: 1px solid #e8e8e8;
+    border-bottom: 1px solid #e8e8e8;
     transition: background-color 0.2s ease;
 }
 
@@ -440,6 +451,12 @@
 
 .order-refund-partial-products-panel .order-refund-breakdown {
     width: 100%;
+    border-radius: 0 4px 4px 4px;
+    border-left: none;
+}
+
+.order-refund-partial-products-panel .order-refund-breakdown > .list-group-item:first-child {
+    border-radius: 0;
 }
 
 .order-refund-partial-product-row {
@@ -453,8 +470,9 @@
 
 .order-refund-partial-qty-select {
     width: 100%;
-    max-width: 155px;
+    max-width: 170px;
     height: 38px;
+    margin: 0;
     font-weight: 600;
     color: #00aeef;
     border-color: #b8dff3;
@@ -544,11 +562,19 @@
     }
 
     .order-refund-partial-qty-header {
-        padding-left: 0;
+        padding-left: 18px;
+        border-right: 1px solid #e8e8e8;
+        border-radius: 4px 4px 0 0;
     }
 
     .order-refund-partial-qty-row {
-        padding-left: 0;
+        padding-left: 18px;
+        border-right: 1px solid #e8e8e8;
+    }
+
+    .order-refund-partial-products-panel .order-refund-breakdown {
+        border-left: 1px solid #e8e8e8;
+        border-radius: 4px;
     }
 
     .order-refund-partial-summary-bar {
@@ -1518,7 +1544,7 @@
                         <div class="col-12 col-lg-10 order-refund-details-col">
                             <div class="order-refund-partial-layout">
                                 <div class="order-refund-partial-qty-sidebar">
-                                    <div class="order-refund-partial-qty-header">{{ __('Item Refunded & Cancelled Qty') }}</div>
+                                    <div class="order-refund-partial-qty-header"><strong>{{ __('Item Refunded & Cancelled Qty') }}</strong></div>
                                     @foreach ($info->orderitems ?? [] as $partial_refund_row)
                                         @php
                                             $partial_refund_variations = json_decode($partial_refund_row->info ?? '');
@@ -1924,12 +1950,27 @@
             }
 
             function syncPartialRefundRowHeights() {
+                var $qtyHeader = $('.order-refund-partial-qty-header');
+                var $productHeader = $('.order-refund-partial-products-panel .order-refund-breakdown > .list-group-item').first();
+
+                if ($qtyHeader.length && $productHeader.length) {
+                    var headerHeight = $productHeader.outerHeight();
+                    $qtyHeader.css({
+                        'min-height': headerHeight + 'px',
+                        'height': headerHeight + 'px'
+                    });
+                }
+
                 $('.order-refund-partial-qty-row').each(function (index) {
                     var $qtyRow = $(this);
                     var $productRow = $('.order-refund-partial-product-row').eq(index);
 
                     if ($productRow.length) {
-                        $qtyRow.css('min-height', $productRow.outerHeight());
+                        var rowHeight = $productRow.outerHeight();
+                        $qtyRow.css({
+                            'min-height': rowHeight + 'px',
+                            'height': rowHeight + 'px'
+                        });
                     }
                 });
             }
