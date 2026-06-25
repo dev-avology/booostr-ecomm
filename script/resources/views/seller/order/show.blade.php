@@ -468,20 +468,36 @@
     background: #d4edda;
 }
 
-.order-refund-partial-qty-select {
+.order-refund-partial-qty-select,
+.order-refund-partial-qty-select.form-control {
     width: 100%;
     max-width: 170px;
     height: 38px;
     margin: 0;
     font-weight: 600;
-    color: #00aeef;
-    border-color: #b8dff3;
+    color: #fff !important;
+    border: 1px solid #00aeef !important;
+    border-radius: 4px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: #00aeef url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ffffff' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E") no-repeat right 12px center !important;
+    padding: 6px 34px 6px 12px;
+    line-height: 1.2;
+    box-shadow: none !important;
+}
+
+.order-refund-partial-qty-select option {
+    color: #212529;
     background: #fff;
 }
 
-.order-refund-partial-qty-select:focus {
-    border-color: #00aeef;
-    box-shadow: 0 0 0 0.1rem rgba(0, 174, 239, 0.2);
+.order-refund-partial-qty-select:focus,
+.order-refund-partial-qty-select.form-control:focus {
+    border-color: #0099d6 !important;
+    color: #fff !important;
+    box-shadow: 0 0 0 0.1rem rgba(0, 174, 239, 0.2) !important;
+    background: #0099d6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ffffff' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E") no-repeat right 12px center !important;
 }
 
 .order-refund-partial-per-item-badge {
