@@ -635,6 +635,17 @@
     margin-bottom: 18px;
 }
 
+#crmSyncModal .crm-sync-existing-group-warning {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: #fff8e6;
+    border: 1px solid #f0d58c;
+    color: #6b4f00;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
 #crmSyncModal .crm-sync-page-scope-notice {
     background: #eef9fd;
     border: 1px solid #9edcf2;
@@ -1300,6 +1311,7 @@
                     <div id="crm_sync_continuous_paused_alert" class="crm-sync-continuous-alert" style="display:none;">
                         Continuous sync is paused for this product. Click Restart Continuous Sync to resume syncing new purchase records to your CRM.
                     </div>
+                    <div id="crm_sync_existing_group_warning" class="crm-sync-existing-group-warning" style="display:none;" role="alert"></div>
 
                     <p class="crm-sync-desc mb-0">
                         Create a data sync of product sales history data into your CRM. Set a one-time or continual sync of this product customer contact data to your CRM custom contact groups and/or add additional contact tags to give you more supporter insights.
@@ -1516,6 +1528,9 @@ $(document).on('click', '.ticket-status-update', function(e) {
         });
 
         syncHidden();
+        if (typeof applyContinuousUiState === 'function') {
+            applyContinuousUiState();
+        }
     }
 
     function addTag(value) {
@@ -1636,10 +1651,13 @@ $(document).on('click', '.ticket-status-update', function(e) {
     var $createListInput = $modal.find('#crm_sync_create_list_input');
     var $createListError = $modal.find('#crm_sync_create_list_error');
     var $pageScopeNotice = $modal.find('#crm_sync_page_scope_notice');
+    var $existingGroupWarning = $modal.find('#crm_sync_existing_group_warning');
     var $passAmount = $modal.find('#crm_sync_pass_amount');
     var lastValidCrmListValue = $crmSyncList.val();
     var originalCrmListName = '';
     var originalPassScope = 'all';
+    var originalSyncType = 'continuous';
+    var originalContactTags = '';
     var pageScopeContactGroupName = '';
     var pageScopeContactGroupId = '';
     var currentView = 'form';
@@ -1881,14 +1899,7 @@ $(document).on('click', '.ticket-status-update', function(e) {
 
     $crmSyncList.on('change', function () {
         if ($crmSyncList.val() !== '__create_new__') {
-            if (isChangingAllResultsToPageScope() && !hasCrmListChanged()) {
-                if (!applyPageScopeContactGroupIfAvailable()) {
-                    promptCreateNewContactGroupForPageScope();
-                }
-                return;
-            }
-
-            if (isChangingAllResultsToPageScope() && hasCrmListChanged()) {
+            if (isChangingAllResultsToPageScope() && hasContactGroupChanged()) {
                 rememberPageScopeContactGroup(getSelectedCrmListName(), getSelectedCrmListGroupId());
             }
 
@@ -1908,16 +1919,17 @@ $(document).on('click', '.ticket-status-update', function(e) {
     });
 
     $passAmount.on('change', function () {
-        updatePageScopeNotice();
-
         if (isChangingAllResultsToPageScope()) {
-            if (!applyPageScopeContactGroupIfAvailable()) {
+            if (hasContactGroupChanged()) {
+                rememberPageScopeContactGroup(getSelectedCrmListName(), getSelectedCrmListGroupId());
+            } else if (!applyPageScopeContactGroupIfAvailable()) {
                 promptCreateNewContactGroupForPageScope();
             }
         } else if (isRevertingAllResultsToPageScopeChange()) {
             restoreOriginalContactGroupSelection();
         }
 
+        updatePageScopeNotice();
         applyContinuousUiState();
     });
 
@@ -1984,7 +1996,28 @@ $(document).on('click', '.ticket-status-update', function(e) {
         $lastSyncDateValue.text('—');
     }
 
-    function hasCrmListChanged() {
+    function normalizeContactTags(value) {
+        return $.trim(value || '')
+            .split(',')
+            .map(function (tag) { return $.trim(tag).toLowerCase(); })
+            .filter(function (tag) { return tag !== ''; })
+            .sort()
+            .join(',');
+    }
+
+    function getCurrentSyncType() {
+        return $modal.find('input[name="crm_sync_recurrence"]:checked').val() || 'continuous';
+    }
+
+    function getCurrentContactTags() {
+        return $.trim($hidden.val() || tags.join(','));
+    }
+
+    function hasContactGroupChanged() {
+        if (!isEditingExistingSync()) {
+            return false;
+        }
+
         var current = $.trim(getSelectedCrmListName() || '').toLowerCase();
         var original = $.trim(originalCrmListName || '').toLowerCase();
 
@@ -1997,6 +2030,71 @@ $(document).on('click', '.ticket-status-update', function(e) {
         }
 
         return current !== original;
+    }
+
+    function hasCrmListChanged() {
+        return hasContactGroupChanged();
+    }
+
+    function hasSyncRecurrenceChanged() {
+        if (!isEditingExistingSync()) {
+            return false;
+        }
+
+        return getCurrentSyncType() !== originalSyncType;
+    }
+
+    function hasContactTagsChanged() {
+        if (!isEditingExistingSync()) {
+            return false;
+        }
+
+        return normalizeContactTags(getCurrentContactTags()) !== normalizeContactTags(originalContactTags);
+    }
+
+    function hasNonContactGroupConfigChanged() {
+        return hasSyncScopeChanged()
+            || hasSyncRecurrenceChanged()
+            || hasContactTagsChanged();
+    }
+
+    function hasAnySyncConfigChanged() {
+        return hasContactGroupChanged() || hasNonContactGroupConfigChanged();
+    }
+
+    function getExistingContactGroupWarningMessage() {
+        return 'You have updated your syncing parameters but did not update the Contact Manager Group it is syncing to. '
+            + 'If this is correct, click OK. If you want to change the Contact Group this data syncs to, click cancel and update the group.';
+    }
+
+    function shouldWarnAboutExistingContactGroup() {
+        return isEditingExistingSync()
+            && hasNonContactGroupConfigChanged()
+            && !hasContactGroupChanged();
+    }
+
+    function updateExistingGroupWarning() {
+        if (!$existingGroupWarning.length) {
+            return;
+        }
+
+        if (!shouldWarnAboutExistingContactGroup()) {
+            $existingGroupWarning.hide().empty();
+            return;
+        }
+
+        $existingGroupWarning.text(
+            'You have updated your syncing parameters but did not update the Contact Manager Group it is syncing to. '
+            + 'Update the contact group below if you want this data to sync elsewhere.'
+        ).show();
+    }
+
+    function ensureExistingContactGroupSyncConfirmed() {
+        if (!shouldWarnAboutExistingContactGroup()) {
+            return true;
+        }
+
+        return confirm(getExistingContactGroupWarningMessage());
     }
 
     function isEditingExistingSync() {
@@ -2032,30 +2130,12 @@ $(document).on('click', '.ticket-status-update', function(e) {
             return true;
         }
 
-        if ($crmSyncList.val() === '__create_new__') {
-            return false;
-        }
-
-        if (hasCrmListChanged()) {
-            return true;
-        }
-
-        if (pageScopeContactGroupName) {
-            var current = $.trim(getSelectedCrmListName() || '').toLowerCase();
-            var remembered = pageScopeContactGroupName.toLowerCase();
-            var original = $.trim(originalCrmListName || '').toLowerCase();
-
-            if (current === remembered && remembered !== original) {
-                return true;
-            }
-        }
-
-        return false;
+        return hasContactGroupChanged();
     }
 
     function updatePageScopeNotice() {
         $pageScopeNotice.toggle(
-            isChangingAllResultsToPageScope() && !hasValidNewContactGroupForPageScopeChange()
+            isChangingAllResultsToPageScope() && !hasContactGroupChanged()
         );
     }
 
@@ -2130,7 +2210,10 @@ $(document).on('click', '.ticket-status-update', function(e) {
         if (!CRM_SYNC_STATUS) {
             originalCrmListName = $.trim(getSelectedCrmListName() || '');
             originalPassScope = 'all';
+            originalSyncType = 'continuous';
+            originalContactTags = '';
             updatePageScopeNotice();
+            updateExistingGroupWarning();
             return;
         }
 
@@ -2151,8 +2234,10 @@ $(document).on('click', '.ticket-status-update', function(e) {
 
         if (CRM_SYNC_STATUS.last_sync_type === 'one_time') {
             $modal.find('#crm_sync_onetime').prop('checked', true);
+            originalSyncType = 'one_time';
         } else {
             $modal.find('#crm_sync_continuous').prop('checked', true);
+            originalSyncType = 'continuous';
         }
 
         originalPassScope = isEditingExistingSync()
@@ -2161,6 +2246,7 @@ $(document).on('click', '.ticket-status-update', function(e) {
         $passAmount.val(originalPassScope);
 
         originalCrmListName = listName || $.trim(getSelectedCrmListName() || '');
+        originalContactTags = $.trim(CRM_SYNC_STATUS.contact_tags || '');
         loadStoredPageScopeContactGroup();
         updatePageScopeNotice();
     }
@@ -2181,10 +2267,7 @@ $(document).on('click', '.ticket-status-update', function(e) {
         var continuousActive = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_active;
         var continuousPaused = CRM_SYNC_STATUS && CRM_SYNC_STATUS.continuous_paused;
         var initialInProgress = CRM_SYNC_STATUS && CRM_SYNC_STATUS.initial_sync_in_progress;
-        var groupChanged = hasCrmListChanged();
-        var configChanged = groupChanged
-            || hasSyncScopeChanged()
-            || (isChangingAllResultsToPageScope() && hasValidNewContactGroupForPageScopeChange());
+        var configChanged = hasAnySyncConfigChanged();
         var showContinuousControls = isContinuousSyncFormSelected() && !configChanged;
 
         $continuousAlert.toggle(continuousActive && !initialInProgress && showContinuousControls);
@@ -2216,6 +2299,7 @@ $(document).on('click', '.ticket-status-update', function(e) {
 
         $syncBtn.prop('disabled', syncRunning || continuousBatchRunning);
         updatePageScopeNotice();
+        updateExistingGroupWarning();
     }
 
     function refreshContinuousStatus(callback) {
@@ -2571,6 +2655,10 @@ $(document).on('click', '.ticket-status-update', function(e) {
         }
 
         if (!ensureValidContactGroupForPageScopeChange()) {
+            return;
+        }
+
+        if (!ensureExistingContactGroupSyncConfirmed()) {
             return;
         }
 
