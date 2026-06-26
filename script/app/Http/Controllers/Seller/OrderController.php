@@ -34,7 +34,13 @@ class OrderController extends Controller
        abort_if(!getpermission('order'),401);
        $status=Category::where('type','status')->orderBy('featured','ASC')->withCount('orderstatus')->latest()->get();
        $request_status=$request->status ?? null;
-       $orders=Order::with('user','ordermeta','orderitems','orderstatus')->withCount('orderitems');
+       $orders=Order::with([
+           'user',
+           'ordermeta',
+           'orderstatus',
+           'getway',
+           'orderitems.term.termcategories',
+       ])->withCount('orderitems');
 
        $product_type = Category::where('type', 'product_type')->select('id','slug', 'name')->orderBy('id', 'ASC')->get();
 
@@ -56,12 +62,32 @@ class OrderController extends Controller
            $orders=$orders->where('created_at','<=',$end);
        }
 
-       if ($request->src) {
-           $orders=$orders->where('invoice_no',$request->src);
+       if ($request->filled('src')) {
+           $search = trim($request->src);
+           $like = '%' . $search . '%';
+
+           $orders = $orders->where(function ($query) use ($like) {
+               $query->where('invoice_no', 'like', $like)
+                   ->orWhereHas('user', function ($userQuery) use ($like) {
+                       $userQuery->where('name', 'like', $like);
+                   })
+                   ->orWhereHas('ordermeta', function ($metaQuery) use ($like) {
+                       $metaQuery->where('key', 'orderinfo')
+                           ->where('value', 'like', $like);
+                   });
+           });
        }
-       $orders = $orders->where('payment_status','!=',0)->latest()->paginate(30);
+
+       $per_page_options = [10, 20, 30, 50, 100, 200, 500];
+       $selected_per_page = (int) $request->get('per_page', 30);
+       if (!in_array($selected_per_page, $per_page_options, true)) {
+           $selected_per_page = 30;
+       }
+
+       $orders = $orders->where('payment_status','!=',0)->latest()->paginate($selected_per_page);
+       $orders->appends($request->query());
        
-       return view('seller.order.index',compact('request','status','product_type','request_status','orders'));
+       return view('seller.order.index',compact('request','status','product_type','request_status','orders','per_page_options','selected_per_page'));
     }
 
     

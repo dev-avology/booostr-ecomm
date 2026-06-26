@@ -7,10 +7,156 @@
     span.risk-badge-text img {
         margin-left: 12px;
     }
-    .input-group-btn button.btn.btn-primary.btn-icon {
-    padding-top: 8px;
-    padding-bottom: 8px;
 
+.order-list-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.order-list-pagination .pagination {
+    justify-content: center;
+    margin-bottom: 0;
+}
+
+.order-list-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.order-list-card-header .order-list-card-title {
+    margin-bottom: 0;
+}
+
+.order-list-header-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.order-list-search-form {
+    margin: 0;
+    width: 300px;
+    max-width: 100%;
+}
+
+.order-list-search-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 38px;
+    border: 1px solid #dce3ea;
+    border-radius: 6px;
+    background: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.order-list-search-field:focus-within {
+    border-color: #00aeef;
+    box-shadow: 0 0 0 0.15rem rgba(0, 174, 239, 0.12);
+}
+
+.order-list-search-input {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    padding: 0 44px 0 12px;
+    border-radius: 6px;
+    box-shadow: none;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.order-list-search-input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.order-list-search-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    bottom: 4px;
+    width: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: #00aeef;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.order-list-search-btn:hover,
+.order-list-search-btn:focus {
+    background: #0099d6;
+    color: #fff;
+    outline: none;
+    box-shadow: none;
+}
+
+.order-list-filter-btn {
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    box-shadow: none;
+}
+
+.order-list-filter-btn .fe {
+    font-size: 15px;
+    line-height: 1;
+}
+
+.order-list-per-page-form {
+    margin: 0;
+}
+
+.order-list-per-page-select {
+    height: 38px;
+    min-width: 132px;
+    padding: 0 12px;
+    border: 1px solid #dce3ea;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    color: #34395e;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.order-list-per-page-select:focus {
+    border-color: #00aeef;
+    outline: none;
+    box-shadow: 0 0 0 0.15rem rgba(0, 174, 239, 0.12);
+}
+
+@media (max-width: 767px) {
+    .order-list-header-tools {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .order-list-search-form {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+    }
 }
 
 </style>
@@ -38,19 +184,37 @@
 <x-storenotification></x-storenotification>
 
  <div class="card">
-    <div class="card-header">
-        <h4>{{ __('Orders') }}</h4>
-        <form class="card-header-form">
-            <div class="input-group">
-                <input type="text" name="src" value="{{ $request->src ?? '' }}" class="form-control" required=""  placeholder="Order Id" />
-                <div class="input-group-btn">
-                    <button type="submit" class="btn btn-primary btn-icon"><i class="fas fa-search"></i></button>
+    <div class="card-header order-list-card-header">
+        <h4 class="order-list-card-title">{{ __('Orders') }}</h4>
+        <div class="order-list-header-tools">
+            <form class="order-list-search-form">
+                <div class="order-list-search-field">
+                    <input type="text" name="src" value="{{ $request->src ?? '' }}" class="form-control order-list-search-input" required="" placeholder="{{ __('Search by Order # or Customer Name') }}" />
+                    <button type="submit" class="order-list-search-btn" aria-label="{{ __('Search orders') }}">
+                        <i class="fas fa-search"></i>
+                    </button>
                 </div>
-            </div>
-        </form>
-        <button class="btn btn-sm btn-primary  ml-1" type="button" data-toggle="modal" data-target="#searchmodal">
-            <i class="fe fe-sliders mr-1"></i> {{ __('Filter') }} <span class="badge badge-primary ml-1 d-none">0</span>
-        </button>
+            </form>
+            <button class="btn btn-primary order-list-filter-btn" type="button" data-toggle="modal" data-target="#searchmodal">
+                <i class="fe fe-sliders"></i>
+                <span>{{ __('Filter') }}</span>
+                <span class="badge badge-light ml-1 d-none">0</span>
+            </button>
+            <form class="order-list-per-page-form" method="get" action="{{ route('seller.order.index') }}">
+                @foreach(collect(request()->query())->except(['per_page', 'page']) as $queryKey => $queryValue)
+                    @if(!is_array($queryValue))
+                        <input type="hidden" name="{{ $queryKey }}" value="{{ $queryValue }}">
+                    @endif
+                @endforeach
+                <select class="form-control order-list-per-page-select" name="per_page" id="order_per_page" onchange="this.form.submit()">
+                    @foreach($per_page_options ?? [10, 20, 30, 50, 100, 200, 500] as $per)
+                        <option value="{{ $per }}" {{ ($selected_per_page ?? 30) == $per ? 'selected' : '' }}>
+                            {{ __('Per page') }} {{ $per }}
+                        </option>
+                    @endforeach
+                </select>
+            </form>
+        </div>
     </div>
     <div class="card-body">
         <form method="post" action="{{ route('seller.order.multipledelete') }}" class="" id="bulkActionForm">
@@ -73,14 +237,8 @@
                     </div>
                 </div>
                 @endif
-            </div>  
-            <div class="float-right">
-                @if(count($request->all()) > 0)
-                {{ $orders->appends($request->all())->links('vendor.pagination.bootstrap-4') }}
-                @else
-                {{ $orders->links('vendor.pagination.bootstrap-4') }}
-                @endif
             </div>
+            <div class="clearfix mb-3"></div>
             <div class="table-responsive">
                 <table class="table table-hover table-nowrap card-table text-center">
                     <thead>
@@ -109,7 +267,13 @@
 
                             // Gather category IDs from order items that match product types
                             $selected_product_type = collect($row->orderitems ?? [])
-                                ->flatMap(fn($item) => $item->term->termcategories->pluck('category_id'))
+                                ->flatMap(function ($item) {
+                                    if (!$item->term) {
+                                        return [];
+                                    }
+
+                                    return $item->term->termcategories->pluck('category_id');
+                                })
                                 ->filter(fn($id) => in_array($id, $p_types))
                                 ->unique()
                                 ->values()
@@ -128,12 +292,16 @@
                                     $order_type = 'Digital';
                                 } elseif ($pt && $pt->slug === 'physical_product') {
                                     $order_type = 'Goods';
+                                } elseif ($pt && $pt->slug === 'online_ticketing') {
+                                    $order_type = 'Tickets';
                                 }
                             } elseif ($count > 1) {
                                 $order_type = 'Mixed';
                             }
 
-                        $ordermeta=json_decode($row->ordermeta->value ?? ''); 
+                        $ordermeta = json_decode(optional($row->ordermeta)->value ?? '');
+                        $customerName = optional($ordermeta)->name ?? optional($row->user)->name ?? __('Guest User');
+                        $gatewayName = optional($row->getway)->name;
                     @endphp
                         <tr>
                             <td  class="text-left">
@@ -163,10 +331,10 @@
                             <td><a href="{{ route('seller.order.show',$row->id) }}">{{ $row->created_at->format('d-F-Y') }}</a></td>
 
                             <td>
-                               @if($row->user_id == null && $row->order_from == 1  )
-                                 {{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}} 
+                               @if($row->user_id == null && $row->order_from == 1)
+                                 {{ $customerName }}
                                 @elseif($row->user_id !== null)
-                                 <a href="{{ route('seller.user.show',$row->user_id) }}">{{($ordermeta != '' ) ? $ordermeta->name : $row->user->name}}</a>
+                                 <a href="{{ route('seller.user.show',$row->user_id) }}">{{ $customerName }}</a>
                                 @else 
                                  {{ __('Guest User') }}
                                 @endif 
@@ -197,9 +365,9 @@
                                 <span class="badge badge-warning">{{ __('Pending') }}</span>
                                 @elseif($row->payment_status==1)
 
-                                     @if($row->order_from == 4 || ($row->order_from == 0 && $row->getway->name !== 'cash'))
+                                     @if($row->order_from == 4 || ($row->order_from == 0 && $gatewayName !== 'cash'))
                                         <span class="badge badge-success">{{ __('CC Complete') }}</span>
-                                     @elseif($row->order_from == 5 || ($row->order_from == 0 && $row->getway->name == 'cash'))
+                                     @elseif($row->order_from == 5 || ($row->order_from == 0 && $gatewayName === 'cash'))
                                         <span class="badge badge-success">{{ __('Cash Complete') }}</span>
                                      @else
                                         <span class="badge badge-success">{{ __('Complete') }}</span>
@@ -229,7 +397,7 @@
 
                                 @else
 
-                                <span class="badge {{ $row->orderstatus == null ? 'badge-warning' :'' }} text-white" style="background-color: {{ $row->orderstatus->slug  }}">{{ $row->orderstatus->name ?? '' }}</span>
+                                <span class="badge {{ $row->orderstatus == null ? 'badge-warning' :'' }} text-white" style="background-color: {{ optional($row->orderstatus)->slug ?? '#ffc107' }}">{{ optional($row->orderstatus)->name ?? '' }}</span>
 
                                 @endif 
 
@@ -246,6 +414,13 @@
                     </tbody>
                    
                 </table>
+            </div>
+            <div class="order-list-pagination">
+                @if(count($request->all()) > 0)
+                {{ $orders->appends($request->all())->links('vendor.pagination.bootstrap-4') }}
+                @else
+                {{ $orders->links('vendor.pagination.bootstrap-4') }}
+                @endif
             </div>
         </form>
     </div>
