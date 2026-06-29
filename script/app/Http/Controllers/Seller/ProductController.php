@@ -991,6 +991,10 @@ class ProductController extends Controller
             $result = $this->syncCrmContactGroupsData($product->title);
             return response()->json($result, $result['success'] ? 200 : 500);
         }
+
+        // Refresh contact groups from main app when the user lands on this page.
+        $this->syncCrmContactGroupsData($product->title);
+
         $crmSyncStatus = $this->resolveProductCrmSyncStatus($id);
         $crmContactGroupOptions = $this->getCrmContactGroupOptions($product->title);
 
@@ -1112,7 +1116,7 @@ class ProductController extends Controller
             $candidateBaseUrls[] = rtrim($normalizedEnvBaseUrl, '/');
         }
 
-        $candidateBaseUrls[] = 'https://app4.booostr.co';
+        $candidateBaseUrls[] = 'https://app.booostr.co';
         $candidateBaseUrls = array_values(array_unique(array_filter($candidateBaseUrls)));
 
         try {

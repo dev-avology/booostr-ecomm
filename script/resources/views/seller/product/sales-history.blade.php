@@ -1613,7 +1613,7 @@ $(document).on('click', '.ticket-status-update', function(e) {
         }
     });
 
-    var CRM_SYNC_API = 'https://app4.booostr.co/wp-json/booostr/v1/save-contact';
+    var CRM_SYNC_API = 'https://app.booostr.co/wp-json/booostr/v1/save-contact';
     var CRM_SYNC_BOOSTER_ID = {{ tenant('club_id') }};
     var CRM_SYNC_PRODUCT_ID = {{ (int) $product->id }};
     var CRM_SYNC_STORAGE_KEY = 'crm_sync_state_' + CRM_SYNC_PRODUCT_ID;
@@ -1626,8 +1626,7 @@ $(document).on('click', '.ticket-status-update', function(e) {
         pause: "{{ route('seller.product.crm.sync.pause', $product->id) }}",
         restart: "{{ route('seller.product.crm.sync.restart', $product->id) }}",
         recordOneTime: "{{ route('seller.product.crm.sync.record_one_time', $product->id) }}",
-        createContactGroup: "{{ route('seller.product.crm.sync.contact_groups.create', $product->id) }}",
-        syncContactGroups: "{{ route('seller.product.sales.history', $product->id) }}"
+        createContactGroup: "{{ route('seller.product.crm.sync.contact_groups.create', $product->id) }}"
     };
     var CRM_SYNC_PAGE_FILTERS = {
         src: @json(request('src')),
@@ -1792,23 +1791,6 @@ $(document).on('click', '.ticket-status-update', function(e) {
             lastValidCrmListValue = '';
             resetCreateNewContactGroupUi();
         }
-    }
-
-    function syncContactGroupsOnLoad() {
-        $.get(CRM_SYNC_ROUTES.syncContactGroups, {
-            crm_sync_groups: 1
-        }).done(function (response) {
-            if (response && response.success && Array.isArray(response.groups)) {
-                var keepName = $.trim(
-                    getSelectedCrmListName()
-                    || lastValidCrmListValue
-                    || originalCrmListName
-                    || ''
-                );
-                refreshCrmContactGroupOptions(response.groups, keepName);
-                applyContinuousUiState();
-            }
-        });
     }
 
     function createContactGroup(name) {
@@ -2196,6 +2178,11 @@ $(document).on('click', '.ticket-status-update', function(e) {
 
     function ensurePageScopeToAllResultsConfirmed() {
         if (!isChangingPageScopeToAllResults()) {
+            return true;
+        }
+
+        // User already chose a new/different contact group — proceed without extra scope confirm.
+        if (hasContactGroupChanged()) {
             return true;
         }
 
@@ -2647,7 +2634,6 @@ $(document).on('click', '.ticket-status-update', function(e) {
     updateLastSyncDateDisplay();
     updateCrmSyncLabels();
     applyContinuousUiState();
-    syncContactGroupsOnLoad();
 
     $syncBtn.on('click', function () {
         if ($syncBtn.prop('disabled') || syncRunning || continuousBatchRunning) {

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 
 class ProductSalesCrmSyncService
 {
-    public const CRM_SAVE_CONTACT_URL = 'https://app4.booostr.co/wp-json/booostr/v1/save-contact';
+    public const CRM_SAVE_CONTACT_URL = 'https://app.booostr.co/wp-json/booostr/v1/save-contact';
 
     public const BATCH_SIZE = 10;
 
