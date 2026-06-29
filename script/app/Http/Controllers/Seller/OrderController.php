@@ -78,19 +78,217 @@ class OrderController extends Controller
            });
        }
 
+       $orderTypeFilters = $this->normalizeCheckboxFilterValues($request->input('order_type'));
+       if (!empty($orderTypeFilters)) {
+           $orders = $this->applyOrderTypeFilter($orders, $orderTypeFilters, $product_type);
+       }
+
+       $orderChannelFilters = $this->normalizeCheckboxFilterValues($request->input('order_channel'));
+       if (!empty($orderChannelFilters)) {
+           $orders = $this->applyOrderChannelFilter($orders, $orderChannelFilters);
+       }
+
+       if ($request->filled('order_no_from')) {
+           $orders = $orders->whereRaw(
+               'CAST(invoice_no AS UNSIGNED) >= ?',
+               [(int) preg_replace('/\D/', '', (string) $request->order_no_from)]
+           );
+       }
+
+       if ($request->filled('order_no_to')) {
+           $orders = $orders->whereRaw(
+               'CAST(invoice_no AS UNSIGNED) <= ?',
+               [(int) preg_replace('/\D/', '', (string) $request->order_no_to)]
+           );
+       }
+
+       if ($request->filled('total_from')) {
+           $orders = $orders->where('total', '>=', (float) preg_replace('/[^\d.]/', '', (string) $request->total_from));
+       }
+
+       if ($request->filled('total_to')) {
+           $orders = $orders->where('total', '<=', (float) preg_replace('/[^\d.]/', '', (string) $request->total_to));
+       }
+
        $per_page_options = [10, 20, 30, 50, 100, 200, 500];
        $selected_per_page = (int) $request->get('per_page', 30);
        if (!in_array($selected_per_page, $per_page_options, true)) {
            $selected_per_page = 30;
        }
 
-       $orders = $orders->where('payment_status','!=',0)->latest()->paginate($selected_per_page);
+       $sortColumn = strtolower(trim((string) $request->get('sort', '')));
+       $sortDirection = strtolower(trim((string) $request->get('dir', 'desc'))) === 'asc' ? 'asc' : 'desc';
+
+       $orders = $this->applyOrderListSorting($orders, $sortColumn, $sortDirection);
+       $orders = $orders->where('payment_status','!=',0)->paginate($selected_per_page);
        $orders->appends($request->query());
        
-       return view('seller.order.index',compact('request','status','product_type','request_status','orders','per_page_options','selected_per_page'));
+       return view('seller.order.index',compact(
+           'request',
+           'status',
+           'product_type',
+           'request_status',
+           'orders',
+           'per_page_options',
+           'selected_per_page',
+           'sortColumn',
+           'sortDirection'
+       ));
     }
 
-    
+    protected function applyOrderListSorting($query, string $sortColumn, string $sortDirection)
+    {
+        switch ($sortColumn) {
+            case 'order':
+                return $query->orderByRaw(
+                    'CAST(orders.invoice_no AS UNSIGNED) ' . ($sortDirection === 'asc' ? 'ASC' : 'DESC')
+                );
+            case 'date':
+                return $query->orderBy('orders.created_at', $sortDirection);
+            case 'customer':
+                return $this->applyCustomerNameSort($query, $sortDirection);
+            case 'total':
+                return $query->orderBy('orders.total', $sortDirection);
+            case 'items':
+                return $query->orderBy('orderitems_count', $sortDirection);
+            default:
+                return $query->latest('orders.created_at');
+        }
+    }
+
+    protected function applyCustomerNameSort($query, string $sortDirection)
+    {
+        return $query
+            ->leftJoin('users as order_sort_users', 'order_sort_users.id', '=', 'orders.user_id')
+            ->leftJoin('ordermetas as order_sort_meta', function ($join) {
+                $join->on('order_sort_meta.order_id', '=', 'orders.id')
+                    ->where('order_sort_meta.key', '=', 'orderinfo');
+            })
+            ->select('orders.*')
+            ->orderByRaw(
+                "LOWER(COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(order_sort_meta.value, '$.name')), ''), order_sort_users.name, 'Guest User')) "
+                . ($sortDirection === 'asc' ? 'ASC' : 'DESC')
+            );
+    }
+
+    protected function normalizeCheckboxFilterValues($values): array
+    {
+        $normalized = array_values(array_filter(array_map(function ($value) {
+            return strtolower(trim((string) $value));
+        }, (array) $values), function ($value) {
+            return $value !== '' && $value !== 'all';
+        }));
+
+        return array_values(array_unique($normalized));
+    }
+
+    protected function applyOrderTypeFilter($query, array $types, Collection $productType)
+    {
+        $typeIds = $productType->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        if (empty($typeIds)) {
+            return $query;
+        }
+
+        $slugToId = $productType->pluck('id', 'slug');
+        $physicalId = (int) ($slugToId['physical_product'] ?? 0);
+        $digitalId = (int) ($slugToId['digital_product'] ?? 0);
+        $ticketId = (int) ($slugToId['online_ticketing'] ?? 0);
+        $typeIdsList = implode(',', $typeIds);
+
+        $countSub = "(SELECT COUNT(DISTINCT tc.category_id) FROM orderitems oi "
+            . "INNER JOIN termcategories tc ON tc.term_id = oi.term_id "
+            . "WHERE oi.order_id = orders.id AND tc.category_id IN ({$typeIdsList}))";
+
+        return $query->where(function ($outer) use ($types, $countSub, $physicalId, $digitalId, $ticketId) {
+            foreach ($types as $type) {
+                $outer->orWhere(function ($q) use ($type, $countSub, $physicalId, $digitalId, $ticketId) {
+                    if ($type === 'goods') {
+                        $q->where(function ($goodsQuery) use ($countSub, $physicalId) {
+                            $goodsQuery->whereRaw("{$countSub} = 0")
+                                ->orWhere(function ($singlePhysical) use ($countSub, $physicalId) {
+                                    $singlePhysical->whereRaw("{$countSub} = 1")
+                                        ->whereExists(function ($sub) use ($physicalId) {
+                                            $sub->selectRaw('1')
+                                                ->from('orderitems as oi')
+                                                ->join('termcategories as tc', 'tc.term_id', '=', 'oi.term_id')
+                                                ->whereColumn('oi.order_id', 'orders.id')
+                                                ->where('tc.category_id', $physicalId);
+                                        });
+                                });
+                        });
+
+                        return;
+                    }
+
+                    if ($type === 'digital') {
+                        $q->whereRaw("{$countSub} = 1")
+                            ->whereExists(function ($sub) use ($digitalId) {
+                                $sub->selectRaw('1')
+                                    ->from('orderitems as oi')
+                                    ->join('termcategories as tc', 'tc.term_id', '=', 'oi.term_id')
+                                    ->whereColumn('oi.order_id', 'orders.id')
+                                    ->where('tc.category_id', $digitalId);
+                            });
+
+                        return;
+                    }
+
+                    if ($type === 'tickets') {
+                        $q->whereRaw("{$countSub} = 1")
+                            ->whereExists(function ($sub) use ($ticketId) {
+                                $sub->selectRaw('1')
+                                    ->from('orderitems as oi')
+                                    ->join('termcategories as tc', 'tc.term_id', '=', 'oi.term_id')
+                                    ->whereColumn('oi.order_id', 'orders.id')
+                                    ->where('tc.category_id', $ticketId);
+                            });
+
+                        return;
+                    }
+
+                    if ($type === 'mixed') {
+                        $q->whereRaw("{$countSub} > 1");
+                    }
+                });
+            }
+        });
+    }
+
+    protected function applyOrderChannelFilter($query, array $channels)
+    {
+        return $query->where(function ($outer) use ($channels) {
+            foreach ($channels as $channel) {
+                $outer->orWhere(function ($q) use ($channel) {
+                    if ($channel === 'web_only') {
+                        $q->whereNotIn('order_from', [0, 4, 5]);
+
+                        return;
+                    }
+
+                    if ($channel === 'pos_only') {
+                        $q->whereIn('order_from', [0, 4, 5]);
+
+                        return;
+                    }
+
+                    if ($channel === 'both_web_pos') {
+                        $q->whereHas('orderitems.term', function ($termQuery) {
+                            $termQuery->where('list_type', 0);
+                        });
+
+                        return;
+                    }
+
+                    if ($channel === 'form_page_product') {
+                        $q->whereHas('orderitems.term', function ($termQuery) {
+                            $termQuery->where('list_type', 3);
+                        });
+                    }
+                });
+            }
+        });
+    }
 
     /**
      * Display the specified resource.
