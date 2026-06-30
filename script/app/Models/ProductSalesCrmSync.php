@@ -14,6 +14,7 @@ class ProductSalesCrmSync extends Model
         'is_ticket_product',
         'contact_tags',
         'crm_list_name',
+        'crm_group_id',
         'filter_state',
         'sync_status',
         'last_synced_at',

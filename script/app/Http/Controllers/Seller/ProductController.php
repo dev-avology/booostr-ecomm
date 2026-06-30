@@ -1155,6 +1155,8 @@ class ProductController extends Controller
             }
 
             DB::transaction(function () use ($rows, $clubId, $userId, $hasGroupIdColumn) {
+                $keptLocalIds = [];
+
                 foreach ($rows as $row) {
                     $remoteGroupId = trim((string) ($row['id'] ?? ''));
                     $groupName = trim((string) ($row['name'] ?? ''));
@@ -1191,6 +1193,7 @@ class ProductController extends Controller
                         DB::table('contact_groups')
                             ->where('id', $target->id)
                             ->update($updateData);
+                        $keptLocalIds[] = (int) $target->id;
                         continue;
                     }
 
@@ -1206,8 +1209,15 @@ class ProductController extends Controller
                         $insertData['group_id'] = $remoteGroupId;
                     }
 
-                    DB::table('contact_groups')->insert($insertData);
+                    $keptLocalIds[] = (int) DB::table('contact_groups')->insertGetId($insertData);
                 }
+
+                $staleGroupsQuery = DB::table('contact_groups')->where('club_id', $clubId);
+                if (!empty($keptLocalIds)) {
+                    $staleGroupsQuery->whereNotIn('id', $keptLocalIds);
+                }
+
+                $staleGroupsQuery->delete();
             });
 
             return [
@@ -1341,6 +1351,7 @@ class ProductController extends Controller
             'sync_mode' => $request->input('sync_mode') === 'page' ? 'current_page' : 'all_results',
             'contact_tags' => $request->input('contact_tags', ''),
             'crm_list_name' => $request->input('crm_list_name'),
+            'crm_group_id' => $request->input('crm_group_id'),
             'total_synced_contacts' => (int) $request->input('total_synced_contacts', 0),
             'synced_contacts' => $this->parseCrmSyncedContactsPayload($request->input('synced_contacts')),
             'filter_state' => [
@@ -1375,71 +1386,62 @@ class ProductController extends Controller
 
         $clubId = (int) tenant('club_id');
         $userId = Auth::id();
+        $remoteResult = app(ProductSalesCrmSyncService::class)->createContactGroupInCrm($name, $clubId);
+
+        if (empty($remoteResult['success'])) {
+            return response()->json([
+                'success' => false,
+                'message' => $remoteResult['message'] ?? 'Unable to create contact group in CRM.',
+            ], 422);
+        }
+
+        $remoteGroupId = (string) $remoteResult['group_id'];
 
         try {
             $existing = DB::table('contact_groups')
                 ->where('club_id', $clubId)
-                ->whereRaw('LOWER(name) = ?', [strtolower($name)])
+                ->where(function ($query) use ($name, $remoteGroupId) {
+                    $query->whereRaw('LOWER(name) = ?', [strtolower($name)])
+                        ->orWhere('group_id', $remoteGroupId);
+                })
                 ->first();
 
-            $maxNumericGroupId = (int) DB::table('contact_groups')
-                ->where('club_id', $clubId)
-                ->whereRaw("group_id REGEXP '^[0-9]+$'")
-                ->selectRaw('COALESCE(MAX(CAST(group_id AS UNSIGNED)), 0) as max_group_id')
-                ->value('max_group_id');
-
             if ($existing) {
-                $updates = ['updated_at' => now()];
-                if (!(bool) $existing->is_active) {
-                    $updates['is_active'] = true;
-                }
-                if (empty($existing->group_id)) {
-                    $updates['group_id'] = (string) ($maxNumericGroupId + 1);
-                }
-
                 DB::table('contact_groups')
                     ->where('id', $existing->id)
-                    ->update($updates);
+                    ->update([
+                        'name' => $name,
+                        'group_id' => $remoteGroupId,
+                        'is_active' => true,
+                        'updated_at' => now(),
+                    ]);
 
-                $existing = DB::table('contact_groups')
-                    ->where('id', $existing->id)
-                    ->first();
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Contact group is ready.',
-                    'contact_group' => [
-                        'id' => (int) $existing->id,
-                        'name' => (string) $existing->name,
-                        'group_id' => (string) ($existing->group_id ?? ''),
-                    ],
+                $localId = (int) $existing->id;
+            } else {
+                $localId = (int) DB::table('contact_groups')->insertGetId([
+                    'club_id' => $clubId,
+                    'group_id' => $remoteGroupId,
+                    'name' => $name,
+                    'is_active' => true,
+                    'created_by' => $userId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
-            $nextGroupId = (string) ($maxNumericGroupId + 1);
-            $groupId = DB::table('contact_groups')->insertGetId([
-                'club_id' => $clubId,
-                'group_id' => $nextGroupId,
-                'name' => $name,
-                'is_active' => true,
-                'created_by' => $userId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
             return response()->json([
                 'success' => true,
-                'message' => 'Contact group created.',
+                'message' => $remoteResult['message'] ?? 'Contact group created.',
                 'contact_group' => [
-                    'id' => (int) $groupId,
+                    'id' => $localId,
                     'name' => $name,
-                    'group_id' => $nextGroupId,
+                    'group_id' => $remoteGroupId,
                 ],
             ]);
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unable to create contact group right now.',
+                'message' => 'Contact group was created in CRM but could not be saved locally.',
             ], 500);
         }
     }
@@ -1459,6 +1461,7 @@ class ProductController extends Controller
             'sync_mode' => $syncMode,
             'contact_tags' => $request->input('contact_tags', ''),
             'crm_list_name' => $request->input('crm_list_name'),
+            'crm_group_id' => $request->input('crm_group_id'),
             'filter_state' => [
                 'src' => $request->input('src'),
                 'page' => (int) $request->input('page', 1),

@@ -10,12 +10,15 @@ use App\Models\ProductSalesCrmSyncContact;
 use App\Models\Term;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class ProductSalesCrmSyncService
 {
     public const CRM_SAVE_CONTACT_URL = 'https://app.booostr.co/wp-json/booostr/v1/save-contact';
+
+    public const CRM_CREATE_CONTACT_GROUP_URL = 'https://app.booostr.co/wp-json/booostr/v1/create-contact-group';
 
     public const BATCH_SIZE = 10;
 
@@ -62,6 +65,7 @@ class ProductSalesCrmSyncService
             'is_ticket_product' => $isTicketProduct,
             'contact_tags' => $options['contact_tags'] ?? '',
             'crm_list_name' => $options['crm_list_name'] ?? null,
+            'crm_group_id' => $this->normalizeCrmGroupId($options['crm_group_id'] ?? null),
             'filter_state' => $options['filter_state'] ?? [],
             'sync_status' => 'completed',
             'last_synced_at' => now(),
@@ -75,14 +79,23 @@ class ProductSalesCrmSyncService
         return $sync->fresh();
     }
 
-    public function hasContactGroupChanged(?ProductSalesCrmSync $sync, ?string $newListName): bool
+    public function hasContactGroupChanged(?ProductSalesCrmSync $sync, ?string $newListName, ?string $newGroupId = null): bool
     {
         if (!$sync) {
             return false;
         }
 
-        return $this->normalizeContactGroupName($sync->crm_list_name)
-            !== $this->normalizeContactGroupName($newListName);
+        if ($this->normalizeContactGroupName($sync->crm_list_name)
+            !== $this->normalizeContactGroupName($newListName)) {
+            return true;
+        }
+
+        $normalizedNewGroupId = $this->normalizeCrmGroupId($newGroupId);
+        if ($normalizedNewGroupId === null) {
+            return false;
+        }
+
+        return $this->normalizeCrmGroupId($sync->crm_group_id) !== $normalizedNewGroupId;
     }
 
     public function getEffectiveSyncConfigForProduct(int $productId): ?ProductSalesCrmSync
@@ -127,8 +140,9 @@ class ProductSalesCrmSyncService
     {
         $existing = $this->getActiveContinuousSyncForProduct($product->id);
         $newListName = $options['crm_list_name'] ?? null;
+        $newGroupId = $options['crm_group_id'] ?? null;
         $newSyncMode = $options['sync_mode'] ?? 'all_results';
-        $groupChanged = $this->hasContactGroupChanged($existing, $newListName);
+        $groupChanged = $this->hasContactGroupChanged($existing, $newListName, $newGroupId);
         $scopeChanged = $this->hasSyncModeChanged($existing, $newSyncMode);
 
         if ($existing && $existing->sync_status === 'syncing' && !$groupChanged && !$scopeChanged) {
@@ -147,6 +161,7 @@ class ProductSalesCrmSyncService
             'is_ticket_product' => $isTicketProduct,
             'contact_tags' => $options['contact_tags'] ?? '',
             'crm_list_name' => $newListName,
+            'crm_group_id' => $this->normalizeCrmGroupId($newGroupId),
             'filter_state' => $options['filter_state'] ?? [],
             'sync_status' => 'syncing',
             'created_by' => $userId,
@@ -415,11 +430,12 @@ class ProductSalesCrmSyncService
         $contacts = $this->getEligibleContacts($sync, true);
         $boosterId = tenant('club_id');
         $contactTags = $sync->contact_tags ?? '';
+        $groupIds = $this->resolveCrmGroupIdsForSync($sync);
         $processed = 0;
         $failed = 0;
 
         foreach ($contacts as $contact) {
-            if ($this->postContactToCrm($contact, $contactTags, $boosterId)) {
+            if ($this->postContactToCrm($contact, $contactTags, $boosterId, $groupIds)) {
                 ProductSalesCrmSyncContact::firstOrCreate(
                     [
                         'product_sales_crm_sync_id' => $sync->id,
@@ -479,11 +495,12 @@ class ProductSalesCrmSyncService
 
         $boosterId = tenant('club_id');
         $contactTags = $sync->contact_tags ?? '';
+        $groupIds = $this->resolveCrmGroupIdsForSync($sync);
         $processed = 0;
         $failed = 0;
 
         foreach ($batch as $contact) {
-            if ($this->postContactToCrm($contact, $contactTags, $boosterId)) {
+            if ($this->postContactToCrm($contact, $contactTags, $boosterId, $groupIds)) {
                 ProductSalesCrmSyncContact::firstOrCreate(
                     [
                         'product_sales_crm_sync_id' => $sync->id,
@@ -620,10 +637,11 @@ class ProductSalesCrmSyncService
 
         $boosterId = tenant('club_id');
         $contactTags = $sync->contact_tags ?? '';
+        $groupIds = $this->resolveCrmGroupIdsForSync($sync);
         $totalProcessed = 0;
 
         foreach ($contacts as $contact) {
-            if (!$this->postContactToCrm($contact, $contactTags, $boosterId)) {
+            if (!$this->postContactToCrm($contact, $contactTags, $boosterId, $groupIds)) {
                 continue;
             }
 
@@ -699,7 +717,7 @@ class ProductSalesCrmSyncService
         ];
     }
 
-    public function postContactToCrm(array $contact, string $contactTags, $boosterId): bool
+    public function postContactToCrm(array $contact, string $contactTags, $boosterId, array $groupIds = []): bool
     {
         try {
             $response = Http::timeout(30)
@@ -712,6 +730,7 @@ class ProductSalesCrmSyncService
                     'phone_number' => $contact['phone_number'] ?? '',
                     'city' => $contact['city'] ?? '',
                     'contact_tags' => $contactTags,
+                    'group_ids' => $this->normalizeGroupIds($groupIds),
                 ]);
 
             return $response->successful();
@@ -722,6 +741,129 @@ class ProductSalesCrmSyncService
             ]);
 
             return false;
+        }
+    }
+
+    public function resolveCrmGroupIdsForSync(ProductSalesCrmSync $sync): array
+    {
+        $storedGroupId = $this->normalizeCrmGroupId($sync->crm_group_id);
+        if ($storedGroupId !== null) {
+            return $this->normalizeGroupIds([$storedGroupId]);
+        }
+
+        $listName = trim((string) ($sync->crm_list_name ?? ''));
+        if ($listName === '') {
+            return [];
+        }
+
+        $clubId = (int) tenant('club_id');
+        if ($clubId <= 0) {
+            return [];
+        }
+
+        try {
+            $group = DB::table('contact_groups')
+                ->where('club_id', $clubId)
+                ->where('is_active', true)
+                ->whereRaw('LOWER(name) = ?', [strtolower($listName)])
+                ->first(['group_id']);
+
+            $resolvedGroupId = $this->normalizeCrmGroupId($group ? ($group->group_id ?? null) : null);
+            if ($resolvedGroupId !== null) {
+                return $this->normalizeGroupIds([$resolvedGroupId]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Unable to resolve CRM group ID for sync', [
+                'sync_id' => $sync->id,
+                'product_id' => $sync->product_id,
+                'crm_list_name' => $listName,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        if ($listName !== '') {
+            Log::warning('CRM sync has no group_ids for configured contact group', [
+                'sync_id' => $sync->id,
+                'product_id' => $sync->product_id,
+                'crm_list_name' => $listName,
+            ]);
+        }
+
+        return [];
+    }
+
+    protected function normalizeCrmGroupId($groupId): ?string
+    {
+        $normalized = trim((string) $groupId);
+        return $normalized === '' ? null : $normalized;
+    }
+
+    protected function normalizeGroupIds(array $groupIds): array
+    {
+        $normalized = [];
+
+        foreach ($groupIds as $groupId) {
+            $groupId = trim((string) $groupId);
+            if ($groupId === '') {
+                continue;
+            }
+
+            $normalized[] = ctype_digit($groupId) ? (int) $groupId : $groupId;
+        }
+
+        return array_values(array_unique($normalized, SORT_REGULAR));
+    }
+
+    public function createContactGroupInCrm(string $name, int $clubId): array
+    {
+        try {
+            $response = Http::timeout(30)
+                ->acceptJson()
+                ->post(self::CRM_CREATE_CONTACT_GROUP_URL, [
+                    'name' => $name,
+                    'club_id' => $clubId,
+                ]);
+
+            $body = $response->json();
+            if (!is_array($body)) {
+                $body = [];
+            }
+
+            if (!$response->successful() || empty($body['success'])) {
+                return [
+                    'success' => false,
+                    'message' => trim((string) ($body['message'] ?? '')) !== ''
+                        ? (string) $body['message']
+                        : 'Unable to create contact group in CRM.',
+                ];
+            }
+
+            $groupId = trim((string) ($body['group_id'] ?? ''));
+            if ($groupId === '') {
+                return [
+                    'success' => false,
+                    'message' => 'Contact group was created but no group ID was returned.',
+                ];
+            }
+
+            return [
+                'success' => true,
+                'message' => trim((string) ($body['message'] ?? '')) !== ''
+                    ? (string) $body['message']
+                    : 'Contact group created successfully.',
+                'group_id' => $groupId,
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('CRM create-contact-group request failed', [
+                'club_id' => $clubId,
+                'name' => $name,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Unable to create contact group right now.',
+            ];
         }
     }
 

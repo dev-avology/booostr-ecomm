@@ -2392,12 +2392,14 @@ $(document).on('click', '.ticket-status-update', function(e) {
 
         var passScope = $modal.find('#crm_sync_pass_amount').val();
         var crmListName = getSelectedCrmListName();
+        var crmGroupId = getSelectedCrmListGroupId();
 
         return $.post(CRM_SYNC_ROUTES.recordOneTime, {
             _token: "{{ csrf_token() }}",
             sync_mode: passScope,
             contact_tags: contactTags,
             crm_list_name: crmListName,
+            crm_group_id: crmGroupId,
             convert_from_continuous: convertFromContinuous ? 1 : 0,
             total_synced_contacts: totalSyncedContacts,
             synced_contacts: JSON.stringify(syncedContacts || []),
@@ -2513,12 +2515,14 @@ $(document).on('click', '.ticket-status-update', function(e) {
         var passScope = $modal.find('#crm_sync_pass_amount').val();
         var contactTags = $.trim($hidden.val() || tags.join(','));
         var crmListName = getSelectedCrmListName();
+        var crmGroupId = getSelectedCrmListGroupId();
 
         $.post(CRM_SYNC_ROUTES.enable, {
             _token: "{{ csrf_token() }}",
             sync_mode: passScope,
             contact_tags: contactTags,
             crm_list_name: crmListName,
+            crm_group_id: crmGroupId,
             src: CRM_SYNC_PAGE_FILTERS.src,
             page: CRM_SYNC_PAGE_FILTERS.page,
             per_page: CRM_SYNC_PAGE_FILTERS.per_page
