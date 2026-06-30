@@ -898,6 +898,7 @@ class ProductSalesCrmSyncService
                 'initial_sync_in_progress' => false,
                 'contact_tags' => $effectiveSync->contact_tags ?? '',
                 'crm_list_name' => $effectiveSync->crm_list_name ?? '',
+                'crm_group_id' => $effectiveSync->crm_group_id ?? '',
                 'has_sync_history' => $hasSyncHistory,
             ];
         }
@@ -913,6 +914,7 @@ class ProductSalesCrmSyncService
             'initial_sync_in_progress' => $sync->sync_status === 'syncing',
             'contact_tags' => $sync->contact_tags ?? '',
             'crm_list_name' => $sync->crm_list_name ?? '',
+            'crm_group_id' => $sync->crm_group_id ?? '',
             'has_sync_history' => $hasSyncHistory,
         ];
     }

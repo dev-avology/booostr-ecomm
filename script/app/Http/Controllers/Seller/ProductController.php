@@ -1122,7 +1122,7 @@ class ProductController extends Controller
         try {
             $payload = null;
             foreach ($candidateBaseUrls as $baseUrl) {
-                $groupsApiUrl = $baseUrl . '/wp-json/store-api/v1/groups/?club_id=' . $clubId;
+                $groupsApiUrl = $baseUrl . '/wp-json/store-api/v1/groups/?club_id=' . $clubId . '&_=' . time();
                 $response = \Illuminate\Support\Facades\Http::withoutVerifying()
                     ->timeout(20)
                     ->acceptJson()
