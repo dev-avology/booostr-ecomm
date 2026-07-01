@@ -38,11 +38,11 @@
         }
 
         .spac-btm {
-            padding-bottom: 30px;
+            padding-bottom: 24px;
         }
 
         .spac-top {
-            padding-top: 30px;
+            padding-top: 24px;
         }
 
         tr.br-none:after {
@@ -51,60 +51,85 @@
 
         .add-shipping-color p {
             color: #3c3c3c;
+            line-height: 1.6;
         }
 
         .add-shipping-color a {
-            color: #3c3c3c;
+            color: #08bff3;
             text-decoration: none;
         }
 
         #click_to_login {
-            text-decoration: underline !important;
-        }
-
-        #learn_more {
-            color: #fff;
+            color: #08bff3 !important;
             text-decoration: underline !important;
         }
     </style>
 </head>
 
 
-<body style="background-color: #f4f6f9;">
-    <div class="table-wrapper" style="width: 100%;max-width: 700px;margin: 0 auto;border-radius: 20px;overflow: hidden;">
+<body style="background-color: #f4f6f9; margin: 0; padding: 24px 12px;">
+    <div class="table-wrapper" style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);">
 
-        <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;border-collapse: collapse;">
+        <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff; border-collapse: collapse;">
             <tbody>
-
-                <tr style="background-color: #535353; width: 100%;" class="border-style br-none">
-                    <th style="width:15%;text-align:left;padding: 18px 0 7px 20px;border-collapse:collapse;">
-                        {{-- <img src="./img/Champs-Sports-Logo.png" alt="logo"
-                            style="width: 100%; max-width: 120px; margin-bottom: -15px;position: relative;z-index: 9;"> --}}
-
+                <tr style="background-color: #ffffff; width: 100%; border-bottom: 1px solid #e5e5e5;">
+                    <td style="width: 18%; text-align: left; padding: 20px 0 20px 24px; vertical-align: middle;">
                         @if (!empty(tenant()->logo))
                             <img src="{{ env('WP_URL') }}{{ tenant()->logo }}" alt="logo"
-                                style="width: 100%;max-width: 120px;min-height:84px;border-radius:100px;"/>
+                                style="max-width: 48px; max-height: 48px; height: auto; width: auto; display: block;" />
+                        @else
+                            <img src="{{ env('WP_URL') }}uploads/2022/03/booostr-logo-long-top-header.png" alt="logo"
+                                style="max-width: 120px; height: auto; display: block;" />
                         @endif
-                    </th>
-                    <th style="width: 70%;border-collapse: collapse;">
+                    </td>
+                    <td style="width: 57%; vertical-align: middle; padding: 20px 10px;">
                         <h2
-                            style="font-family: 'Nunito', 'Segoe UI', Arial; font-size: 24px; font-weight: normal; text-align: left; text-transform: capitalize; color: #fff; padding-left: 50px;">
-                            {{ $invoice_info->store_legal_name ?? '' }} Store
+                            style="font-family: Arial, 'Segoe UI', sans-serif; font-size: 22px; font-weight: 700; text-align: left; color: #222222; margin: 0; padding: 0;">
+                            {{ $invoice_info->store_legal_name ?? '' }}
                         </h2>
-                    </th>
-                    <th style="width: 15%; padding-right: 20px; text-align: right;border-collapse: collapse;">
+                    </td>
+                    <td style="width: 25%; padding-right: 24px; text-align: right; vertical-align: middle;">
                         <a href="{{ env('WP_CLUB_URL') }}login"
-                            style="color: #fff; font-size: 20px; font-weight: 100; text-transform: uppercase; text-decoration: none; font-family: 'Nunito', 'Segoe UI', Arial;">login</a>
-                    </th>
+                            style="color: #9aa0a6; font-size: 16px; font-weight: 400; text-decoration: none; font-family: Arial, 'Segoe UI', sans-serif;">Login</a>
+                    </td>
                 </tr>
             </tbody>
         </table>
 
-        <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
+        @if ($data['data']['status_id'] == '3')
+            <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff; border-collapse: collapse;">
+                <tbody>
+                    <tr>
+                        <td style="background-color: #e8f9f1; padding: 20px 24px; text-align: center;">
+                            <p
+                                style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; font-size: 18px; font-weight: 700; color: #2d2d2d;">
+                                Thank you for your order and support!
+                            </p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        @endif
+
+        @if ($data['data']['status_id'] == '1')
+            <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff; border-collapse: collapse;">
+                <tbody>
+                    <tr>
+                        <td style="background-color: #e8f9f1; padding: 20px 24px; text-align: center;">
+                            <p
+                                style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; font-size: 18px; font-weight: 700; color: #2d2d2d;">
+                                Your order has shipped!
+                            </p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        @endif
+
+        <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff; border-collapse: collapse;">
             <tbody>
-                <tr class="border-style">
-                    <td style="width: 100%; padding-left: 15px;font-size: 15px; padding-right: 15px;"
-                        class="spac-top spac-btm">
+                <tr>
+                    <td style="width: 100%; padding: 20px 24px; font-size: 15px;">
 
                         @php
 
@@ -116,7 +141,7 @@
 
                         @if ($data['data']['status_id'] == '2')
                             <p
-                                style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">
+                                style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-weight: 500; line-height: 1.6;">
                                 Hi {{ $firstName }}, we are sorry that your order had to be cancelled. We have
                                 refunded your order. Your original order details are below for your records. You should
                                 see the funds returned to the payment method used for the order in 3-5 business days.
@@ -126,7 +151,7 @@
 
                         @if ($data['data']['status_id'] == '1')
                             <p
-                                style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">
+                                style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-weight: 500; line-height: 1.6;">
                                 Hi {{ $firstName }}, we are excited to let you know that your order from
                                 {{ $invoice_info->store_legal_name ?? '' }} Store has shipped! Your shipping carrier and
                                 tracking information are below.</p>
@@ -135,7 +160,7 @@
 
                         @if ($data['data']['status_id'] == '3')
                             <p
-                                style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;font-weight: 500;">
+                                style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-weight: 500; line-height: 1.6;">
                                 Thank you for your order from {{ $invoice_info->store_legal_name ?? '' }} Store. We have
                                 included your order details below for your records. You should receive a shipping
                                 confirmation email soon. We really appreciate the support!</p>
@@ -248,7 +273,7 @@
                 <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
                     class="spac-top spac-btm">
                     <a id="click_to_login" href="{{ env('WP_CLUB_URL')}}dashboard/?ua=user-receipts"
-                        style="font-size: 15px; color: #00c0ffba; font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial; text-decoration: none;">Click
+                        style="font-size: 15px; color: #08bff3; font-weight: 700; font-family: Arial, 'Segoe UI', sans-serif; text-decoration: underline;">Click
                         to Login and View Order</a>
                 </td>
             </tr>
@@ -265,7 +290,7 @@
                     <td style="width: 50%; padding-left: 15px; font-size: 15px; padding-right: 15px;"
                         class="spac-top spac-btm">
                         <h5
-                            style="padding-left: 20px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px;">
+                            style="padding-left: 20px; font-weight: bold; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-size: 16px;">
                             Billing Address:
                         </h5>
                         <p class="add-shipping-color"
@@ -283,7 +308,7 @@
                                 $billing_country = $billing_address->country;
                                 $billing_post_code = $billing_address->post_code;
 
-                                $new_billing_address = $billing_name . '<br>' . $billing_add . '<br>' . $billing_city . ', ' . $billing_state . ' ' . $billing_post_code . '<br>' . $billing_country . '<br>' . $billing_phone . '<br>' . $billing_email;
+                                $new_billing_address = $billing_name . '<br>' . $billing_add . '<br>' . $billing_city . ', ' . $billing_state . ' ' . $billing_post_code . '<br>' . $billing_country . '<br>' . $billing_phone . '<br><a href="mailto:' . $billing_email . '" style="color:#08bff3;text-decoration:none;">' . $billing_email . '</a>';
                             @endphp
                             {!! $new_billing_address !!}
                         </p>
@@ -291,7 +316,7 @@
                     <td style="width: 50%; padding-left: 15px; font-size: 15px; padding-right: 15px;padding-bottom: 72px;"
                         class="spac-top spac-btm">
                         <h5
-                            style="padding-left: 20px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-size: 16px;">
+                            style="padding-left: 20px; font-weight: bold; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-size: 16px;">
                             Payment Information:
                         </h5>
                         @php
@@ -355,7 +380,7 @@
                         </p>
                     @endif
                     @else
-                    <h5 style="padding-left:20px;font-weight:bold;font-family:'Nunito','Segoe UI',Arial;color:#3c3c3c;font-size:16px;">
+                    <h5 style="padding-left:20px;font-weight:bold;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:16px;">
                         Shipping Address:
                     </h5>
 
@@ -388,7 +413,7 @@
                 <td style="width:50%;padding-left:15px;padding-right:15px;padding-bottom: {{ $isPickup ? '30px' : '150px' }};"
                     class="spac-top spac-btm">
 
-                    <h5 style="padding-left:20px;font-weight:bold;font-family:'Nunito','Segoe UI',Arial;color:#3c3c3c;font-size:16px;">
+                    <h5 style="padding-left:20px;font-weight:bold;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:16px;">
                     Shipping Information:
                     </h5>
 
@@ -415,24 +440,23 @@
                         <hr width="94%" style="border-top: 0px;" color="#e5e5e5" />
                     </td>
                 </tr>
-                <tr class="border-style">
-                <tr class="heading">
+                <tr class="heading" style="background-color: #f5f5f5;">
                     <td class="text-left"
-                        style="padding-left: 35px;
+                        style="padding: 12px 0 12px 35px;
                     font-weight: bold;
-                    font-family: 'Nunito','Segoe UI',Arial;
+                    font-family: Arial, 'Segoe UI', sans-serif;
                     color: #3c3c3c;
                     font-size: 16px;">
                         Product</td>
 
                     <td class="text-center"
-                        style="font-weight: bold;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
+                        style="padding: 12px 0; font-weight: bold; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-size: 16px;">
                         Price</td>
                     <td class="text-center"
-                        style="font-weight: bold;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
+                        style="padding: 12px 0; font-weight: bold; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-size: 16px;">
                         Qty</td>
                     <td class="text-right"
-                        style="font-weight: bold;font-family: 'Nunito','Segoe UI',Arial;color: #3c3c3c;font-size: 16px;">
+                        style="padding: 12px 35px 12px 0; font-weight: bold; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-size: 16px;">
                         Totals</td>
                 </tr>
 
@@ -447,7 +471,6 @@
                        // $varition_options = $options->varition_options ?? [];
 
                     @endphp
-                    </tr>
 
                     <tr>
                         <td class="text-left"
@@ -580,15 +603,15 @@
                 <tr>
                     <th style="text-align: right;width: 70%;" class="spac-btm">
                         <h5
-                            style=" font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;color: #3c3c3c;">
+                            style="font-weight: 700; font-family: Arial, 'Segoe UI', sans-serif; font-size: 18px; color: #3c3c3c;">
                             Total:</h5>
                     </th>
                     <td style="text-align: center;padding-right: 20px;width: 30%;" class="spac-btm">
                         <p
                             style="padding-left: 20px;
-                    font-family: 'Nunito', 'Segoe UI', Arial;
+                    font-family: Arial, 'Segoe UI', sans-serif;
                     color: #3c3c3c;
-                    font-size: 16px;font-weight: 500;">
+                    font-size: 18px;font-weight: 700;">
                             {{ currency_formate($order->total) }}
                         </p>
                     </td>
@@ -603,21 +626,19 @@
                         <hr width="94%" style="border-top: 0px;" color="#e5e5e5" />
                     </td>
                 </tr>
-                <tr class="border-style">
-                    <td style="width: 100%;padding-left: 15px;font-size: 15px; padding-right: 15px;"
-                        class="spac-top spac-btm">
+                <tr>
+                    <td style="width: 100%; padding: 20px 24px; font-size: 15px;" class="spac-top spac-btm">
                         <p
-                            style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;    font-weight: 500;">
+                            style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-weight: 500; line-height: 1.6;">
                             If you have questions about your order, please don't hesitate to reach out. You will receive
                             an email confirmation once your order has shipped.</p>
 
                         <p
-                            style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;    font-weight: 500;padding-top: 20px;
-                            padding-bottom: 20px;">
+                            style="margin: 20px 0 0 0; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-weight: 500;">
                             Thank You,
                         </p>
                         <p
-                            style="padding-left: 20px;margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;    font-weight: 500;">
+                            style="margin: 4px 0 0 0; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-weight: 500;">
                             {{ $invoice_info->store_legal_name ?? '' }}
                         </p>
                     </td>
@@ -625,39 +646,14 @@
             </tbody>
         </table>
 
-        <table style="width: 100%;max-width: 700px; margin: 0 auto; background-color: #fff;">
+        <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff; border-collapse: collapse;">
             <tbody>
-                <tr
-                    style="display: inline-block;
-                background: #13c3fd;
-                margin: 0 35px;
-                padding: 20px 30px 15px 30px;
-                border-radius: 15px 15px 0 0;">
-                    <td style="width: 30%;">
-                        <h6
-                            style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 17px;
-                        color: #fff;
-                        padding-left: 10px;">
-                            Powered By:</h6>
-                        <img src="{{ env('WP_URL') }}{{ 'uploads/2022/03/booostr-logo-long-top-header.png' }}"alt="logo"
-                            style="width: 100%;max-width: 115px;"/>
-                    </td>
-                    <td>
-                        <p
-                            style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 13px;
-                        color: #fff;
-                        font-weight: 300;">
-                            {{ $invoice_info->store_legal_name ?? '' }} Store</p>
-                        <p
-                            style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 14px;
-                        color: #fff;
-                        font-weight: 300;padding-bottom: 25px;font-size:12px;">
-                            utilizes<a href="https://staging3.booostr.co/"
-                                style="font-family: 'Nunito', 'Segoe UI', Arial;font-size: 14px;
-                        color: #fff;
-                        font-weight: 300;text-decoration: none;">
-                                <span style="text-decoration:underline;cursor: pointer;">Booostr</span></a> to help them manage their organization, communicate with their team and
-                            supporters and raise money online.&nbsp;&nbsp;<a id="learn_more" href="https://staging3.booostr.co/">Learn more here</a></p>
+                <tr>
+                    <td style="padding: 20px 24px 28px 24px; text-align: center; border-top: 1px solid #e5e5e5;">
+                        <p style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; font-size: 12px; color: #999999; line-height: 1.6;">
+                            Booostr's website is powered by
+                            <a href="https://booostr.co/" style="color: #08bff3; text-decoration: none;">Booostr</a>.
+                        </p>
                     </td>
                 </tr>
             </tbody>
