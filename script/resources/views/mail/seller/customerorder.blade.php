@@ -72,25 +72,38 @@
 
         <table style="width: 100%; max-width: 700px; margin: 0 auto; background-color: #fff; border-collapse: collapse;">
             <tbody>
+                @php
+                    $clubLogo = tenant_club_logo();
+                    $clubDisplayName = $invoice_info->store_legal_name ?? (tenant_club_info()['club_name'] ?? '');
+                @endphp
                 <tr style="background-color: #ffffff; width: 100%; border-bottom: 1px solid #e5e5e5;">
-                    <td style="width: 18%; text-align: left; padding: 20px 0 20px 24px; vertical-align: middle;">
-                        @if (!empty(tenant()->logo))
-                            <img src="{{ env('WP_URL') }}{{ tenant()->logo }}" alt="logo"
-                                style="max-width: 48px; max-height: 48px; height: auto; width: auto; display: block;" />
-                        @else
-                            <img src="{{ env('WP_URL') }}uploads/2022/03/booostr-logo-long-top-header.png" alt="logo"
-                                style="max-width: 120px; height: auto; display: block;" />
-                        @endif
-                    </td>
-                    <td style="width: 57%; vertical-align: middle; padding: 20px 10px;">
-                        <h2
-                            style="font-family: Arial, 'Segoe UI', sans-serif; font-size: 22px; font-weight: 700; text-align: left; color: #222222; margin: 0; padding: 0;">
-                            {{ $invoice_info->store_legal_name ?? '' }}
-                        </h2>
-                    </td>
-                    <td style="width: 25%; padding-right: 24px; text-align: right; vertical-align: middle;">
-                        <a href="{{ env('WP_CLUB_URL') }}login"
-                            style="color: #9aa0a6; font-size: 16px; font-weight: 400; text-decoration: none; font-family: Arial, 'Segoe UI', sans-serif;">Login</a>
+                    <td style="padding: 20px 24px; vertical-align: middle;">
+                        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                            <tr>
+                                <td align="left" style="vertical-align: middle;">
+                                    <table cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                                        <tr>
+                                            @if (!empty($clubLogo))
+                                                <td style="vertical-align: middle;">
+                                                    <img src="{{ $clubLogo }}"
+                                                        width="90"
+                                                        height="90"
+                                                        alt="{{ $clubDisplayName }}"
+                                                        style="border-radius: 50%; display: block;" />
+                                                </td>
+                                            @endif
+                                            <td style="padding-left: {{ !empty($clubLogo) ? '15px' : '0' }}; vertical-align: middle; font-family: Arial, 'Segoe UI', sans-serif; font-size: 22px; font-weight: 700; color: #222222;">
+                                                {{ $clubDisplayName }}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td align="right" style="vertical-align: middle;">
+                                    <a href="{{ env('WP_CLUB_URL') }}login"
+                                        style="color: #9aa0a6; font-size: 16px; font-weight: 400; text-decoration: none; font-family: Arial, 'Segoe UI', sans-serif;">Login</a>
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
             </tbody>
