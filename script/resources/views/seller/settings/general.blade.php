@@ -1668,6 +1668,21 @@ $(".basicbtn").on('click', function(e){
 })
 $(document).ready(function() {
 
+    // Pickup fields ke required attribute ko section visibility ke hisaab se sync karo.
+    // Warna hidden required fields HTML5 validation fail kar dete hain aur poora form
+    // submit hi block ho jata hai (naye account pe pickup disabled hone par settings save nahi hoti thi).
+    function syncPickupRequired() {
+        var pickupEnabled     = $('#allow_in_person_pickup').val() === '1';
+        var useCustomAddress  = $('#use_store_address_for_pickup').val() === 'no';
+        var customAddressReq  = pickupEnabled && useCustomAddress;
+
+        $('#custom-pickup-address')
+            .find('[name="pickup_line1"], [name="pickup_city"], [name="pickup_state"], [name="pickup_zip"]')
+            .prop('required', customAddressReq);
+
+        $('[name="pickup_instructions"]').prop('required', pickupEnabled);
+    }
+
     // Enable/Disable toggle
     $('#allow_in_person_pickup').change(function() {
         if ($(this).val() === '1') {
@@ -1675,6 +1690,7 @@ $(document).ready(function() {
         } else {
             $('#pickup-settings-section').slideUp();
         }
+        syncPickupRequired();
     });
 
 
@@ -1684,11 +1700,13 @@ $(document).ready(function() {
         } else {
             $('#custom-pickup-address').slideUp();
         }
+        syncPickupRequired();
     });
 
     // Page load pe sahi state set karo
     $('#allow_in_person_pickup').trigger('change');
     $('#use_store_address_for_pickup').trigger('change');
+    syncPickupRequired();
 });
 </script>
 @endpush
