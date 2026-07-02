@@ -30,6 +30,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Services\PartnerCreateStoreService;
+
 class MerchantController extends Controller
 {
 
@@ -81,53 +83,7 @@ class MerchantController extends Controller
 
   public function createstore(Request $request)
   {
-    $validator = Validator::make($request->all(), [
-      'email' => 'required|email',
-      //'password' => 'required|min:8|max:50|confirmed',
-      'store_name' => 'required|max:150|unique:tenants,id|regex:/^\S*$/u',
-      'club_id'=>'required|integer|min:1|max:200000',
-    ]);
-    if ($validator->fails()) {
-      return response()->json(["status"=>0,"message"=>$validator->errors()], 422);
-    }
-
-    $name = Str::slug($request->store_name);
-    $club_id=$request->club_id;
-    $tenant = Tenant::where(function ($query) use ($name,$club_id) {
-          $query->where('id', '=', $name)
-                ->orWhere('club_id', '=', $club_id);
-      })->first();
-    if ($tenant) {
-      $error = 'Store is already creeated';
-      $redirect_url = $name . '.' . env('APP_PROTOCOLESS_URL') . '/redirect/login?email=' . $request->email . '&&password=' . $request->email;
-      return response()->json(["status"=>0,"message"=>$error,'redirect_url'=>$redirect_url], 422);
-    }
-
-    //domain check
-    $domain_name = $name . '.' . env('APP_PROTOCOLESS_URL');
-    $domain=Domain::where('domain', $domain_name)->first();
-    if ($domain) {
-      $error = 'Store URL is unavailable';
-      return response()->json(["status"=>0,"message"=>$error], 422);
-    }
-
-
-    $store_data = [
-      'store_name' => $name,
-      'email' => $request->email,
-      'password' => $request->email, //$request->password,
-      'club_id'=>$club_id,
-      'wpuid'=>$request->club_info['wpuid'],
-      'club_info'=>json_encode($request->club_info),
-    ];
-    if (isset($request->logo) && !empty($request->logo)) {
-      // $filename = 'store_' .$club_id.'.png';
-      // Storage::disk('public')->put('store_logo/'.$filename, $request->logo);
-      $store_data['logo']=$request->logo;//$filename;
-  }
-
-    Session::put('store_data',$store_data);
-    return $this->gateways();
+    return app(PartnerCreateStoreService::class)->handle($request);
   }
 
   private function gateways($planid=1)
