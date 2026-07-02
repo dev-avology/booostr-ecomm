@@ -40,14 +40,11 @@ class PartnerCreateStoreService
         }
 
         if ($existingTenant && $this->isStoreProvisioningComplete($existingTenant)) {
-            $error = 'Store is already creeated';
-            $redirectUrl = $existingTenant->id . '.' . env('APP_PROTOCOLESS_URL') . '/redirect/login?email=' . $request->email . '&&password=' . $request->email;
+            $name = $existingTenant->id;
+            $storeData = $this->buildStoreData($request, $name, $clubId, $existingTenant);
+            $plan = Plan::where([['status', 1]])->findOrFail(1);
 
-            return response()->json([
-                'status' => 0,
-                'message' => $error,
-                'redirect_url' => $redirectUrl,
-            ], 422);
+            return $this->buildSuccessResponse($existingTenant, $name, $storeData, $plan);
         }
 
         if ($existingTenant) {
