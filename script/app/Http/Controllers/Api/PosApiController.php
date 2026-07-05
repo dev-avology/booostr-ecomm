@@ -1172,6 +1172,77 @@ class PosApiController extends Controller
         return $response;
     }
 
+    private function order_recipt_data($order_id)
+    {
+        $order = Order::with(
+            'orderstatus',
+            'orderlasttrans',
+            'orderitems',
+            'getway',
+            'user',
+            'shippingwithinfo',
+            'ordermeta',
+            'schedule'
+        )->findOrFail($order_id);
+
+        $sales_tax = $order->tax;
+        $order_total = $order->total;
+
+        $ordermeta = json_decode($order->ordermeta->value ?? '', true) ?? [];
+        $name = explode(' ', $ordermeta['name'] ?? '');
+        $club_info = tenant_club_info();
+
+        $shippingPrice = optional($order->shippingwithinfo)->shipping_price ?? 0;
+        $shipping_data = json_decode(optional($order->shippingwithinfo)->info ?? '', true) ?? [];
+
+        $credit_card_fee = $shipping_data['credit_card_fee'] ?? $ordermeta['credit_card_fee'] ?? 0;
+        $booster_platform_fee = $shipping_data['booster_platform_fee'] ?? $ordermeta['booster_platform_fee'] ?? 0;
+        $processing_fees = $credit_card_fee + $booster_platform_fee;
+
+        $revenue = $order_total - ($sales_tax + $processing_fees);
+        $sub_total = $revenue - $shippingPrice;
+
+        $billing = $ordermeta['billing'] ?? [];
+
+        $contact_manager_data = [
+            'first_name' => $name[0] ?? '',
+            'last_name' => $name[1] ?? '',
+            'user_id' => $ordermeta['wpuid'] ?? 0,
+            'phone_number' => $ordermeta['phone'] ?? '',
+            'booster_name' => $name[0] ?? '',
+            'country' => $billing['country'] ?? '',
+            'address_1' => $billing['address'] ?? '',
+            'address_2' => '',
+            'city' => $billing['city'] ?? '',
+            'state' => $billing['state'] ?? '',
+            'zip' => $billing['post_code'] ?? '',
+            'email' => $ordermeta['email'] ?? '',
+            'booster_id' => Tenant('club_id'),
+            'booster_level_id' => 4,
+            'contact_tags' => '',
+            'customer_tag' => 'online store customer',
+            'addedsource' => 'storetool',
+            'opt_in_tools' => $ordermeta['sms_consent'] ?? 0,
+        ];
+
+        return [
+            'contact_mgr_data' => $contact_manager_data,
+            'opt_in_tools' => (int) ($ordermeta['sms_consent'] ?? 0),
+            'receipts_date' => Carbon::now()->setTimezone(config('app.timezone')),
+            'receipt_title' => $ordermeta['name'] ?? '',
+            'receipent_org' => ($club_info['club_name'] ?? '') . ' Store',
+            'category' => 'ecommerce',
+            'user_id' => $ordermeta['wpuid'] ?? 0,
+            'amount' => $order_total,
+            'revenue' => $revenue,
+            'club_id' => Tenant('club_id'),
+            'recurring' => 'one-time',
+            'camp_id' => $order->invoice_no,
+            'order_total' => $order->total,
+            'order_subtotal' => $sub_total,
+        ];
+    }
+
  /**
  * @OA\Post(
  *     path="/api/storedata/cart/pos_add_to_cart",
