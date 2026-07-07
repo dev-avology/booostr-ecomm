@@ -2639,10 +2639,10 @@ private function send_order_recipts($data){
 
         $paymentresult = $gateway_settings->namespace::charge_payment($payment_data);
         
-        if ($paymentresult['payment_status'] != 4) {
+        if (!in_array((int)($paymentresult['payment_status'] ?? 0), [1, 4], true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Stripe payment failed'
+                'message' => $paymentresult['error'] ?? 'Stripe payment failed'
             ], 400);
         }
     
