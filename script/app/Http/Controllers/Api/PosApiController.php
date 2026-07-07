@@ -2663,6 +2663,9 @@ private function send_order_recipts($data){
             $order->transaction_id = $paymentresult['payment_id'];
             $order->payment_status = $paymentresult['payment_status'];
              $order->risk_level =    $paymentresult['risk_level'];
+            if ((int)$paymentresult['payment_status'] === 1) {
+                $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+            }
             $order->placed_at      = now();
             $order->save();
     
@@ -2670,7 +2673,11 @@ private function send_order_recipts($data){
             $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();
             $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
 
-            if($credit_card_processing_method == 'auto' && $paymentresult['risk_level'] == 'normal'){
+            if(
+                $credit_card_processing_method == 'auto' &&
+                $paymentresult['risk_level'] == 'normal' &&
+                (int)$paymentresult['payment_status'] === 4
+            ){
             
                      $payment_data['transaction_id'] =  $order->transaction_id;
                          

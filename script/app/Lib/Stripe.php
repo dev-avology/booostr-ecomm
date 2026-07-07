@@ -176,7 +176,7 @@ class Stripe {
                     'currency' => strtolower($currency),
                     'payment_method' => $paymentMethodId,
                     'confirm' => true,
-                    'capture_method' => 'manual',
+                    'capture_method' => 'automatic',
                     'description' => $array['billName'] ?? 'Boostr Sale',
                     'receipt_email' => $array['email'] ?? null,
                     'automatic_payment_methods' => [
@@ -206,6 +206,7 @@ class Stripe {
                 $latestCharge = is_object($intent->latest_charge) ? $intent->latest_charge : null;
                 $riskLevel = $latestCharge->outcome->risk_level ?? 'normal';
 
+                $isCaptured = ($intent->status ?? '') === 'succeeded';
                 $data['payment_id'] = $intent->id;
                 $data['transaction_log'] = $intent->toArray();
                 $data['payment_method'] = "stripe";
@@ -214,7 +215,7 @@ class Stripe {
                 $data['charge'] = $array['charge'];
                 $data['risk_level'] = $riskLevel;
                 $data['status'] = 1;
-                $data['payment_status'] = 4;
+                $data['payment_status'] = $isCaptured ? 1 : 4;
                 return $data;
             } catch (\Throwable $e) {
                 $data['payment_status'] = 0;
