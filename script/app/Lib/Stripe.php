@@ -171,21 +171,33 @@ class Stripe {
 
             $applicarionfee = new Money($applicarionfee, $currency_obj);
 
+            $authorizePayload = [
+                'amount' => $totalAmount,
+                'currency' =>  $currency_obj,
+                'token' => $token,
+                // Keep customer contact available in Stripe charge object/receipt.
+                'email' => $array['email'] ?? null,
+                'receiptEmail' => $array['email'] ?? null,
+                'description' => $array['billName'] ?? 'Boostr Sale',
+                'metadata' => [
+                    'customer_name' => (string)($array['name'] ?? ''),
+                    'customer_phone' => (string)($array['phone'] ?? ''),
+                    'billing_address' => (string)($array['address'] ?? ''),
+                    'billing_city' => (string)($array['city'] ?? ''),
+                    'billing_state' => (string)($array['state'] ?? ''),
+                    'billing_country' => (string)($array['country'] ?? ''),
+                    'billing_zip' => (string)($array['zip'] ?? ''),
+                ],
+            ];
+
             if( isset($array['pos']) ){
-                $response = $stripe->authorize([
-                    'amount' => $totalAmount,
-                    'currency' =>  $currency_obj,
-                    'token' => $token,
-                ])->send();
+                $response = $stripe->authorize($authorizePayload)->send();
             }else{
-                $response = $stripe->authorize([
-                    'amount' => $totalAmount,
-                    'currency' =>  $currency_obj,
-                    'token' => $token,
+                $response = $stripe->authorize(array_merge($authorizePayload, [
                     'onBehalfOf' => $array['stripe_account_id'],
                     'destination'   => $array['stripe_account_id'],
                     'applicationFee'=> $applicarionfee,
-                ])->send();
+                ]))->send();
             }
             
         }
