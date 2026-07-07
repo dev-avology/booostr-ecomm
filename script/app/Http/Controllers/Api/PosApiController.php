@@ -2460,8 +2460,7 @@ private function send_order_recipts($data){
          * =============================== */
 
         $data = $request->validate([
-            'stripeToken'      => 'required_without:paymentMethodId',
-            'paymentMethodId'  => 'required_without:stripeToken',
+            'stripeToken'      => 'required',
             'name'             => 'required|max:50',
             'email'            => 'required|email|max:50',
             'phone'            => 'required|max:20',
@@ -2615,7 +2614,6 @@ private function send_order_recipts($data){
             'country'     => $request->country,
             'zip'         => $request->zip,
             'stripeToken' => $request->stripeToken,
-            'paymentMethodId' => $request->paymentMethodId,
             'getway_id'   => $gateway_settings->id,
             'test_mode'   => $gateway_settings->test_mode,
            
