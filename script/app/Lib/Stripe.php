@@ -99,6 +99,9 @@ class Stripe {
                 'currency' => $credentials['currency'],
                 'token' => $token,
             ])->send();
+        } else {
+            $data['payment_status'] = 0;
+            return $data;
         }
 
 
@@ -160,8 +163,67 @@ class Stripe {
         $credit_card_fee = $array['credit_card_fee'];
         
 
+        $paymentMethodId = $array['paymentMethodId'] ?? null;
+        $token = $array['stripeToken'] ?? null;
+
+        if (!empty($paymentMethodId)) {
+            try {
+                \Stripe\Stripe::setApiKey($secret_key);
+
+                $applicarionfee = (int) round(($application_fee_amount + $credit_card_fee) * 100);
+                $intentPayload = [
+                    'amount' => (int) round(((float)$totalAmount) * 100),
+                    'currency' => strtolower($currency),
+                    'payment_method' => $paymentMethodId,
+                    'confirm' => true,
+                    'capture_method' => 'manual',
+                    'description' => $array['billName'] ?? 'Boostr Sale',
+                    'receipt_email' => $array['email'] ?? null,
+                    'automatic_payment_methods' => [
+                        'enabled' => true,
+                        'allow_redirects' => 'never',
+                    ],
+                    'metadata' => [
+                        'customer_name' => (string)($array['name'] ?? ''),
+                        'customer_phone' => (string)($array['phone'] ?? ''),
+                        'customer_email' => (string)($array['email'] ?? ''),
+                        'billing_address' => (string)($array['address'] ?? ''),
+                        'billing_city' => (string)($array['city'] ?? ''),
+                        'billing_state' => (string)($array['state'] ?? ''),
+                        'billing_country' => (string)($array['country'] ?? ''),
+                        'billing_zip' => (string)($array['zip'] ?? ''),
+                    ],
+                    'expand' => ['latest_charge'],
+                ];
+
+                if (!isset($array['pos']) && !empty($array['stripe_account_id'])) {
+                    $intentPayload['transfer_data'] = ['destination' => $array['stripe_account_id']];
+                    $intentPayload['on_behalf_of'] = $array['stripe_account_id'];
+                    $intentPayload['application_fee_amount'] = $applicarionfee;
+                }
+
+                $intent = \Stripe\PaymentIntent::create($intentPayload);
+                $latestCharge = is_object($intent->latest_charge) ? $intent->latest_charge : null;
+                $riskLevel = $latestCharge->outcome->risk_level ?? 'normal';
+
+                $data['payment_id'] = $intent->id;
+                $data['transaction_log'] = $intent->toArray();
+                $data['payment_method'] = "stripe";
+                $data['getway_id'] = $array['getway_id'];
+                $data['payment_type'] = $array['payment_type'] ?? '';
+                $data['charge'] = $array['charge'];
+                $data['risk_level'] = $riskLevel;
+                $data['status'] = 1;
+                $data['payment_status'] = 4;
+                return $data;
+            } catch (\Throwable $e) {
+                $data['payment_status'] = 0;
+                $data['error'] = $e->getMessage();
+                return $data;
+            }
+        }
+
         $stripe = Omnipay::create('Stripe');
-        $token = $array['stripeToken'];
         $stripe->setApiKey($secret_key);
         if($token){
 
@@ -182,6 +244,7 @@ class Stripe {
                 'metadata' => [
                     'customer_name' => (string)($array['name'] ?? ''),
                     'customer_phone' => (string)($array['phone'] ?? ''),
+                    'customer_email' => (string)($array['email'] ?? ''),
                     'billing_address' => (string)($array['address'] ?? ''),
                     'billing_city' => (string)($array['city'] ?? ''),
                     'billing_state' => (string)($array['state'] ?? ''),
@@ -248,11 +311,28 @@ class Stripe {
         $data['test_mode']=$test_mode;
        // $application_fee_amount = $array['application_fee_amount'];
 
+        if (!empty($array['transaction_id']) && strpos($array['transaction_id'], 'pi_') === 0) {
+            try {
+                \Stripe\Stripe::setApiKey($secret_key);
+                $intent = \Stripe\PaymentIntent::capture($array['transaction_id']);
+                $data['payment_id'] = $intent->id;
+                $data['transaction_log'] = $intent->toArray();
+                $data['payment_method'] = "stripe";
+                $data['status'] = 1;
+                $data['payment_status'] = 1;
+                return $data;
+            } catch (\Throwable $e) {
+                $data['payment_status'] = 0;
+                $data['error'] = $e->getMessage();
+                return $data;
+            }
+        }
+
         $stripe = Omnipay::create('Stripe');
         $stripe->setApiKey($secret_key);
-            $transaction = $stripe->capture();
-                $transaction->setTransactionReference($array['transaction_id']);
-                $response = $transaction->send();
+        $transaction = $stripe->capture();
+        $transaction->setTransactionReference($array['transaction_id']);
+        $response = $transaction->send();
 
         if ($response->isSuccessful()) {
             $arr_body = $response->getData();
