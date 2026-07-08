@@ -172,6 +172,8 @@ class Stripe {
 
                 $customerId = self::findOrCreateCustomer($array, $secret_key);
 
+                self::syncPaymentMethodBillingDetails($paymentMethodId, $array, $secret_key);
+
                 $applicarionfee = (int) round(($application_fee_amount + $credit_card_fee) * 100);
                 $intentPayload = [
                     'amount' => (int) round(((float)$totalAmount) * 100),
@@ -196,6 +198,10 @@ class Stripe {
                     ],
                     'expand' => ['latest_charge'],
                 ];
+
+                if (!empty($array['email'])) {
+                    $intentPayload['receipt_email'] = trim((string)$array['email']);
+                }
 
                 if (!empty($customerId)) {
                     $intentPayload['customer'] = $customerId;
@@ -276,6 +282,8 @@ class Stripe {
                         $data['error'] = 'Unable to link the provided card to the Stripe customer.';
                         return $data;
                     }
+
+                    self::syncCardSourceBillingDetails($customerId, $cardReference, $array, $secret_key);
                 } catch (\Throwable $e) {
                     $data['payment_status'] = 0;
                     $data['error'] = $e->getMessage();
@@ -294,6 +302,7 @@ class Stripe {
                 'currency' =>  $currency_obj,
                 // Keep customer contact available in Stripe charge object/receipt.
                 'email' => $array['email'] ?? null,
+                'receiptEmail' => $array['email'] ?? null,
                 'description' => $array['billName'] ?? 'Boostr Sale',
                 'metadata' => [
                     'customer_name' => (string)($array['name'] ?? ''),
@@ -391,13 +400,7 @@ class Stripe {
                 'email' => $email,
                 'name'  => $array['name'] ?? null,
                 'phone' => $array['phone'] ?? null,
-                'address' => [
-                    'line1'       => $array['address'] ?? null,
-                    'city'        => $array['city'] ?? null,
-                    'state'       => $array['state'] ?? null,
-                    'country'     => $array['country'] ?? null,
-                    'postal_code' => $array['zip'] ?? null,
-                ],
+                'address' => self::buildStripeAddress($array),
                 'metadata' => [
                     'customer_name'  => (string)($array['name'] ?? ''),
                     'customer_phone' => (string)($array['phone'] ?? ''),
@@ -420,6 +423,113 @@ class Stripe {
         } catch (\Throwable $e) {
             // Do not block checkout if customer sync fails; charge can still proceed.
             return null;
+        }
+    }
+
+    /**
+     * Stripe expects ISO 3166-1 alpha-2 country codes (e.g. US, not USA).
+     */
+    protected static function normalizeStripeCountry(?string $country): ?string
+    {
+        $country = trim((string)$country);
+        if ($country === '') {
+            return null;
+        }
+
+        $upper = strtoupper($country);
+        $map = [
+            'USA' => 'US',
+            'UNITED STATES' => 'US',
+            'UNITED STATES OF AMERICA' => 'US',
+            'UK' => 'GB',
+            'UNITED KINGDOM' => 'GB',
+            'GREAT BRITAIN' => 'GB',
+        ];
+
+        if (isset($map[$upper])) {
+            return $map[$upper];
+        }
+
+        if (strlen($upper) === 2) {
+            return $upper;
+        }
+
+        return $country;
+    }
+
+    protected static function buildStripeAddress(array $array): array
+    {
+        return array_filter([
+            'line1'       => $array['address'] ?? null,
+            'city'        => $array['city'] ?? null,
+            'state'       => $array['state'] ?? null,
+            'country'     => self::normalizeStripeCountry($array['country'] ?? null),
+            'postal_code' => $array['zip'] ?? null,
+        ], static function ($value) {
+            return $value !== null && $value !== '';
+        });
+    }
+
+    protected static function buildPaymentMethodBillingDetails(array $array): array
+    {
+        $address = self::buildStripeAddress($array);
+
+        return array_filter([
+            'name'  => $array['name'] ?? null,
+            'email' => !empty($array['email']) ? trim((string)$array['email']) : null,
+            'phone' => $array['phone'] ?? null,
+            'address' => !empty($address) ? $address : null,
+        ], static function ($value) {
+            return $value !== null && $value !== '';
+        });
+    }
+
+    /**
+     * Populate Payment Method owner / email / address in Stripe Dashboard.
+     */
+    protected static function syncPaymentMethodBillingDetails(string $paymentMethodId, array $array, string $secret_key): void
+    {
+        $billingDetails = self::buildPaymentMethodBillingDetails($array);
+        if (empty($billingDetails)) {
+            return;
+        }
+
+        try {
+            \Stripe\Stripe::setApiKey($secret_key);
+            \Stripe\PaymentMethod::update($paymentMethodId, [
+                'billing_details' => $billingDetails,
+            ]);
+        } catch (\Throwable $e) {
+            // Non-fatal: payment can still proceed without billing sync.
+        }
+    }
+
+    /**
+     * Populate legacy card source owner / address on the customer (token flow).
+     */
+    protected static function syncCardSourceBillingDetails(string $customerId, string $cardId, array $array, string $secret_key): void
+    {
+        $address = self::buildStripeAddress($array);
+        $payload = array_filter([
+            'name'            => $array['name'] ?? null,
+            'address_line1'   => $address['line1'] ?? null,
+            'address_city'    => $address['city'] ?? null,
+            'address_state'   => $address['state'] ?? null,
+            'address_zip'     => $address['postal_code'] ?? null,
+            'address_country' => $address['country'] ?? null,
+        ], static function ($value) {
+            return $value !== null && $value !== '';
+        });
+
+        if (empty($payload)) {
+            return;
+        }
+
+        try {
+            \Stripe\Stripe::setApiKey($secret_key);
+            \Stripe\Customer::updateSource($customerId, $cardId, $payload);
+        } catch (\Throwable $e) {
+            // Non-fatal: payment can still proceed without billing sync.
         }
     }
 
