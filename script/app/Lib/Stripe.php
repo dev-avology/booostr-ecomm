@@ -239,6 +239,49 @@ class Stripe {
         if($token){
 
             $customerId = self::findOrCreateCustomer($array, $secret_key);
+            $cardReference = null;
+
+            // Always charge THIS request's card (from tok_), never the customer default.
+            // If that card is already on the customer (same fingerprint), reuse it;
+            // otherwise attach the token as a new source, then authorize that card_ id.
+            if (!empty($customerId)) {
+                try {
+                    \Stripe\Stripe::setApiKey($secret_key);
+
+                    $tokenObj = \Stripe\Token::retrieve($token);
+                    $fingerprint = $tokenObj->card->fingerprint ?? null;
+
+                    if (!empty($fingerprint)) {
+                        $sources = \Stripe\Customer::allSources($customerId, [
+                            'object' => 'card',
+                            'limit' => 100,
+                        ]);
+                        foreach ($sources->data as $existingCard) {
+                            if (($existingCard->fingerprint ?? null) === $fingerprint) {
+                                $cardReference = $existingCard->id;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (empty($cardReference)) {
+                        $card = \Stripe\Customer::createSource($customerId, [
+                            'source' => $token,
+                        ]);
+                        $cardReference = $card->id ?? null;
+                    }
+
+                    if (empty($cardReference)) {
+                        $data['payment_status'] = 0;
+                        $data['error'] = 'Unable to link the provided card to the Stripe customer.';
+                        return $data;
+                    }
+                } catch (\Throwable $e) {
+                    $data['payment_status'] = 0;
+                    $data['error'] = $e->getMessage();
+                    return $data;
+                }
+            }
 
             $applicarionfee = ($application_fee_amount + $credit_card_fee)*100;
 
@@ -249,7 +292,6 @@ class Stripe {
             $authorizePayload = [
                 'amount' => $totalAmount,
                 'currency' =>  $currency_obj,
-                'token' => $token,
                 // Keep customer contact available in Stripe charge object/receipt.
                 'email' => $array['email'] ?? null,
                 'description' => $array['billName'] ?? 'Boostr Sale',
@@ -265,8 +307,13 @@ class Stripe {
                 ],
             ];
 
-            if (!empty($customerId)) {
+            if (!empty($customerId) && !empty($cardReference)) {
+                // Explicit card from this token (or matching fingerprint) — not default source.
                 $authorizePayload['customerReference'] = $customerId;
+                $authorizePayload['cardReference'] = $cardReference;
+            } else {
+                // No customer: one-off charge on this token only.
+                $authorizePayload['token'] = $token;
             }
 
             if( isset($array['pos']) ){
@@ -308,6 +355,20 @@ class Stripe {
 
         }else{
             $data['payment_status'] = 0;
+            if (isset($response)) {
+                $data['error'] = method_exists($response, 'getMessage') ? $response->getMessage() : 'Stripe payment failed';
+                $arr_body = method_exists($response, 'getData') ? $response->getData() : null;
+                if (is_array($arr_body)) {
+                    $data['transaction_log'] = $arr_body;
+                    $data['error_type'] = $arr_body['error']['type'] ?? null;
+                    $data['error_code'] = $arr_body['error']['code'] ?? null;
+                    if (!empty($arr_body['error']['message'])) {
+                        $data['error'] = $arr_body['error']['message'];
+                    }
+                }
+            } else {
+                $data['error'] = 'Missing stripeToken or paymentMethodId';
+            }
         }
         return $data;
     }
