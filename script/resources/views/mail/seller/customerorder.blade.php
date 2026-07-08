@@ -216,14 +216,23 @@
 
         @php
 
-            if (!empty($data['data']->orderlasttrans->value) ?? '') {
-                $jsonString = $data['data']->orderlasttrans->value ?? '';
+            $jsonString = optional($data['data']->orderlasttrans)->value
+                ?? optional(
+                    \App\Models\Ordermeta::where('order_id', $data['data']->id)
+                        ->where('key', 'transcation_log')
+                        ->orderByDesc('id')
+                        ->first()
+                )->value
+                ?? '';
+
+            if (!empty($jsonString)) {
                 $decodedJsonLastTrans = json_decode($jsonString, true);
                 $timestamp = $decodedJsonLastTrans['created'] ?? '';
-                $createdAt = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
-
-                $cancelDate = date_create($createdAt);
-                $cancel_date_format = date_format($cancelDate, 'm/d/Y');
+                if (!empty($timestamp)) {
+                    $createdAt = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
+                    $cancelDate = date_create($createdAt);
+                    $cancel_date_format = date_format($cancelDate, 'm/d/Y');
+                }
             }
            
             $shippingWith = $data['data']['shippingwithinfo'] ?? null;  
@@ -258,7 +267,7 @@
                             REFUND AMOUNT</h4>
                         <p
                             style="padding-left: 20px; margin: 0; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c; font-weight: 500;">
-                            {{ currency_formate($amount_refunded/100 ?? 0) }}</p>
+                            {{ currency_formate(($amount_refunded ?? 0) / 100) }}</p>
                     </td>
                 </tr>
             </table>

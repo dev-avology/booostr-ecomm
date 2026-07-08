@@ -1085,6 +1085,39 @@ class OrderController extends Controller
         }
     }
 
+    protected function normalizeRefundTransactionLog(array $transactionLog): array
+    {
+        if (!isset($transactionLog['amount_refunded']) && isset($transactionLog['amount'])) {
+            $transactionLog['amount_refunded'] = $transactionLog['amount'];
+        }
+
+        return $transactionLog;
+    }
+
+    protected function persistRefundTransactionLog(Order $order, array $transactionLog): void
+    {
+        $transactionLog = $this->normalizeRefundTransactionLog($transactionLog);
+        $encodedLog = json_encode($transactionLog);
+
+        $transcationLog = new Ordermeta;
+        $transcationLog->order_id = $order->id;
+        $transcationLog->key = 'transcation_log';
+        $transcationLog->value = $encodedLog;
+        $transcationLog->save();
+
+        // Emails/UI read orderlasttrans (last_transcation_log). Always upsert —
+        // some orders never got this row at capture/checkout.
+        Ordermeta::updateOrCreate(
+            [
+                'order_id' => $order->id,
+                'key' => 'last_transcation_log',
+            ],
+            [
+                'value' => $encodedLog,
+            ]
+        );
+    }
+
     protected function finalizeRefundedOrder(Order $order, array $transactionLog): Collection
     {
         $order->payment_status = 5;
@@ -1092,18 +1125,7 @@ class OrderController extends Controller
         $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
         $order->save();
 
-        $transcation_log = new Ordermeta;
-        $transcation_log->order_id = $order->id;
-        $transcation_log->key = 'transcation_log';
-        $transcation_log->value = json_encode($transactionLog);
-        $transcation_log->save();
-
-        if ($order->orderlasttrans) {
-            $order->orderlasttrans()->update([
-                'key' => 'last_transcation_log',
-                'value' => json_encode($transactionLog),
-            ]);
-        }
+        $this->persistRefundTransactionLog($order, $transactionLog);
 
         return $this->cancelEventTicketsForOrder($order);
     }
@@ -1547,18 +1569,7 @@ class OrderController extends Controller
             $partialRefundLogsMeta->save();
         }
 
-        $transcation_log = new Ordermeta;
-        $transcation_log->order_id = $order->id;
-        $transcation_log->key = 'transcation_log';
-        $transcation_log->value = json_encode($transactionLog);
-        $transcation_log->save();
-
-        if ($order->orderlasttrans) {
-            $order->orderlasttrans()->update([
-                'key' => 'last_transcation_log',
-                'value' => json_encode($transactionLog),
-            ]);
-        }
+        $this->persistRefundTransactionLog($order, $transactionLog);
 
         $allItemsFullyRefunded = true;
         foreach ($order->orderitems as $orderItem) {

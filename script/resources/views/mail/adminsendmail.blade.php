@@ -55,15 +55,24 @@
             $date_format = date_format($date, "m/d/Y");
 
          
-            $jsonString = !empty($data->orderlasttrans->value) ? $data->orderlasttrans->value : null;
+            $jsonString = optional($data->orderlasttrans)->value
+                ?: optional(
+                    \App\Models\Ordermeta::where('order_id', $data->id ?? $data['id'] ?? 0)
+                        ->where('key', 'transcation_log')
+                        ->orderByDesc('id')
+                        ->first()
+                )->value;
 
-            
-            $decodedJsonLastTrans = json_decode($jsonString, true);
+            $decodedJsonLastTrans = json_decode($jsonString ?: '{}', true) ?: [];
             $timestamp = $decodedJsonLastTrans['created'] ?? '';
-            $cancelDate = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
-            $cancel_date = date_create($cancelDate);
-            $cancel_date_format = date_format($cancel_date, "m/d/Y");
-            $amountRefunded = isset($decodedJsonLastTrans['amount_refunded']) ? (float)($decodedJsonLastTrans['amount_refunded']/100) : 0;
+            $cancel_date_format = '';
+            if (!empty($timestamp)) {
+                $cancelDate = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
+                $cancel_date = date_create($cancelDate);
+                $cancel_date_format = date_format($cancel_date, "m/d/Y");
+            }
+            $refundedCents = $decodedJsonLastTrans['amount_refunded'] ?? $decodedJsonLastTrans['amount'] ?? 0;
+            $amountRefunded = $refundedCents > 0 ? (float) ($refundedCents / 100) : 0;
 
 
             @endphp

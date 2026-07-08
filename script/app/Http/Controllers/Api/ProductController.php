@@ -881,12 +881,20 @@ class ProductController extends Controller
             ];
 
 
-            $orderlasttrans=json_decode($info->orderlasttrans->value ?? '');
+            $transactionJson = optional($info->orderlasttrans)->value
+                ?? optional(
+                    \App\Models\Ordermeta::where('order_id', $info->id)
+                        ->where('key', 'transcation_log')
+                        ->orderByDesc('id')
+                        ->first()
+                )->value
+                ?? '';
+            $orderlasttrans = json_decode($transactionJson ?: '{}');
             $timestamp = $orderlasttrans->created ?? '';
 
             $createdAt = Carbon::parse($info->placed_at)->format('m/d/Y h:i A');
 
-            $amount_refunded = $orderlasttrans->amount_refunded??0;
+            $amount_refunded = $orderlasttrans->amount_refunded ?? $orderlasttrans->amount ?? 0;
             $lastdigit = $orderlasttrans->source->last4??'';
             $card_number = str_pad($lastdigit, 16, "*", STR_PAD_LEFT);
             $order_data = [];

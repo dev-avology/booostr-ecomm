@@ -38,8 +38,20 @@ class Orderstatusmail extends Mailable
         $subject=$this->subject;
 
         $currency=$this->data['currency_info'];
-        $orderlasttrans=json_decode($data['data']->orderlasttrans->value ?? '');
-        $amount_refunded = $orderlasttrans->amount_refunded ?? 0;
+
+        // Prefer last_transcation_log; fall back to latest transcation_log
+        // (refunds used to save only that key when last_transcation_log was missing).
+        $transactionJson = optional($data['data']->orderlasttrans)->value
+            ?? optional(
+                \App\Models\Ordermeta::where('order_id', $data['data']->id)
+                    ->where('key', 'transcation_log')
+                    ->orderByDesc('id')
+                    ->first()
+            )->value
+            ?? '';
+
+        $orderlasttrans = json_decode($transactionJson ?: '{}');
+        $amount_refunded = (float) ($orderlasttrans->amount_refunded ?? $orderlasttrans->amount ?? 0);
         $lastdigit = $orderlasttrans->source->last4 ?? null;
         $card_number = str_pad($lastdigit, 16, "*", STR_PAD_LEFT);
 
