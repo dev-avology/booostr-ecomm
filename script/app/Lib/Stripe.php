@@ -178,7 +178,6 @@ class Stripe {
                     'confirm' => true,
                     'capture_method' => 'automatic',
                     'description' => $array['billName'] ?? 'Boostr Sale',
-                    'receipt_email' => $array['email'] ?? null,
                     'automatic_payment_methods' => [
                         'enabled' => true,
                         'allow_redirects' => 'never',
@@ -240,7 +239,6 @@ class Stripe {
                 'token' => $token,
                 // Keep customer contact available in Stripe charge object/receipt.
                 'email' => $array['email'] ?? null,
-                'receiptEmail' => $array['email'] ?? null,
                 'description' => $array['billName'] ?? 'Boostr Sale',
                 'metadata' => [
                     'customer_name' => (string)($array['name'] ?? ''),
