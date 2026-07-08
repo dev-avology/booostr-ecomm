@@ -2622,7 +2622,7 @@ private function send_order_recipts($data){
           ];
 
         $payment_data['charge']     = $gateway_settings->charge ?? 0;
-        $payment_data['billName']   = 'Boostr Sale';
+        $payment_data['billName']   = 'Booostr Sale';
         $payment_data['amount']     = $total_amount;
         $payment_data['application_fee_amount']  = $booster_platform_fee;
         $payment_data['credit_card_fee']  = $credit_card_fee;
