@@ -170,6 +170,8 @@ class Stripe {
             try {
                 \Stripe\Stripe::setApiKey($secret_key);
 
+                $customerId = self::findOrCreateCustomer($array, $secret_key);
+
                 $applicarionfee = (int) round(($application_fee_amount + $credit_card_fee) * 100);
                 $intentPayload = [
                     'amount' => (int) round(((float)$totalAmount) * 100),
@@ -194,6 +196,15 @@ class Stripe {
                     ],
                     'expand' => ['latest_charge'],
                 ];
+
+                if (!empty($customerId)) {
+                    $intentPayload['customer'] = $customerId;
+                    try {
+                        \Stripe\PaymentMethod::attach($paymentMethodId, ['customer' => $customerId]);
+                    } catch (\Throwable $attachError) {
+                        // Already attached to this customer (or not attachable) — safe to continue.
+                    }
+                }
 
                 if (!isset($array['pos']) && !empty($array['stripe_account_id'])) {
                     $intentPayload['transfer_data'] = ['destination' => $array['stripe_account_id']];
@@ -227,6 +238,8 @@ class Stripe {
         $stripe->setApiKey($secret_key);
         if($token){
 
+            $customerId = self::findOrCreateCustomer($array, $secret_key);
+
             $applicarionfee = ($application_fee_amount + $credit_card_fee)*100;
 
             $currency_obj = new Currency($currency);
@@ -251,6 +264,10 @@ class Stripe {
                     'billing_zip' => (string)($array['zip'] ?? ''),
                 ],
             ];
+
+            if (!empty($customerId)) {
+                $authorizePayload['customerReference'] = $customerId;
+            }
 
             if( isset($array['pos']) ){
                 $response = $stripe->authorize($authorizePayload)->send();
@@ -293,6 +310,56 @@ class Stripe {
             $data['payment_status'] = 0;
         }
         return $data;
+    }
+
+    /**
+     * Find an existing Stripe Customer by email, or create one.
+     * Returns cus_... id, or null if email is missing / Stripe call fails.
+     */
+    protected static function findOrCreateCustomer(array $array, string $secret_key): ?string
+    {
+        $email = trim((string)($array['email'] ?? ''));
+        if ($email === '') {
+            return null;
+        }
+
+        try {
+            \Stripe\Stripe::setApiKey($secret_key);
+
+            $customerData = [
+                'email' => $email,
+                'name'  => $array['name'] ?? null,
+                'phone' => $array['phone'] ?? null,
+                'address' => [
+                    'line1'       => $array['address'] ?? null,
+                    'city'        => $array['city'] ?? null,
+                    'state'       => $array['state'] ?? null,
+                    'country'     => $array['country'] ?? null,
+                    'postal_code' => $array['zip'] ?? null,
+                ],
+                'metadata' => [
+                    'customer_name'  => (string)($array['name'] ?? ''),
+                    'customer_phone' => (string)($array['phone'] ?? ''),
+                    'customer_email' => $email,
+                ],
+            ];
+
+            $existing = \Stripe\Customer::all([
+                'email' => $email,
+                'limit' => 1,
+            ]);
+
+            if (!empty($existing->data[0])) {
+                $customer = \Stripe\Customer::update($existing->data[0]->id, $customerData);
+            } else {
+                $customer = \Stripe\Customer::create($customerData);
+            }
+
+            return $customer->id ?? null;
+        } catch (\Throwable $e) {
+            // Do not block checkout if customer sync fails; charge can still proceed.
+            return null;
+        }
     }
 
 
