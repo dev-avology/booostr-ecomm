@@ -888,6 +888,33 @@ if (!function_exists('trigger_product_sales_crm_sync_after_order')) {
     }
 }
 
+if (!function_exists('is_order_syncable_to_financial_manager')) {
+    /**
+     * Financial Manager should only receive captured payments (not authorized-only).
+     * payment_status 1 = captured, 4 = authorized, 5 = refunded.
+     */
+    function is_order_syncable_to_financial_manager($order, ?string $post_type = null): bool
+    {
+        if (empty($order->captured_at)) {
+            return false;
+        }
+
+        if ($post_type === 'refund') {
+            return (int) $order->payment_status === 5;
+        }
+
+        if ($post_type === 'capture') {
+            return (int) $order->payment_status === 1;
+        }
+
+        if (!empty($order->refunded_at) && (int) $order->payment_status === 5) {
+            return true;
+        }
+
+        return (int) $order->payment_status === 1;
+    }
+}
+
 if (!function_exists('ticket_email_qr_apply_logo_overlay')) {
     /**
      * Merge club logo into center of QR PNG (print-style), returns raw PNG bytes.

@@ -22,7 +22,7 @@ class SyncfinitialsRecordWP extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Backfill user receipt and financial manager sync for captured store orders';
 
     /**
      * Create a new command instance.
@@ -164,7 +164,7 @@ class SyncfinitialsRecordWP extends Command
     
             $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 
-            if($order->status_id == 1){
+            if(is_order_syncable_to_financial_manager($order)){
 
                 $fpostData = ['category_type'=> 'Booostr Ecommerce',
                 'booster_id' =>Tenant('club_id'),
@@ -189,7 +189,7 @@ class SyncfinitialsRecordWP extends Command
                 'invoiceprocessingfee'=>$processing_fees,
                 'invoicesalestax'=> $sales_tax,
                 'invoiceopt'=>$order->invoice_no,
-                'deposite_date'=>($order->captured_at != null) ? $order->captured_at : $order->placed_at,
+                'deposite_date'=>$order->captured_at,
                 'transfer_refund_date'=> ($order->refunded_at != null) ? $order->refunded_at : null,
                 'record_type' => ($order->refunded_at != null) ? 'refund' : 'capture',
             ];

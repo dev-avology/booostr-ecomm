@@ -773,6 +773,10 @@ class OrderController extends Controller
 
     public function post_order_data($order,$post_type = 'capture'){
 
+        if (!is_order_syncable_to_financial_manager($order, $post_type)) {
+            return null;
+        }
+
         $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
         $qty = $order->orderitems[0]['qty'];
         $product_amount = $order->orderitems[0]['amount'];
@@ -892,6 +896,10 @@ class OrderController extends Controller
 
 
     public function post_order_data_POS($order,$post_type = 'capture'){
+
+        if (!is_order_syncable_to_financial_manager($order, $post_type)) {
+            return null;
+        }
 
         $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
         $qty = $order->orderitems[0]['qty'];

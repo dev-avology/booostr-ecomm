@@ -147,7 +147,7 @@ class TenantSyncService
     
             $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 
-                if($order->status_id == 1){
+                if(is_order_syncable_to_financial_manager($order)){
 
                     $fpostData = [
                     'category_type'=> 'Booostr Ecommerce',
@@ -173,7 +173,7 @@ class TenantSyncService
                     'invoiceprocessingfee'=>$processing_fees,
                     'invoicesalestax'=> $sales_tax,
                     'invoiceopt'=>$order->invoice_no,
-                    'deposite_date'=>($order->captured_at != null) ? $order->captured_at : $order->placed_at,
+                    'deposite_date'=>$order->captured_at,
                     'transfer_refund_date'=> ($order->refunded_at != null) ? $order->refunded_at : null,
                     'record_type' => ($order->refunded_at != null) ? 'refund' : 'capture',
                 ];
