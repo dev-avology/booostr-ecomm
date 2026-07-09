@@ -915,6 +915,59 @@ if (!function_exists('is_order_syncable_to_financial_manager')) {
     }
 }
 
+if (!function_exists('has_financial_manager_capture_sync')) {
+    function has_financial_manager_capture_sync(int $orderId): bool
+    {
+        return \App\Models\Ordermeta::where('order_id', $orderId)
+            ->where('key', 'financial_manager_synced')
+            ->exists();
+    }
+}
+
+if (!function_exists('mark_financial_manager_capture_synced')) {
+    function mark_financial_manager_capture_synced(int $orderId): void
+    {
+        \App\Models\Ordermeta::updateOrCreate(
+            ['order_id' => $orderId, 'key' => 'financial_manager_synced'],
+            ['value' => \Carbon\Carbon::now()->setTimezone(config('app.timezone'))->toDateTimeString()]
+        );
+    }
+}
+
+if (!function_exists('sync_order_to_financial_manager')) {
+  /**
+   * Real-time Financial Manager sync for captured/refund-eligible orders.
+   * Safe to call after order placement; skips authorized-only orders.
+   */
+    function sync_order_to_financial_manager($orderId, string $post_type = 'capture'): void
+    {
+        try {
+            $order = \App\Models\Order::with('orderitems', 'ordermeta', 'shippingwithinfo', 'getway', 'user')->find($orderId);
+            if (!$order) {
+                return;
+            }
+
+            if (!is_order_syncable_to_financial_manager($order, $post_type)) {
+                return;
+            }
+
+            $controller = app(\App\Http\Controllers\Seller\OrderController::class);
+
+            if (in_array((int) $order->order_from, [4, 5], true)) {
+                $controller->post_order_data_POS($order, $post_type);
+            } else {
+                $controller->post_order_data($order, $post_type);
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Financial Manager sync failed', [
+                'order_id' => $orderId,
+                'post_type' => $post_type,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+}
+
 if (!function_exists('ticket_email_qr_apply_logo_overlay')) {
     /**
      * Merge club logo into center of QR PNG (print-style), returns raw PNG bytes.

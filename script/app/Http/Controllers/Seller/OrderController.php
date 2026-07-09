@@ -777,6 +777,10 @@ class OrderController extends Controller
             return null;
         }
 
+        if ($post_type === 'capture' && has_financial_manager_capture_sync((int) $order->id)) {
+            return null;
+        }
+
         $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
         $qty = $order->orderitems[0]['qty'];
         $product_amount = $order->orderitems[0]['amount'];
@@ -886,6 +890,8 @@ class OrderController extends Controller
         // Check for cURL errors
         if (curl_errno($ch)) {
             echo 'cURL error: ' . curl_error($ch);
+        } elseif ($post_type === 'capture') {
+            mark_financial_manager_capture_synced((int) $order->id);
         }
         curl_close($ch);
         //Log::info($response);
@@ -898,6 +904,10 @@ class OrderController extends Controller
     public function post_order_data_POS($order,$post_type = 'capture'){
 
         if (!is_order_syncable_to_financial_manager($order, $post_type)) {
+            return null;
+        }
+
+        if ($post_type === 'capture' && has_financial_manager_capture_sync((int) $order->id)) {
             return null;
         }
 
@@ -977,6 +987,8 @@ class OrderController extends Controller
             // Check for cURL errors
             if (curl_errno($ch)) {
                 echo 'cURL error: ' . curl_error($ch);
+            } elseif ($post_type === 'capture') {
+                mark_financial_manager_capture_synced((int) $order->id);
             }
             curl_close($ch);
             //Log::info($response);

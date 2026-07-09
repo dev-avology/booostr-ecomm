@@ -896,6 +896,10 @@ class PosApiController extends Controller
                 return null;
             }
 
+            if ($post_type === 'capture' && has_financial_manager_capture_sync((int) $order->id)) {
+                return null;
+            }
+
             $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
             $qty = $order->orderitems[0]['qty'];
             $product_amount = $order->orderitems[0]['amount'];
@@ -982,6 +986,8 @@ class PosApiController extends Controller
         // Check for cURL errors
         if (curl_errno($ch)) {
             echo 'cURL error: ' . curl_error($ch);
+        } elseif ($post_type === 'capture') {
+            mark_financial_manager_capture_synced((int) $order->id);
         }
         curl_close($ch);
         //Log::info($response);
@@ -2785,6 +2791,8 @@ private function send_order_recipts($data){
             DB::commit();
 
             trigger_product_sales_crm_sync_after_order($order->id);
+
+            sync_order_to_financial_manager($order->id);
             
 
             $reciptdata = $this->order_recipt_data($order->id);
