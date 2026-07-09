@@ -199,10 +199,6 @@ class Stripe {
                     'expand' => ['latest_charge'],
                 ];
 
-                if (!empty($array['email'])) {
-                    $intentPayload['receipt_email'] = trim((string)$array['email']);
-                }
-
                 if (!empty($customerId)) {
                     $intentPayload['customer'] = $customerId;
                     try {
@@ -300,9 +296,8 @@ class Stripe {
             $authorizePayload = [
                 'amount' => $totalAmount,
                 'currency' =>  $currency_obj,
-                // Keep customer contact available in Stripe charge object/receipt.
+                // Keep customer contact available on the Stripe charge object.
                 'email' => $array['email'] ?? null,
-                'receiptEmail' => $array['email'] ?? null,
                 'description' => $array['billName'] ?? 'Boostr Sale',
                 'metadata' => [
                     'customer_name' => (string)($array['name'] ?? ''),
