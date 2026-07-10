@@ -17,6 +17,7 @@ class SyncTenantFinancialManager extends Command
 {
     protected $signature = 'tenant:sync-financial-manager
                             {tenant : Tenant ID (example: hello-tester-club)}
+                            {--order= : Sync only this order ID}
                             {--force : Re-sync capture orders even if already marked as synced}
                             {--dry-run : List eligible orders without calling WordPress}';
 
@@ -27,6 +28,9 @@ class SyncTenantFinancialManager extends Command
         $tenantId = (string) $this->argument('tenant');
         $force = (bool) $this->option('force');
         $dryRun = (bool) $this->option('dry-run');
+        $onlyOrderId = $this->option('order') !== null && $this->option('order') !== ''
+            ? (int) $this->option('order')
+            : null;
 
         $tenant = Tenant::find($tenantId);
         if (!$tenant) {
@@ -35,6 +39,9 @@ class SyncTenantFinancialManager extends Command
         }
 
         $this->info("Financial Manager sync started for tenant: {$tenant->id}");
+        if ($onlyOrderId) {
+            $this->info("Scoped to order ID: {$onlyOrderId}");
+        }
         if ($dryRun) {
             $this->warn('Dry-run mode: WordPress will not be called.');
         }
@@ -46,15 +53,25 @@ class SyncTenantFinancialManager extends Command
         $skipped = 0;
         $failed = 0;
 
-        try {
-            tenancy()->initialize($tenant);
+        // Avoid ending an already-active tenancy context (e.g. when called from HTTP refund flow).
+        $tenancyWasInitialized = tenancy()->initialized;
 
-            $orders = Order::query()
+        try {
+            if (!$tenancyWasInitialized) {
+                tenancy()->initialize($tenant);
+            }
+
+            $ordersQuery = Order::query()
                 ->with(['orderitems', 'ordermeta', 'shippingwithinfo', 'getway', 'user'])
                 ->whereNotNull('captured_at')
                 ->whereIn('payment_status', [1, 5])
-                ->orderBy('id')
-                ->get();
+                ->orderBy('id');
+
+            if ($onlyOrderId) {
+                $ordersQuery->where('id', $onlyOrderId);
+            }
+
+            $orders = $ordersQuery->get();
 
             $this->info('Eligible candidates found: '.$orders->count());
 
@@ -121,7 +138,9 @@ class SyncTenantFinancialManager extends Command
 
             return Command::FAILURE;
         } finally {
-            tenancy()->end();
+            if (!$tenancyWasInitialized) {
+                tenancy()->end();
+            }
         }
 
         $this->newLine();

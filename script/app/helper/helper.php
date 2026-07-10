@@ -968,6 +968,47 @@ if (!function_exists('sync_order_to_financial_manager')) {
     }
 }
 
+if (!function_exists('trigger_tenant_financial_manager_sync_after_refund')) {
+    /**
+     * After refund success, run tenant:sync-financial-manager for the logged-in club/tenant.
+     * Does not alter existing post_order_data refund sync; additive only.
+     */
+    function trigger_tenant_financial_manager_sync_after_refund(?int $orderId = null): void
+    {
+        try {
+            $tenantId = (string) (tenant('id') ?? '');
+            if ($tenantId === '') {
+                \Log::warning('tenant:sync-financial-manager skipped after refund: tenant id missing', [
+                    'order_id' => $orderId,
+                ]);
+                return;
+            }
+
+            $params = ['tenant' => $tenantId];
+            if (!empty($orderId)) {
+                $params['--order'] = $orderId;
+            }
+
+            dispatch(function () use ($params, $tenantId, $orderId) {
+                try {
+                    \Artisan::call('tenant:sync-financial-manager', $params);
+                } catch (\Throwable $e) {
+                    \Log::error('tenant:sync-financial-manager failed after refund', [
+                        'tenant_id' => $tenantId,
+                        'order_id' => $orderId,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            })->afterResponse();
+        } catch (\Throwable $e) {
+            \Log::error('Failed to dispatch tenant FM sync after refund', [
+                'order_id' => $orderId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+}
+
 if (!function_exists('ticket_email_qr_apply_logo_overlay')) {
     /**
      * Merge club logo into center of QR PNG (print-style), returns raw PNG bytes.

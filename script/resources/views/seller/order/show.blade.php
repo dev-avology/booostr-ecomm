@@ -1525,7 +1525,7 @@
                     <select id="order_refund_type_select" class="form-control order-refund-select">
                         <option value="">{{ __('Choose') }}</option>
                         <option value="full">{{ __('Refund & Cancel Full Order') }}</option>
-                        <option value="partial">{{ __('Refund & Cancel Partial Order') }}</option>
+                        <option value="partial">{{ __('Refund & Cancel Partial Order By Item') }}</option>
                         <option value="partial_dollar">{{ __('Refund & Cancel Partial Order By Dollar Amount') }}</option>
                     </select>
                 </div>
@@ -1974,6 +1974,7 @@
                                                 <input type="text"
                                                     class="form-control order-refund-partial-dollar-input partial-dollar-refund-amount-input"
                                                     inputmode="decimal"
+                                                    pattern="^\d*\.?\d{0,2}$"
                                                     placeholder="0.00"
                                                     autocomplete="off"
                                                     @if($dollar_remaining_line_total <= 0) disabled @endif>
@@ -2410,7 +2411,7 @@
                         </div>
 
                         <div class="order-refund-success-actions">
-                            <a href="{{ url('seller/order') }}" class="btn btn-refund-success-close">
+                            <a href="{{ route('seller.order.index') }}" class="btn btn-refund-success-close">
                                 {{ __('Close and Take Me To Orders') }}
                             </a>
                         </div>
@@ -2493,6 +2494,38 @@
                 var parsed = parseFloat(String(value || '').replace(/[^0-9.]/g, ''));
 
                 return isNaN(parsed) ? 0 : parsed;
+            }
+
+            // Allow only digits and one decimal point (max 2 decimal places) in dollar refund fields.
+            function sanitizePartialDollarRefundAmountInput(value) {
+                var cleaned = String(value || '').replace(/[^0-9.]/g, '');
+                var parts = cleaned.split('.');
+
+                if (parts.length > 1) {
+                    cleaned = parts.shift() + '.' + parts.join('').replace(/\./g, '');
+                    var decimalParts = cleaned.split('.');
+                    if (decimalParts[1] && decimalParts[1].length > 2) {
+                        cleaned = decimalParts[0] + '.' + decimalParts[1].substring(0, 2);
+                    }
+                }
+
+                return cleaned;
+            }
+
+            // On blur: format valid amounts like 40 → 40.00
+            function formatPartialDollarRefundAmountOnBlur(value) {
+                var sanitized = sanitizePartialDollarRefundAmountInput(value);
+
+                if (sanitized === '' || sanitized === '.') {
+                    return '';
+                }
+
+                var amount = parseFloat(sanitized);
+                if (isNaN(amount)) {
+                    return '';
+                }
+
+                return amount.toFixed(2);
             }
 
             function getPartialRefundSelectionData() {
@@ -2801,7 +2834,45 @@
             $('#order_refund_type_select').on('change', updateRefundViewState);
 
             $(document).on('change', '.partial-refund-qty-select', updatePartialRefundSummary);
-            $(document).on('input blur', '.partial-dollar-refund-amount-input', updatePartialDollarRefundSummary);
+
+            $(document).on('keypress', '.partial-dollar-refund-amount-input', function (e) {
+                // Block letters/symbols; allow digits, one decimal, and control keys.
+                if (e.ctrlKey || e.metaKey || e.which === 0 || e.which === 8) {
+                    return;
+                }
+
+                var char = String.fromCharCode(e.which);
+                if (!/[0-9.]/.test(char)) {
+                    e.preventDefault();
+                    return;
+                }
+
+                if (char === '.' && String($(this).val() || '').indexOf('.') !== -1) {
+                    e.preventDefault();
+                }
+            });
+
+            $(document).on('input', '.partial-dollar-refund-amount-input', function () {
+                var $input = $(this);
+                var sanitized = sanitizePartialDollarRefundAmountInput($input.val());
+
+                if ($input.val() !== sanitized) {
+                    $input.val(sanitized);
+                }
+
+                updatePartialDollarRefundSummary();
+            });
+
+            $(document).on('blur', '.partial-dollar-refund-amount-input', function () {
+                var $input = $(this);
+                var formatted = formatPartialDollarRefundAmountOnBlur($input.val());
+
+                if ($input.val() !== formatted) {
+                    $input.val(formatted);
+                }
+
+                updatePartialDollarRefundSummary();
+            });
 
             $('#complete-partial-refund-btn').on('click', function () {
                 var data = getPartialRefundSelectionData();

@@ -1294,6 +1294,15 @@ class OrderController extends Controller
                 ]);
             }
 
+            try {
+                trigger_tenant_financial_manager_sync_after_refund((int) $order->id);
+            } catch (\Throwable $e) {
+                \Log::error('tenant FM sync dispatch failed after refund', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             if (!$silent) {
                 $this->sendTicketCancelledRefundEmails(
                     $order,
@@ -1818,6 +1827,15 @@ class OrderController extends Controller
                 ]);
             }
 
+            try {
+                trigger_tenant_financial_manager_sync_after_refund((int) $order->id);
+            } catch (\Throwable $e) {
+                \Log::error('tenant FM sync dispatch failed after partial dollar refund', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             $this->sendTicketCancelledRefundEmails(
                 $order,
                 $cancelledTickets ?? collect(),
@@ -1926,6 +1944,15 @@ class OrderController extends Controller
                 $this->post_order_data($order, 'refund');
             } catch (\Throwable $e) {
                 \Log::error('post_order_data failed after partial refund', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            try {
+                trigger_tenant_financial_manager_sync_after_refund((int) $order->id);
+            } catch (\Throwable $e) {
+                \Log::error('tenant FM sync dispatch failed after partial refund', [
                     'order_id' => $order->id,
                     'error' => $e->getMessage(),
                 ]);
