@@ -51,7 +51,7 @@ class SyncfinitialsRecordWP extends Command
 
 
     public function syncContactData(){
-        $orders=Order::with('user','ordermeta','orderitems','orderstatus')->withCount('orderitems');
+        $orders=Order::with('user','ordermeta','orderitems','orderstatus','shippingwithinfo')->withCount('orderitems');
         $orders=$orders->get();
         foreach($orders as $order){
 
@@ -152,12 +152,15 @@ class SyncfinitialsRecordWP extends Command
     
             //$jsonString = $order->shippingwithinfo['info'];
     
-            $jsonString = $order->shippingwithinfo['info'];
-            // Decode the JSON string into a PHP array
-            $shipping_data = json_decode($jsonString, true);
+            // Null-safe: some orders have no shipping row; do not crash the whole sync.
+            $jsonString = $order->shippingwithinfo?->info;
+            $shipping_data = json_decode($jsonString ?? '{}', true);
+            if (!is_array($shipping_data)) {
+                $shipping_data = [];
+            }
     
-            $credit_card_fee = $shipping_data['credit_card_fee'];
-            $booster_platform_fee = $shipping_data['booster_platform_fee'];
+            $credit_card_fee = $shipping_data['credit_card_fee'] ?? 0;
+            $booster_platform_fee = $shipping_data['booster_platform_fee'] ?? 0;
             $processing_fees = $credit_card_fee+$booster_platform_fee;
     
             $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
@@ -182,7 +185,7 @@ class SyncfinitialsRecordWP extends Command
                 'status'=>1,
                 'donor_name'=>$donor_name,
                 'created'=>$order->placed_at,
-                'modified'=>Carbon::now()->setTimezone(config('app.timezone')),
+                'modified'=>Carbon::now()->setTimezone(config('app.timezone'))->toDateTimeString(),
                 'payement_method'=> $gateway_name,
                 'invoicenumber'=>$order->invoice_no,
                 'invoicreatedate'=>$order->placed_at,
@@ -206,8 +209,14 @@ class SyncfinitialsRecordWP extends Command
 
             $url = env("WP_API_URL");
 
-            // $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
-             $url = ($url != '') ? $url.'/user-recipt-sync' : "https://staging3.booostr.co/wp-json/store-api/v1/user-recipt-sync";
+            // Use the same working batch endpoint as TenantSyncService / tenant:sync-daily.
+            // /user-recipt-sync returns WP 404 (rest_no_route).
+            $url = ($url != '') ? $url.'/user-recipt-financial-manager-sync' : "";
+
+            if ($url === '') {
+                dump('WP_API_URL is empty; skipping order '.$order->id);
+                continue;
+            }
          
              $ch = curl_init();
              curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
