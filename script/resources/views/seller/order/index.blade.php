@@ -321,6 +321,32 @@
     color: #00aeef;
 }
 
+/* Order list refund / cancel color coding (screenshot) */
+.order-total-partial-refund {
+    color: #8b2f8b;
+    font-weight: 600;
+}
+
+.order-total-refunded {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.badge-partial-refund {
+    background-color: #8b2f8b !important;
+    color: #fff !important;
+}
+
+.badge-payment-refunded {
+    background-color: #e9a825 !important;
+    color: #fff !important;
+}
+
+.badge-fulfillment-cancel {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}
+
 </style>
 @endsection
 
@@ -455,6 +481,19 @@
                         </tr>
                     </thead>
                     <tbody class="list font-size-base rowlink" data-link="row">
+                        @php
+                            // One query for partial-refund markers (qty + dollar), avoids N+1 and keeps controller untouched.
+                            $partialRefundOrderIds = \App\Models\Ordermeta::whereIn('order_id', collect($orders->items())->pluck('id')->filter()->all())
+                                ->whereIn('key', ['partial_refunded_items', 'partial_dollar_refunded_items'])
+                                ->whereNotNull('value')
+                                ->where('value', '!=', '')
+                                ->where('value', '!=', '{}')
+                                ->where('value', '!=', '[]')
+                                ->pluck('order_id')
+                                ->unique()
+                                ->flip()
+                                ->all();
+                        @endphp
                         @foreach($orders ?? [] as $key => $row)
                         @php 
                         // All product type IDs
@@ -497,6 +536,15 @@
                         $ordermeta = json_decode(optional($row->ordermeta)->value ?? '');
                         $customerName = optional($ordermeta)->name ?? optional($row->user)->name ?? __('Guest User');
                         $gatewayName = optional($row->getway)->name;
+                        $isFullyRefunded = (int) $row->payment_status === 5;
+                        $isPartialRefund = !$isFullyRefunded
+                            && (int) $row->payment_status === 1
+                            && isset($partialRefundOrderIds[$row->id]);
+                        $fulfillmentName = optional($row->orderstatus)->name ?? '';
+                        $isCancelFulfillment = $isFullyRefunded
+                            || strcasecmp(trim((string) $fulfillmentName), 'Cancel') === 0
+                            || strcasecmp(trim((string) $fulfillmentName), 'Cancelled') === 0
+                            || strcasecmp(trim((string) $fulfillmentName), 'Canceled') === 0;
                     @endphp
                         <tr>
                             <td  class="text-left">
@@ -554,9 +602,11 @@
                             @endif
 
 
-                            <td >{{ currency_formate($row->total) }}</td>
+                            <td class="@if($isPartialRefund) order-total-partial-refund @elseif($isFullyRefunded) order-total-refunded @endif">{{ currency_formate($row->total) }}</td>
                             <td>
-                                @if($row->payment_status==2)
+                                @if($isPartialRefund)
+                                <span class="badge badge-partial-refund">{{ __('Partial Refund') }}</span>
+                                @elseif($row->payment_status==2)
                                 <span class="badge badge-warning">{{ __('Pending') }}</span>
                                 @elseif($row->payment_status==1)
 
@@ -576,7 +626,7 @@
                                 @elseif($row->payment_status==4)
     							<span class="badge badge-danger">{{ __('Authorized') }}</span>
                                 @elseif($row->payment_status==5)
-                                <span class="badge badge-warning">{{ __('Refunded') }}</span>
+                                <span class="badge badge-payment-refunded">{{ __('Refunded') }}</span>
                                 @endif
                             </td>
 
@@ -589,6 +639,10 @@
                                 @elseif($row->order_from == 0)
 
                                 <span class="badge badge-success text-white" style="background-color:#028a74">POS (Web)</span>
+
+                                @elseif($isCancelFulfillment)
+
+                                <span class="badge badge-fulfillment-cancel text-white">{{ $fulfillmentName !== '' ? $fulfillmentName : __('Cancel') }}</span>
 
                                 @else
 

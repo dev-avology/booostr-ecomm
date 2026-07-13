@@ -745,6 +745,43 @@
         border-right: 1px solid #e8e8e8;
     }
 }
+
+/* Order details refund history (screenshot) */
+.order-refund-history-row,
+.order-refund-history-row .text-right {
+    color: #a11a1a !important;
+}
+
+.order-refund-history-row .order-refund-history-main {
+    font-weight: 600;
+}
+
+.order-refund-history-row .order-refund-history-sub {
+    display: block;
+    font-weight: 500;
+    margin-top: 2px;
+    color: #a11a1a !important;
+}
+
+.order-refund-history-row .order-refund-history-tax {
+    padding-left: 0;
+    font-weight: 500;
+}
+
+.order-refund-history-updated-net {
+    font-weight: 600;
+    color: #1f2d3d;
+}
+
+.badge-order-partial-refund {
+    background-color: #8b2f8b !important;
+    color: #fff !important;
+}
+
+.badge-order-payment-refunded {
+    background-color: #e9a825 !important;
+    color: #fff !important;
+}
 </style>
 @endsection
 @section('content')
@@ -752,6 +789,138 @@
         $refundSuccess = session('refund_success');
         $partialRefundSuccess = session('partial_refund_success');
         $partialDollarRefundSuccess = session('partial_dollar_refund_success');
+
+        // Build refund history rows for order details totals (display only).
+        $orderRefundHistoryLogs = json_decode(
+            \App\Models\Ordermeta::where('order_id', $info->id)->where('key', 'partial_refund_logs')->value('value') ?? '[]',
+            true
+        ) ?: [];
+
+        $orderRefundHistoryRows = [];
+        $orderRefundHistoryTotal = 0.0;
+        $orderRefundHistorySeen = [];
+        $hasItemPartialRefundLogs = false;
+        $hasDollarPartialRefundLogs = false;
+
+        foreach ($orderRefundHistoryLogs as $refundLog) {
+            if (!is_array($refundLog)) {
+                continue;
+            }
+
+            $logItems = is_array($refundLog['items'] ?? null) ? $refundLog['items'] : [];
+            $itemAmount = 0.0;
+            $taxAmount = 0.0;
+            $itemLabels = [];
+            $normalizedItems = [];
+
+            foreach ($logItems as $logItem) {
+                if (!is_array($logItem)) {
+                    continue;
+                }
+
+                $lineAmount = round((float) ($logItem['amount'] ?? 0), 2);
+                $lineTax = round((float) ($logItem['tax'] ?? 0), 2);
+                $itemAmount += $lineAmount;
+                $taxAmount += $lineTax;
+
+                if (!empty($logItem['label'])) {
+                    $itemLabels[] = $logItem['label'];
+                }
+
+                $normalizedItems[] = [
+                    'item_id' => (int) ($logItem['item_id'] ?? 0),
+                    'amount' => $lineAmount,
+                    'tax' => $lineTax,
+                    'qty' => (int) ($logItem['qty'] ?? 0),
+                    'label' => (string) ($logItem['label'] ?? ''),
+                ];
+            }
+
+            // Fallback if older logs only stored grand total.
+            if ($itemAmount <= 0 && empty($logItems)) {
+                $itemAmount = round((float) ($refundLog['amount'] ?? 0), 2);
+            }
+
+            // Skip duplicate log entries in UI (same refund content written more than once).
+            $refundFingerprint = md5(json_encode([
+                'amount' => round((float) ($refundLog['amount'] ?? ($itemAmount + $taxAmount)), 2),
+                'type' => (string) ($refundLog['type'] ?? ''),
+                'items' => $normalizedItems,
+            ]));
+
+            if (isset($orderRefundHistorySeen[$refundFingerprint])) {
+                continue;
+            }
+            $orderRefundHistorySeen[$refundFingerprint] = true;
+
+            $refundDate = !empty($refundLog['refunded_at'])
+                ? \Carbon\Carbon::parse($refundLog['refunded_at'])->format('m/d/Y')
+                : '';
+
+            $isDollarType = (($refundLog['type'] ?? '') === 'dollar');
+            if ($isDollarType) {
+                $hasDollarPartialRefundLogs = true;
+                $refundTitle = __('Refund & Cancel Partial Order By Dollar Amount');
+                $refundSubtitle = !empty($itemLabels) ? implode(', ', $itemLabels) : '';
+            } else {
+                $hasItemPartialRefundLogs = true;
+                $refundTitle = __('Refund & Cancel Partial Order By Item');
+                // Screenshot: (1 x Product Name)
+                $refundSubtitle = !empty($itemLabels) ? '(' . implode(', ', $itemLabels) . ')' : '';
+            }
+
+            $orderRefundHistoryRows[] = [
+                'date' => $refundDate,
+                'title' => $refundTitle,
+                'subtitle' => $refundSubtitle,
+                'item_amount' => round($itemAmount, 2),
+                'tax_amount' => round($taxAmount, 2),
+                'is_item_partial' => !$isDollarType,
+            ];
+
+            $orderRefundHistoryTotal += $itemAmount + $taxAmount;
+        }
+
+        // Full Order screenshot format only when fully refunded AND no partial item/dollar logs.
+        if (
+            (int) $info->payment_status === 5
+            && !$hasItemPartialRefundLogs
+            && !$hasDollarPartialRefundLogs
+        ) {
+            $fullRefundItemTotal = 0.0;
+            foreach ($info->orderitems ?? [] as $fullRefundItem) {
+                $fullRefundVariations = json_decode($fullRefundItem->info ?? '');
+                $fullRefundOptions = $fullRefundVariations->options ?? [];
+                $fullRefundUnit = (float) $fullRefundItem->amount;
+                if (!is_array($fullRefundOptions) && is_object($fullRefundOptions) && isset($fullRefundOptions->varition_options)) {
+                    $fullRefundUnit = (float) $fullRefundOptions->price;
+                }
+                $fullRefundItemTotal += $fullRefundUnit * (int) $fullRefundItem->qty;
+            }
+
+            $fullRefundTax = (float) ($info->tax ?? 0);
+            $fullRefundDateSource = $info->refunded_at ?: $info->updated_at;
+            $fullRefundDate = $fullRefundDateSource
+                ? \Carbon\Carbon::parse($fullRefundDateSource)->format('m/d/Y')
+                : '';
+
+            $orderRefundHistoryRows = [[
+                'date' => $fullRefundDate,
+                'title' => __('Refund & Cancel Full Order') . ' ' . __('(All Items)'),
+                'subtitle' => '',
+                'item_amount' => round($fullRefundItemTotal, 2),
+                'tax_amount' => round($fullRefundTax, 2),
+                'is_full_order' => true,
+            ]];
+            $orderRefundHistoryTotal = round($fullRefundItemTotal + $fullRefundTax, 2);
+        }
+
+        $hasOrderRefundHistory = !empty($orderRefundHistoryRows);
+        // Purple Partial Refund badge for line-item / dollar partial refunds (screenshot).
+        $isOrderPartialRefundDisplay = $hasItemPartialRefundLogs || $hasDollarPartialRefundLogs;
+        $isOrderFullyRefundedDisplay = (int) $info->payment_status === 5
+            && !$hasItemPartialRefundLogs
+            && !$hasDollarPartialRefundLogs;
     @endphp
 
     @if(session('success') && !$refundSuccess && !$partialRefundSuccess && !$partialDollarRefundSuccess)
@@ -999,6 +1168,62 @@
                             </div>
                         </li>
                         @endif
+
+                        @if($hasOrderRefundHistory)
+                            @php
+                                if ($info->getway->name !== 'cash') {
+                                    $orderRefundNetBase = $cover_fee > 0
+                                        ? ((float) $info->total - (float) $cover_fee)
+                                        : ((float) $info->total - (float) $credit_card_fee - (float) $booster_platform_fee);
+                                } else {
+                                    $orderRefundNetBase = (float) $info->total;
+                                }
+
+                                // Full refund screenshot: Updated Net is always $0.00
+                                if (!empty($isOrderFullyRefundedDisplay)) {
+                                    $updatedNetOrderTotal = 0;
+                                } else {
+                                    $updatedNetOrderTotal = max(0, round($orderRefundNetBase - $orderRefundHistoryTotal, 2));
+                                }
+                            @endphp
+
+                            @foreach($orderRefundHistoryRows as $refundHistoryRow)
+                                <li class="list-group-item order-refund-history-row">
+                                    <div class="row align-items-center">
+                                        <div class="col-9 text-right">
+                                            <span class="order-refund-history-main">
+                                                {{ $refundHistoryRow['date'] }}{{ $refundHistoryRow['date'] !== '' ? ' - ' : '' }}{{ $refundHistoryRow['title'] }}
+                                            </span>
+                                            @if(!empty($refundHistoryRow['subtitle']))
+                                                <span class="order-refund-history-sub">{{ $refundHistoryRow['subtitle'] }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="col-3 text-right">
+                                            {{ currency_formate($refundHistoryRow['item_amount']) }}
+                                        </div>
+                                    </div>
+                                </li>
+                                @if(($refundHistoryRow['tax_amount'] ?? 0) > 0)
+                                    <li class="list-group-item order-refund-history-row">
+                                        <div class="row align-items-center">
+                                            <div class="col-9 text-right">
+                                                <span class="order-refund-history-tax">{{ __('Related Tax Adjustment Refund') }}</span>
+                                            </div>
+                                            <div class="col-3 text-right">
+                                                {{ currency_formate($refundHistoryRow['tax_amount']) }}
+                                            </div>
+                                        </div>
+                                    </li>
+                                @endif
+                            @endforeach
+
+                            <li class="list-group-item">
+                                <div class="row align-items-center order-refund-history-updated-net">
+                                    <div class="col-9 text-right">{{ __('Updated Net Order Total') }}</div>
+                                    <div class="col-3 text-right">{{ currency_formate($updatedNetOrderTotal) }}</div>
+                                </div>
+                            </li>
+                        @endif
                     </ul>
                 </div>
                 <div class="card-footer">
@@ -1241,7 +1466,9 @@
                     </div>
                     <div class="card-body">
                         <p>{{ __('Payment Status') }}
-                            @if ($info->payment_status == 2)
+                            @if ($isOrderPartialRefundDisplay)
+                                <span class="badge badge-order-partial-refund float-right">{{ __('Partial Refund') }}</span>
+                            @elseif ($info->payment_status == 2)
                                 <span class="badge badge-warning float-right">{{ __('Pending') }}</span>
                             @elseif($info->payment_status == 1)
                                 <span class="badge badge-success float-right">{{ __('Paid') }}</span>
@@ -1252,7 +1479,7 @@
                             @elseif($info->payment_status == 4)
                                 <span class="badge badge-danger float-right">{{ __('Authorized') }}</span>
                             @elseif($info->payment_status == 5)
-                                <span class="badge badge-warning float-right">{{ __('Refunded') }}</span>
+                                <span class="badge badge-order-payment-refunded float-right">{{ __('Refunded') }}</span>
                             @endif
                         </p>
 
@@ -1262,8 +1489,12 @@
                         @elseif($info->order_from == 0)
                         <span class="badge badge-success float-right text-white" style="background-color:#028a74">POS Web (In Person)</span>
                         @elseif ($info->status_id != null)
-                                <span class="badge  float-right text-white"
-                                    style="background-color: {{ $info->orderstatus->slug ?? '' }}">{{ $info->orderstatus->name ?? '' }}</span>
+                                @php
+                                    $orderStatusName = optional($info->orderstatus)->name ?? '';
+                                    $orderStatusIsPending = strcasecmp(trim((string) $orderStatusName), 'Pending') === 0;
+                                @endphp
+                                <span class="badge float-right text-white"
+                                    style="background-color: {{ $orderStatusIsPending ? '#e9a825' : (optional($info->orderstatus)->slug ?? '#ffc107') }}">{{ $orderStatusName }}</span>
                         @endif
                         </p>
 
