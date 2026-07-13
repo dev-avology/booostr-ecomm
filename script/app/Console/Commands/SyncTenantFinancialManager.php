@@ -9,44 +9,91 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Tenant-wise Financial Manager backfill.
+ * Tenant-wise Financial Manager sync.
  * Uses the same sync path as /api/storedata/order/create → sync_order_to_financial_manager().
- * Does not modify existing sync helpers or controllers.
+ *
+ * Usage:
+ *   php artisan tenant:sync-financial-manager
+ *     → sync all clubs from tenants.id
+ *   php artisan tenant:sync-financial-manager hello-tester-club
+ *     → sync one club (same as before)
  */
 class SyncTenantFinancialManager extends Command
 {
     protected $signature = 'tenant:sync-financial-manager
-                            {tenant : Tenant ID (example: hello-tester-club)}
-                            {--order= : Sync only this order ID}
+                            {tenant? : Optional tenant ID from tenants.id. If omitted, syncs all clubs}
+                            {--order= : Sync only this order ID (requires a tenant argument)}
                             {--force : Re-sync capture orders even if already marked as synced}
                             {--dry-run : List eligible orders without calling WordPress}';
 
-    protected $description = 'Sync eligible orders for one tenant to WordPress Financial Manager (same sync as order/create)';
+    protected $description = 'Sync eligible orders to WordPress Financial Manager for one club or all clubs from tenants.id';
 
     public function handle(): int
     {
-        $tenantId = (string) $this->argument('tenant');
+        $tenantArg = $this->argument('tenant');
         $force = (bool) $this->option('force');
         $dryRun = (bool) $this->option('dry-run');
         $onlyOrderId = $this->option('order') !== null && $this->option('order') !== ''
             ? (int) $this->option('order')
             : null;
 
-        $tenant = Tenant::find($tenantId);
-        if (!$tenant) {
-            $this->error("Tenant not found: {$tenantId}");
-            return Command::FAILURE;
-        }
-
-        $this->info("Financial Manager sync started for tenant: {$tenant->id}");
-        if ($onlyOrderId) {
-            $this->info("Scoped to order ID: {$onlyOrderId}");
-        }
         if ($dryRun) {
             $this->warn('Dry-run mode: WordPress will not be called.');
         }
         if ($force) {
             $this->warn('Force mode: previously synced capture orders will be re-sent.');
+        }
+
+        // Single club (existing behavior — used by refund afterResponse sync too)
+        if (!empty($tenantArg)) {
+            $tenant = Tenant::find((string) $tenantArg);
+            if (!$tenant) {
+                $this->error("Tenant not found: {$tenantArg}");
+                return Command::FAILURE;
+            }
+
+            return $this->syncTenantOrders($tenant, $force, $dryRun, $onlyOrderId);
+        }
+
+        // All clubs dynamically from tenants.id
+        if ($onlyOrderId) {
+            $this->warn('--order is ignored when syncing all clubs. Pass a tenant ID to sync a single order.');
+            $onlyOrderId = null;
+        }
+
+        $this->info('Financial Manager sync started for all clubs from tenants.id');
+
+        $processed = 0;
+        $tenantFailures = 0;
+
+        Tenant::query()
+            ->orderBy('id')
+            ->chunk(50, function ($tenants) use ($force, $dryRun, $onlyOrderId, &$processed, &$tenantFailures) {
+                foreach ($tenants as $tenant) {
+                    $processed++;
+                    $result = $this->syncTenantOrders($tenant, $force, $dryRun, $onlyOrderId);
+                    if ($result !== Command::SUCCESS) {
+                        $tenantFailures++;
+                    }
+                }
+            });
+
+        $this->newLine();
+        $this->info("All-clubs sync completed. tenants_processed={$processed} tenant_failures={$tenantFailures}");
+
+        return $tenantFailures > 0 ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    /**
+     * Sync eligible orders for one tenant. Sync rules unchanged from previous command behavior.
+     */
+    private function syncTenantOrders(Tenant $tenant, bool $force, bool $dryRun, ?int $onlyOrderId): int
+    {
+        $tenantId = (string) $tenant->id;
+
+        $this->info("Financial Manager sync started for tenant: {$tenantId}");
+        if ($onlyOrderId) {
+            $this->info("Scoped to order ID: {$onlyOrderId}");
         }
 
         $attempted = 0;
@@ -130,7 +177,7 @@ class SyncTenantFinancialManager extends Command
                 }
             }
         } catch (\Throwable $e) {
-            $this->error('Tenant sync failed: '.$e->getMessage());
+            $this->error("Tenant sync failed for {$tenantId}: ".$e->getMessage());
             Log::error('tenant:sync-financial-manager failed', [
                 'tenant_id' => $tenantId,
                 'error' => $e->getMessage(),
@@ -143,7 +190,6 @@ class SyncTenantFinancialManager extends Command
             }
         }
 
-        $this->newLine();
         $this->info("Completed for {$tenantId}. attempted={$attempted} skipped={$skipped} failed={$failed}");
 
         return Command::SUCCESS;
