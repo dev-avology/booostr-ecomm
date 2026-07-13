@@ -33,6 +33,12 @@ class Kernel extends ConsoleKernel
         ->onOneServer()
         ->runInBackground();
 
+        $schedule->command('tenant:sync-financial-manager')
+        ->dailyAt('01:00')
+        ->withoutOverlapping()
+        ->onOneServer()
+        ->runInBackground();
+
     }
 
     /**
