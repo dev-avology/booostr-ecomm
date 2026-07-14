@@ -133,53 +133,50 @@ class SyncTenantFinancialManager extends Command
                 }
 
                 $postType = $this->resolvePostType($order);
-
-                if (!is_order_syncable_to_financial_manager($order, $postType)) {
-                    $this->line("Skip {$order->invoice_no}: not syncable as {$postType}");
-                    $skipped++;
-                    continue;
-                }
-
-                if (
+                $shouldSyncCaptureOrFullRefund = is_order_syncable_to_financial_manager($order, $postType);
+                $captureAlreadySynced = (
                     $postType === 'capture'
                     && !$force
                     && has_financial_manager_capture_sync((int) $order->id)
-                ) {
-                    $this->line("Skip {$order->invoice_no}: already synced");
-                    $skipped++;
-                    continue;
-                }
+                );
 
-                if ($dryRun) {
+                // Capture / full-refund sync (existing behavior), without blocking partial-refund sync below.
+                if (!$shouldSyncCaptureOrFullRefund) {
+                    $this->line("Skip {$order->invoice_no}: not syncable as {$postType}");
+                    $skipped++;
+                } elseif ($captureAlreadySynced) {
+                    $this->line("Skip {$order->invoice_no}: capture already synced");
+                    $skipped++;
+                } elseif ($dryRun) {
                     $this->info("[dry-run] {$order->invoice_no} → {$postType}");
                     $attempted++;
-                    continue;
+                } else {
+                    if ($force && $postType === 'capture') {
+                        Ordermeta::where('order_id', $order->id)
+                            ->where('key', 'financial_manager_synced')
+                            ->delete();
+                    }
+
+                    try {
+                        // Same helper used by /api/storedata/order/create
+                        sync_order_to_financial_manager($order->id, $postType);
+                        $attempted++;
+                        $this->info("Synced {$order->invoice_no} ({$postType})");
+                    } catch (\Throwable $e) {
+                        $failed++;
+                        $this->error("Failed {$order->invoice_no}: {$e->getMessage()}");
+                        Log::error('tenant:sync-financial-manager order failed', [
+                            'tenant_id' => $tenantId,
+                            'order_id' => $order->id,
+                            'invoice_no' => $order->invoice_no,
+                            'post_type' => $postType,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 }
 
-                if ($force && $postType === 'capture') {
-                    Ordermeta::where('order_id', $order->id)
-                        ->where('key', 'financial_manager_synced')
-                        ->delete();
-                }
-
-                try {
-                    // Same helper used by /api/storedata/order/create
-                    sync_order_to_financial_manager($order->id, $postType);
-                    $attempted++;
-                    $this->info("Synced {$order->invoice_no} ({$postType})");
-                } catch (\Throwable $e) {
-                    $failed++;
-                    $this->error("Failed {$order->invoice_no}: {$e->getMessage()}");
-                    Log::error('tenant:sync-financial-manager order failed', [
-                        'tenant_id' => $tenantId,
-                        'order_id' => $order->id,
-                        'invoice_no' => $order->invoice_no,
-                        'post_type' => $postType,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-
-                // Partial refund logs → /financial-manager (payment_status still captured).
+                // Partial refund logs → /financial-manager (always run when present,
+                // even if capture was already synced / skipped).
                 if ((int) $order->payment_status === 1) {
                     $partialEntries = get_order_partial_refund_log_entries((int) $order->id);
                     if (!empty($partialEntries)) {
