@@ -482,8 +482,10 @@
                     </thead>
                     <tbody class="list font-size-base rowlink" data-link="row">
                         @php
+                            $orderListIds = collect($orders->items())->pluck('id')->filter()->values()->all();
+
                             // One query for partial-refund markers (qty + dollar), avoids N+1 and keeps controller untouched.
-                            $partialRefundOrderIds = \App\Models\Ordermeta::whereIn('order_id', collect($orders->items())->pluck('id')->filter()->all())
+                            $partialRefundOrderIds = \App\Models\Ordermeta::whereIn('order_id', $orderListIds)
                                 ->whereIn('key', ['partial_refunded_items', 'partial_dollar_refunded_items'])
                                 ->whereNotNull('value')
                                 ->where('value', '!=', '')
@@ -493,6 +495,40 @@
                                 ->unique()
                                 ->flip()
                                 ->all();
+
+                            // Refund log amounts for remaining-total display (same source as order details Updated Net).
+                            $partialRefundLogAmountsByOrderId = [];
+                            if (!empty($orderListIds)) {
+                                $partialRefundLogRows = \App\Models\Ordermeta::whereIn('order_id', $orderListIds)
+                                    ->where('key', 'partial_refund_logs')
+                                    ->get(['order_id', 'value']);
+
+                                foreach ($partialRefundLogRows as $partialRefundLogRow) {
+                                    $logs = json_decode($partialRefundLogRow->value ?? '[]', true) ?: [];
+                                    $refundedSum = 0.0;
+                                    $seenFingerprints = [];
+
+                                    foreach ($logs as $log) {
+                                        if (!is_array($log)) {
+                                            continue;
+                                        }
+
+                                        $fingerprint = md5(json_encode([
+                                            'amount' => round((float) ($log['amount'] ?? 0), 2),
+                                            'type' => (string) ($log['type'] ?? ''),
+                                            'items' => $log['items'] ?? [],
+                                        ]));
+
+                                        if (isset($seenFingerprints[$fingerprint])) {
+                                            continue;
+                                        }
+                                        $seenFingerprints[$fingerprint] = true;
+                                        $refundedSum += (float) ($log['amount'] ?? 0);
+                                    }
+
+                                    $partialRefundLogAmountsByOrderId[(int) $partialRefundLogRow->order_id] = round($refundedSum, 2);
+                                }
+                            }
                         @endphp
                         @foreach($orders ?? [] as $key => $row)
                         @php 
@@ -545,6 +581,21 @@
                             || strcasecmp(trim((string) $fulfillmentName), 'Cancel') === 0
                             || strcasecmp(trim((string) $fulfillmentName), 'Cancelled') === 0
                             || strcasecmp(trim((string) $fulfillmentName), 'Canceled') === 0;
+
+                        // Display total: unchanged for normal orders; remaining after refund for partial/full.
+                        $displayOrderTotal = (float) $row->total;
+                        if ($isFullyRefunded) {
+                            $displayOrderTotal = 0.0;
+                        } elseif ($isPartialRefund) {
+                            $creditCardFee = (float) ($ordermeta->credit_card_fee ?? 0);
+                            $boosterPlatformFee = (float) ($ordermeta->booster_platform_fee ?? 0);
+                            $coverFee = (float) ($ordermeta->cover_fee ?? 0);
+                            $netOrderBase = $coverFee > 0
+                                ? ((float) $row->total - $coverFee)
+                                : ((float) $row->total - $creditCardFee - $boosterPlatformFee);
+                            $alreadyRefundedAmount = (float) ($partialRefundLogAmountsByOrderId[(int) $row->id] ?? 0);
+                            $displayOrderTotal = max(0, round($netOrderBase - $alreadyRefundedAmount, 2));
+                        }
                     @endphp
                         <tr>
                             <td  class="text-left">
@@ -602,7 +653,7 @@
                             @endif
 
 
-                            <td class="@if($isPartialRefund) order-total-partial-refund @elseif($isFullyRefunded) order-total-refunded @endif">{{ currency_formate($row->total) }}</td>
+                            <td class="@if($isPartialRefund) order-total-partial-refund @elseif($isFullyRefunded) order-total-refunded @endif">{{ currency_formate($displayOrderTotal) }}</td>
                             <td>
                                 @if($isPartialRefund)
                                 <span class="badge badge-partial-refund">{{ __('Partial Refund') }}</span>

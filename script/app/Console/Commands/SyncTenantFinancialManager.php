@@ -99,6 +99,9 @@ class SyncTenantFinancialManager extends Command
         $attempted = 0;
         $skipped = 0;
         $failed = 0;
+        $partialAttempted = 0;
+        $partialSkipped = 0;
+        $partialFailed = 0;
 
         // Avoid ending an already-active tenancy context (e.g. when called from HTTP refund flow).
         $tenancyWasInitialized = tenancy()->initialized;
@@ -175,6 +178,48 @@ class SyncTenantFinancialManager extends Command
                         'error' => $e->getMessage(),
                     ]);
                 }
+
+                // Partial refund logs → /financial-manager (payment_status still captured).
+                if ((int) $order->payment_status === 1) {
+                    $partialEntries = get_order_partial_refund_log_entries((int) $order->id);
+                    if (!empty($partialEntries)) {
+                        $syncedPartial = get_financial_manager_partial_refund_synced_fingerprints((int) $order->id);
+
+                        foreach ($partialEntries as $partialEntry) {
+                            $fingerprint = $partialEntry['fingerprint'];
+                            if (!$force && in_array($fingerprint, $syncedPartial, true)) {
+                                $this->line("Skip {$order->invoice_no} partial refund (already synced)");
+                                $partialSkipped++;
+                                continue;
+                            }
+
+                            if ($dryRun) {
+                                $partialLabel = ($partialEntry['type'] ?? '') === 'dollar' ? 'partial_dollar_refund' : 'partial_item_refund';
+                                $this->info("[dry-run] {$order->invoice_no} → {$partialLabel} ({$partialEntry['grand_total']})");
+                                $partialAttempted++;
+                                continue;
+                            }
+
+                            try {
+                                post_partial_refund_to_financial_manager($order, $partialEntry);
+                                mark_financial_manager_partial_refund_synced((int) $order->id, $fingerprint);
+                                $partialAttempted++;
+                                $partialLabel = ($partialEntry['type'] ?? '') === 'dollar' ? 'partial_dollar_refund' : 'partial_item_refund';
+                                $this->info("Synced {$order->invoice_no} ({$partialLabel}: {$partialEntry['grand_total']})");
+                            } catch (\Throwable $e) {
+                                $partialFailed++;
+                                $this->error("Partial refund sync failed {$order->invoice_no}: {$e->getMessage()}");
+                                Log::error('tenant:sync-financial-manager partial refund failed', [
+                                    'tenant_id' => $tenantId,
+                                    'order_id' => $order->id,
+                                    'invoice_no' => $order->invoice_no,
+                                    'fingerprint' => $fingerprint,
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
+                        }
+                    }
+                }
             }
         } catch (\Throwable $e) {
             $this->error("Tenant sync failed for {$tenantId}: ".$e->getMessage());
@@ -190,7 +235,7 @@ class SyncTenantFinancialManager extends Command
             }
         }
 
-        $this->info("Completed for {$tenantId}. attempted={$attempted} skipped={$skipped} failed={$failed}");
+        $this->info("Completed for {$tenantId}. attempted={$attempted} skipped={$skipped} failed={$failed} partial_attempted={$partialAttempted} partial_skipped={$partialSkipped} partial_failed={$partialFailed}");
 
         return Command::SUCCESS;
     }

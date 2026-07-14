@@ -1009,6 +1009,299 @@ if (!function_exists('trigger_tenant_financial_manager_sync_after_refund')) {
     }
 }
 
+if (!function_exists('financial_manager_partial_refund_fingerprint')) {
+    function financial_manager_partial_refund_fingerprint(array $refundLog): string
+    {
+        $items = [];
+        foreach ($refundLog['items'] ?? [] as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $items[] = [
+                'item_id' => (int) ($item['item_id'] ?? 0),
+                'amount' => round((float) ($item['amount'] ?? 0), 2),
+                'tax' => round((float) ($item['tax'] ?? 0), 2),
+                'qty' => (int) ($item['qty'] ?? 0),
+                'label' => (string) ($item['label'] ?? ''),
+            ];
+        }
+
+        return md5(json_encode([
+            'amount' => round((float) ($refundLog['amount'] ?? 0), 2),
+            'type' => (string) ($refundLog['type'] ?? ''),
+            'stripe_refund_id' => (string) ($refundLog['stripe_refund_id'] ?? ''),
+            'items' => $items,
+        ]));
+    }
+}
+
+if (!function_exists('get_financial_manager_partial_refund_synced_fingerprints')) {
+    function get_financial_manager_partial_refund_synced_fingerprints(int $orderId): array
+    {
+        $meta = \App\Models\Ordermeta::where('order_id', $orderId)
+            ->where('key', 'financial_manager_partial_refund_synced')
+            ->value('value');
+
+        $decoded = json_decode($meta ?? '[]', true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+}
+
+if (!function_exists('mark_financial_manager_partial_refund_synced')) {
+    function mark_financial_manager_partial_refund_synced(int $orderId, string $fingerprint): void
+    {
+        $synced = get_financial_manager_partial_refund_synced_fingerprints($orderId);
+        if (!in_array($fingerprint, $synced, true)) {
+            $synced[] = $fingerprint;
+        }
+
+        \App\Models\Ordermeta::updateOrCreate(
+            ['order_id' => $orderId, 'key' => 'financial_manager_partial_refund_synced'],
+            ['value' => json_encode(array_values($synced))]
+        );
+    }
+}
+
+if (!function_exists('get_order_partial_refund_log_entries')) {
+    /**
+     * Normalized partial refund log rows (same source as order details / list pages).
+     */
+    function get_order_partial_refund_log_entries(int $orderId): array
+    {
+        $raw = \App\Models\Ordermeta::where('order_id', $orderId)
+            ->where('key', 'partial_refund_logs')
+            ->value('value');
+
+        $logs = json_decode($raw ?? '[]', true);
+        if (!is_array($logs)) {
+            return [];
+        }
+
+        $entries = [];
+        $seen = [];
+
+        foreach ($logs as $log) {
+            if (!is_array($log)) {
+                continue;
+            }
+
+            $fingerprint = financial_manager_partial_refund_fingerprint($log);
+            if (isset($seen[$fingerprint])) {
+                continue;
+            }
+            $seen[$fingerprint] = true;
+
+            $itemAmount = 0.0;
+            $taxAmount = 0.0;
+            foreach ($log['items'] ?? [] as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $itemAmount += (float) ($item['amount'] ?? 0);
+                $taxAmount += (float) ($item['tax'] ?? 0);
+            }
+
+            if ($itemAmount <= 0 && empty($log['items'])) {
+                $grandTotal = (float) ($log['amount'] ?? 0);
+                $itemAmount = $grandTotal;
+                $taxAmount = 0.0;
+            }
+
+            $entries[] = [
+                'fingerprint' => $fingerprint,
+                'type' => (string) ($log['type'] ?? ''),
+                'refunded_at' => $log['refunded_at'] ?? null,
+                'stripe_refund_id' => (string) ($log['stripe_refund_id'] ?? ''),
+                'item_amount' => round($itemAmount, 2),
+                'tax_amount' => round($taxAmount, 2),
+                'grand_total' => round((float) ($log['amount'] ?? ($itemAmount + $taxAmount)), 2),
+                'items' => $log['items'] ?? [],
+            ];
+        }
+
+        return $entries;
+    }
+}
+
+if (!function_exists('post_partial_refund_to_financial_manager')) {
+    /**
+     * Send one partial refund log entry to WordPress /financial-manager.
+     * Additive path used by tenant:sync-financial-manager only.
+     */
+    function post_partial_refund_to_financial_manager($order, array $refundEntry): ?string
+    {
+        if (empty($order->captured_at) || (int) $order->payment_status !== 1) {
+            return null;
+        }
+
+        $ordermeta = json_decode(optional($order->ordermeta)->value ?? '', true) ?: [];
+        $name = explode(' ', $ordermeta['name'] ?? '');
+        $gateway = \App\Models\Getway::find($order->getway_id);
+
+        $creditCardFee = 0.0;
+        $boosterPlatformFee = 0.0;
+        $shippingWithInfo = $order->shippingwithinfo;
+        if ($shippingWithInfo && !empty($shippingWithInfo->info)) {
+            $shippingData = json_decode($shippingWithInfo->info, true) ?: [];
+            if (($shippingWithInfo->shipping_driver ?? '') === 'local') {
+                $creditCardFee = (float) ($shippingData['credit_card_fee'] ?? 0);
+                $boosterPlatformFee = (float) ($shippingData['booster_platform_fee'] ?? 0);
+            }
+        }
+        if ($creditCardFee == 0 && $boosterPlatformFee == 0 && !empty($ordermeta)) {
+            $creditCardFee = (float) ($ordermeta['credit_card_fee'] ?? 0);
+            $boosterPlatformFee = (float) ($ordermeta['booster_platform_fee'] ?? 0);
+        }
+        $processingFees = $creditCardFee + $boosterPlatformFee;
+
+        $itemAmount = (float) ($refundEntry['item_amount'] ?? 0);
+        $taxAmount = (float) ($refundEntry['tax_amount'] ?? 0);
+        $grandTotal = (float) ($refundEntry['grand_total'] ?? ($itemAmount + $taxAmount));
+
+        // Pro-rate processing fees for partial refund net (matches order-details remaining logic).
+        $orderSubtotal = 0.0;
+        foreach ($order->orderitems ?? [] as $orderItem) {
+            $orderSubtotal += (float) $orderItem->amount * (int) $orderItem->qty;
+        }
+        $refundProcessingFee = $orderSubtotal > 0
+            ? ($processingFees * ($itemAmount / $orderSubtotal))
+            : 0.0;
+        $netRefundAmount = max(0, round($itemAmount - $refundProcessingFee, 2));
+
+        $refundDate = !empty($refundEntry['refunded_at'])
+            ? \Carbon\Carbon::parse($refundEntry['refunded_at'])->setTimezone(config('app.timezone'))
+            : \Carbon\Carbon::now()->setTimezone(config('app.timezone'));
+
+        $isPos = in_array((int) $order->order_from, [4, 5], true);
+        $donorSuffix = $isPos ? ' (POS Order)' : ' (Online Order)';
+        $refundLabel = ($refundEntry['type'] ?? '') === 'dollar'
+            ? 'Partial Dollar Refund'
+            : 'Partial Item Refund';
+
+        $basePayload = [
+            'category_type' => 'Booostr Ecommerce',
+            'booster_id' => Tenant('club_id'),
+            'coaid' => 41,
+            'contactname' => $ordermeta['name'] ?? ($isPos ? 'Guest User' : ''),
+            'user_id' => $ordermeta['wpuid'] ?? 0,
+            'revenue_name' => '4-850 Booostr Ecommerce',
+            'transaction_type' => 'I',
+            'sales_tax_collected' => $taxAmount > 0 ? 'Yes' : 'No',
+            'net_revenue' => $netRefundAmount,
+            'transaction_amount' => $grandTotal,
+            'expense_category' => 'Revenue',
+            'receipts_issued' => 'Yes',
+            'status' => 1,
+            'donor_name' => ($ordermeta['name'] ?? 'Guest User') . $donorSuffix . ' - ' . $refundLabel,
+            'created' => $order->placed_at,
+            'modified' => \Carbon\Carbon::now()->setTimezone(config('app.timezone')),
+            'payement_method' => ($gateway && $gateway->name === 'cash') ? 0 : 3,
+            'invoicenumber' => $order->invoice_no,
+            'invoicreatedate' => $order->placed_at,
+            'invoiceprocessingfee' => round($refundProcessingFee, 2),
+            'invoicesalestax' => $taxAmount,
+            'invoiceopt' => $order->invoice_no,
+            'deposite_date' => $order->captured_at,
+            'transfer_refund_date' => $refundDate->toDateTimeString(),
+            'record_type' => 'refund',
+        ];
+
+        if ($isPos) {
+            $postData = json_encode($basePayload);
+        } else {
+            $contactManagerData = [
+                'first_name' => $name[0] ?? '',
+                'last_name' => $name[1] ?? '',
+                'user_id' => $ordermeta['wpuid'] ?? 0,
+                'phone_number' => $ordermeta['phone'] ?? '',
+                'booster_name' => $name[0] ?? '',
+                'country' => $ordermeta['billing']['country'] ?? '',
+                'address_1' => $ordermeta['billing']['address'] ?? '',
+                'address_2' => '',
+                'city' => $ordermeta['billing']['city'] ?? '',
+                'state' => $ordermeta['billing']['state'] ?? '',
+                'zip' => $ordermeta['billing']['post_code'] ?? '',
+                'email' => $ordermeta['email'] ?? '',
+                'booster_id' => Tenant('club_id'),
+                'booster_level_id' => 4,
+                'contact_tags' => '',
+                'customer_tag' => 'online store customer',
+                'addedsource' => 'storetool',
+            ];
+            $postData = json_encode(array_merge(['contact_mgr_data' => $contactManagerData], $basePayload));
+        }
+
+        $url = env('WP_API_URL');
+        $url = ($url != '') ? $url . '/financial-manager' : 'https://staging3.booostr.co/wp-json/store-api/v1/financial-manager';
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Tantent store');
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        if (curl_errno($ch)) {
+            \Log::error('Partial refund FM sync cURL error', [
+                'order_id' => $order->id,
+                'error' => curl_error($ch),
+            ]);
+        }
+        curl_close($ch);
+
+        return is_string($response) ? $response : null;
+    }
+}
+
+if (!function_exists('sync_order_partial_refunds_to_financial_manager')) {
+    /**
+     * Sync all unsynced partial refund log entries for one order.
+     * Used by tenant:sync-financial-manager (does not alter capture/full refund helpers).
+     */
+    function sync_order_partial_refunds_to_financial_manager(int $orderId, bool $force = false): int
+    {
+        $order = \App\Models\Order::with('orderitems', 'ordermeta', 'shippingwithinfo', 'getway', 'user')->find($orderId);
+        if (!$order || empty($order->captured_at) || (int) $order->payment_status !== 1) {
+            return 0;
+        }
+
+        $entries = get_order_partial_refund_log_entries($orderId);
+        if (empty($entries)) {
+            return 0;
+        }
+
+        $syncedFingerprints = get_financial_manager_partial_refund_synced_fingerprints($orderId);
+        $syncedCount = 0;
+
+        foreach ($entries as $entry) {
+            $fingerprint = $entry['fingerprint'];
+            if (!$force && in_array($fingerprint, $syncedFingerprints, true)) {
+                continue;
+            }
+
+            try {
+                post_partial_refund_to_financial_manager($order, $entry);
+                mark_financial_manager_partial_refund_synced($orderId, $fingerprint);
+                $syncedFingerprints[] = $fingerprint;
+                $syncedCount++;
+            } catch (\Throwable $e) {
+                \Log::error('Partial refund FM sync failed', [
+                    'order_id' => $orderId,
+                    'fingerprint' => $fingerprint,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return $syncedCount;
+    }
+}
+
 if (!function_exists('ticket_email_qr_apply_logo_overlay')) {
     /**
      * Merge club logo into center of QR PNG (print-style), returns raw PNG bytes.
