@@ -984,7 +984,9 @@ if (!function_exists('trigger_tenant_financial_manager_sync_after_refund')) {
                 return;
             }
 
-            $params = ['tenant' => $tenantId];
+            // --auto keeps the safe dedup behavior for automatic after-refund sync
+            // (only the new refund is sent; already-synced sale/refunds are not duplicated).
+            $params = ['tenant' => $tenantId, '--auto' => true];
             if (!empty($orderId)) {
                 $params['--order'] = $orderId;
             }

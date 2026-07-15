@@ -24,6 +24,7 @@ class SyncTenantFinancialManager extends Command
                             {tenant? : Optional tenant ID from tenants.id. If omitted, syncs all clubs}
                             {--order= : Sync only this order ID (requires a tenant argument)}
                             {--force : Re-sync capture orders even if already marked as synced}
+                            {--auto : Respect already-synced records (used by scheduled / after-refund automated sync). Manual --order runs re-send by default}
                             {--dry-run : List eligible orders without calling WordPress}';
 
     protected $description = 'Sync eligible orders to WordPress Financial Manager for one club or all clubs from tenants.id';
@@ -32,6 +33,7 @@ class SyncTenantFinancialManager extends Command
     {
         $tenantArg = $this->argument('tenant');
         $force = (bool) $this->option('force');
+        $auto = (bool) $this->option('auto');
         $dryRun = (bool) $this->option('dry-run');
         $onlyOrderId = $this->option('order') !== null && $this->option('order') !== ''
             ? (int) $this->option('order')
@@ -52,7 +54,7 @@ class SyncTenantFinancialManager extends Command
                 return Command::FAILURE;
             }
 
-            return $this->syncTenantOrders($tenant, $force, $dryRun, $onlyOrderId);
+            return $this->syncTenantOrders($tenant, $force, $auto, $dryRun, $onlyOrderId);
         }
 
         // All clubs dynamically from tenants.id
@@ -68,10 +70,10 @@ class SyncTenantFinancialManager extends Command
 
         Tenant::query()
             ->orderBy('id')
-            ->chunk(50, function ($tenants) use ($force, $dryRun, $onlyOrderId, &$processed, &$tenantFailures) {
+            ->chunk(50, function ($tenants) use ($force, $auto, $dryRun, $onlyOrderId, &$processed, &$tenantFailures) {
                 foreach ($tenants as $tenant) {
                     $processed++;
-                    $result = $this->syncTenantOrders($tenant, $force, $dryRun, $onlyOrderId);
+                    $result = $this->syncTenantOrders($tenant, $force, $auto, $dryRun, $onlyOrderId);
                     if ($result !== Command::SUCCESS) {
                         $tenantFailures++;
                     }
@@ -87,13 +89,20 @@ class SyncTenantFinancialManager extends Command
     /**
      * Sync eligible orders for one tenant. Sync rules unchanged from previous command behavior.
      */
-    private function syncTenantOrders(Tenant $tenant, bool $force, bool $dryRun, ?int $onlyOrderId): int
+    private function syncTenantOrders(Tenant $tenant, bool $force, bool $auto, bool $dryRun, ?int $onlyOrderId): int
     {
         $tenantId = (string) $tenant->id;
+
+        // Manual, targeted --order runs re-send even if already synced (capture + full + partial refunds).
+        // Automated callers (scheduler / after-refund flow) pass --auto to keep the safe dedup behavior.
+        $forceResend = $force || ($onlyOrderId !== null && !$auto);
 
         $this->info("Financial Manager sync started for tenant: {$tenantId}");
         if ($onlyOrderId) {
             $this->info("Scoped to order ID: {$onlyOrderId}");
+            if ($forceResend && !$force) {
+                $this->warn("Re-send mode: order {$onlyOrderId} will be re-sent even if already synced.");
+            }
         }
 
         $attempted = 0;
@@ -136,7 +145,7 @@ class SyncTenantFinancialManager extends Command
                 $shouldSyncCaptureOrFullRefund = is_order_syncable_to_financial_manager($order, $postType);
                 $captureAlreadySynced = (
                     $postType === 'capture'
-                    && !$force
+                    && !$forceResend
                     && has_financial_manager_capture_sync((int) $order->id)
                 );
 
@@ -151,7 +160,7 @@ class SyncTenantFinancialManager extends Command
                     $this->info("[dry-run] {$order->invoice_no} → {$postType}");
                     $attempted++;
                 } else {
-                    if ($force && $postType === 'capture') {
+                    if ($forceResend && $postType === 'capture') {
                         Ordermeta::where('order_id', $order->id)
                             ->where('key', 'financial_manager_synced')
                             ->delete();
@@ -184,7 +193,7 @@ class SyncTenantFinancialManager extends Command
 
                         foreach ($partialEntries as $partialEntry) {
                             $fingerprint = $partialEntry['fingerprint'];
-                            if (!$force && in_array($fingerprint, $syncedPartial, true)) {
+                            if (!$forceResend && in_array($fingerprint, $syncedPartial, true)) {
                                 $this->line("Skip {$order->invoice_no} partial refund (already synced)");
                                 $partialSkipped++;
                                 continue;
