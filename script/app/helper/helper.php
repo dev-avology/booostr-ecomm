@@ -1372,7 +1372,7 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
             'expense_category' => 'Revenue',
             'receipts_issued' => 'Yes',
             'status' => 1,
-            'donor_name' => ($ordermeta['name'] ?? 'Guest User') . $donorSuffix . ' - ' . $refundLabel,
+            'donor_name' => ($ordermeta['name'] ?? 'Guest User') . $donorSuffix,
             'created' => $order->placed_at,
             'modified' => \Carbon\Carbon::now()->setTimezone(config('app.timezone')),
             'payement_method' => ($gateway && $gateway->name === 'cash') ? 0 : 3,
