@@ -854,6 +854,8 @@ class OrderController extends Controller
         'deposite_date'=>$order->captured_at,
         'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
         'record_type' => $post_type,
+        // Additive: same refund text shown on the order details page (full refund only).
+        'refund_details'=> ($post_type == 'refund') ? financial_manager_full_refund_detail($order) : [],
       ]);
         // 'order_date' => $order_date, 
         // 'order_subtotal' => $sub_total,
@@ -964,6 +966,8 @@ class OrderController extends Controller
             'deposite_date'=>$order->captured_at,
             'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
             'record_type' => $post_type,
+            // Additive: same refund text shown on the order details page (full refund only).
+            'refund_details'=> ($post_type == 'refund') ? financial_manager_full_refund_detail($order) : [],
         ]);
 
    

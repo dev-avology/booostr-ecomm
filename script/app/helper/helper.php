@@ -1124,6 +1124,126 @@ if (!function_exists('get_order_partial_refund_log_entries')) {
     }
 }
 
+if (!function_exists('financial_manager_refund_detail_lines')) {
+    /**
+     * Build the human-readable refund detail lines exactly as shown on the order
+     * details page, e.g.:
+     *   "07/13/2026 - Refund & Cancel Partial Order By Dollar Amount"
+     *   "NY Islanders Trip Ticket Example"
+     *   "Related Tax Adjustment Refund"
+     */
+    function financial_manager_refund_detail_lines(string $date, string $title, array $itemLabels, float $taxAmount): array
+    {
+        $lines = [];
+        $lines[] = trim(($date !== '' ? $date . ' - ' : '') . $title);
+
+        foreach ($itemLabels as $label) {
+            $label = trim((string) $label);
+            if ($label !== '') {
+                $lines[] = $label;
+            }
+        }
+
+        if ($taxAmount > 0) {
+            $lines[] = 'Related Tax Adjustment Refund';
+        }
+
+        return $lines;
+    }
+}
+
+if (!function_exists('financial_manager_partial_refund_detail')) {
+    /**
+     * Structured refund detail for a single partial refund log entry.
+     * Sent to /financial-manager under the additive "refund_details" key.
+     */
+    function financial_manager_partial_refund_detail(array $entry): array
+    {
+        $isDollar = ($entry['type'] ?? '') === 'dollar';
+        $title = $isDollar
+            ? 'Refund & Cancel Partial Order By Dollar Amount'
+            : 'Refund & Cancel Partial Order By Item';
+
+        $date = !empty($entry['refunded_at'])
+            ? \Carbon\Carbon::parse($entry['refunded_at'])->format('m/d/Y')
+            : \Carbon\Carbon::now()->setTimezone(config('app.timezone'))->format('m/d/Y');
+
+        $labels = [];
+        foreach ($entry['items'] ?? [] as $it) {
+            $label = trim((string) ($it['label'] ?? ''));
+            if ($label !== '') {
+                $labels[] = $label;
+            }
+        }
+
+        $refundAmount = round((float) ($entry['item_amount'] ?? 0), 2);
+        $taxAmount = round((float) ($entry['tax_amount'] ?? 0), 2);
+
+        // Match order-details UI: item refunds wrap labels as "(1 x Product)", dollar refunds show plain title(s).
+        $displayLabels = $labels;
+        if (!$isDollar && !empty($labels)) {
+            $displayLabels = ['(' . implode(', ', $labels) . ')'];
+        }
+
+        $lines = financial_manager_refund_detail_lines($date, $title, $displayLabels, $taxAmount);
+
+        return [
+            'type' => $isDollar ? 'partial_dollar' : 'partial_item',
+            'date' => $date,
+            'title' => $title,
+            'items' => $labels,
+            'refund_amount' => $refundAmount,
+            'tax_label' => 'Related Tax Adjustment Refund',
+            'tax_amount' => $taxAmount,
+            'grand_total' => round((float) ($entry['grand_total'] ?? ($refundAmount + $taxAmount)), 2),
+            'lines' => $lines,
+            'text' => implode("\n", $lines),
+        ];
+    }
+}
+
+if (!function_exists('financial_manager_full_refund_detail')) {
+    /**
+     * Structured refund detail for a full-order refund (mirrors order-details UI).
+     * Sent to /financial-manager under the additive "refund_details" key.
+     */
+    function financial_manager_full_refund_detail($order): array
+    {
+        $itemTotal = 0.0;
+        foreach ($order->orderitems ?? [] as $orderItem) {
+            $variations = json_decode($orderItem->info ?? '');
+            $options = $variations->options ?? [];
+            $unit = (float) $orderItem->amount;
+            if (!is_array($options) && is_object($options) && isset($options->varition_options)) {
+                $unit = (float) $options->price;
+            }
+            $itemTotal += $unit * (int) $orderItem->qty;
+        }
+
+        $taxAmount = round((float) ($order->tax ?? 0), 2);
+        $dateSource = $order->refunded_at ?: $order->updated_at;
+        $date = $dateSource
+            ? \Carbon\Carbon::parse($dateSource)->format('m/d/Y')
+            : \Carbon\Carbon::now()->setTimezone(config('app.timezone'))->format('m/d/Y');
+
+        $title = 'Refund & Cancel Full Order (All Items)';
+        $lines = financial_manager_refund_detail_lines($date, $title, [], $taxAmount);
+
+        return [
+            'type' => 'full',
+            'date' => $date,
+            'title' => $title,
+            'items' => [],
+            'refund_amount' => round($itemTotal, 2),
+            'tax_label' => 'Related Tax Adjustment Refund',
+            'tax_amount' => $taxAmount,
+            'grand_total' => round($itemTotal + $taxAmount, 2),
+            'lines' => $lines,
+            'text' => implode("\n", $lines),
+        ];
+    }
+}
+
 if (!function_exists('post_partial_refund_to_financial_manager')) {
     /**
      * Send one partial refund log entry to WordPress /financial-manager.
@@ -1205,6 +1325,8 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
             'deposite_date' => $order->captured_at,
             'transfer_refund_date' => $refundDate->toDateTimeString(),
             'record_type' => 'refund',
+            // Additive: same refund text shown on the order details page (partial refund).
+            'refund_details' => financial_manager_partial_refund_detail($refundEntry),
         ];
 
         if ($isPos) {
