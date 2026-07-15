@@ -1246,6 +1246,63 @@ if (!function_exists('financial_manager_full_refund_detail')) {
     }
 }
 
+if (!function_exists('financial_manager_refund_detail_to_memo')) {
+    /**
+     * Convert a refund_details structure into a memo text block with amounts.
+     * Reuses refund_details['lines'] (display text) and appends the refund amount
+     * to the header line and the tax amount to the tax line, e.g.:
+     *   "07/13/2026 - Refund & Cancel Partial Order By Dollar Amount - $40.00"
+     *   "NY Islanders Trip Ticket Example"
+     *   "Related Tax Adjustment Refund - $2.40"
+     */
+    function financial_manager_refund_detail_to_memo(array $detail): string
+    {
+        $lines = $detail['lines'] ?? [];
+        if (empty($lines)) {
+            return '';
+        }
+
+        $refundAmount = (float) ($detail['refund_amount'] ?? 0);
+        $taxAmount = (float) ($detail['tax_amount'] ?? 0);
+
+        $memoLines = [];
+        foreach ($lines as $index => $line) {
+            $line = (string) $line;
+            if ($index === 0) {
+                // Header (date - title) → append the refunded amount.
+                $memoLines[] = $line . ' - $' . number_format($refundAmount, 2);
+            } elseif (trim($line) === 'Related Tax Adjustment Refund' && $taxAmount > 0) {
+                $memoLines[] = $line . ' - $' . number_format($taxAmount, 2);
+            } else {
+                $memoLines[] = $line;
+            }
+        }
+
+        return implode("\n", $memoLines);
+    }
+}
+
+if (!function_exists('financial_manager_partial_refunds_memo')) {
+    /**
+     * Combined memo text (with amounts) of ALL partial refund entries for an order.
+     * Ensures that when an order has multiple (e.g. double) partial refunds,
+     * every refund detail + amount is present in the memo. Deduped by fingerprint.
+     */
+    function financial_manager_partial_refunds_memo($order): string
+    {
+        $blocks = [];
+        foreach (get_order_partial_refund_log_entries((int) $order->id) as $entry) {
+            $detail = financial_manager_partial_refund_detail($entry);
+            $block = financial_manager_refund_detail_to_memo($detail);
+            if (trim($block) !== '') {
+                $blocks[] = $block;
+            }
+        }
+
+        return implode("\n", $blocks);
+    }
+}
+
 if (!function_exists('post_partial_refund_to_financial_manager')) {
     /**
      * Send one partial refund log entry to WordPress /financial-manager.
@@ -1329,6 +1386,9 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
             'record_type' => 'refund',
             // Additive: same refund text shown on the order details page (partial refund).
             'refund_details' => financial_manager_partial_refund_detail($refundEntry),
+            // Additive: refund text + amount(s) as memo. Includes every partial refund
+            // on this order, so a double refund shows both details with their amounts.
+            'memo' => financial_manager_partial_refunds_memo($order),
         ];
 
         if ($isPos) {

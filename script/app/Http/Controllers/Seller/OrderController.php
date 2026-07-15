@@ -856,6 +856,8 @@ class OrderController extends Controller
         'record_type' => $post_type,
         // Additive: same refund text shown on the order details page (full refund only).
         'refund_details'=> ($post_type == 'refund') ? financial_manager_full_refund_detail($order) : [],
+        // Additive: refund text + amount as memo (full refund only).
+        'memo'=> ($post_type == 'refund') ? financial_manager_refund_detail_to_memo(financial_manager_full_refund_detail($order)) : '',
       ]);
         // 'order_date' => $order_date, 
         // 'order_subtotal' => $sub_total,
@@ -968,6 +970,8 @@ class OrderController extends Controller
             'record_type' => $post_type,
             // Additive: same refund text shown on the order details page (full refund only).
             'refund_details'=> ($post_type == 'refund') ? financial_manager_full_refund_detail($order) : [],
+            // Additive: refund text + amount as memo (full refund only).
+            'memo'=> ($post_type == 'refund') ? financial_manager_refund_detail_to_memo(financial_manager_full_refund_detail($order)) : '',
         ]);
 
    
