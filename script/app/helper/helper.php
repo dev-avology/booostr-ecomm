@@ -1385,7 +1385,8 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
             'transfer_refund_date' => $refundDate->toDateTimeString(),
             'record_type' => 'refund',
             // Additive: same refund text shown on the order details page (partial refund).
-            'refund_details' => financial_manager_partial_refund_detail($refundEntry),
+            // NOTE: 'refund_details' key commented out on request; kept for future use.
+            // 'refund_details' => financial_manager_partial_refund_detail($refundEntry),
             // Additive: refund text + amount(s) as memo. Includes every partial refund
             // on this order, so a double refund shows both details with their amounts.
             'memo' => financial_manager_partial_refunds_memo($order),
