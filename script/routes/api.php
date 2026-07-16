@@ -31,6 +31,15 @@ Route::group([
 
 Route::group([
     'prefix'     => '/storedata',
+    'middleware' => [AvalogyMiddleware::class],
+], function () {
+    // Club-wise Online Ticket products (seller/product Type = Online Ticket).
+    // Query: ?club_id=hello-tester-club
+    Route::get('/get-ticket-product', 'Api\TicketProductController@index');
+});
+
+Route::group([
+    'prefix'     => '/storedata',
     'middleware' => [AvalogyMiddleware::class,StoreSettingCheckMiddleware::class, InitializeTenancyByRequestData::class, 'tenantenvironment','page.cache'],
 ], function () {
     Route::get('/categories', 'Api\ProductController@categoryList');
