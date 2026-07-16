@@ -779,7 +779,7 @@
 }
 
 .badge-order-payment-refunded {
-    background-color: #e9a825 !important;
+    background-color: #dc3545 !important;
     color: #fff !important;
 }
 </style>
@@ -853,6 +853,8 @@
             }
             $orderRefundHistorySeen[$refundFingerprint] = true;
 
+            $taxAmount = sanitize_refund_tax_for_order($info, $taxAmount);
+
             $refundDate = !empty($refundLog['refunded_at'])
                 ? \Carbon\Carbon::parse($refundLog['refunded_at'])->format('m/d/Y')
                 : '';
@@ -898,7 +900,7 @@
                 $fullRefundItemTotal += $fullRefundUnit * (int) $fullRefundItem->qty;
             }
 
-            $fullRefundTax = (float) ($info->tax ?? 0);
+            $fullRefundTax = sanitize_refund_tax_for_order($info, (float) ($info->tax ?? 0));
             $fullRefundDateSource = $info->refunded_at ?: $info->updated_at;
             $fullRefundDate = $fullRefundDateSource
                 ? \Carbon\Carbon::parse($fullRefundDateSource)->format('m/d/Y')
@@ -1171,19 +1173,13 @@
 
                         @if($hasOrderRefundHistory)
                             @php
-                                if ($info->getway->name !== 'cash') {
-                                    $orderRefundNetBase = $cover_fee > 0
-                                        ? ((float) $info->total - (float) $cover_fee)
-                                        : ((float) $info->total - (float) $credit_card_fee - (float) $booster_platform_fee);
-                                } else {
-                                    $orderRefundNetBase = (float) $info->total;
-                                }
+                                $orderRemainingAfterRefund = calculate_order_remaining_after_partial_refunds($info, $ordermeta);
 
                                 // Full refund screenshot: Updated Net is always $0.00
                                 if (!empty($isOrderFullyRefundedDisplay)) {
                                     $updatedNetOrderTotal = 0;
                                 } else {
-                                    $updatedNetOrderTotal = max(0, round($orderRefundNetBase - $orderRefundHistoryTotal, 2));
+                                    $updatedNetOrderTotal = (float) ($orderRemainingAfterRefund['remaining_net'] ?? 0);
                                 }
                             @endphp
 
@@ -1706,6 +1702,8 @@
                 $refund_subtotal += $refund_row_amount * $refund_row->qty;
             }
 
+            $refund_order_tax = order_has_sales_tax($info) ? (float) ($info->tax ?? 0) : 0.0;
+
             $refund_type_count = count($refund_selected_product_type);
             $refund_order_type = match (true) {
                 $refund_type_count > 1 => 'Mixed',
@@ -1948,7 +1946,7 @@
 
                                             $partial_refund_line_total = $partial_refund_line_amount * $partial_refund_row->qty;
                                             $partial_refund_item_tax = $refund_subtotal > 0
-                                                ? (($partial_refund_line_total / $refund_subtotal) * ($info->tax ?? 0))
+                                                ? (($partial_refund_line_total / $refund_subtotal) * $refund_order_tax)
                                                 : 0;
                                         @endphp
                                         <div class="order-refund-partial-qty-row"
@@ -2186,7 +2184,7 @@
 
                                             $dollar_refund_line_total = $dollar_refund_line_amount * $dollar_refund_row->qty;
                                             $dollar_refund_item_tax = $refund_subtotal > 0
-                                                ? (($dollar_refund_line_total / $refund_subtotal) * ($info->tax ?? 0))
+                                                ? (($dollar_refund_line_total / $refund_subtotal) * $refund_order_tax)
                                                 : 0;
 
                                             $dollar_qty_refunded_value = ((int) ($dollar_refunded_qtys[$dollar_refund_row->id] ?? 0)) * $dollar_refund_line_amount;

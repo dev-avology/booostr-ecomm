@@ -1011,6 +1011,61 @@ if (!function_exists('trigger_tenant_financial_manager_sync_after_refund')) {
     }
 }
 
+if (!function_exists('resolve_order_fee_breakdown')) {
+    /**
+     * Processing fee breakdown for an order (matches seller order details / FM sync).
+     */
+    function resolve_order_fee_breakdown($order, $ordermeta = null): array
+    {
+        $creditCardFee = 0.0;
+        $boosterPlatformFee = 0.0;
+        $coverFee = 0.0;
+
+        if (is_string($ordermeta) || is_object($ordermeta)) {
+            $ordermeta = json_decode(json_encode($ordermeta), true) ?: [];
+        }
+        if (!is_array($ordermeta)) {
+            $ordermeta = [];
+        }
+
+        $shippingWithInfo = $order->shippingwithinfo ?? null;
+        if ($shippingWithInfo && !empty($shippingWithInfo->info)) {
+            $shippingData = json_decode($shippingWithInfo->info, true) ?: [];
+            if (($shippingWithInfo->shipping_driver ?? '') === 'local') {
+                $creditCardFee = (float) ($shippingData['credit_card_fee'] ?? 0);
+                $boosterPlatformFee = (float) ($shippingData['booster_platform_fee'] ?? 0);
+            }
+        }
+
+        if ($creditCardFee == 0 && $boosterPlatformFee == 0 && !empty($ordermeta)) {
+            $creditCardFee = (float) ($ordermeta['credit_card_fee'] ?? 0);
+            $boosterPlatformFee = (float) ($ordermeta['booster_platform_fee'] ?? 0);
+            $coverFee = (float) ($ordermeta['cover_fee'] ?? 0);
+        }
+
+        return [
+            'credit_card_fee' => $creditCardFee,
+            'booster_platform_fee' => $boosterPlatformFee,
+            'cover_fee' => $coverFee,
+            'processing_fees' => $creditCardFee + $boosterPlatformFee,
+        ];
+    }
+}
+
+if (!function_exists('order_has_sales_tax')) {
+    function order_has_sales_tax($order): bool
+    {
+        return round((float) ($order->tax ?? 0), 2) > 0;
+    }
+}
+
+if (!function_exists('sanitize_refund_tax_for_order')) {
+    function sanitize_refund_tax_for_order($order, float $taxAmount): float
+    {
+        return order_has_sales_tax($order) ? round(max(0, $taxAmount), 2) : 0.0;
+    }
+}
+
 if (!function_exists('financial_manager_partial_refund_fingerprint')) {
     function financial_manager_partial_refund_fingerprint(array $refundLog): string
     {
@@ -1126,6 +1181,71 @@ if (!function_exists('get_order_partial_refund_log_entries')) {
     }
 }
 
+if (!function_exists('get_order_cumulative_partial_refund_amounts')) {
+    function get_order_cumulative_partial_refund_amounts(int $orderId): array
+    {
+        $itemTotal = 0.0;
+        $taxTotal = 0.0;
+
+        foreach (get_order_partial_refund_log_entries($orderId) as $entry) {
+            $itemTotal += (float) ($entry['item_amount'] ?? 0);
+            $taxTotal += (float) ($entry['tax_amount'] ?? 0);
+        }
+
+        return [
+            'item_total' => round($itemTotal, 2),
+            'tax_total' => round($taxTotal, 2),
+        ];
+    }
+}
+
+if (!function_exists('calculate_order_remaining_after_partial_refunds')) {
+    /**
+     * Remaining amounts after partial refund(s).
+     * order.total excludes processing fees unless supporter covered fees.
+     * remaining_total adds processing fees back for display / Financial Manager sync.
+     */
+    function calculate_order_remaining_after_partial_refunds($order, $ordermeta = null): array
+    {
+        if (is_array($ordermeta) || is_object($ordermeta)) {
+            $ordermetaArray = json_decode(json_encode($ordermeta), true) ?: [];
+        } else {
+            $ordermetaArray = json_decode(optional($order->ordermeta)->value ?? '', true) ?: [];
+        }
+
+        $fees = resolve_order_fee_breakdown($order, $ordermetaArray);
+        $refunded = get_order_cumulative_partial_refund_amounts((int) $order->id);
+        $refundedItemTotal = (float) ($refunded['item_total'] ?? 0);
+        $refundedTaxTotal = sanitize_refund_tax_for_order($order, (float) ($refunded['tax_total'] ?? 0));
+
+        $remainingSubtotal = max(0, round((float) $order->total - $refundedItemTotal, 2));
+        $processingFees = (float) ($fees['processing_fees'] ?? 0);
+        $coverFee = (float) ($fees['cover_fee'] ?? 0);
+
+        $remainingNet = $remainingSubtotal;
+        $remainingTotal = $coverFee > 0
+            ? $remainingSubtotal
+            : round($remainingSubtotal + $processingFees, 2);
+
+        $remainingSalesTax = order_has_sales_tax($order)
+            ? max(0, round((float) $order->tax - $refundedTaxTotal, 2))
+            : 0.0;
+
+        $remainingNetRevenue = max(0, round($remainingTotal - $processingFees - $remainingSalesTax, 2));
+
+        return [
+            'refunded_item_total' => $refundedItemTotal,
+            'refunded_tax_total' => $refundedTaxTotal,
+            'remaining_net' => $remainingNet,
+            'remaining_total' => $remainingTotal,
+            'remaining_sales_tax' => $remainingSalesTax,
+            'remaining_net_revenue' => $remainingNetRevenue,
+            'processing_fees' => $processingFees,
+            'cover_fee' => $coverFee,
+        ];
+    }
+}
+
 if (!function_exists('financial_manager_refund_detail_lines')) {
     /**
      * Build the human-readable refund detail lines exactly as shown on the order
@@ -1159,7 +1279,7 @@ if (!function_exists('financial_manager_partial_refund_detail')) {
      * Structured refund detail for a single partial refund log entry.
      * Sent to /financial-manager under the additive "refund_details" key.
      */
-    function financial_manager_partial_refund_detail(array $entry): array
+    function financial_manager_partial_refund_detail(array $entry, $order = null): array
     {
         $isDollar = ($entry['type'] ?? '') === 'dollar';
         $title = $isDollar
@@ -1179,7 +1299,9 @@ if (!function_exists('financial_manager_partial_refund_detail')) {
         }
 
         $refundAmount = round((float) ($entry['item_amount'] ?? 0), 2);
-        $taxAmount = round((float) ($entry['tax_amount'] ?? 0), 2);
+        $taxAmount = $order
+            ? sanitize_refund_tax_for_order($order, (float) ($entry['tax_amount'] ?? 0))
+            : round((float) ($entry['tax_amount'] ?? 0), 2);
 
         // Match order-details UI: item refunds wrap labels as "(1 x Product)", dollar refunds show plain title(s).
         $displayLabels = $labels;
@@ -1222,7 +1344,7 @@ if (!function_exists('financial_manager_full_refund_detail')) {
             $itemTotal += $unit * (int) $orderItem->qty;
         }
 
-        $taxAmount = round((float) ($order->tax ?? 0), 2);
+        $taxAmount = sanitize_refund_tax_for_order($order, round((float) ($order->tax ?? 0), 2));
         $dateSource = $order->refunded_at ?: $order->updated_at;
         $date = $dateSource
             ? \Carbon\Carbon::parse($dateSource)->format('m/d/Y')
@@ -1292,7 +1414,7 @@ if (!function_exists('financial_manager_partial_refunds_memo')) {
     {
         $blocks = [];
         foreach (get_order_partial_refund_log_entries((int) $order->id) as $entry) {
-            $detail = financial_manager_partial_refund_detail($entry);
+            $detail = financial_manager_partial_refund_detail($entry, $order);
             $block = financial_manager_refund_detail_to_memo($detail);
             if (trim($block) !== '') {
                 $blocks[] = $block;
@@ -1318,35 +1440,15 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
         $name = explode(' ', $ordermeta['name'] ?? '');
         $gateway = \App\Models\Getway::find($order->getway_id);
 
-        $creditCardFee = 0.0;
-        $boosterPlatformFee = 0.0;
-        $shippingWithInfo = $order->shippingwithinfo;
-        if ($shippingWithInfo && !empty($shippingWithInfo->info)) {
-            $shippingData = json_decode($shippingWithInfo->info, true) ?: [];
-            if (($shippingWithInfo->shipping_driver ?? '') === 'local') {
-                $creditCardFee = (float) ($shippingData['credit_card_fee'] ?? 0);
-                $boosterPlatformFee = (float) ($shippingData['booster_platform_fee'] ?? 0);
-            }
-        }
-        if ($creditCardFee == 0 && $boosterPlatformFee == 0 && !empty($ordermeta)) {
-            $creditCardFee = (float) ($ordermeta['credit_card_fee'] ?? 0);
-            $boosterPlatformFee = (float) ($ordermeta['booster_platform_fee'] ?? 0);
-        }
-        $processingFees = $creditCardFee + $boosterPlatformFee;
+        $fees = resolve_order_fee_breakdown($order, $ordermeta);
+        $creditCardFee = (float) ($fees['credit_card_fee'] ?? 0);
+        $boosterPlatformFee = (float) ($fees['booster_platform_fee'] ?? 0);
+        $processingFees = (float) ($fees['processing_fees'] ?? 0);
 
-        $itemAmount = (float) ($refundEntry['item_amount'] ?? 0);
-        $taxAmount = (float) ($refundEntry['tax_amount'] ?? 0);
-        $grandTotal = (float) ($refundEntry['grand_total'] ?? ($itemAmount + $taxAmount));
-
-        // Pro-rate processing fees for partial refund net (matches order-details remaining logic).
-        $orderSubtotal = 0.0;
-        foreach ($order->orderitems ?? [] as $orderItem) {
-            $orderSubtotal += (float) $orderItem->amount * (int) $orderItem->qty;
-        }
-        $refundProcessingFee = $orderSubtotal > 0
-            ? ($processingFees * ($itemAmount / $orderSubtotal))
-            : 0.0;
-        $netRefundAmount = max(0, round($itemAmount - $refundProcessingFee, 2));
+        $remaining = calculate_order_remaining_after_partial_refunds($order, $ordermeta);
+        $updatedTransactionAmount = (float) ($remaining['remaining_total'] ?? 0);
+        $remainingSalesTax = (float) ($remaining['remaining_sales_tax'] ?? 0);
+        $netRevenue = (float) ($remaining['remaining_net_revenue'] ?? 0);
 
         $refundDate = !empty($refundEntry['refunded_at'])
             ? \Carbon\Carbon::parse($refundEntry['refunded_at'])->setTimezone(config('app.timezone'))
@@ -1366,9 +1468,9 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
             'user_id' => $ordermeta['wpuid'] ?? 0,
             'revenue_name' => '4-850 Booostr Ecommerce',
             'transaction_type' => 'I',
-            'sales_tax_collected' => $taxAmount > 0 ? 'Yes' : 'No',
-            'net_revenue' => $netRefundAmount,
-            'transaction_amount' => $grandTotal,
+            'sales_tax_collected' => $remainingSalesTax > 0 ? 'Yes' : 'No',
+            'net_revenue' => $netRevenue,
+            'transaction_amount' => $updatedTransactionAmount,
             'expense_category' => 'Revenue',
             'receipts_issued' => 'Yes',
             'status' => 1,
@@ -1378,8 +1480,8 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
             'payement_method' => ($gateway && $gateway->name === 'cash') ? 0 : 3,
             'invoicenumber' => $order->invoice_no,
             'invoicreatedate' => $order->placed_at,
-            'invoiceprocessingfee' => round($refundProcessingFee, 2),
-            'invoicesalestax' => $taxAmount,
+            'invoiceprocessingfee' => round($processingFees, 2),
+            'invoicesalestax' => $remainingSalesTax,
             'invoiceopt' => $order->invoice_no,
             'deposite_date' => $order->captured_at,
             'transfer_refund_date' => $refundDate->toDateTimeString(),

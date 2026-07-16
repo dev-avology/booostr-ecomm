@@ -338,7 +338,7 @@
 }
 
 .badge-payment-refunded {
-    background-color: #e9a825 !important;
+    background-color: #dc3545 !important;
     color: #fff !important;
 }
 
@@ -496,8 +496,8 @@
                                 ->flip()
                                 ->all();
 
-                            // Refund log amounts for remaining-total display (same source as order details Updated Net).
-                            $partialRefundLogAmountsByOrderId = [];
+                            // Refund log item amounts for remaining-total display (same source as order details).
+                            $partialRefundItemAmountsByOrderId = [];
                             if (!empty($orderListIds)) {
                                 $partialRefundLogRows = \App\Models\Ordermeta::whereIn('order_id', $orderListIds)
                                     ->where('key', 'partial_refund_logs')
@@ -505,7 +505,7 @@
 
                                 foreach ($partialRefundLogRows as $partialRefundLogRow) {
                                     $logs = json_decode($partialRefundLogRow->value ?? '[]', true) ?: [];
-                                    $refundedSum = 0.0;
+                                    $refundedItemSum = 0.0;
                                     $seenFingerprints = [];
 
                                     foreach ($logs as $log) {
@@ -523,10 +523,23 @@
                                             continue;
                                         }
                                         $seenFingerprints[$fingerprint] = true;
-                                        $refundedSum += (float) ($log['amount'] ?? 0);
+
+                                        $logItemAmount = 0.0;
+                                        foreach ($log['items'] ?? [] as $logItem) {
+                                            if (!is_array($logItem)) {
+                                                continue;
+                                            }
+                                            $logItemAmount += (float) ($logItem['amount'] ?? 0);
+                                        }
+
+                                        if ($logItemAmount <= 0 && empty($log['items'])) {
+                                            $logItemAmount = (float) ($log['amount'] ?? 0);
+                                        }
+
+                                        $refundedItemSum += $logItemAmount;
                                     }
 
-                                    $partialRefundLogAmountsByOrderId[(int) $partialRefundLogRow->order_id] = round($refundedSum, 2);
+                                    $partialRefundItemAmountsByOrderId[(int) $partialRefundLogRow->order_id] = round($refundedItemSum, 2);
                                 }
                             }
                         @endphp
@@ -587,14 +600,12 @@
                         if ($isFullyRefunded) {
                             $displayOrderTotal = 0.0;
                         } elseif ($isPartialRefund) {
-                            $creditCardFee = (float) ($ordermeta->credit_card_fee ?? 0);
-                            $boosterPlatformFee = (float) ($ordermeta->booster_platform_fee ?? 0);
-                            $coverFee = (float) ($ordermeta->cover_fee ?? 0);
-                            $netOrderBase = $coverFee > 0
-                                ? ((float) $row->total - $coverFee)
-                                : ((float) $row->total - $creditCardFee - $boosterPlatformFee);
-                            $alreadyRefundedAmount = (float) ($partialRefundLogAmountsByOrderId[(int) $row->id] ?? 0);
-                            $displayOrderTotal = max(0, round($netOrderBase - $alreadyRefundedAmount, 2));
+                            $orderFees = resolve_order_fee_breakdown($row, $ordermeta);
+                            $refundedItemTotal = (float) ($partialRefundItemAmountsByOrderId[(int) $row->id] ?? 0);
+                            $remainingSubtotal = max(0, round((float) $row->total - $refundedItemTotal, 2));
+                            $displayOrderTotal = ((float) ($orderFees['cover_fee'] ?? 0)) > 0
+                                ? $remainingSubtotal
+                                : round($remainingSubtotal + (float) ($orderFees['processing_fees'] ?? 0), 2);
                         }
                     @endphp
                         <tr>

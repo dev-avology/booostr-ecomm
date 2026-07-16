@@ -1523,6 +1523,7 @@ class OrderController extends Controller
         $items = [];
         $itemTotal = 0;
         $taxTotal = 0;
+        $orderTax = order_has_sales_tax($order) ? (float) ($order->tax ?? 0) : 0.0;
 
         foreach ($selectedItems as $selectedItem) {
             $itemId = (int) ($selectedItem['item_id'] ?? 0);
@@ -1546,7 +1547,7 @@ class OrderController extends Controller
             }
 
             $lineTotal = $unitAmount * (int) $orderItem->qty;
-            $lineTaxTotal = $subtotal > 0 ? (($lineTotal / $subtotal) * (float) ($order->tax ?? 0)) : 0;
+            $lineTaxTotal = $subtotal > 0 ? (($lineTotal / $subtotal) * $orderTax) : 0;
             $refundLineAmount = $unitAmount * $qty;
             $refundLineTax = ((int) $orderItem->qty > 0)
                 ? ($lineTaxTotal / (int) $orderItem->qty) * $qty
@@ -1703,6 +1704,7 @@ class OrderController extends Controller
         $items = [];
         $itemTotal = 0;
         $taxTotal = 0;
+        $orderTax = order_has_sales_tax($order) ? (float) ($order->tax ?? 0) : 0.0;
 
         foreach ($selectedItems as $selectedItem) {
             $itemId = (int) ($selectedItem['item_id'] ?? 0);
@@ -1725,7 +1727,7 @@ class OrderController extends Controller
 
             $unitAmount = $this->getOrderItemUnitAmount($orderItem);
             $lineTotal = $unitAmount * (int) $orderItem->qty;
-            $lineTaxTotal = $subtotal > 0 ? (($lineTotal / $subtotal) * (float) ($order->tax ?? 0)) : 0;
+            $lineTaxTotal = $subtotal > 0 ? (($lineTotal / $subtotal) * $orderTax) : 0;
             $refundLineTax = $lineTotal > 0 ? (($refundAmount / $lineTotal) * $lineTaxTotal) : 0;
             $productTitle = $orderItem->term->title ?? 'Item';
             $ticketCancelQty = $unitAmount > 0 ? (int) floor($refundAmount / $unitAmount) : 0;
