@@ -859,6 +859,7 @@ class OrderController extends Controller
         // 'refund_details'=> ($post_type == 'refund') ? financial_manager_full_refund_detail($order) : [],
         // Additive: refund text + amount as memo (full refund only).
         'memo'=> ($post_type == 'refund') ? financial_manager_refund_detail_to_memo(financial_manager_full_refund_detail($order)) : '',
+        'store_t_type' => ($post_type == 'refund') ? 'refund' : null,
       ]);
         // 'order_date' => $order_date, 
         // 'order_subtotal' => $sub_total,
@@ -974,6 +975,7 @@ class OrderController extends Controller
             // 'refund_details'=> ($post_type == 'refund') ? financial_manager_full_refund_detail($order) : [],
             // Additive: refund text + amount as memo (full refund only).
             'memo'=> ($post_type == 'refund') ? financial_manager_refund_detail_to_memo(financial_manager_full_refund_detail($order)) : '',
+        'store_t_type' => ($post_type == 'refund') ? 'refund' : null,
         ]);
 
    

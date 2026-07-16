@@ -1492,6 +1492,7 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
             // Additive: refund text + amount(s) as memo. Includes every partial refund
             // on this order, so a double refund shows both details with their amounts.
             'memo' => financial_manager_partial_refunds_memo($order),
+            'store_t_type' => 'refund',
         ];
 
         if ($isPos) {
