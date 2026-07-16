@@ -874,6 +874,42 @@ if (!function_exists('tenant_club_logo')) {
     }
 }
 
+if (!function_exists('store_receipt_mail_from')) {
+    /**
+     * From address/name for store product checkout receipt emails.
+     * Matches newsletter-style domain, with +receipt instead of +updates.
+     * Example: Hello Tester Club (via Booostr) <hello-tester-club+receipt@mktg.booostr.co>
+     */
+    function store_receipt_mail_from(): array
+    {
+        $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+        $invoiceInfo = get_option('invoice_data', true);
+
+        $clubName = trim((string) ($clubInfo['club_name'] ?? ''));
+        if ($clubName === '') {
+            $clubName = trim((string) ($invoiceInfo->store_legal_name ?? ''));
+        }
+        if ($clubName === '') {
+            $clubName = trim((string) (tenant('store_name') ?? 'Booostr'));
+        }
+        if ($clubName === '') {
+            $clubName = 'Booostr';
+        }
+
+        $slug = strtolower(trim((string) (tenant('id') ?? '')));
+        $slug = preg_replace('/[^a-z0-9\-]+/', '-', $slug) ?? '';
+        $slug = trim($slug, '-');
+        if ($slug === '') {
+            $slug = 'booostr';
+        }
+
+        return [
+            'address' => $slug . '+receipt@mktg.booostr.co',
+            'name' => $clubName . ' (via Booostr)',
+        ];
+    }
+}
+
 if (!function_exists('trigger_product_sales_crm_sync_after_order')) {
     function trigger_product_sales_crm_sync_after_order(int $orderId): void
     {

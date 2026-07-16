@@ -89,8 +89,23 @@ class Orderstatusmail extends Mailable
         };
 
 
-        return $this->from($data['from'])
-        ->subject($subject)
-        ->view('mail.seller.customerorder')->with(['order'=>$data['data'],'currency'=>$currency,'ordermeta'=>$ordermeta,'invoice_info'=>$invoice_info,'card_number'=>$card_number,'amount_refunded'=>$amount_refunded,'order_type'=>$order_type]);
+        $mailable = $this->subject($subject)
+            ->view('mail.seller.customerorder')->with([
+                'order' => $data['data'],
+                'currency' => $currency,
+                'ordermeta' => $ordermeta,
+                'invoice_info' => $invoice_info,
+                'card_number' => $card_number,
+                'amount_refunded' => $amount_refunded,
+                'order_type' => $order_type,
+            ]);
+
+        // Use club receipt from only when explicitly provided (product checkout receipt).
+        // Empty from keeps existing global MAIL_FROM_* fallback behavior.
+        if (!empty($data['from'])) {
+            $mailable->from($data['from'], $data['from_name'] ?? null);
+        }
+
+        return $mailable;
     }
 }

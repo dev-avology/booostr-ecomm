@@ -90,13 +90,22 @@ class NotifyToUser
 
 			}else {
 				$data['to']= $to;			
-				$data['from']= '';			
+				$data['from']= '';
+				$data['from_name']= null;
 				$data['type']='tenant_order_notification';
 				$currency=get_option('currency_info');
 				$invoice_info=get_option('invoice_data',true);
 				$data['currency_info']=$currency;
 				$data['invoice_data']=$invoice_info;
 				$data['data']=$info;
+
+				// Product checkout receipt only (status_id 3 = order placed thank-you email).
+				// Other status emails keep the existing global MAIL_FROM_* behavior.
+				if ((int) ($info->status_id ?? 0) === 3 && function_exists('store_receipt_mail_from')) {
+					$receiptFrom = store_receipt_mail_from();
+					$data['from'] = $receiptFrom['address'] ?? '';
+					$data['from_name'] = $receiptFrom['name'] ?? null;
+				}
 				
 				if (env('QUEUE_MAIL') == 'on') {
 					\Config::set('queue.connections', 'central');
