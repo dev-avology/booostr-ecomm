@@ -496,8 +496,8 @@
                                 ->flip()
                                 ->all();
 
-                            // Refund log item amounts for remaining-total display (same source as order details).
-                            $partialRefundItemAmountsByOrderId = [];
+                            // Refund log amounts for remaining-total display (same source as order details).
+                            $partialRefundAmountsByOrderId = [];
                             if (!empty($orderListIds)) {
                                 $partialRefundLogRows = \App\Models\Ordermeta::whereIn('order_id', $orderListIds)
                                     ->where('key', 'partial_refund_logs')
@@ -506,6 +506,7 @@
                                 foreach ($partialRefundLogRows as $partialRefundLogRow) {
                                     $logs = json_decode($partialRefundLogRow->value ?? '[]', true) ?: [];
                                     $refundedItemSum = 0.0;
+                                    $refundedTaxSum = 0.0;
                                     $seenFingerprints = [];
 
                                     foreach ($logs as $log) {
@@ -525,11 +526,13 @@
                                         $seenFingerprints[$fingerprint] = true;
 
                                         $logItemAmount = 0.0;
+                                        $logTaxAmount = 0.0;
                                         foreach ($log['items'] ?? [] as $logItem) {
                                             if (!is_array($logItem)) {
                                                 continue;
                                             }
                                             $logItemAmount += (float) ($logItem['amount'] ?? 0);
+                                            $logTaxAmount += (float) ($logItem['tax'] ?? 0);
                                         }
 
                                         if ($logItemAmount <= 0 && empty($log['items'])) {
@@ -537,9 +540,13 @@
                                         }
 
                                         $refundedItemSum += $logItemAmount;
+                                        $refundedTaxSum += $logTaxAmount;
                                     }
 
-                                    $partialRefundItemAmountsByOrderId[(int) $partialRefundLogRow->order_id] = round($refundedItemSum, 2);
+                                    $partialRefundAmountsByOrderId[(int) $partialRefundLogRow->order_id] = [
+                                        'item_total' => round($refundedItemSum, 2),
+                                        'tax_total' => round($refundedTaxSum, 2),
+                                    ];
                                 }
                             }
                         @endphp
@@ -600,12 +607,12 @@
                         if ($isFullyRefunded) {
                             $displayOrderTotal = 0.0;
                         } elseif ($isPartialRefund) {
-                            $orderFees = resolve_order_fee_breakdown($row, $ordermeta);
-                            $refundedItemTotal = (float) ($partialRefundItemAmountsByOrderId[(int) $row->id] ?? 0);
-                            $remainingSubtotal = max(0, round((float) $row->total - $refundedItemTotal, 2));
-                            $displayOrderTotal = ((float) ($orderFees['cover_fee'] ?? 0)) > 0
-                                ? $remainingSubtotal
-                                : round($remainingSubtotal + (float) ($orderFees['processing_fees'] ?? 0), 2);
+                            $refundedAmounts = $partialRefundAmountsByOrderId[(int) $row->id] ?? ['item_total' => 0.0, 'tax_total' => 0.0];
+                            $refundedItemTotal = (float) ($refundedAmounts['item_total'] ?? 0);
+                            $refundedTaxTotal = order_has_sales_tax($row)
+                                ? (float) ($refundedAmounts['tax_total'] ?? 0)
+                                : 0.0;
+                            $displayOrderTotal = max(0, round((float) $row->total - $refundedItemTotal - $refundedTaxTotal, 2));
                         }
                     @endphp
                         <tr>

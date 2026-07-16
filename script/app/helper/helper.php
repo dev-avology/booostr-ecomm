@@ -1199,6 +1199,21 @@ if (!function_exists('get_order_cumulative_partial_refund_amounts')) {
     }
 }
 
+if (!function_exists('calculate_order_total_after_partial_refunds')) {
+    /**
+     * Remaining order total for list/details display after partial refund(s).
+     * Formula: Order Total - refunded amount - refunded tax.
+     */
+    function calculate_order_total_after_partial_refunds($order, $ordermeta = null): float
+    {
+        $refunded = get_order_cumulative_partial_refund_amounts((int) $order->id);
+        $refundedItemTotal = (float) ($refunded['item_total'] ?? 0);
+        $refundedTaxTotal = sanitize_refund_tax_for_order($order, (float) ($refunded['tax_total'] ?? 0));
+
+        return max(0, round((float) $order->total - $refundedItemTotal - $refundedTaxTotal, 2));
+    }
+}
+
 if (!function_exists('calculate_order_remaining_after_partial_refunds')) {
     /**
      * Remaining amounts after partial refund(s).
@@ -1446,7 +1461,7 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
         $processingFees = (float) ($fees['processing_fees'] ?? 0);
 
         $remaining = calculate_order_remaining_after_partial_refunds($order, $ordermeta);
-        $updatedTransactionAmount = (float) ($remaining['remaining_total'] ?? 0);
+        $orderTotal = (float) $order->total;
         $remainingSalesTax = (float) ($remaining['remaining_sales_tax'] ?? 0);
         $netRevenue = (float) ($remaining['remaining_net_revenue'] ?? 0);
 
@@ -1470,7 +1485,7 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
             'transaction_type' => 'I',
             'sales_tax_collected' => $remainingSalesTax > 0 ? 'Yes' : 'No',
             'net_revenue' => $netRevenue,
-            'transaction_amount' => $updatedTransactionAmount,
+            'transaction_amount' => $orderTotal,
             'expense_category' => 'Revenue',
             'receipts_issued' => 'Yes',
             'status' => 1,
