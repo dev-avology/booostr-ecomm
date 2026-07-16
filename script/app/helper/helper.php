@@ -1463,7 +1463,9 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
         $remaining = calculate_order_remaining_after_partial_refunds($order, $ordermeta);
         $orderTotal = (float) $order->total;
         $remainingSalesTax = (float) ($remaining['remaining_sales_tax'] ?? 0);
-        $netRevenue = (float) ($remaining['remaining_net_revenue'] ?? 0);
+        // Same formula as capture / full refund: Order Total - Sales Tax - Processing Fees
+        $salesTax = (float) ($order->tax ?? 0);
+        $netRevenue = $orderTotal - ($salesTax + $processingFees);
 
         $refundDate = !empty($refundEntry['refunded_at'])
             ? \Carbon\Carbon::parse($refundEntry['refunded_at'])->setTimezone(config('app.timezone'))
