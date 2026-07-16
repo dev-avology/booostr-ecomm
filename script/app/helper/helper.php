@@ -879,6 +879,7 @@ if (!function_exists('store_receipt_mail_from')) {
      * From address/name for store product checkout receipt emails.
      * Matches newsletter-style domain, with +receipt instead of +updates.
      * Example: Hello Tester Club (via Booostr) <hello-tester-club+receipt@mktg.booostr.co>
+     * Reply-To uses club Sender email from /seller/site-settings/general (store_sender_email).
      */
     function store_receipt_mail_from(): array
     {
@@ -903,9 +904,19 @@ if (!function_exists('store_receipt_mail_from')) {
             $slug = 'booostr';
         }
 
+        // Sender email from site settings (/seller/site-settings/general).
+        $replyTo = trim((string) get_option('store_sender_email'));
+        if ($replyTo === '' || !filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
+            $replyTo = trim((string) ($invoiceInfo->store_legal_email ?? ''));
+        }
+        if ($replyTo === '' || !filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
+            $replyTo = null;
+        }
+
         return [
             'address' => $slug . '+receipt@mktg.booostr.co',
             'name' => $clubName . ' (via Booostr)',
+            'reply_to' => $replyTo,
         ];
     }
 }

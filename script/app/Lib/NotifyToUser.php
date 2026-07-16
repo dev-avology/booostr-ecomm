@@ -92,6 +92,7 @@ class NotifyToUser
 				$data['to']= $to;			
 				$data['from']= '';
 				$data['from_name']= null;
+				$data['reply_to']= null;
 				$data['type']='tenant_order_notification';
 				$currency=get_option('currency_info');
 				$invoice_info=get_option('invoice_data',true);
@@ -105,6 +106,7 @@ class NotifyToUser
 					$receiptFrom = store_receipt_mail_from();
 					$data['from'] = $receiptFrom['address'] ?? '';
 					$data['from_name'] = $receiptFrom['name'] ?? null;
+					$data['reply_to'] = $receiptFrom['reply_to'] ?? null;
 				}
 				
 				if (env('QUEUE_MAIL') == 'on') {

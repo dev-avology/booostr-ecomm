@@ -106,6 +106,11 @@ class Orderstatusmail extends Mailable
             $mailable->from($data['from'], $data['from_name'] ?? null);
         }
 
+        // Reply-To = club Sender email from /seller/site-settings/general (store_sender_email).
+        if (!empty($data['reply_to'])) {
+            $mailable->replyTo($data['reply_to'], $data['from_name'] ?? null);
+        }
+
         return $mailable;
     }
 }
