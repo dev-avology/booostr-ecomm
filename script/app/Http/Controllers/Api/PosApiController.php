@@ -1228,7 +1228,7 @@ class PosApiController extends Controller
             'zip' => $billing['post_code'] ?? '',
             'email' => $ordermeta['email'] ?? '',
             'booster_id' => Tenant('club_id'),
-            'booster_level_id' => 4,
+            'booster_level_id' => 1,
             'contact_tags' => '',
             'customer_tag' => 'online store customer',
             'addedsource' => 'storetool',
@@ -2203,7 +2203,7 @@ public function posEmailSend(Request $request){
              'zip' =>  '94501',													
              'email' =>  $client_email,                   
              'booster_id' =>Tenant('club_id'),
-             'booster_level_id' => 4,
+             'booster_level_id' => 1,
              'customer_tag' => 'POS store customer',
          );	  
 

@@ -808,7 +808,7 @@ class OrderController extends Controller
 									'zip' =>  $ordermeta['billing']['post_code'] ?? '',													
 									'email' =>  $ordermeta['email'] ?? '',                   
 									'booster_id' =>Tenant('club_id'),
-									'booster_level_id' => 4,
+									'booster_level_id' => 1,
 									'contact_tags' => '',
                                     'customer_tag' => 'online store customer',
                                     'addedsource' => 'storetool',

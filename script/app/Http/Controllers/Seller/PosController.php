@@ -418,7 +418,7 @@ class PosController extends Controller
             'zip' =>  '94501',													
             'email' =>  $customer_info['email'],                   
             'booster_id' =>Tenant('club_id'),
-            'booster_level_id' => 4,
+            'booster_level_id' => 1,
             'customer_tag' => 'POS store customer',
             'addedsource' => 'storetool',
         );	

@@ -74,7 +74,7 @@ class TenantSyncService
                 'zip' =>  $post_code,												
                 'email' =>  !empty($ordermeta->email) ? $ordermeta->email:'',                   
                 'booster_id' =>Tenant('club_id'),
-                'booster_level_id' => 4,
+                'booster_level_id' => 1,
                 'customer_tag' => $customer_tag,
             );
             
