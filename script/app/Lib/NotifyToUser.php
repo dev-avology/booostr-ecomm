@@ -100,9 +100,10 @@ class NotifyToUser
 				$data['invoice_data']=$invoice_info;
 				$data['data']=$info;
 
-				// Product checkout receipt only (status_id 3 = order placed thank-you email).
-				// Other status emails keep the existing global MAIL_FROM_* behavior.
-				if ((int) ($info->status_id ?? 0) === 3 && function_exists('store_receipt_mail_from')) {
+				// All customer receipt emails (order placed / shipped / cancelled, etc.)
+				// use the same formatted From + Reply-To as the thank-you email.
+				// If it returns empty values, Orderstatusmail keeps the global MAIL_FROM_* fallback.
+				if (function_exists('store_receipt_mail_from')) {
 					$receiptFrom = store_receipt_mail_from();
 					$data['from'] = $receiptFrom['address'] ?? '';
 					$data['from_name'] = $receiptFrom['name'] ?? null;
@@ -203,6 +204,8 @@ class NotifyToUser
 	{		
 		$data['to']=$mail_to;
 		$data['from']=$mail_from;
+		$data['from_name']= null;
+		$data['reply_to']= null;
 		
 		$data['type']=$type;
 		
@@ -212,6 +215,15 @@ class NotifyToUser
 			$data['currency_info']=$currency;
 			$data['invoice_data']=$invoice_info;
 			$data['data']=$info;
+
+			// Same formatted From + Reply-To as the thank-you email for all customer receipts.
+			// Empty values keep the existing global MAIL_FROM_* fallback in Orderstatusmail.
+			if (function_exists('store_receipt_mail_from')) {
+				$receiptFrom = store_receipt_mail_from();
+				$data['from'] = $receiptFrom['address'] ?? '';
+				$data['from_name'] = $receiptFrom['name'] ?? null;
+				$data['reply_to'] = $receiptFrom['reply_to'] ?? null;
+			}
 		}
 
 		if ($type == 'order_recived') {
