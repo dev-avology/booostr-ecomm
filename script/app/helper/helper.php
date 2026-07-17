@@ -921,6 +921,32 @@ if (!function_exists('store_receipt_mail_from')) {
     }
 }
 
+if (!function_exists('apply_store_receipt_mail_identity')) {
+    /**
+     * Apply formatted From + Reply-To to customer receipt emails.
+     * Works with Mailable instances and Mail::send() message closures.
+     * No-op when store_receipt_mail_from() is unavailable or returns empty values.
+     */
+    function apply_store_receipt_mail_identity($mail)
+    {
+        if (!function_exists('store_receipt_mail_from') || !is_object($mail)) {
+            return $mail;
+        }
+
+        $receiptFrom = store_receipt_mail_from();
+
+        if (!empty($receiptFrom['address']) && method_exists($mail, 'from')) {
+            $mail->from($receiptFrom['address'], $receiptFrom['name'] ?? null);
+        }
+
+        if (!empty($receiptFrom['reply_to']) && method_exists($mail, 'replyTo')) {
+            $mail->replyTo($receiptFrom['reply_to'], $receiptFrom['name'] ?? null);
+        }
+
+        return $mail;
+    }
+}
+
 if (!function_exists('trigger_product_sales_crm_sync_after_order')) {
     function trigger_product_sales_crm_sync_after_order(int $orderId): void
     {

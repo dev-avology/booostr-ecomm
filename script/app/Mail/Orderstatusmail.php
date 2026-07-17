@@ -100,15 +100,22 @@ class Orderstatusmail extends Mailable
                 'order_type' => $order_type,
             ]);
 
-        // Use club receipt from only when explicitly provided (product checkout receipt).
-        // Empty from keeps existing global MAIL_FROM_* fallback behavior.
+        // Use club receipt from when explicitly provided (product checkout receipt).
+        // Otherwise apply the shared customer receipt From + Reply-To helper.
         if (!empty($data['from'])) {
             $mailable->from($data['from'], $data['from_name'] ?? null);
+        } elseif (function_exists('apply_store_receipt_mail_identity')) {
+            apply_store_receipt_mail_identity($mailable);
         }
 
         // Reply-To = club Sender email from /seller/site-settings/general (store_sender_email).
         if (!empty($data['reply_to'])) {
             $mailable->replyTo($data['reply_to'], $data['from_name'] ?? null);
+        } elseif (function_exists('store_receipt_mail_from')) {
+            $receiptFrom = store_receipt_mail_from();
+            if (!empty($receiptFrom['reply_to'])) {
+                $mailable->replyTo($receiptFrom['reply_to'], $receiptFrom['name'] ?? null);
+            }
         }
 
         return $mailable;

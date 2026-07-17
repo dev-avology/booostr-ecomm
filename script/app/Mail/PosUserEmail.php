@@ -78,6 +78,12 @@ class PosUserEmail extends Mailable
 
         $this->data = $data;
 
-        return $this->markdown('mail.posusermail')->subject($subject)->with('data', $data);
+        $mailable = $this->markdown('mail.posusermail')->subject($subject)->with('data', $data);
+
+        if (function_exists('apply_store_receipt_mail_identity')) {
+            apply_store_receipt_mail_identity($mailable);
+        }
+
+        return $mailable;
     }
 }

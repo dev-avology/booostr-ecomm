@@ -1774,6 +1774,10 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
                     $message->to($email)
                         ->subject('Your ' . $clubName . ' - ' . $ticketTitle . ' Tickets are inside');
 
+                    if (function_exists('apply_store_receipt_mail_identity')) {
+                        apply_store_receipt_mail_identity($message);
+                    }
+
                     foreach ($tickets as $index => $ticket) {
                         if (empty($ticket['qrPng'])) {
                             continue;

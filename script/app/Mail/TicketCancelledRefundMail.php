@@ -19,8 +19,14 @@ class TicketCancelledRefundMail extends Mailable
 
     public function build()
     {
-        return $this->subject($this->data['subject'])
+        $mailable = $this->subject($this->data['subject'])
             ->view('mail.ticket-cancelled-refund')
             ->with($this->data);
+
+        if (function_exists('apply_store_receipt_mail_identity')) {
+            apply_store_receipt_mail_identity($mailable);
+        }
+
+        return $mailable;
     }
 }
