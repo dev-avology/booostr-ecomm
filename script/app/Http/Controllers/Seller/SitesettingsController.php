@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Option;
 use Auth;
 use Illuminate\Support\str;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Storage;
 class SitesettingsController extends Controller
 {
@@ -100,7 +102,8 @@ class SitesettingsController extends Controller
            
            $invoice_data=Option::where('key','invoice_data')->first();
            $invoice_data=json_decode($invoice_data->value ?? '');
-           $timezone=Option::where('key','timezone')->first();
+           // Sync Time zone from Booostr club-timezone API (club_id dynamic per tenant).
+           $timezone = $this->syncClubTimezoneFromWp();
            $default_language=Option::where('key','default_language')->first();
            $weight_type=Option::where('key','weight_type')->first();
            $measurment_type=Option::where('key','measurment_type')->first();
@@ -583,6 +586,106 @@ class SitesettingsController extends Controller
         }
         
 
+    }
+
+    /**
+     * Fetch club timezone from WordPress and save/show it on general settings.
+     * URL: https://app.booostr.co/wp-json/booostr/v1/club-timezone/{club_id}
+     * Abbreviations (e.g. PST) are mapped to IANA zones so app.timezone stays valid.
+     */
+    private function syncClubTimezoneFromWp(): ?Option
+    {
+        $existing = Option::where('key', 'timezone')->first();
+        $clubId = Tenant('club_id');
+
+        if (empty($clubId)) {
+            return $existing;
+        }
+
+        try {
+            $response = Http::withOptions(['verify' => false])
+                ->timeout(10)
+                ->get('https://app.booostr.co/wp-json/booostr/v1/club-timezone/' . $clubId);
+
+            if (!$response->successful()) {
+                return $existing;
+            }
+
+            $apiTimezone = trim((string) ($response->json('timezone') ?? ''));
+            if ($apiTimezone === '') {
+                return $existing;
+            }
+
+            $resolvedTimezone = $this->resolveClubTimezoneValue($apiTimezone);
+            if ($resolvedTimezone === '') {
+                return $existing;
+            }
+
+            if (empty($existing)) {
+                $existing = new Option();
+                $existing->key = 'timezone';
+                $existing->autoload = 1;
+            }
+
+            if ((string) $existing->value !== $resolvedTimezone) {
+                $existing->value = $resolvedTimezone;
+                $existing->save();
+                TenantCacheClear('timezone');
+                TenantCacheClear('autoload');
+            }
+
+            return $existing;
+        } catch (\Throwable $e) {
+            Log::warning('Club timezone sync failed', [
+                'club_id' => $clubId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $existing;
+        }
+    }
+
+    /**
+     * Map WP club timezone abbreviations to PHP-valid IANA zones used in the select.
+     * If value is already a known timezone identifier, keep it as-is.
+     */
+    private function resolveClubTimezoneValue(string $timezone): string
+    {
+        $timezone = trim($timezone);
+        if ($timezone === '') {
+            return '';
+        }
+
+        $abbrMap = [
+            'UTC' => 'UTC',
+            'GMT' => 'UTC',
+            'EST' => 'America/New_York',
+            'EDT' => 'America/New_York',
+            'CST' => 'America/Chicago',
+            'CDT' => 'America/Chicago',
+            'MST' => 'America/Denver',
+            'MDT' => 'America/Denver',
+            'PST' => 'America/Los_Angeles',
+            'PDT' => 'America/Los_Angeles',
+            'AKST' => 'America/Anchorage',
+            'AKDT' => 'America/Anchorage',
+            'HST' => 'Pacific/Honolulu',
+            'HAST' => 'Pacific/Honolulu',
+            'HADT' => 'Pacific/Honolulu',
+        ];
+
+        $upper = strtoupper($timezone);
+        if (isset($abbrMap[$upper])) {
+            return $abbrMap[$upper];
+        }
+
+        // Already an IANA / PHP timezone id (e.g. America/Los_Angeles).
+        try {
+            new \DateTimeZone($timezone);
+            return $timezone;
+        } catch (\Throwable $e) {
+            return '';
+        }
     }
 
 }

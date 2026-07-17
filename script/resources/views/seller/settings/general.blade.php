@@ -69,7 +69,7 @@
                    <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Time zone') }} : </label>
                         <div class="col-lg-12">
-                                <select  class="form-control selectric" name="timezone" id="timezone" >
+                                <select disabled class="form-control selectric" name="timezone" id="timezone" >
                                     <option value='Africa/Abidjan'>Africa/Abidjan</option>
                                     <option value='Africa/Accra'>Africa/Accra</option>
                                     <option value='Africa/Addis_Ababa'>Africa/Addis_Ababa</option>
@@ -1479,7 +1479,17 @@ $(document).ready(function () {
 </script>
 <script>
   "use strict";
-    $('#timezone').val('{{ $timezone->value ?? '' }}')
+    var selectedTimezone = @json($timezone->value ?? '');
+    if (selectedTimezone) {
+        var $timezone = $('#timezone');
+        if ($timezone.find('option[value="' + selectedTimezone.replace(/"/g, '\\"') + '"]').length === 0) {
+            $timezone.append($('<option>', { value: selectedTimezone, text: selectedTimezone }));
+        }
+        $timezone.val(selectedTimezone);
+        if ($timezone.data('selectric')) {
+            $timezone.selectric('refresh');
+        }
+    }
     $('#default_language').val('{{ $default_language->value ?? '' }}');
    
 
