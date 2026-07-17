@@ -69,7 +69,7 @@
                    <div class="from-group row mb-2">
                         <label for="" class="col-lg-12">{{ __('Time zone') }} : </label>
                         <div class="col-lg-12">
-                                <select disabled class="form-control selectric" name="timezone" id="timezone" >
+                                <select class="form-control selectric" name="timezone" id="timezone" >
                                     <option value='Africa/Abidjan'>Africa/Abidjan</option>
                                     <option value='Africa/Accra'>Africa/Accra</option>
                                     <option value='Africa/Addis_Ababa'>Africa/Addis_Ababa</option>
