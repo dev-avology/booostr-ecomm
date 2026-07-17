@@ -1510,9 +1510,15 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
         $remaining = calculate_order_remaining_after_partial_refunds($order, $ordermeta);
         $orderTotal = (float) $order->total;
         $remainingSalesTax = (float) ($remaining['remaining_sales_tax'] ?? 0);
-        // Same formula as capture / full refund: Order Total - Sales Tax - Processing Fees
         $salesTax = (float) ($order->tax ?? 0);
-        $netRevenue = $orderTotal - ($salesTax + $processingFees);
+
+        // Partial refund FM amounts (cumulative refunded amount + refunded tax deducted):
+        //   transaction_amount = Order Total - Refunded Amount - Refunded Tax
+        //   net_revenue        = transaction_amount - Sales Tax - Processing Fees
+        $refundedItemTotal = (float) ($remaining['refunded_item_total'] ?? 0);
+        $refundedTaxTotal = (float) ($remaining['refunded_tax_total'] ?? 0);
+        $transactionAmount = max(0, round($orderTotal - $refundedItemTotal - $refundedTaxTotal, 2));
+        $netRevenue = round($transactionAmount - ($salesTax + $processingFees), 2);
 
         $refundDate = !empty($refundEntry['refunded_at'])
             ? \Carbon\Carbon::parse($refundEntry['refunded_at'])->setTimezone(config('app.timezone'))
@@ -1534,7 +1540,7 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
             'transaction_type' => 'I',
             'sales_tax_collected' => $remainingSalesTax > 0 ? 'Yes' : 'No',
             'net_revenue' => $netRevenue,
-            'transaction_amount' => $orderTotal,
+            'transaction_amount' => $transactionAmount,
             'expense_category' => 'Revenue',
             'receipts_issued' => 'Yes',
             'status' => 1,
