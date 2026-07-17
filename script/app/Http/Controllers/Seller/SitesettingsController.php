@@ -612,13 +612,13 @@ class SitesettingsController extends Controller
             }
 
             $apiTimezone = trim((string) ($response->json('timezone') ?? ''));
-            if ($apiTimezone === '') {
-                return $existing;
-            }
+            // Blank API timezone (e.g. club 47254) → default America/Los_Angeles.
+            $resolvedTimezone = $apiTimezone === ''
+                ? 'America/Los_Angeles'
+                : $this->resolveClubTimezoneValue($apiTimezone);
 
-            $resolvedTimezone = $this->resolveClubTimezoneValue($apiTimezone);
             if ($resolvedTimezone === '') {
-                return $existing;
+                $resolvedTimezone = 'America/Los_Angeles';
             }
 
             if (empty($existing)) {
