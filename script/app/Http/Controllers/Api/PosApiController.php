@@ -2773,6 +2773,8 @@ private function send_order_recipts($data){
                 $customer_info['credit_card_fee'] = $credit_card_fee;
                 $customer_info['booster_platform_fee'] = $booster_platform_fee;
                 $customer_info['cover_fee'] = $cover_fee;
+                // Additive: passed through to /financial-manager contact_mgr_data.
+                $customer_info['contact_typealias'] = $request->input('contact_typealias', '');
 
                 $order->ordermeta()->create([
                     'key' => 'orderinfo',

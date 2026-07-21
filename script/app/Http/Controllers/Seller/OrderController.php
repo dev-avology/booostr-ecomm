@@ -812,7 +812,9 @@ class OrderController extends Controller
 									'contact_tags' => '',
                                     'customer_tag' => 'online store customer',
                                     'addedsource' => 'storetool',
-								);	  
+                                    // Additive: from /api/storedata/order/create payload (ordermeta).
+                                    'contact_typealias' => $ordermeta['contact_typealias'] ?? '',
+								);	 
 
         $fees = $this->resolveOrderProcessingFees($order, $ordermeta);
         $credit_card_fee = $fees['credit_card_fee'];
