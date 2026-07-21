@@ -814,6 +814,7 @@ class OrderController extends Controller
                                     'addedsource' => 'storetool',
                                     // Additive: from /api/storedata/order/create payload (ordermeta).
                                     'contact_typealias' => $ordermeta['contact_typealias'] ?? '',
+                                    'formemailreal' => $ordermeta['formemailreal'] ?? '',
 								);	 
 
         $fees = $this->resolveOrderProcessingFees($order, $ordermeta);

@@ -2775,6 +2775,7 @@ private function send_order_recipts($data){
                 $customer_info['cover_fee'] = $cover_fee;
                 // Additive: passed through to /financial-manager contact_mgr_data.
                 $customer_info['contact_typealias'] = $request->input('contact_typealias', '');
+                $customer_info['formemailreal'] = $request->input('formemailreal', '');
 
                 $order->ordermeta()->create([
                     'key' => 'orderinfo',
