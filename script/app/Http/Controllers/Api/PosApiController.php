@@ -2704,6 +2704,12 @@ private function send_order_recipts($data){
             $order->discount       = str_replace(',', '', Cart::discount());
             $order->total          = $total_amount;
             $order->order_method = $order_method ?? 'delivery';
+            // Additive: coupon from /coupon/apply cache (or optional request field).
+            $appliedCouponCode = \Illuminate\Support\Facades\Cache::get('api_cart_coupon_' . $request->cartId)
+                ?: $request->input('coupon_code');
+            if (!empty($appliedCouponCode)) {
+                $order->coupon_code = $appliedCouponCode;
+            }
             $order->transaction_id = $paymentresult['payment_id'];
             $order->payment_status = $paymentresult['payment_status'];
              $order->risk_level =    $paymentresult['risk_level'];
@@ -2712,6 +2718,16 @@ private function send_order_recipts($data){
             }
             $order->placed_at      = now();
             $order->save();
+
+            // Additive: bump coupon used_count after successful order save (same as web checkout).
+            if (!empty($appliedCouponCode)) {
+                $couponRow = \App\Models\Coupon::where('code', $appliedCouponCode)->first();
+                if ($couponRow) {
+                    $couponRow->used_count = (int) $couponRow->used_count + 1;
+                    $couponRow->save();
+                }
+                \Illuminate\Support\Facades\Cache::forget('api_cart_coupon_' . $request->cartId);
+            }
     
     
             $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();

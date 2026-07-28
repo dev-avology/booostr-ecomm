@@ -85,6 +85,10 @@ Route::group([
     
     Route::post('/stripe/publishable-key','Api\PosApiController@stripePublishableKey');
     Route::post('/order/create','Api\PosApiController@makeOrderCreate');
+
+    // Additive: apply/remove coupon on existing cartId (before /order/create).
+    Route::post('/coupon/apply', 'Api\CouponApiController@apply');
+    Route::post('/coupon/remove', 'Api\CouponApiController@remove');
 });
 
 Route::group([
