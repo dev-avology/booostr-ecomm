@@ -2469,9 +2469,10 @@ private function send_order_recipts($data){
          * 2. VALIDATE REQUEST
          * =============================== */
 
-        $data = $request->validate([
-            'stripeToken'      => 'required_without:paymentMethodId',
-            'paymentMethodId'  => 'required_without:stripeToken',
+        // Additive: payment_method=cash skips Stripe token requirements.
+        $isCashPayment = strtolower((string) $request->input('payment_method', '')) === 'cash';
+
+        $validationRules = [
             'name'             => 'required|max:50',
             'email'            => 'required|email|max:50',
             'phone'            => 'required|max:20',
@@ -2482,9 +2483,19 @@ private function send_order_recipts($data){
             'state'            => 'required',
             'country'          => 'required',
             'zip'              => 'required',
-            'total_amount' => 'required|numeric|min:0',
-          'cover_fee'    => 'nullable|numeric|min:0',
-        ]);
+            'total_amount'     => 'required|numeric|min:0',
+            'cover_fee'        => 'nullable|numeric|min:0',
+        ];
+
+        if ($isCashPayment) {
+            $validationRules['payment_method'] = 'required|in:cash';
+        } else {
+            // Existing Stripe clients: unchanged (stripeToken XOR paymentMethodId).
+            $validationRules['stripeToken'] = 'required_without:paymentMethodId';
+            $validationRules['paymentMethodId'] = 'required_without:stripeToken';
+        }
+
+        $data = $request->validate($validationRules);
 
         /* ===============================
          * 3. MAP BILLING/SHIPPING
@@ -2576,84 +2587,107 @@ private function send_order_recipts($data){
 
       $total_amount =  $total_amount + $shipping_price;
 
-      $credit_card_fee = credit_card_fee($total_amount);
+      // Cash: no card processing / cover fees (Stripe fee path unchanged).
+      if ($isCashPayment) {
+        $credit_card_fee = 0;
+        $booster_platform_fee = (float) booster_club_chagre($total_amount);
+        $cover_fee = 0;
+      } else {
+        $credit_card_fee = credit_card_fee($total_amount);
 
-      $booster_platform_fee = booster_club_chagre($total_amount);
+        $booster_platform_fee = booster_club_chagre($total_amount);
 
-      //$total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
+        //$total_amount = $total_amount+$credit_card_fee + $booster_platform_fee;
 
-      
-
-
-      $cover_fee = 0;
-      if($request->input('cover_fee', 0) != 0){
-        $cover_fee = $total_amount + $credit_card_fee + $booster_platform_fee;
-            
-        $credit_card_fee = credit_card_fee($cover_fee);
-
-        $booster_platform_fee = booster_club_chagre($cover_fee);
-
-        $cover_fee =  $credit_card_fee + $booster_platform_fee;  
         
-      }
 
-      $total_amount = $total_amount+$cover_fee;
+
+        $cover_fee = 0;
+        if($request->input('cover_fee', 0) != 0){
+          $cover_fee = $total_amount + $credit_card_fee + $booster_platform_fee;
+              
+          $credit_card_fee = credit_card_fee($cover_fee);
+
+          $booster_platform_fee = booster_club_chagre($cover_fee);
+
+          $cover_fee =  $credit_card_fee + $booster_platform_fee;  
+          
+        }
+
+        $total_amount = $total_amount+$cover_fee;
+      }
 
       $revenue = $total_amount-($tax + $booster_platform_fee + $credit_card_fee);
 
 
 
         /* ===============================
-         * 5. STRIPE PAYMENT
+         * 5. PAYMENT (Stripe or Cash)
          * =============================== */
-         
-         
-        $gateway_settings = Getway::where('status', '!=', 0)
-        ->where('namespace', 'App\Lib\Stripe')
-        ->first();
-      
+
+        if ($isCashPayment) {
+            // Additive cash path: skip Stripe; save captured payment to DB.
+            $gateway_settings = Getway::where('name', 'cash')->first();
+            if (!$gateway_settings) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cash payment gateway not configured'
+                ], 400);
+            }
+
+            $paymentresult = [
+                'payment_status' => 1,
+                'payment_id'     => null,
+                'risk_level'     => 'normal',
+            ];
+        } else {
+            $gateway_settings = Getway::where('status', '!=', 0)
+            ->where('namespace', 'App\Lib\Stripe')
+            ->first();
+          
 
 
-            $payment_data = [
-            'currency' => strtoupper($gateway_settings->currency_name ?? 'USD'),
-            'email'       => $request->email,
-            'name'        => $request->name,
-            'phone'       => $request->phone,
-            'address'     => $request->address,
-            'city'        => $request->city,
-            'state'       => $request->state,
-            'country'     => $request->country,
-            'zip'         => $request->zip,
-            'stripeToken' => $request->stripeToken,
-            'paymentMethodId' => $request->paymentMethodId,
-            'getway_id'   => $gateway_settings->id,
-            'test_mode'   => $gateway_settings->test_mode,
-           
-          ];
+                $payment_data = [
+                'currency' => strtoupper($gateway_settings->currency_name ?? 'USD'),
+                'email'       => $request->email,
+                'name'        => $request->name,
+                'phone'       => $request->phone,
+                'address'     => $request->address,
+                'city'        => $request->city,
+                'state'       => $request->state,
+                'country'     => $request->country,
+                'zip'         => $request->zip,
+                'stripeToken' => $request->stripeToken,
+                'paymentMethodId' => $request->paymentMethodId,
+                'getway_id'   => $gateway_settings->id,
+                'test_mode'   => $gateway_settings->test_mode,
+               
+              ];
 
-        $payment_data['charge']     = $gateway_settings->charge ?? 0;
-        $payment_data['billName']   = 'Booostr Sale';
-        $payment_data['amount']     = $total_amount;
-        $payment_data['application_fee_amount']  = $booster_platform_fee;
-        $payment_data['credit_card_fee']  = $credit_card_fee;
-        $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount*$gateway_settings->rate+$gateway_settings->charge ?? 0,2));
-           
+            $payment_data['charge']     = $gateway_settings->charge ?? 0;
+            $payment_data['billName']   = 'Booostr Sale';
+            $payment_data['amount']     = $total_amount;
+            $payment_data['application_fee_amount']  = $booster_platform_fee;
+            $payment_data['credit_card_fee']  = $credit_card_fee;
+            $payment_data['pay_amount'] =  str_replace(',','',number_format($total_amount*$gateway_settings->rate+$gateway_settings->charge ?? 0,2));
+               
 
-        if (!empty($gateway_settings->data)) {
-            foreach (json_decode($gateway_settings->data ?? '') ?? [] as $key => $info) {
-                $payment_data[$key] = $info;
-            };
-        }
+            if (!empty($gateway_settings->data)) {
+                foreach (json_decode($gateway_settings->data ?? '') ?? [] as $key => $info) {
+                    $payment_data[$key] = $info;
+                };
+            }
 
 
 
-        $paymentresult = $gateway_settings->namespace::charge_payment($payment_data);
-        
-        if (!in_array((int)($paymentresult['payment_status'] ?? 0), [1, 4], true)) {
-            return response()->json([
-                'success' => false,
-                'message' => $paymentresult['error'] ?? 'Stripe payment failed'
-            ], 400);
+            $paymentresult = $gateway_settings->namespace::charge_payment($payment_data);
+            
+            if (!in_array((int)($paymentresult['payment_status'] ?? 0), [1, 4], true)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $paymentresult['error'] ?? 'Stripe payment failed'
+                ], 400);
+            }
         }
     
         /* ===============================
@@ -2683,7 +2717,9 @@ private function send_order_recipts($data){
             $credit_card_processing_method = Option::where('key','credit_card_processing_method')->first();
             $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
 
+            // Stripe auto-capture only (cash is already payment_status=1).
             if(
+                !$isCashPayment &&
                 $credit_card_processing_method == 'auto' &&
                 $paymentresult['risk_level'] == 'normal' &&
                 (int)$paymentresult['payment_status'] === 4
