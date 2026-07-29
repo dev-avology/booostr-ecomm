@@ -2828,6 +2828,10 @@ private function send_order_recipts($data){
                 // Additive: passed through to /financial-manager contact_mgr_data.
                 $customer_info['contact_typealias'] = $request->input('contact_typealias', '');
                 $customer_info['formemailreal'] = $request->input('formemailreal', '');
+                // Additive: seller /order PAYMENT column label for API cash orders.
+                if ($isCashPayment) {
+                    $customer_info['payment_method_label'] = 'cash/check';
+                }
 
                 $order->ordermeta()->create([
                     'key' => 'orderinfo',
@@ -2847,12 +2851,13 @@ private function send_order_recipts($data){
 
             trigger_product_sales_crm_sync_after_order($order->id);
 
-            sync_order_to_financial_manager($order->id);
-            
+            // Additive: API cash/check orders skip WP financial-manager + user-recipt.
+            if (!$isCashPayment) {
+                sync_order_to_financial_manager($order->id);
 
-            $reciptdata = $this->order_recipt_data($order->id);
-       
-            $recipt =  $this->send_order_recipt($reciptdata);
+                $reciptdata = $this->order_recipt_data($order->id);
+                $recipt =  $this->send_order_recipt($reciptdata);
+            }
         
              
             

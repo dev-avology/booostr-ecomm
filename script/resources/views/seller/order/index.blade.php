@@ -679,7 +679,9 @@
                                 <span class="badge badge-warning">{{ __('Pending') }}</span>
                                 @elseif($row->payment_status==1)
 
-                                     @if($row->order_from == 4 || ($row->order_from == 0 && $gatewayName !== 'cash'))
+                                     @if(!empty(optional($ordermeta)->payment_method_label) && optional($ordermeta)->payment_method_label === 'cash/check')
+                                        <span class="badge badge-success">{{ __('cash/check') }}</span>
+                                     @elseif($row->order_from == 4 || ($row->order_from == 0 && $gatewayName !== 'cash'))
                                         <span class="badge badge-success">{{ __('CC Complete') }}</span>
                                      @elseif($row->order_from == 5 || ($row->order_from == 0 && $gatewayName === 'cash'))
                                         <span class="badge badge-success">{{ __('Cash Complete') }}</span>
