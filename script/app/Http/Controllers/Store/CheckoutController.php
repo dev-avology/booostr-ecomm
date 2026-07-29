@@ -2559,7 +2559,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
 
 
-    private function send_order_recipt($data){
+    public function send_order_recipt($data){
 
 
         $postData = json_encode($data);

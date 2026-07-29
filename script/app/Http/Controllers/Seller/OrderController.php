@@ -2335,6 +2335,57 @@ class OrderController extends Controller
             ]);
         }
 
+        // Additive: set capture payment — cash/check API orders only (FM + user-recipt).
+        elseif ($method === 'set_capture_payment') {
+            $updated = [];
+            $invalid = [];
+
+            foreach ($orders as $order) {
+                $meta = json_decode(optional($order->ordermeta)->value ?? '', true) ?: [];
+                $isCashCheck = ($meta['payment_method_label'] ?? '') === 'cash/check';
+
+                if (!$isCashCheck) {
+                    $invalid[] = $order->invoice_no ?? (string) $order->id;
+                    continue;
+                }
+            }
+
+            if (!empty($invalid)) {
+                $label = count($invalid) === 1
+                    ? 'Order ' . $invalid[0] . ' is not a cash/check order.'
+                    : 'These orders are not cash/check orders: ' . implode(', ', $invalid);
+
+                return response()->json([
+                    'error' => $label . ' This action only works for cash/check orders.',
+                ], 400);
+            }
+
+            $checkout = app(\App\Http\Controllers\Store\CheckoutController::class);
+
+            foreach ($orders as $order) {
+                sync_order_to_financial_manager($order->id);
+
+                try {
+                    $reciptdata = $checkout->order_recipt_data($order->id);
+                    $checkout->send_order_recipt($reciptdata);
+                } catch (\Throwable $e) {
+                    \Log::error('cash/check user-recipt failed on set capture payment', [
+                        'order_id' => $order->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                $updated[] = $order->id;
+            }
+
+            return response()->json([
+                'message' => empty($updated)
+                    ? 'No cash/check orders selected.'
+                    : 'Capture payment set for cash/check order(s).',
+                'captured_orders' => $updated,
+            ]);
+        }
+
         // 3️⃣ COMPLETE FULFILLMENT
         elseif ($method === 'complete_fulfillment') {
 

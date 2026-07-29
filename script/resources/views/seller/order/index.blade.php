@@ -342,6 +342,12 @@
     color: #fff !important;
 }
 
+/* Distinct from Complete (green), Authorized/Refunded (red), Partial Refund (purple) */
+.badge-cash-check {
+    background-color: #fd7e14 !important;
+    color: #fff !important;
+}
+
 .badge-fulfillment-cancel {
     background-color: #dc3545 !important;
     color: #fff !important;
@@ -383,6 +389,7 @@
                      <select class="form-control selectric" name="method" form="bulkActionForm">
                         <option disabled selected>Select Capture/Fulfillment</option>
                         <option value="capture_authorized">Capture Authorized Payments</option>
+                        <option value="set_capture_payment">set capture payment</option>
                         <option value="complete_fulfillment">Complete Fulfillment</option>
                         <option value="cancel_order">Cancel Order</option>
                         <option value="mark_pending">Mark As Pending</option>
@@ -680,7 +687,7 @@
                                 @elseif($row->payment_status==1)
 
                                      @if(!empty(optional($ordermeta)->payment_method_label) && optional($ordermeta)->payment_method_label === 'cash/check')
-                                        <span class="badge badge-success">{{ __('cash/check') }}</span>
+                                        <span class="badge badge-cash-check">{{ __('cash/check') }}</span>
                                      @elseif($row->order_from == 4 || ($row->order_from == 0 && $gatewayName !== 'cash'))
                                         <span class="badge badge-success">{{ __('CC Complete') }}</span>
                                      @elseif($row->order_from == 5 || ($row->order_from == 0 && $gatewayName === 'cash'))
@@ -1057,6 +1064,13 @@ $(document).ready(function() {
         let method = $('select[name="method"][form="bulkActionForm"]').val();
         if(method === 'capture_authorized'){
             $('#captureModal').modal('show');
+        } else if (method === 'set_capture_payment'){
+            let checked = $('input[name="ids[]"]:checked');
+            if (checked.length === 0) {
+                alert('Please select at least one order.');
+                return;
+            }
+            $('#setCapturePaymentModal').modal('show');
         } else if (method === 'complete_fulfillment'){ 
             $('#fulfillModal').modal('show'); 
         } else if (method === 'cancel_order'){
@@ -1088,6 +1102,13 @@ $(document).ready(function() {
         let form = $('#bulkActionForm');
         sendAjax(form);
         $('#captureModal').modal('hide');
+    });
+
+    // Proceed in set capture payment modal (cash/check only)
+    $('#proceedSetCapturePayment').on('click', function(){
+        let form = $('#bulkActionForm');
+        sendAjax(form);
+        $('#setCapturePaymentModal').modal('hide');
     });
 
     // Proceed in Fulfill modal
@@ -1159,6 +1180,27 @@ $(document).ready(function() {
       <div class="modal-footer justify-content-center">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" id="proceedCapture">Proceed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Set Capture Payment Modal (cash/check only) -->
+<div class="modal fade" id="setCapturePaymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">set capture payment</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          This action only works for <strong>cash/check</strong> orders.<br>
+          It will sync the selected cash/check payment(s) to Financial Manager and send the user receipt.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="proceedSetCapturePayment">Proceed</button>
       </div>
     </div>
   </div>
