@@ -778,6 +778,11 @@
     color: #fff !important;
 }
 
+.badge-cash-check {
+    background-color: #fd7e14 !important;
+    color: #fff !important;
+}
+
 .badge-order-payment-refunded {
     background-color: #dc3545 !important;
     color: #fff !important;
@@ -1429,8 +1434,12 @@
                 <div class="card card-primary">
                     <div class="card-header" style="justify-content: space-between;">
                         <h4>{{ __('Status') }}</h4>
+                        @php
+                            $statusOrdermeta = json_decode(optional($info->ordermeta)->value ?? '', true) ?: [];
+                            $isCashCheckOrder = ($statusOrdermeta['payment_method_label'] ?? '') === 'cash/check';
+                        @endphp
 
-                        @if ($info->payment_status == 4  && $info->getway->name !== 'cash')
+                        @if ($info->payment_status == 4 && ($isCashCheckOrder || optional($info->getway)->name !== 'cash'))
                             <div class="capture-btn">
                                 <form method="POST" action="{{ route('seller.order.capture', $info->id) }}">
                                     @csrf
@@ -1440,7 +1449,7 @@
                             </div>
                         @endif
 
-                        @if ($info->payment_status == 1 && $info->getway->name !== 'cash')
+                        @if ($info->payment_status == 1 && optional($info->getway)->name !== 'cash')
                         <div class="capture-btn">
                             <button type="button"
                                 class="btn btn-primary float-right mt-2 text-right"
@@ -1467,7 +1476,11 @@
                             @elseif ($info->payment_status == 2)
                                 <span class="badge badge-warning float-right">{{ __('Pending') }}</span>
                             @elseif($info->payment_status == 1)
-                                <span class="badge badge-success float-right">{{ __('Paid') }}</span>
+                                @if($isCashCheckOrder)
+                                    <span class="badge badge-cash-check float-right">{{ __('cash/check') }}</span>
+                                @else
+                                    <span class="badge badge-success float-right">{{ __('Paid') }}</span>
+                                @endif
                             @elseif($info->payment_status == 0)
                                 <span class="badge badge-danger float-right">{{ __('Cancel') }}</span>
                             @elseif($info->payment_status == 3)

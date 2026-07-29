@@ -702,7 +702,11 @@
                                 @elseif($row->payment_status==3)
                                 <span class="badge badge-danger">{{ __('Incomplete') }}</span> 
                                 @elseif($row->payment_status==4)
+                                    @if(!empty(optional($ordermeta)->payment_method_label) && optional($ordermeta)->payment_method_label === 'cash/check')
+                                        <span class="badge badge-cash-check">{{ __('cash/check') }}</span>
+                                    @else
     							<span class="badge badge-danger">{{ __('Authorized') }}</span>
+                                    @endif
                                 @elseif($row->payment_status==5)
                                 <span class="badge badge-payment-refunded">{{ __('Refunded') }}</span>
                                 @endif

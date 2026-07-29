@@ -2636,7 +2636,8 @@ private function send_order_recipts($data){
             }
 
             $paymentresult = [
-                'payment_status' => 1,
+                // Additive: cash/check stays Authorized until "set capture payment" / Capture Payment.
+                'payment_status' => 4,
                 'payment_id'     => null,
                 'risk_level'     => 'normal',
             ];

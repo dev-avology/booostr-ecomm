@@ -620,6 +620,22 @@ class OrderController extends Controller
             'ordermeta',
             'schedule'
         ])->findOrFail($id);
+
+        // Additive: cash/check capture is DB-only (no Stripe) — same outcome as bulk "set capture payment".
+        $ordermetaArr = json_decode(optional($order->ordermeta)->value ?? '', true) ?: [];
+        if (($ordermetaArr['payment_method_label'] ?? '') === 'cash/check') {
+            if ((int) $order->payment_status === 5) {
+                return redirect()->back()->with('error', 'Refunded orders cannot be captured.');
+            }
+
+            $this->captureCashCheckOrderWithoutStripe($order);
+
+            if ($admin && !empty($admin->email)) {
+                \App\Lib\NotifyToUser::sendEmail($order->fresh(['ordermeta', 'user']), $admin->email, 'admin');
+            }
+
+            return redirect()->back();
+        }
     
         $gateway = Getway::where('status', '!=', 0)
             ->where('namespace', '=', 'App\Lib\Stripe')
@@ -741,6 +757,37 @@ class OrderController extends Controller
         return redirect()->back();
     }
 
+    /**
+     * Additive: capture cash/check orders without Stripe.
+     * Sets payment_status=1 + captured_at, then syncs /financial-manager and /user-recipt.
+     */
+    protected function captureCashCheckOrderWithoutStripe(Order $order): void
+    {
+        $wasAuthorized = (int) $order->payment_status === 4;
+
+        $order->payment_status = 1;
+        if ($wasAuthorized) {
+            // Same default fulfillment status as Stripe capture().
+            $order->status_id = 3;
+        }
+        if (empty($order->captured_at)) {
+            $order->captured_at = now()->setTimezone(config('app.timezone'));
+        }
+        $order->save();
+
+        sync_order_to_financial_manager($order->id);
+
+        try {
+            $checkout = app(\App\Http\Controllers\Store\CheckoutController::class);
+            $reciptdata = $checkout->order_recipt_data($order->id);
+            $checkout->send_order_recipt($reciptdata);
+        } catch (\Throwable $e) {
+            \Log::error('cash/check user-recipt failed on capture', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
 
 
@@ -2335,7 +2382,7 @@ class OrderController extends Controller
             ]);
         }
 
-        // Additive: set capture payment — cash/check API orders only (FM + user-recipt).
+        // Additive: set capture payment — cash/check API orders only (DB capture + FM + user-recipt, no Stripe).
         elseif ($method === 'set_capture_payment') {
             $updated = [];
             $invalid = [];
@@ -2360,27 +2407,18 @@ class OrderController extends Controller
                 ], 400);
             }
 
-            $checkout = app(\App\Http\Controllers\Store\CheckoutController::class);
-
             foreach ($orders as $order) {
-                sync_order_to_financial_manager($order->id);
-
-                try {
-                    $reciptdata = $checkout->order_recipt_data($order->id);
-                    $checkout->send_order_recipt($reciptdata);
-                } catch (\Throwable $e) {
-                    \Log::error('cash/check user-recipt failed on set capture payment', [
-                        'order_id' => $order->id,
-                        'error' => $e->getMessage(),
-                    ]);
+                if ((int) $order->payment_status === 5) {
+                    continue;
                 }
 
+                $this->captureCashCheckOrderWithoutStripe($order);
                 $updated[] = $order->id;
             }
 
             return response()->json([
                 'message' => empty($updated)
-                    ? 'No cash/check orders selected.'
+                    ? 'No eligible cash/check orders to capture.'
                     : 'Capture payment set for cash/check order(s).',
                 'captured_orders' => $updated,
             ]);
