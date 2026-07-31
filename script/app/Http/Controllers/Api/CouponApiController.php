@@ -344,7 +344,11 @@ class CouponApiController extends Controller
 
     private function buildTotals(string $cartId, ?string $scope): array
     {
-        $subtotal = (float) str_replace(',', '', Cart::subtotal());
+        // Cart::subtotal() is post-discount (priceTotal - discountTotal); keep the
+        // response subtotal equal to the cart's original Subtotal (price x qty).
+        $subtotal = (float) Cart::content()->sum(function ($item) {
+            return (float) $item->price * (int) $item->qty;
+        });
         $tax = (float) str_replace(',', '', Cart::tax());
         $discount = (float) str_replace(',', '', Cart::discount());
         $total = (float) str_replace(',', '', Cart::total());
