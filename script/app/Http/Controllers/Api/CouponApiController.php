@@ -357,10 +357,11 @@ class CouponApiController extends Controller
             'cartId'      => $cartId,
             'coupon_code' => Cache::get(self::CART_COUPON_CACHE_PREFIX . $cartId),
             'scope'       => $scope,
-            'subtotal'    => round($subtotal, 2),
-            'discount'    => round($discount, 2),
-            'tax'         => round($tax, 2),
-            'total'       => round($total, 2),
+            // Two-decimal formatted so JSON always shows e.g. "20.00" (plain 20.00 would render as 20).
+            'subtotal'    => number_format($subtotal, 2, '.', ''),
+            'discount'    => number_format($discount, 2, '.', ''),
+            'tax'         => number_format($tax, 2, '.', ''),
+            'total'       => number_format($total, 2, '.', ''),
             'cart_count'  => Cart::count(),
         ];
     }
@@ -371,10 +372,10 @@ class CouponApiController extends Controller
             'cartId'      => $cartId,
             'coupon_code' => null,
             'scope'       => null,
-            'subtotal'    => 0,
-            'discount'    => 0,
-            'tax'         => 0,
-            'total'       => 0,
+            'subtotal'    => number_format(0, 2, '.', ''),
+            'discount'    => number_format(0, 2, '.', ''),
+            'tax'         => number_format(0, 2, '.', ''),
+            'total'       => number_format(0, 2, '.', ''),
             'cart_count'  => 0,
         ];
     }
