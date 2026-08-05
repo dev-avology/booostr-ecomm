@@ -503,16 +503,6 @@
                                 ->flip()
                                 ->all();
 
-                            // cash/check orders that went through manual "set capture payment".
-                            // financial_manager_synced covers orders captured before the marker existed,
-                            // since cash/check orders skip the FM sync at creation time.
-                            $cashCheckCapturedOrderIds = \App\Models\Ordermeta::whereIn('order_id', $orderListIds)
-                                ->whereIn('key', ['cash_check_captured', 'financial_manager_synced'])
-                                ->pluck('order_id')
-                                ->unique()
-                                ->flip()
-                                ->all();
-
                             // Refund log amounts for remaining-total display (same source as order details).
                             $partialRefundAmountsByOrderId = [];
                             if (!empty($orderListIds)) {
@@ -607,8 +597,6 @@
                             }
 
                         $ordermeta = json_decode(optional($row->ordermeta)->value ?? '');
-                        $isCashCheckOrder = (optional($ordermeta)->payment_method_label ?? '') === 'cash/check';
-                        $isCashCheckCaptured = $isCashCheckOrder && isset($cashCheckCapturedOrderIds[$row->id]);
                         $customerName = optional($ordermeta)->name ?? optional($row->user)->name ?? __('Guest User');
                         $gatewayName = optional($row->getway)->name;
                         $isFullyRefunded = (int) $row->payment_status === 5;
@@ -698,10 +686,7 @@
                                 <span class="badge badge-warning">{{ __('Pending') }}</span>
                                 @elseif($row->payment_status==1)
 
-                                     {{-- cash/check turns into Complete only after manual set capture payment. --}}
-                                     @if($isCashCheckCaptured)
-                                        <span class="badge badge-success">{{ __('Complete') }}</span>
-                                     @elseif($isCashCheckOrder)
+                                     @if(!empty(optional($ordermeta)->payment_method_label) && optional($ordermeta)->payment_method_label === 'cash/check')
                                         <span class="badge badge-cash-check">{{ __('cash/check') }}</span>
                                      @elseif($row->order_from == 4 || ($row->order_from == 0 && $gatewayName !== 'cash'))
                                         <span class="badge badge-success">{{ __('CC Complete') }}</span>
@@ -717,7 +702,7 @@
                                 @elseif($row->payment_status==3)
                                 <span class="badge badge-danger">{{ __('Incomplete') }}</span> 
                                 @elseif($row->payment_status==4)
-                                    @if($isCashCheckOrder)
+                                    @if(!empty(optional($ordermeta)->payment_method_label) && optional($ordermeta)->payment_method_label === 'cash/check')
                                         <span class="badge badge-cash-check">{{ __('cash/check') }}</span>
                                     @else
     							<span class="badge badge-danger">{{ __('Authorized') }}</span>

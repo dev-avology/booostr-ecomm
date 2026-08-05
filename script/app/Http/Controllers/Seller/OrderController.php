@@ -775,12 +775,6 @@ class OrderController extends Controller
         }
         $order->save();
 
-        // Marker used by the order listing to show Complete instead of cash/check.
-        Ordermeta::updateOrCreate(
-            ['order_id' => $order->id, 'key' => 'cash_check_captured'],
-            ['value' => now()->setTimezone(config('app.timezone'))->toDateTimeString()]
-        );
-
         sync_order_to_financial_manager($order->id);
 
         try {
