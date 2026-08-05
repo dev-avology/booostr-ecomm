@@ -775,6 +775,8 @@ class OrderController extends Controller
         }
         $order->save();
 
+        $this->stampCashCheckCaptureOnOrderInfo($order);
+
         sync_order_to_financial_manager($order->id);
 
         try {
@@ -783,6 +785,42 @@ class OrderController extends Controller
             $checkout->send_order_recipt($reciptdata);
         } catch (\Throwable $e) {
             \Log::error('cash/check user-recipt failed on capture', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Additive: records the manual capture inside the existing orderinfo meta
+     * (same JSON that already carries payment_method_label) so the order list
+     * can show Complete for captured cash/check orders. Other keys are kept as is.
+     */
+    protected function stampCashCheckCaptureOnOrderInfo(Order $order): void
+    {
+        try {
+            $orderInfoMeta = Ordermeta::where('order_id', $order->id)
+                ->where('key', 'orderinfo')
+                ->first();
+
+            if (!$orderInfoMeta) {
+                return;
+            }
+
+            $orderInfo = json_decode($orderInfoMeta->value ?? '', true);
+            if (!is_array($orderInfo) || ($orderInfo['payment_method_label'] ?? '') !== 'cash/check') {
+                return;
+            }
+
+            if (!empty($orderInfo['cash_check_captured_at'])) {
+                return;
+            }
+
+            $orderInfo['cash_check_captured_at'] = now()->setTimezone(config('app.timezone'))->toDateTimeString();
+            $orderInfoMeta->value = json_encode($orderInfo);
+            $orderInfoMeta->save();
+        } catch (\Throwable $e) {
+            \Log::error('cash/check capture stamp failed', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
             ]);

@@ -687,7 +687,12 @@
                                 @elseif($row->payment_status==1)
 
                                      @if(!empty(optional($ordermeta)->payment_method_label) && optional($ordermeta)->payment_method_label === 'cash/check')
-                                        <span class="badge badge-cash-check">{{ __('cash/check') }}</span>
+                                        @if(!empty(optional($ordermeta)->cash_check_captured_at))
+                                            {{-- Manually captured via "set capture payment". --}}
+                                            <span class="badge badge-success">{{ __('Complete') }}</span>
+                                        @else
+                                            <span class="badge badge-cash-check">{{ __('cash/check') }}</span>
+                                        @endif
                                      @elseif($row->order_from == 4 || ($row->order_from == 0 && $gatewayName !== 'cash'))
                                         <span class="badge badge-success">{{ __('CC Complete') }}</span>
                                      @elseif($row->order_from == 5 || ($row->order_from == 0 && $gatewayName === 'cash'))
