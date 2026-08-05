@@ -1476,7 +1476,10 @@
                             @elseif ($info->payment_status == 2)
                                 <span class="badge badge-warning float-right">{{ __('Pending') }}</span>
                             @elseif($info->payment_status == 1)
-                                @if($isCashCheckOrder)
+                                @if($isCashCheckOrder && !empty($statusOrdermeta['cash_check_captured_at']))
+                                    {{-- Captured via "set capture payment": same label as the order list. --}}
+                                    <span class="badge badge-success float-right">{{ __('Complete') }}</span>
+                                @elseif($isCashCheckOrder)
                                     <span class="badge badge-cash-check float-right">{{ __('cash/check') }}</span>
                                 @else
                                     <span class="badge badge-success float-right">{{ __('Paid') }}</span>
