@@ -398,6 +398,9 @@ Route::group(['as' => 'seller.', 'prefix' => 'seller', 'namespace' => 'Seller', 
 
     Route::post('order/refund/{id}','OrderController@refund')->name('order.refund');
 
+    // Additive: cash/check manual refund (no Stripe). Keep separate from order.refund.
+    Route::post('order/refund-cash/{id}','OrderController@refundCashCheck')->name('order.refund.cash');
+
     Route::get('order/print/{id}','OrderController@print')->name('order.print');
 
     Route::post('/save-token', 'FirebaseController@saveToken')->name('save-token');

@@ -1099,6 +1099,77 @@ class OrderController extends Controller
 
 
 
+    /**
+     * Additive: full cancel + refund for manually captured cash/check orders.
+     * No Stripe calls — DB status update, transaction log, emails, and FM sync only.
+     * Existing Stripe refund() path is intentionally untouched.
+     */
+    public function refundCashCheck($id)
+    {
+        abort_if(!getpermission('order'), 401);
+
+        $admin_details = User::where('role_id', 3)->first();
+        $to = $admin_details->email ?? '';
+
+        $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($id);
+
+        if ((int) $order->payment_status === 5) {
+            return $this->refundResponse(false, false, 'This order has already been refunded.');
+        }
+
+        $ordermetaArr = json_decode(optional($order->ordermeta)->value ?? '{}', true) ?: [];
+        $isCashCheck = ($ordermetaArr['payment_method_label'] ?? '') === 'cash/check';
+        $isCaptured = !empty($ordermetaArr['cash_check_captured_at']);
+
+        if (!$isCashCheck) {
+            return $this->refundResponse(false, false, 'This order is not a cash/check order.');
+        }
+
+        if (!$isCaptured || (int) $order->payment_status !== 1) {
+            return $this->refundResponse(false, false, 'Cash/check order must be captured before it can be refunded.');
+        }
+
+        try {
+            // Cash customers paid order total (no Stripe cover/card fees on this path).
+            $refundAmountDollars = round((float) $order->total, 2);
+            $refundAmountCents = max(1, (int) round($refundAmountDollars * 100));
+            $cashRefundId = 'cash_rfd_' . $order->id . '_' . time();
+
+            $transactionLog = [
+                'id' => $cashRefundId,
+                'object' => 'refund',
+                'amount' => $refundAmountCents,
+                'amount_refunded' => $refundAmountCents,
+                'currency' => 'usd',
+                'status' => 'succeeded',
+                'payment_method' => 'cash',
+                'reason' => 'manual_cash_check_refund',
+                'created' => time(),
+            ];
+
+            $cancelledTickets = $this->finalizeRefundedOrder($order, $transactionLog);
+
+            return $this->refundResponse(
+                false,
+                true,
+                'Cash/check order refunded successfully',
+                $order,
+                $to,
+                $refundAmountDollars,
+                $cashRefundId,
+                $cancelledTickets,
+                'cash_refund_success'
+            );
+        } catch (\Throwable $e) {
+            \Log::error('Cash/check order refund failed', [
+                'order_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->refundResponse(false, false, $e->getMessage());
+        }
+    }
+
     public function refund($id, $silent = false)
     {
         abort_if(!getpermission('order'), 401);
@@ -1380,7 +1451,7 @@ class OrderController extends Controller
         return $order->invoice_no . 'rfd' . str_pad($suffix, 4, '0', STR_PAD_LEFT);
     }
 
-    protected function refundResponse(bool $silent, bool $success, string $message, ?Order $order = null, ?string $adminEmail = null, ?float $refundAmount = null, ?string $stripeRefundId = null, ?Collection $cancelledTickets = null)
+    protected function refundResponse(bool $silent, bool $success, string $message, ?Order $order = null, ?string $adminEmail = null, ?float $refundAmount = null, ?string $stripeRefundId = null, ?Collection $cancelledTickets = null, string $successSessionKey = 'refund_success')
     {
         if ($success && $order) {
             $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
@@ -1445,7 +1516,7 @@ class OrderController extends Controller
             $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}', true);
             $receiptEmail = $ordermeta['email'] ?? $order->user->email ?? '';
 
-            return redirect()->back()->with('refund_success', [
+            return redirect()->back()->with($successSessionKey, [
                 'invoice_no' => $order->invoice_no,
                 'amount' => $refundAmount ?? $this->calculateRefundNetTotal($order, (object) $ordermeta),
                 'email' => $receiptEmail,
