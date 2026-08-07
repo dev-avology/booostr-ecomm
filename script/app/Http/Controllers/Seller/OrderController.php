@@ -1100,6 +1100,38 @@ class OrderController extends Controller
 
 
     /**
+     * Additive: true only for API cash/check orders that were manually captured.
+     */
+    protected function isCapturedCashCheckOrder(Order $order): bool
+    {
+        $ordermetaArr = json_decode(optional($order->ordermeta)->value ?? '{}', true) ?: [];
+
+        return ($ordermetaArr['payment_method_label'] ?? '') === 'cash/check'
+            && !empty($ordermetaArr['cash_check_captured_at']);
+    }
+
+    /**
+     * Additive: synthetic refund log for cash/check (no Stripe object).
+     */
+    protected function buildCashCheckRefundTransactionLog(Order $order, float $refundAmountDollars): array
+    {
+        $refundAmountCents = max(1, (int) round($refundAmountDollars * 100));
+        $cashRefundId = 'cash_rfd_' . $order->id . '_' . time();
+
+        return [
+            'id' => $cashRefundId,
+            'object' => 'refund',
+            'amount' => $refundAmountCents,
+            'amount_refunded' => $refundAmountCents,
+            'currency' => 'usd',
+            'status' => 'succeeded',
+            'payment_method' => 'cash',
+            'reason' => 'manual_cash_check_refund',
+            'created' => time(),
+        ];
+    }
+
+    /**
      * Additive: full cancel + refund for manually captured cash/check orders.
      * No Stripe calls — DB status update, transaction log, emails, and FM sync only.
      * Existing Stripe refund() path is intentionally untouched.
@@ -1113,60 +1145,118 @@ class OrderController extends Controller
 
         $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($id);
 
+        return $this->executeCashCheckFullRefund($order, $to, false);
+    }
+
+    /**
+     * Additive: shared full cash/check refund executor (used by dedicated route + refund() early branch).
+     */
+    protected function executeCashCheckFullRefund(Order $order, string $adminEmail, bool $silent = false)
+    {
         if ((int) $order->payment_status === 5) {
-            return $this->refundResponse(false, false, 'This order has already been refunded.');
+            return $this->refundResponse($silent, false, 'This order has already been refunded.');
         }
 
-        $ordermetaArr = json_decode(optional($order->ordermeta)->value ?? '{}', true) ?: [];
-        $isCashCheck = ($ordermetaArr['payment_method_label'] ?? '') === 'cash/check';
-        $isCaptured = !empty($ordermetaArr['cash_check_captured_at']);
-
-        if (!$isCashCheck) {
-            return $this->refundResponse(false, false, 'This order is not a cash/check order.');
-        }
-
-        if (!$isCaptured || (int) $order->payment_status !== 1) {
-            return $this->refundResponse(false, false, 'Cash/check order must be captured before it can be refunded.');
+        if (!$this->isCapturedCashCheckOrder($order) || (int) $order->payment_status !== 1) {
+            return $this->refundResponse($silent, false, 'Cash/check order must be captured before it can be refunded.');
         }
 
         try {
-            // Cash customers paid order total (no Stripe cover/card fees on this path).
             $refundAmountDollars = round((float) $order->total, 2);
-            $refundAmountCents = max(1, (int) round($refundAmountDollars * 100));
-            $cashRefundId = 'cash_rfd_' . $order->id . '_' . time();
-
-            $transactionLog = [
-                'id' => $cashRefundId,
-                'object' => 'refund',
-                'amount' => $refundAmountCents,
-                'amount_refunded' => $refundAmountCents,
-                'currency' => 'usd',
-                'status' => 'succeeded',
-                'payment_method' => 'cash',
-                'reason' => 'manual_cash_check_refund',
-                'created' => time(),
-            ];
-
+            $transactionLog = $this->buildCashCheckRefundTransactionLog($order, $refundAmountDollars);
             $cancelledTickets = $this->finalizeRefundedOrder($order, $transactionLog);
 
             return $this->refundResponse(
-                false,
+                $silent,
                 true,
                 'Cash/check order refunded successfully',
                 $order,
-                $to,
+                $adminEmail,
                 $refundAmountDollars,
-                $cashRefundId,
+                $transactionLog['id'] ?? null,
                 $cancelledTickets,
-                'cash_refund_success'
+                'refund_success',
+                true
             );
         } catch (\Throwable $e) {
             \Log::error('Cash/check order refund failed', [
-                'order_id' => $id,
+                'order_id' => $order->id,
                 'error' => $e->getMessage(),
             ]);
 
-            return $this->refundResponse(false, false, $e->getMessage());
+            return $this->refundResponse($silent, false, $e->getMessage());
+        }
+    }
+
+    /**
+     * Additive: partial item refund for cash/check — same DB finalize as Stripe partial, no Stripe API.
+     */
+    protected function executeCashCheckPartialRefund(Order $order, array $refundDetails, string $adminEmail)
+    {
+        $netRefundable = round((float) $order->total, 2);
+        $alreadyRefunded = $this->getTotalPartialRefundedAmount($order);
+
+        if (($alreadyRefunded + $refundDetails['grand_total']) > ($netRefundable + 0.01)) {
+            return $this->partialRefundResponse(false, 'Refund amount exceeds the remaining refundable balance for this order.');
+        }
+
+        try {
+            $transactionLog = $this->buildCashCheckRefundTransactionLog($order, (float) $refundDetails['grand_total']);
+            $cancelledTickets = $this->finalizePartialRefundedOrder($order, $transactionLog, $refundDetails);
+
+            return $this->partialRefundResponse(
+                true,
+                'Partial refund completed successfully',
+                $order,
+                $refundDetails,
+                $transactionLog['id'] ?? null,
+                $adminEmail,
+                $cancelledTickets,
+                true
+            );
+        } catch (\Throwable $e) {
+            \Log::error('Cash/check partial order refund failed', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->partialRefundResponse(false, $e->getMessage());
+        }
+    }
+
+    /**
+     * Additive: partial dollar refund for cash/check — same DB finalize as Stripe dollar partial, no Stripe API.
+     */
+    protected function executeCashCheckPartialDollarRefund(Order $order, array $refundDetails, string $adminEmail)
+    {
+        $netRefundable = round((float) $order->total, 2);
+        $alreadyRefunded = $this->getTotalPartialRefundedAmount($order);
+
+        if (($alreadyRefunded + $refundDetails['grand_total']) > ($netRefundable + 0.01)) {
+            return $this->partialDollarRefundResponse(false, 'Refund amount exceeds the remaining refundable balance for this order.');
+        }
+
+        try {
+            $transactionLog = $this->buildCashCheckRefundTransactionLog($order, (float) $refundDetails['grand_total']);
+            $cancelledTickets = $this->finalizePartialDollarRefundedOrder($order, $transactionLog, $refundDetails);
+
+            return $this->partialDollarRefundResponse(
+                true,
+                'Partial dollar refund completed successfully',
+                $order,
+                $refundDetails,
+                $transactionLog['id'] ?? null,
+                $adminEmail,
+                $cancelledTickets,
+                true
+            );
+        } catch (\Throwable $e) {
+            \Log::error('Cash/check partial dollar order refund failed', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->partialDollarRefundResponse(false, $e->getMessage());
         }
     }
 
@@ -1186,6 +1276,11 @@ class OrderController extends Controller
         $to = $admin_details->email ?? '';
 
         $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($id);
+
+        // Additive: cash/check captured orders use DB-only full refund (Stripe path below untouched).
+        if ($this->isCapturedCashCheckOrder($order)) {
+            return $this->executeCashCheckFullRefund($order, $to, $silent);
+        }
 
         if ((int) $order->payment_status === 5) {
             return $this->refundResponse($silent, false, 'This order has already been refunded.');
@@ -1451,7 +1546,7 @@ class OrderController extends Controller
         return $order->invoice_no . 'rfd' . str_pad($suffix, 4, '0', STR_PAD_LEFT);
     }
 
-    protected function refundResponse(bool $silent, bool $success, string $message, ?Order $order = null, ?string $adminEmail = null, ?float $refundAmount = null, ?string $stripeRefundId = null, ?Collection $cancelledTickets = null, string $successSessionKey = 'refund_success')
+    protected function refundResponse(bool $silent, bool $success, string $message, ?Order $order = null, ?string $adminEmail = null, ?float $refundAmount = null, ?string $stripeRefundId = null, ?Collection $cancelledTickets = null, string $successSessionKey = 'refund_success', bool $isCashCheck = false)
     {
         if ($success && $order) {
             $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
@@ -1521,6 +1616,7 @@ class OrderController extends Controller
                 'amount' => $refundAmount ?? $this->calculateRefundNetTotal($order, (object) $ordermeta),
                 'email' => $receiptEmail,
                 'reference_id' => $this->buildRefundReferenceId($order, $stripeRefundId),
+                'is_cash_check' => $isCashCheck,
             ]);
         }
 
@@ -1557,6 +1653,11 @@ class OrderController extends Controller
             $refundDetails = $this->buildPartialRefundDetails($order, $selectedItems);
         } catch (\Throwable $e) {
             return $this->partialRefundResponse(false, $e->getMessage());
+        }
+
+        // Additive: cash/check captured — DB-only partial refund (Stripe block below untouched).
+        if ($this->isCapturedCashCheckOrder($order)) {
+            return $this->executeCashCheckPartialRefund($order, $refundDetails, $adminEmail);
         }
 
         $gateway = Getway::where('status', '!=', 0)
@@ -1760,6 +1861,11 @@ class OrderController extends Controller
             $refundDetails = $this->buildPartialDollarRefundDetails($order, $selectedItems);
         } catch (\Throwable $e) {
             return $this->partialDollarRefundResponse(false, $e->getMessage());
+        }
+
+        // Additive: cash/check captured — DB-only partial dollar refund (Stripe block below untouched).
+        if ($this->isCapturedCashCheckOrder($order)) {
+            return $this->executeCashCheckPartialDollarRefund($order, $refundDetails, $adminEmail);
         }
 
         $gateway = Getway::where('status', '!=', 0)
@@ -1986,7 +2092,7 @@ class OrderController extends Controller
         return $this->cancelEventTicketsForOrder($order, $refundDetails['items'] ?? []);
     }
 
-    protected function partialDollarRefundResponse(bool $success, string $message, ?Order $order = null, ?array $refundDetails = null, ?string $stripeRefundId = null, ?string $adminEmail = null, ?Collection $cancelledTickets = null)
+    protected function partialDollarRefundResponse(bool $success, string $message, ?Order $order = null, ?array $refundDetails = null, ?string $stripeRefundId = null, ?string $adminEmail = null, ?Collection $cancelledTickets = null, bool $isCashCheck = false)
     {
         if ($success && $order && $refundDetails) {
             $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
@@ -2038,6 +2144,7 @@ class OrderController extends Controller
                 'amount' => $refundDetails['grand_total'],
                 'email' => $receiptEmail,
                 'reference_id' => $this->buildRefundReferenceId($order, $stripeRefundId),
+                'is_cash_check' => $isCashCheck,
             ]);
         }
 
@@ -2108,7 +2215,7 @@ class OrderController extends Controller
         return $this->cancelEventTicketsForOrder($order, $refundDetails['items'] ?? []);
     }
 
-    protected function partialRefundResponse(bool $success, string $message, ?Order $order = null, ?array $refundDetails = null, ?string $stripeRefundId = null, ?string $adminEmail = null, ?Collection $cancelledTickets = null)
+    protected function partialRefundResponse(bool $success, string $message, ?Order $order = null, ?array $refundDetails = null, ?string $stripeRefundId = null, ?string $adminEmail = null, ?Collection $cancelledTickets = null, bool $isCashCheck = false)
     {
         if ($success && $order && $refundDetails) {
             $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
@@ -2160,6 +2267,7 @@ class OrderController extends Controller
                 'amount' => $refundDetails['grand_total'],
                 'email' => $receiptEmail,
                 'reference_id' => $this->buildRefundReferenceId($order, $stripeRefundId),
+                'is_cash_check' => $isCashCheck,
             ]);
         }
 

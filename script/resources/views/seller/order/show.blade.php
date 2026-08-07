@@ -791,8 +791,7 @@
 @endsection
 @section('content')
     @php
-        $refundSuccess = session('refund_success');
-        $cashRefundSuccess = session('cash_refund_success');
+        $refundSuccess = session('refund_success') ?: session('cash_refund_success');
         $partialRefundSuccess = session('partial_refund_success');
         $partialDollarRefundSuccess = session('partial_dollar_refund_success');
 
@@ -936,7 +935,7 @@
             && !$hasDollarPartialRefundLogs;
     @endphp
 
-    @if(session('success') && !$refundSuccess && !$cashRefundSuccess && !$partialRefundSuccess && !$partialDollarRefundSuccess)
+    @if(session('success') && !$refundSuccess && !$partialRefundSuccess && !$partialDollarRefundSuccess)
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -1476,12 +1475,12 @@
                             </div> -->
                         @endif
 
-                        {{-- Additive: cash/check captured orders only — separate from Stripe refund UI. --}}
+                        {{-- Additive: cash/check captured — same refund UI as Stripe (full/partial/dollar). --}}
                         @if ($info->payment_status == 1 && $isCashCheckCaptured)
                             <div class="capture-btn">
                                 <button type="button"
                                     class="btn btn-primary float-right mt-2 text-right"
-                                    id="show-cash-check-refund-confirm-btn">
+                                    id="show-cash-check-refund-view-btn">
                                     {{ __('Cancel Order & Refund Cash Payment') }}
                                 </button>
                             </div>
@@ -1779,7 +1778,11 @@
             <div class="card-body">
                 <h4 class="order-refund-title" id="order-refund-section-title">{{ __('Order Refund & Cancellation') }}</h4>
                 <p class="order-refund-desc mb-0">
-                    {{ __('Refund & cancel full or partial orders. We do not charge any fees for refunds, but the full or partial original processing fee is not refunded. All refunds are handled via Stripe will be deducted from your connected bank account and sent to the customer\'s original payment method used for the transaction. Payment processing fees cannot be refunded.') }}
+                    @if (!empty($isCashCheckCaptured))
+                        {{ __('Refund & cancel full or partial cash/check orders. Refunds are recorded in Store Manager without Stripe. Please return the cash/check amount to the purchaser outside of Stripe.') }}
+                    @else
+                        {{ __('Refund & cancel full or partial orders. We do not charge any fees for refunds, but the full or partial original processing fee is not refunded. All refunds are handled via Stripe will be deducted from your connected bank account and sent to the customer\'s original payment method used for the transaction. Payment processing fees cannot be refunded.') }}
+                    @endif
                 </p>
 
                 <div class="form-group mb-0 mt-4">
@@ -2455,7 +2458,7 @@
         </div>
     </div>
 
-    @if ($info->payment_status == 1 && $info->getway->name !== 'cash')
+    @if ($info->payment_status == 1 && (optional($info->getway)->name !== 'cash' || !empty($isCashCheckCaptured)))
         <div class="modal fade" id="refundConfirmModal" tabindex="-1" role="dialog" aria-labelledby="refundConfirmModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered order-refund-confirm-dialog" role="document">
                 <div class="modal-content order-refund-confirm-content">
@@ -2551,81 +2554,6 @@
         </div>
     @endif
 
-    {{-- Additive: cash/check full refund confirm (no Stripe UI / no Stripe call). --}}
-    @if ($info->payment_status == 1 && !empty($isCashCheckCaptured))
-        <div class="modal fade" id="cashCheckRefundConfirmModal" tabindex="-1" role="dialog" aria-labelledby="cashCheckRefundConfirmModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered order-refund-confirm-dialog" role="document">
-                <div class="modal-content order-refund-confirm-content">
-                    <div class="modal-body">
-                        <h5 class="order-refund-confirm-title" id="cashCheckRefundConfirmModalLabel">
-                            {{ __('Are you sure you want to refund & cancel cash/check order:') }} {{ $info->invoice_no }}?
-                        </h5>
-                        <p class="order-refund-confirm-desc mb-0">
-                            {{ __('Please confirm that you would like to cancel and refund this cash/check order. No Stripe refund will be processed. This action cannot be undone. To go back, click the grey button. To proceed, click the blue button.') }}
-                        </p>
-
-                        <div class="order-refund-partial-confirm-details">
-                            <div class="order-refund-partial-confirm-detail-row is-total">
-                                <strong class="detail-label">{{ __('Total Order Refund Amount:') }}</strong>
-                                <strong class="detail-value">{{ currency_formate($info->total ?? 0) }}</strong>
-                            </div>
-                        </div>
-
-                        <div class="order-refund-confirm-actions">
-                            <button type="button" class="btn btn-refund-go-back" data-dismiss="modal">
-                                {{ __('No, close window and go back') }}
-                            </button>
-                            <form method="POST" action="{{ route('seller.order.refund.cash', $info->id) }}" class="d-inline mb-0">
-                                @csrf
-                                <button type="submit" name="cash_refund_payment" class="btn btn-refund-confirm-submit">
-                                    {{ __('Yes, complete cash refund & cancellation') }}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if ($cashRefundSuccess)
-        <div class="modal fade" id="cashCheckRefundSuccessModal" tabindex="-1" role="dialog" aria-labelledby="cashCheckRefundSuccessModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered order-refund-success-dialog" role="document">
-                <div class="modal-content order-refund-success-content">
-                    <div class="modal-body">
-                        <h5 class="order-refund-success-title" id="cashCheckRefundSuccessModalLabel">
-                            {{ __('Order:') }} {{ $cashRefundSuccess['invoice_no'] }} {{ __('has been refunded and cancelled.') }}
-                        </h5>
-                        <p class="order-refund-success-desc mb-0">
-                            {{ __('We have successfully refunded and cancelled this cash/check order. Please return the cash/check amount to the purchaser outside of Stripe. The details of the refund are below and the order has been updated to cancelled in your Store Manager.') }}
-                        </p>
-
-                        <div class="order-refund-partial-confirm-details">
-                            <div class="order-refund-partial-confirm-detail-row is-total">
-                                <strong class="detail-label">{{ __('Total Order Refund Amount:') }}</strong>
-                                <strong class="detail-value">{{ currency_formate($cashRefundSuccess['amount'] ?? 0) }}</strong>
-                            </div>
-                            <div class="order-refund-success-detail-row">
-                                <strong>{{ __('Refund Receipt Email To:') }}</strong>
-                                <strong class="order-refund-success-detail-value">{{ $cashRefundSuccess['email'] ?? '' }}</strong>
-                            </div>
-                            <div class="order-refund-success-detail-row">
-                                <strong>{{ __('Refund Reference ID:') }}</strong>
-                                <strong class="order-refund-success-detail-value">{{ $cashRefundSuccess['reference_id'] ?? '' }}</strong>
-                            </div>
-                        </div>
-
-                        <div class="order-refund-success-actions">
-                            <button type="button" class="btn btn-refund-success-close" data-dismiss="modal">
-                                {{ __('Yes, complete refund & cancellation') }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-
     @if ($refundSuccess)
         <div class="modal fade" id="refundSuccessModal" tabindex="-1" role="dialog" aria-labelledby="refundSuccessModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered order-refund-success-dialog" role="document">
@@ -2635,7 +2563,11 @@
                             {{ __('Order:') }} {{ $refundSuccess['invoice_no'] }} {{ __('has been refunded and cancelled.') }}
                         </h5>
                         <p class="order-refund-success-desc mb-0">
-                            {{ __('We have successfully refunded and cancelled this order. the refunded amount will be applied back to the purchasers payment method within 5-10 business days through Stripe. The details of the refund are below and the order has been updated to cancelled in your Store Manager.') }}
+                            @if (!empty($refundSuccess['is_cash_check']))
+                                {{ __('We have successfully refunded and cancelled this cash/check order. Please return the cash/check amount to the purchaser outside of Stripe. The details of the refund are below and the order has been updated to cancelled in your Store Manager.') }}
+                            @else
+                                {{ __('We have successfully refunded and cancelled this order. the refunded amount will be applied back to the purchasers payment method within 5-10 business days through Stripe. The details of the refund are below and the order has been updated to cancelled in your Store Manager.') }}
+                            @endif
                         </p>
 
                         <div class="order-refund-partial-confirm-details">
@@ -2673,7 +2605,11 @@
                             {{ __('The below items from order:') }} {{ $partialRefundSuccess['invoice_no'] }} {{ __('have been refunded and cancelled.') }}
                         </h5>
                         <p class="order-refund-success-desc mb-0">
-                            {{ __('We have successfully refunded and cancelled the items below from this order. the refunded amount will be applied back to the purchasers payment method within 5-10 business days through Stripe. The details of the refund are below and the order has been updated to cancelled in your Store Manager.') }}
+                            @if (!empty($partialRefundSuccess['is_cash_check']))
+                                {{ __('We have successfully refunded and cancelled the items below from this cash/check order. Please return the cash/check amount to the purchaser outside of Stripe. The details of the refund are below and the order has been updated in your Store Manager.') }}
+                            @else
+                                {{ __('We have successfully refunded and cancelled the items below from this order. the refunded amount will be applied back to the purchasers payment method within 5-10 business days through Stripe. The details of the refund are below and the order has been updated to cancelled in your Store Manager.') }}
+                            @endif
                         </p>
 
                         <div class="order-refund-partial-confirm-details">
@@ -2721,7 +2657,11 @@
                             {{ __('The amount below has been refunded from order:') }} {{ $partialDollarRefundSuccess['invoice_no'] }}.
                         </h5>
                         <p class="order-refund-success-desc mb-0">
-                            {{ __('We have successfully refunded the amount below from this order. the refunded amount will be applied back to the purchasers payment method within 5-10 business days through Stripe. The details of the refund are below and the order has been updated to partially refunded in your Store Manager.') }}
+                            @if (!empty($partialDollarRefundSuccess['is_cash_check']))
+                                {{ __('We have successfully refunded the amount below from this cash/check order. Please return the cash/check amount to the purchaser outside of Stripe. The details of the refund are below and the order has been updated to partially refunded in your Store Manager.') }}
+                            @else
+                                {{ __('We have successfully refunded the amount below from this order. the refunded amount will be applied back to the purchasers payment method within 5-10 business days through Stripe. The details of the refund are below and the order has been updated to partially refunded in your Store Manager.') }}
+                            @endif
                         </p>
 
                         <div class="order-refund-partial-confirm-details">
@@ -3162,17 +3102,12 @@
                 updateRefundViewState();
             }
 
-            $('#show-order-refund-view-btn').on('click', function () {
+            $('#show-order-refund-view-btn, #show-cash-check-refund-view-btn').on('click', function () {
                 $orderDetailsView.hide();
                 $orderRefundView.show();
                 $orderHeaderTitle.text(refundHeaderTitle);
                 $('#order_refund_type_select').val('');
                 updateRefundViewState();
-            });
-
-            // Additive: cash/check refund confirm (separate from Stripe refund view).
-            $('#show-cash-check-refund-confirm-btn').on('click', function () {
-                $('#cashCheckRefundConfirmModal').modal('show');
             });
 
             $('#order_refund_type_select').on('change', updateRefundViewState);
@@ -3242,7 +3177,7 @@
 
             $('#cancel-order-refund-process-btn, #cancel-order-refund-process-btn-full, #cancel-order-refund-process-btn-partial, #cancel-order-refund-process-btn-partial-dollar').on('click', resetRefundCancellationView);
 
-            @if (request()->query('refund') && !$refundSuccess && !$cashRefundSuccess && !$partialRefundSuccess && !$partialDollarRefundSuccess && $info->payment_status == 1 && $info->getway->name !== 'cash')
+            @if (request()->query('refund') && !$refundSuccess && !$partialRefundSuccess && !$partialDollarRefundSuccess && $info->payment_status == 1 && (optional($info->getway)->name !== 'cash' || !empty($isCashCheckCaptured)))
                 $orderDetailsView.hide();
                 $orderRefundView.show();
                 $orderHeaderTitle.text(refundHeaderTitle);
@@ -3256,8 +3191,6 @@
             @elseif ($partialRefundSuccess)
                 resetRefundCancellationView();
                 $('#partialRefundSuccessModal').modal('show');
-            @elseif ($cashRefundSuccess)
-                $('#cashCheckRefundSuccessModal').modal('show');
             @elseif ($refundSuccess)
                 resetRefundCancellationView();
                 $('#refundSuccessModal').modal('show');
