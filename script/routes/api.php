@@ -89,6 +89,9 @@ Route::group([
     // Additive: apply/remove coupon on existing cartId (before /order/create).
     Route::post('/coupon/apply', 'Api\CouponApiController@apply');
     Route::post('/coupon/remove', 'Api\CouponApiController@remove');
+
+    // Additive: POS refund (full / item / dollar) — POS orders only (order_from 4/5).
+    Route::post('/pos-refund-payment', 'Api\PosRefundApiController@refundPayment');
 });
 
 Route::group([
