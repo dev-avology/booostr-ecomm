@@ -174,13 +174,18 @@ class Stripe {
 
                 self::syncPaymentMethodBillingDetails($paymentMethodId, $array, $secret_key);
 
+                $credit_card_processing_method = Option::where('key', 'credit_card_processing_method')->first();
+                $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
+                // manual setting → authorize only (payment_status 4); auto → Stripe may capture immediately.
+                $captureMethod = ($credit_card_processing_method === 'auto') ? 'automatic' : 'manual';
+
                 $applicarionfee = (int) round(($application_fee_amount + $credit_card_fee) * 100);
                 $intentPayload = [
                     'amount' => (int) round(((float)$totalAmount) * 100),
                     'currency' => strtolower($currency),
                     'payment_method' => $paymentMethodId,
                     'confirm' => true,
-                    'capture_method' => 'automatic',
+                    'capture_method' => $captureMethod,
                     'description' => $array['billName'] ?? 'Boostr Sale',
                     'automatic_payment_methods' => [
                         'enabled' => true,
@@ -218,7 +223,8 @@ class Stripe {
                 $latestCharge = is_object($intent->latest_charge) ? $intent->latest_charge : null;
                 $riskLevel = $latestCharge->outcome->risk_level ?? 'normal';
 
-                $isCaptured = ($intent->status ?? '') === 'succeeded';
+                $intentStatus = $intent->status ?? '';
+                $isCaptured = $intentStatus === 'succeeded';
                 $data['payment_id'] = $intent->id;
                 $data['transaction_log'] = $intent->toArray();
                 $data['payment_method'] = "stripe";

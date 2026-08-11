@@ -2853,7 +2853,8 @@ private function send_order_recipts($data){
             trigger_product_sales_crm_sync_after_order($order->id);
 
             // Additive: API cash/check orders skip WP financial-manager + user-recipt.
-            if (!$isCashPayment) {
+            // Stripe manual-capture (Authorized) orders also skip until captured on /seller/order.
+            if (!$isCashPayment && (int) $order->payment_status === 1) {
                 sync_order_to_financial_manager($order->id);
 
                 $reciptdata = $this->order_recipt_data($order->id);
