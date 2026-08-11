@@ -1227,10 +1227,14 @@ class CheckoutController extends Controller
             'phone'      => $request->phone ?? '',
         ]);
 
+        $credit_card_processing_method = Option::where('key', 'credit_card_processing_method')->first();
+        $credit_card_processing_method = $credit_card_processing_method ? $credit_card_processing_method->value : 'manual';
+        $captureMethod = ($credit_card_processing_method === 'auto') ? 'automatic' : 'manual';
+
         $paymentIntent = PaymentIntent::create([
             'amount' => round($total_amount * 100),
             'currency' => 'usd',
-            'capture_method' => 'automatic',
+            'capture_method' => $captureMethod,
             // 'application_fee_amount' => round($cover_fee * 100),
             'application_fee_amount' => round($total_application_fee * 100),
             'transfer_data' => [
@@ -1892,18 +1896,23 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
             }  
            //  dd($order);
-            
-            $reciptdata = $this->order_recipt_data($order_id);
+
+            // Manual-capture (Authorized) orders: skip user-recipt until seller captures on /seller/order.
+            if ((int) $order->payment_status === 1) {
+                $reciptdata = $this->order_recipt_data($order_id);
        
-            $recipt =  $this->send_order_recipt($reciptdata);
+                $recipt =  $this->send_order_recipt($reciptdata);
+            }
 
             \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
             
-            \App\Lib\NotifyToUser::sendEmail($order, $ordermeta['email'], 'user');
+            if ((int) $order->payment_status === 1) {
+                \App\Lib\NotifyToUser::sendEmail($order, $ordermeta['email'], 'user');
             
-            $order->load('orderitems.term');
+                $order->load('orderitems.term');
 
-           $this->sendEventTickets($order, $ordermeta['email']);
+                $this->sendEventTickets($order, $ordermeta['email']);
+            }
 
         }
     
