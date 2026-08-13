@@ -580,6 +580,7 @@ class SitesettingsController extends Controller
          TenantCacheClear('order_settings');
          TenantCacheClear('measurment_type');
          TenantCacheClear('credit_card_processing_method');
+         bust_pos_api_cache();
            
 
            return response()->json('General Settings');

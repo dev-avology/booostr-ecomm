@@ -114,15 +114,18 @@ class PosApiController extends Controller
     public function getPosCategoryList(Request $request){
         
         $cacheKey = 'pos_category_list';
+        $posCache = app(\App\Services\PosApiCacheService::class);
 
-        $cachedData = $this->redisGet($cacheKey);
+        if (!$posCache->shouldSkipCache($request)) {
+            $cachedData = $posCache->get($cacheKey);
     
-        if ($cachedData) {
-            return response()->json([
-                "status" => true,
-                "message" => "Category list fetched from redis",
-                "result" => $cachedData
-            ]);
+            if ($cachedData) {
+                return response()->json([
+                    "status" => true,
+                    "message" => "Category list fetched from redis",
+                    "result" => $cachedData
+                ]);
+            }
         }
         
        $posts = Category::where('type', 'category')->whereNull('category_id')
@@ -142,7 +145,7 @@ class PosApiController extends Controller
         'product_count' => $product_count
        ];
 
-       $this->redisSet($cacheKey, $result, 600);
+       $posCache->set($cacheKey, $result);
 
         return response()->json([
             "status" => true,
@@ -234,15 +237,18 @@ class PosApiController extends Controller
         $page = $request->page ?? 1;
     
         $cacheKey = 'pos_product_list_category_' . $category . '_page_' . $page;
+        $posCache = app(\App\Services\PosApiCacheService::class);
     
-        $cachedData = $this->redisGet($cacheKey);
+        if (!$posCache->shouldSkipCache($request)) {
+            $cachedData = $posCache->get($cacheKey);
     
-        if ($cachedData) {
-            return response()->json([
-                "status" => true,
-                "message" => "products fetched from redis",
-                "result" => $cachedData
-            ]);
+            if ($cachedData) {
+                return response()->json([
+                    "status" => true,
+                    "message" => "products fetched from redis",
+                    "result" => $cachedData
+                ]);
+            }
         }
         
         
@@ -259,7 +265,7 @@ class PosApiController extends Controller
         
          $result = $posts->toArray();
 
-        $this->redisSet($cacheKey, $result, 600);
+        $posCache->set($cacheKey, $result);
     
         return response()->json([
             "status" => true,
@@ -351,15 +357,18 @@ class PosApiController extends Controller
         $page = $request->page ?? 1;
     
         $cacheKey = 'pos_parent_category_product_' . $categoryId . '_page_' . $page;
+        $posCache = app(\App\Services\PosApiCacheService::class);
     
-        $cachedData = $this->redisGet($cacheKey);
+        if (!$posCache->shouldSkipCache($request)) {
+            $cachedData = $posCache->get($cacheKey);
     
-        if ($cachedData) {
-            return response()->json([
-                "status" => true,
-                "message" => "products fetched from redis",
-                "result" => $cachedData
-            ]);
+            if ($cachedData) {
+                return response()->json([
+                    "status" => true,
+                    "message" => "products fetched from redis",
+                    "result" => $cachedData
+                ]);
+            }
         }
         
         $category = Category::find($request->category_id);
@@ -374,7 +383,7 @@ class PosApiController extends Controller
         
         $result = $posts->toArray();
 
-        $this->redisSet($cacheKey, $result, 600);
+        $posCache->set($cacheKey, $result);
     
         return response()->json([
             "status" => true,
@@ -467,16 +476,19 @@ class PosApiController extends Controller
     public function posProductDetail(Request $request,$id)
     {
         $cacheKey = 'pos_product_detail_' . $id;
+        $posCache = app(\App\Services\PosApiCacheService::class);
 
-        $cachedData = $this->redisGet($cacheKey);
+        if (!$posCache->shouldSkipCache($request)) {
+            $cachedData = $posCache->get($cacheKey);
     
-        if ($cachedData) {
-            return response()->json([
-                "status" => true,
-                "message" => "product fetched from redis",
-                "result" => $cachedData['result'],
-                "galleries" => $cachedData['galleries']
-            ]);
+            if ($cachedData) {
+                return response()->json([
+                    "status" => true,
+                    "message" => "product fetched from redis",
+                    "result" => $cachedData['result'],
+                    "galleries" => $cachedData['galleries']
+                ]);
+            }
         }
         
         $info=Term::query()->where('type','product')->where('status',1)->whereIn('list_type', [0,2])->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo')->withCount('reviews')->where('id', $id)->first();
@@ -500,7 +512,7 @@ class PosApiController extends Controller
             'galleries' => $galleries
         ];
     
-        $this->redisSet($cacheKey, $result, 600);
+        $posCache->set($cacheKey, $result);
     
         return response()->json([
             "status" => true,
@@ -2912,30 +2924,10 @@ private function send_order_recipts($data){
         }
     }
     
-    private function redisGet($key)
-    {
-        $cachedData = Redis::get($key);
-    
-        if ($cachedData) {
-            return json_decode($cachedData, true);
-        }
-    
-        return null;
-    }
-
     /** Additive: /api/storedata/order/create when payload producttype=tickets. */
     private function isApiTicketsCheckout(Request $request): bool
     {
         return strtolower(trim((string) $request->input('producttype', ''))) === 'tickets';
-    }
-    
-    private function redisSet($key, $data, $ttl = null)
-    {
-        if ($ttl) {
-            Redis::setex($key, $ttl, json_encode($data));
-        } else {
-            Redis::set($key, json_encode($data));
-        }
     }
     
 }

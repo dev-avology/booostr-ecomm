@@ -165,6 +165,18 @@ function TenantCacheClear($key)
 	return env('CACHE_DRIVER') == 'memcached' || env('CACHE_DRIVER') == 'redis'  ? \Cache::forget($key) : true;
 }
 
+/** Bust Redis caches for POS API product/category/store read endpoints (current tenant). */
+function bust_pos_api_cache(): void
+{
+    try {
+        app(\App\Services\PosApiCacheService::class)->bump();
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::warning('bust_pos_api_cache failed', [
+            'error' => $e->getMessage(),
+        ]);
+    }
+}
+
 
 function imageSizes()
 {
