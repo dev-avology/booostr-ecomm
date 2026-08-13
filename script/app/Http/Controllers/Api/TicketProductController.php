@@ -57,15 +57,9 @@ class TicketProductController extends Controller
                 ->get();
 
             $result = $products->map(function (Term $product) {
-                $basePrice = (float) ($product->price->price ?? 0);
-                $ticketFee = 0.75;
-                $ticketFeeMeta = Termmeta::where('term_id', $product->id)
-                    ->where('key', 'ticket_fee')
-                    ->value('value');
-
-                if ($ticketFeeMeta !== null && $ticketFeeMeta !== '') {
-                    $ticketFee = (float) $ticketFeeMeta;
-                }
+                $storedPrice = (float) ($product->price->price ?? 0);
+                $ticketFee = ticket_service_fee_for_term((int) $product->id);
+                $basePrice = ticket_stored_price_to_seller_base($storedPrice, $ticketFee);
 
                 $preview = $product->media->value ?? null;
 
@@ -81,7 +75,7 @@ class TicketProductController extends Controller
                     'list_type' => (int) ($product->list_type ?? 0),
                     'price' => round($basePrice, 2),
                     'ticket_fee' => round($ticketFee, 2),
-                    'display_price' => round($basePrice + $ticketFee, 2),
+                    'display_price' => round($storedPrice, 2),
                     'sales' => (int) ($product->orders_count ?? 0),
                     'preview' => $preview,
                     'preview_url' => $preview ? asset($preview) : asset('uploads/default.png'),

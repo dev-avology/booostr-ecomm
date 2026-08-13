@@ -1841,3 +1841,61 @@ if (!function_exists('ticket_email_qr_png_base64')) {
         return base64_encode($merged);
     }
 }
+
+if (!function_exists('default_ticket_service_fee')) {
+    function default_ticket_service_fee(): float
+    {
+        return 0.75;
+    }
+}
+
+if (!function_exists('ticket_service_fee_for_term')) {
+    function ticket_service_fee_for_term(?int $termId): float
+    {
+        if (!$termId) {
+            return default_ticket_service_fee();
+        }
+
+        $fee = \App\Models\Termmeta::where('term_id', $termId)
+            ->where('key', 'ticket_fee')
+            ->value('value');
+
+        if ($fee === null || $fee === '') {
+            return default_ticket_service_fee();
+        }
+
+        return (float) $fee;
+    }
+}
+
+if (!function_exists('is_ticket_product_term')) {
+    function is_ticket_product_term($term): bool
+    {
+        if (!$term) {
+            return false;
+        }
+
+        return (int) ($term->is_variation ?? 0) === 2;
+    }
+}
+
+/** Stored prices.price (base + service fee) → seller base ticket price input. */
+if (!function_exists('ticket_stored_price_to_seller_base')) {
+    function ticket_stored_price_to_seller_base(float $storedPrice, ?float $fee = null): float
+    {
+        $fee = $fee ?? default_ticket_service_fee();
+        $base = $storedPrice - $fee;
+
+        return $base < 0 ? 0.0 : round($base, 2);
+    }
+}
+
+/** Seller base ticket price input → stored prices.price (base + service fee). */
+if (!function_exists('ticket_seller_base_to_stored_price')) {
+    function ticket_seller_base_to_stored_price(float $basePrice, ?float $fee = null): float
+    {
+        $fee = $fee ?? default_ticket_service_fee();
+
+        return round($basePrice + $fee, 2);
+    }
+}

@@ -214,8 +214,13 @@ class ProductController extends Controller
             }
 
             if ($request->product_type != 1) {
+                $storedPrice = (float) preg_replace('/[^0-9.]/', '', (string) $request->price);
+                if ((int) $request->product_type === 2) {
+                    $storedPrice = ticket_seller_base_to_stored_price($storedPrice);
+                }
+
                 $term->price()->create([
-                    'price' => $request->price,
+                    'price' => $storedPrice,
                     'qty' => $request->qty,
                     'sku' => $request->sku,
                     'weight' => 0,
@@ -337,6 +342,13 @@ class ProductController extends Controller
                 if(in_array($val->id, $selected_categories)){
                     $selected_product_type = $val->name;
                 }
+            }
+
+            if (is_ticket_product_term($info) && $info->price) {
+                $info->price->price = ticket_stored_price_to_seller_base(
+                    (float) $info->price->price,
+                    ticket_service_fee_for_term((int) $info->id)
+                );
             }
 
             return view("seller.product.price", compact('info', 'id', 'attributes', 'selected_product_type'));
@@ -512,6 +524,12 @@ class ProductController extends Controller
                     $term->save();
                     //single price
                     $valid_price = preg_replace("/[^0-9.]/", "", $request->price);
+                    if (is_ticket_product_term($term)) {
+                        $valid_price = ticket_seller_base_to_stored_price(
+                            (float) $valid_price,
+                            ticket_service_fee_for_term((int) $term->id)
+                        );
+                    }
                     if (empty($term->price)) {
                         $term->price()->create(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => 0, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status,'tax' => $request->tax]);
                     } else {

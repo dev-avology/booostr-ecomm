@@ -153,7 +153,8 @@
                                         }
                                     }
 
-                                    $displayPrice = $basePrice + $ticketFee;
+                                    // prices.price for tickets already includes the service fee.
+                                    $displayPrice = $row->is_variation == 2 ? $basePrice : ($basePrice + $ticketFee);
                                 @endphp
 
                                 <td class="text-right" style="{{ $basePrice == 0 ? 'font-weight: bold; color: red;' : '' }}">

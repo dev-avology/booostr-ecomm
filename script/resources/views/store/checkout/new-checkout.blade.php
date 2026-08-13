@@ -655,7 +655,7 @@ input[type="checkbox"]:checked {
                                                         ->value('value');
                                                 
                                                     if (trim((string) $productKind) === 'event_ticket') {
-                                                        $itemTicketFee = ((float) ($ticketFee ?: 0.75)) * (int) $item->qty;
+                                                        $itemTicketFee = 0;
                                                     }
                                                 
                                                     $itemDisplayPrice = ($item->price * $item->qty) + $itemTicketFee;
@@ -964,12 +964,10 @@ input[type="checkbox"]:checked {
             "use strict";
             var get_stripe_paymentIntent_url = "{{ route('checkout.get_stripe_paymentIntent') }}";
             var subtotal = parseFloat($('#subtotal').val());
-            subtotal = subtotal + parseFloat($('#ticket_fee_total').val());
             
             var tax = parseFloat($('#tax').val());
             
             var total = parseFloat($('#total').val());
-            total = total + parseFloat($('#ticket_fee_total').val());
             var price = {{ $shipping_price }};
             var credit_card_fee = parseFloat($('#credit_card_fee').val());
             var booster_platform_fee = parseFloat($('#booster_platform_fee').val());

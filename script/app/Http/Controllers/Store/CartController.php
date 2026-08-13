@@ -379,11 +379,8 @@ class CartController extends Controller
                 
             }
             
+            // Ticket products store retail price (base + service fee) in prices.price.
             $cartPrice = (float) $price->price;
-
-            if (($ticketOptions['product_kind'] ?? '') === 'event_ticket') {
-                $cartPrice += (float) ($ticketOptions['ticket_fee'] ?? 0.75);
-            }
 
             Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $cartPrice, 'weight' => $weight, 'options' => $options]);
         }
