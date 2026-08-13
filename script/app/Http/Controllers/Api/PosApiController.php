@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
 use Exception;
+use App\Services\EventTicketEmailService;
 use Stripe\Stripe;
 use Stripe\Token;
 use Stripe\PaymentIntent;
@@ -2691,6 +2692,8 @@ private function send_order_recipts($data){
             }
         }
     
+        $isApiTicketsCheckout = $this->isApiTicketsCheckout($request);
+
         /* ===============================
          * 6. SAVE ORDER
          * =============================== */
@@ -2768,10 +2771,23 @@ private function send_order_recipts($data){
 
                  $item['order_id'] = $order->id;
                 $item['term_id']  = $row->id;
-                $item['info']     = json_encode([
+
+                $itemInfo = [
                     'sku' => $row->options->sku ?? '',
-                    'options' => $row->options->options ?? []
-                ]);
+                    'options' => $row->options->options ?? [],
+                ];
+
+                // Additive: API tickets checkout — persist ticket metadata for receipt emails.
+                if ($isApiTicketsCheckout) {
+                    $ticketOptions = $this->getTicketOptions($row->id);
+                    $itemInfo['product_kind'] = $row->options->product_kind ?? $ticketOptions['product_kind'];
+                    $itemInfo['ticket_fee'] = $row->options->ticket_fee ?? $ticketOptions['ticket_fee'];
+                    if (($itemInfo['product_kind'] ?? '') === 'event_ticket') {
+                        $itemInfo['ticket_fee_total'] = ((float) ($itemInfo['ticket_fee'] ?: 0.75)) * (int) $row->qty;
+                    }
+                }
+
+                $item['info'] = json_encode($itemInfo);
 
             //    if(isset($row->options->price_id)){
             //     array_push($priceids, ['order_id' => $order->id, 'price_id' => $row->options->price_id, 'qty' => $row->qty]);
@@ -2860,6 +2876,22 @@ private function send_order_recipts($data){
                 $reciptdata = $this->order_recipt_data($order->id);
                 $recipt =  $this->send_order_recipt($reciptdata);
             }
+
+            // Additive: API producttype=tickets — send ticket QR email(s) when payment is complete.
+            if ($isApiTicketsCheckout && (int) $order->payment_status === 1 && !empty($request->email)) {
+                try {
+                    app(EventTicketEmailService::class)->sendForOrder(
+                        $order->fresh(['orderitems.term', 'ordermeta']),
+                        (string) $request->email
+                    );
+                } catch (\Throwable $ticketMailError) {
+                    \Log::error('API tickets checkout: ticket email failed', [
+                        'order_id' => $order->id,
+                        'email' => $request->email,
+                        'error' => $ticketMailError->getMessage(),
+                    ]);
+                }
+            }
         
              
             
@@ -2889,6 +2921,12 @@ private function send_order_recipts($data){
         }
     
         return null;
+    }
+
+    /** Additive: /api/storedata/order/create when payload producttype=tickets. */
+    private function isApiTicketsCheckout(Request $request): bool
+    {
+        return strtolower(trim((string) $request->input('producttype', ''))) === 'tickets';
     }
     
     private function redisSet($key, $data, $ttl = null)
