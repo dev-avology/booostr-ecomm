@@ -2146,10 +2146,144 @@ class PosApiController extends Controller
         $info = $info->paginate(15);
 
         if($info->isNotEmpty()){
-            return response()->json(['error' => false, 'message' => 'Order list fetched successfully', 'result' => $info,'heighest_sell_terms' =>$termData]);
+            $result = $this->enrichPosOrderListWithRefundTransactions($info);
+
+            return response()->json(['error' => false, 'message' => 'Order list fetched successfully', 'result' => $result,'heighest_sell_terms' =>$termData]);
         } else {
             return response()->json(['error' => true, 'message' => 'No orders found', 'result' => null]);
         }
+    }
+
+    /**
+     * Additive: POS order list — enrich orderlasttrans with all refund/transaction history.
+     * Keeps original last_transcation_log "value" for backward compatibility.
+     */
+    private function enrichPosOrderListWithRefundTransactions($paginator): array
+    {
+        $orders = $paginator->getCollection();
+        $orderIds = $orders->pluck('id')->filter()->values()->all();
+
+        $partialLogsByOrder = Ordermeta::query()
+            ->whereIn('order_id', $orderIds)
+            ->where('key', 'partial_refund_logs')
+            ->pluck('value', 'order_id');
+
+        $transactionLogsByOrder = Ordermeta::query()
+            ->whereIn('order_id', $orderIds)
+            ->where('key', 'transcation_log')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('order_id');
+
+        $payload = $paginator->toArray();
+
+        foreach ($orders as $index => $order) {
+            $payload['data'][$index]['orderlasttrans'] = $this->buildPosOrderListOrderLastTransPayload(
+                $order,
+                $partialLogsByOrder->get($order->id),
+                $transactionLogsByOrder->get($order->id, collect())
+            );
+        }
+
+        return $payload;
+    }
+
+    private function buildPosOrderListOrderLastTransPayload(Order $order, $partialLogsRaw, $transactionLogRows): array
+    {
+        $lastMeta = $order->orderlasttrans;
+        $lastTransaction = json_decode(optional($lastMeta)->value ?? '{}', true);
+        if (!is_array($lastTransaction)) {
+            $lastTransaction = [];
+        }
+
+        $partialRefundLogs = function_exists('get_order_partial_refund_log_entries')
+            ? get_order_partial_refund_log_entries((int) $order->id)
+            : [];
+
+        if (empty($partialRefundLogs) && !empty($partialLogsRaw)) {
+            $partialRefundLogs = $this->normalizePosPartialRefundLogsFromMeta($partialLogsRaw);
+        }
+
+        $transactionLogs = collect($transactionLogRows)->map(function ($meta) {
+            $decoded = json_decode($meta->value ?? '{}', true);
+
+            return [
+                'meta_id' => (int) $meta->id,
+                'transaction' => is_array($decoded) ? $decoded : [],
+            ];
+        })->values()->all();
+
+        $refundLogs = $partialRefundLogs;
+
+        if (empty($refundLogs) && (int) $order->payment_status === 5 && !empty($lastTransaction)) {
+            $amountCents = (int) ($lastTransaction['amount_refunded'] ?? $lastTransaction['amount'] ?? 0);
+
+            $refundLogs[] = [
+                'type' => 'full',
+                'refunded_at' => $order->refunded_at
+                    ? Carbon::parse($order->refunded_at)->toDateTimeString()
+                    : null,
+                'stripe_refund_id' => (string) ($lastTransaction['id'] ?? ''),
+                'grand_total' => round($amountCents / 100, 2),
+                'item_amount' => round($amountCents / 100, 2),
+                'tax_amount' => 0.0,
+                'items' => [],
+                'transaction' => $lastTransaction,
+            ];
+        }
+
+        return [
+            'order_id' => (int) $order->id,
+            'key' => optional($lastMeta)->key ?? 'last_transcation_log',
+            'value' => optional($lastMeta)->value,
+            'last_transaction' => $lastTransaction,
+            'partial_refund_logs' => $partialRefundLogs,
+            'refund_logs' => $refundLogs,
+            'transaction_logs' => $transactionLogs,
+        ];
+    }
+
+    private function normalizePosPartialRefundLogsFromMeta(?string $raw): array
+    {
+        $logs = json_decode($raw ?? '[]', true);
+        if (!is_array($logs)) {
+            return [];
+        }
+
+        $entries = [];
+
+        foreach ($logs as $log) {
+            if (!is_array($log)) {
+                continue;
+            }
+
+            $itemAmount = 0.0;
+            $taxAmount = 0.0;
+
+            foreach ($log['items'] ?? [] as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $itemAmount += (float) ($item['amount'] ?? 0);
+                $taxAmount += (float) ($item['tax'] ?? 0);
+            }
+
+            if ($itemAmount <= 0 && empty($log['items'])) {
+                $itemAmount = (float) ($log['amount'] ?? 0);
+            }
+
+            $entries[] = [
+                'type' => (string) ($log['type'] ?? 'item'),
+                'refunded_at' => $log['refunded_at'] ?? null,
+                'stripe_refund_id' => (string) ($log['stripe_refund_id'] ?? ''),
+                'item_amount' => round($itemAmount, 2),
+                'tax_amount' => round($taxAmount, 2),
+                'grand_total' => round((float) ($log['amount'] ?? ($itemAmount + $taxAmount)), 2),
+                'items' => $log['items'] ?? [],
+            ];
+        }
+
+        return $entries;
     }
 
 
