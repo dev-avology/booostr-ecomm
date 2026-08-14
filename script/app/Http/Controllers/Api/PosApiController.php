@@ -3023,15 +3023,29 @@ private function send_order_recipts($data){
                 $recipt =  $this->send_order_recipt($reciptdata);
             }
 
-            // Additive: API producttype=tickets — send ticket QR email(s) when payment is complete.
+            // Additive: API producttype=tickets — order receipt + ticket QR emails when payment is complete (same as web checkout).
             if ($isApiTicketsCheckout && (int) $order->payment_status === 1 && !empty($request->email)) {
                 try {
+                    $orderForMail = $order->fresh([
+                        'orderstatus',
+                        'orderitems.term',
+                        'getway',
+                        'user',
+                        'shippingwithinfo',
+                        'ordermeta',
+                    ]);
+                    $orderForMail->notify_driver = 'mail';
+
+                    \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($orderForMail);
+
+                    \App\Lib\NotifyToUser::sendEmail($orderForMail, (string) $request->email, 'user');
+
                     app(EventTicketEmailService::class)->sendForOrder(
-                        $order->fresh(['orderitems.term', 'ordermeta']),
+                        $orderForMail,
                         (string) $request->email
                     );
                 } catch (\Throwable $ticketMailError) {
-                    \Log::error('API tickets checkout: ticket email failed', [
+                    \Log::error('API tickets checkout: post-order emails failed', [
                         'order_id' => $order->id,
                         'email' => $request->email,
                         'error' => $ticketMailError->getMessage(),
