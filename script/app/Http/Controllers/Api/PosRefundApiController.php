@@ -211,7 +211,7 @@ class PosRefundApiController extends OrderController
             $refundId = $refund->id ?? null;
         }
 
-        $this->runPosRefundSideEffects($order, (float) $refundDetails['grand_total'], $refundId, $cancelledTickets, $refundDetails);
+        $this->runPosRefundSideEffects($order, (float) $refundDetails['grand_total'], $refundId, $cancelledTickets, $refundDetails, 'item');
 
         return $this->formatPosRefundResponse(
             $order,
@@ -273,7 +273,7 @@ class PosRefundApiController extends OrderController
             $refundId = $refund->id ?? null;
         }
 
-        $this->runPosRefundSideEffects($order, (float) $refundDetails['grand_total'], $refundId, $cancelledTickets, $refundDetails);
+        $this->runPosRefundSideEffects($order, (float) $refundDetails['grand_total'], $refundId, $cancelledTickets, $refundDetails, 'dollar');
 
         return $this->formatPosRefundResponse(
             $order,
@@ -345,7 +345,7 @@ class PosRefundApiController extends OrderController
             $refundAmountDollars = round($refund->amount / 100, 2);
         }
 
-        $this->runPosRefundSideEffects($order, $refundAmountDollars, $refundId, $cancelledTickets);
+        $this->runPosRefundSideEffects($order, $refundAmountDollars, $refundId, $cancelledTickets, null, 'full');
 
         return $this->formatPosRefundResponse(
             $order,
@@ -369,7 +369,7 @@ class PosRefundApiController extends OrderController
         $cancelledTickets = $this->finalizeRefundedOrder($order, $transactionLog);
         $refundId = $transactionLog['id'] ?? null;
 
-        $this->runPosRefundSideEffects($order, $refundAmountDollars, $refundId, $cancelledTickets);
+        $this->runPosRefundSideEffects($order, $refundAmountDollars, $refundId, $cancelledTickets, null, 'full');
 
         return $this->formatPosRefundResponse(
             $order,
@@ -493,7 +493,8 @@ class PosRefundApiController extends OrderController
         float $refundAmount,
         ?string $refundId,
         ?Collection $cancelledTickets = null,
-        ?array $refundDetails = null
+        ?array $refundDetails = null,
+        ?string $refundType = 'full'
     ): void {
         $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')
             ->findOrFail($order->id);
@@ -536,6 +537,14 @@ class PosRefundApiController extends OrderController
                 NotifyToUser::sendEmail($order, $mailTo, 'user');
             }
         }
+
+        $this->sendRefundReceiptEmail(
+            $order,
+            $refundAmount,
+            $refundDetails,
+            $refundId,
+            $refundType
+        );
     }
 
     protected function formatPosRefundResponse(

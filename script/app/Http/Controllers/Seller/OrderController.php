@@ -17,6 +17,7 @@ use DB;
 use App\Models\Getway;
 use App\Models\EventTicket;
 use Carbon\Carbon;
+use App\Services\RefundReceiptEmailService;
 use App\Services\TicketCancelRefundService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Arr;
@@ -1493,6 +1494,33 @@ class OrderController extends Controller
         }
     }
 
+    /**
+     * Additive: customer Refund Receipt email (same design as order receipt).
+     */
+    protected function sendRefundReceiptEmail(
+        Order $order,
+        ?float $refundAmount = null,
+        ?array $refundDetails = null,
+        ?string $stripeRefundId = null,
+        ?string $refundType = null
+    ): void {
+        try {
+            app(RefundReceiptEmailService::class)->sendForRefund(
+                $order,
+                $refundAmount,
+                $refundDetails,
+                $this->buildRefundReferenceId($order, $stripeRefundId),
+                $refundType
+            );
+        } catch (\Throwable $e) {
+            \Log::error('Refund receipt email failed after order refund.', [
+                'order_id' => $order->id,
+                'refund_type' => $refundType,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     protected function buildTicketRefundItemMap(array $refundItems): array
     {
         $itemRefunds = [];
@@ -1591,6 +1619,14 @@ class OrderController extends Controller
                         NotifyToUser::sendEmail($order, $mail_to, 'user');
                     }
                 }
+
+                $this->sendRefundReceiptEmail(
+                    $order,
+                    $refundAmount ?? $this->calculateRefundNetTotal($order, json_decode(optional($order->ordermeta)->value ?? '{}')),
+                    null,
+                    $stripeRefundId,
+                    'full'
+                );
             }
 
             if ($silent) {
@@ -2134,6 +2170,14 @@ class OrderController extends Controller
                 }
             }
 
+            $this->sendRefundReceiptEmail(
+                $order,
+                $refundDetails['grand_total'] ?? null,
+                $refundDetails,
+                $stripeRefundId,
+                'dollar'
+            );
+
             $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}', true);
             $receiptEmail = $ordermeta['email'] ?? $order->user->email ?? '';
 
@@ -2256,6 +2300,14 @@ class OrderController extends Controller
                     NotifyToUser::sendEmail($order, $mail_to, 'user');
                 }
             }
+
+            $this->sendRefundReceiptEmail(
+                $order,
+                $refundDetails['grand_total'] ?? null,
+                $refundDetails,
+                $stripeRefundId,
+                'item'
+            );
 
             $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}', true);
             $receiptEmail = $ordermeta['email'] ?? $order->user->email ?? '';
