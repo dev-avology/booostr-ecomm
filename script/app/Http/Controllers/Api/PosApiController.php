@@ -3024,7 +3024,12 @@ private function send_order_recipts($data){
             }
 
             // Additive: API producttype=tickets — order receipt + ticket QR emails when payment is complete (same as web checkout).
-            if ($isApiTicketsCheckout && (int) $order->payment_status === 1 && !empty($request->email)) {
+            // Cash tickets: send on create even though payment_status stays Authorized (4) until seller capture.
+            $shouldSendApiTicketsEmails = $isApiTicketsCheckout
+                && !empty($request->email)
+                && (((int) $order->payment_status === 1) || $isCashPayment);
+
+            if ($shouldSendApiTicketsEmails) {
                 try {
                     $orderForMail = $order->fresh([
                         'orderstatus',
