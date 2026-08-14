@@ -17,13 +17,15 @@ class RefundReceiptEmailService
      * Send a customer Refund Receipt email (same visual design as the order receipt).
      *
      * @param  string|null  $refundType  full|item|dollar
+     * @param  string|null  $recipientEmail  When set (e.g. POS API payload), overrides ordermeta email.
      */
     public function sendForRefund(
         Order $order,
         ?float $refundAmount = null,
         ?array $refundDetails = null,
         ?string $refundReferenceId = null,
-        ?string $refundType = null
+        ?string $refundType = null,
+        ?string $recipientEmail = null
     ): bool {
         $order->loadMissing([
             'orderstatus',
@@ -37,7 +39,10 @@ class RefundReceiptEmailService
         ]);
 
         $ordermeta = json_decode(optional($order->ordermeta)->value ?? '');
-        $email = trim((string) ($ordermeta->email ?? $order->user->email ?? ''));
+        $email = trim((string) $recipientEmail);
+        if ($email === '') {
+            $email = trim((string) ($ordermeta->email ?? $order->user->email ?? ''));
+        }
 
         if ($email === '') {
             return false;

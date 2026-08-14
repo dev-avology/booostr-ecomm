@@ -7,6 +7,7 @@ use App\Lib\NotifyToUser;
 use App\Models\Getway;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\RefundReceiptEmailService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,10 +21,16 @@ use Stripe\Stripe;
  */
 class PosRefundApiController extends OrderController
 {
+    /** Additive: refund receipt recipient from POS API payload (full/item/dollar). */
+    protected ?string $posRefundReceiptEmail = null;
+
     public function refundPayment(Request $request): JsonResponse
     {
+        $this->posRefundReceiptEmail = null;
+
         $validator = Validator::make($request->all(), [
             'paymentId'   => 'required|string',
+            'email'       => 'nullable|email|max:255',
             'refundAmount'=> 'nullable|numeric|min:0',
             'reason'      => 'nullable|string|max:500',
             'refundType'  => 'nullable|in:full,item,dollar',
@@ -38,6 +45,10 @@ class PosRefundApiController extends OrderController
             return $this->errorResponse('Validation failed.', 422, [
                 'errors' => $validator->errors(),
             ]);
+        }
+
+        if ($request->filled('email')) {
+            $this->posRefundReceiptEmail = trim((string) $request->input('email'));
         }
 
         try {
@@ -545,6 +556,35 @@ class PosRefundApiController extends OrderController
             $refundId,
             $refundType
         );
+    }
+
+    /**
+     * Additive: POS API sends refund receipt to payload email when provided.
+     */
+    protected function sendRefundReceiptEmail(
+        Order $order,
+        ?float $refundAmount = null,
+        ?array $refundDetails = null,
+        ?string $stripeRefundId = null,
+        ?string $refundType = null
+    ): void {
+        try {
+            app(RefundReceiptEmailService::class)->sendForRefund(
+                $order,
+                $refundAmount,
+                $refundDetails,
+                $this->buildRefundReferenceId($order, $stripeRefundId),
+                $refundType,
+                $this->posRefundReceiptEmail
+            );
+        } catch (\Throwable $e) {
+            \Log::error('POS refund receipt email failed after order refund.', [
+                'order_id' => $order->id,
+                'refund_type' => $refundType,
+                'email' => $this->posRefundReceiptEmail,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     protected function formatPosRefundResponse(
