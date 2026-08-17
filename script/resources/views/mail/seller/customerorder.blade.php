@@ -481,7 +481,11 @@
                     Shipping Information:
                     </h5>
 
-                    @if($isPickup)
+                    @if(!empty($receipt_view_options['shipping_information'] ?? ''))
+                    <span style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
+                        {{ $receipt_view_options['shipping_information'] }}
+                    </span>
+                    @elseif($isPickup)
                     <span style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
                         In-Person Pick Up
                     </span>

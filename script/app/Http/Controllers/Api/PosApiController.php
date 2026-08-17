@@ -3043,7 +3043,12 @@ private function send_order_recipts($data){
 
                     \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($orderForMail);
 
-                    \App\Lib\NotifyToUser::sendEmail($orderForMail, (string) $request->email, 'user');
+                    \App\Lib\NotifyToUser::sendEmail(
+                        $orderForMail,
+                        (string) $request->email,
+                        'user',
+                        ['shipping_information' => 'Digital Delivery']
+                    );
 
                     app(EventTicketEmailService::class)->sendForOrder(
                         $orderForMail,

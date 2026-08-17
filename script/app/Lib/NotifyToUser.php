@@ -56,7 +56,7 @@ class NotifyToUser
 		return true;
 	}
 
-	public static function sendEmail($info, $to=null, $email_identity=null){
+	public static function sendEmail($info, $to=null, $email_identity=null, array $receiptViewOptions = []){
 		    if($email_identity == 'admin'){
 				$currency=get_option('currency_info');
 				$invoice_info=get_option('invoice_data',true);
@@ -99,6 +99,9 @@ class NotifyToUser
 				$data['currency_info']=$currency;
 				$data['invoice_data']=$invoice_info;
 				$data['data']=$info;
+				if (!empty($receiptViewOptions)) {
+					$data['receipt_view_options'] = $receiptViewOptions;
+				}
 
 				// All customer receipt emails (order placed / shipped / cancelled, etc.)
 				// use the same formatted From + Reply-To as the thank-you email.

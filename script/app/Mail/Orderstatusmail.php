@@ -98,6 +98,7 @@ class Orderstatusmail extends Mailable
                 'card_number' => $card_number,
                 'amount_refunded' => $amount_refunded,
                 'order_type' => $order_type,
+                'receipt_view_options' => $data['receipt_view_options'] ?? [],
             ]);
 
         // Use club receipt from when explicitly provided (product checkout receipt).
