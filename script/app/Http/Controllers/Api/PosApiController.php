@@ -2123,11 +2123,13 @@ class PosApiController extends Controller
         ->whereIn('order_from', [4, 5]);
 
         if($key == 'latest'){
-            $info->where('payment_status', 1)
-                ->orderByDesc('created_at');
+            $info->where('payment_status', 1);
         } elseif ($key == 'complete') {
             $info->where('payment_status', 1);
         }
+
+        // Additive: default POS order list — latest orders first (page 1 = newest).
+        $info->orderByDesc('created_at');
 
         $priceIds = [];
         $termData = [];
