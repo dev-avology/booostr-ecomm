@@ -76,6 +76,8 @@ Route::group([
 
     // Additive: POS Quick Sale module (separate from regular product inventory).
     Route::post('/pos-quick-sale-add-descriptor', 'Api\PosQuickSaleApiController@addDescriptor');
+    Route::post('/pos-quick-sale-update-descriptor', 'Api\PosQuickSaleApiController@updateDescriptor');
+    Route::post('/pos-quick-sale-delete-descriptor', 'Api\PosQuickSaleApiController@deleteDescriptor');
     Route::post('/pos-quick-sale-get-descriptors', 'Api\PosQuickSaleApiController@getDescriptors');
 
     Route::post('/pos-get-store-details', 'Api\PosApiController@posGetStoreDetails');

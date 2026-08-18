@@ -76,6 +76,141 @@ class PosQuickSaleApiController extends Controller
     }
 
     /**
+     * Update Descriptor API — update Quick Sale descriptor by id.
+     */
+    public function updateDescriptor(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|min:1',
+            'name' => 'required|string|max:255',
+            'price' => 'nullable|numeric|min:0',
+            'is_default' => 'nullable|boolean',
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $descriptor = QuickSaleDescriptor::find((int) $request->input('id'));
+
+        if (!$descriptor) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Quick Sale descriptor not found.',
+            ], 404);
+        }
+
+        try {
+            $descriptor = DB::transaction(function () use ($request, $descriptor) {
+                $isDefault = $request->has('is_default')
+                    ? $request->boolean('is_default')
+                    : (bool) $descriptor->is_default;
+
+                if ($isDefault) {
+                    QuickSaleDescriptor::query()
+                        ->where('id', '!=', $descriptor->id)
+                        ->update(['is_default' => false]);
+                }
+
+                $descriptor->name = trim((string) $request->input('name'));
+                $descriptor->price = round((float) $request->input('price', $descriptor->price ?? 0), 2);
+
+                if ($request->filled('sort_order')) {
+                    $descriptor->sort_order = max(0, (int) $request->input('sort_order'));
+                }
+
+                $descriptor->is_default = $isDefault;
+                $descriptor->save();
+
+                $this->ensureDefaultDescriptorExists();
+
+                return $descriptor->fresh();
+            });
+
+            return response()->json([
+                'error' => false,
+                'message' => 'Quick Sale descriptor updated successfully.',
+                'descriptor' => $this->formatDescriptor($descriptor),
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('POS Quick Sale update descriptor failed', [
+                'descriptor_id' => $request->input('id'),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'error' => true,
+                'message' => 'Unable to update Quick Sale descriptor.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete Descriptor API — remove Quick Sale descriptor by id.
+     */
+    public function deleteDescriptor(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $descriptor = QuickSaleDescriptor::find((int) $request->input('id'));
+
+        if (!$descriptor) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Quick Sale descriptor not found.',
+            ], 404);
+        }
+
+        if (QuickSaleDescriptor::count() <= 1) {
+            return response()->json([
+                'error' => true,
+                'message' => 'At least one Quick Sale descriptor must remain.',
+            ], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($descriptor) {
+                $wasDefault = (bool) $descriptor->is_default;
+                $descriptor->delete();
+
+                if ($wasDefault) {
+                    $this->ensureDefaultDescriptorExists();
+                }
+            });
+
+            return response()->json([
+                'error' => false,
+                'message' => 'Quick Sale descriptor deleted successfully.',
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('POS Quick Sale delete descriptor failed', [
+                'descriptor_id' => $request->input('id'),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'error' => true,
+                'message' => 'Unable to delete Quick Sale descriptor.',
+            ], 500);
+        }
+    }
+
+    /**
      * Get Descriptors API — list Quick Sale descriptors for POS settings screen.
      */
     public function getDescriptors(Request $request): JsonResponse
@@ -105,5 +240,23 @@ class PosQuickSaleApiController extends Controller
             'created_at' => optional($descriptor->created_at)->toDateTimeString(),
             'updated_at' => optional($descriptor->updated_at)->toDateTimeString(),
         ];
+    }
+
+    /** Ensure one descriptor is always marked default (lowest sort_order first). */
+    private function ensureDefaultDescriptorExists(): void
+    {
+        if (QuickSaleDescriptor::where('is_default', true)->exists()) {
+            return;
+        }
+
+        $fallback = QuickSaleDescriptor::query()
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->first();
+
+        if ($fallback) {
+            $fallback->is_default = true;
+            $fallback->save();
+        }
     }
 }
