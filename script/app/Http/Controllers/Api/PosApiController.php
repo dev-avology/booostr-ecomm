@@ -19,6 +19,7 @@ use App\Models\Price;
 use Cookie;
 use App\Models\Option;
 use Carbon\Carbon;
+use App\Models\Orderstock;
 use App\Models\QuickSaleOrderItem;
 use Illuminate\Support\Facades\Session;
 use App\Mail\PosUserEmail;
