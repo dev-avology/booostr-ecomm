@@ -82,6 +82,11 @@ class Order extends Model
        return $this->hasMany('App\Models\Orderitem')->with('term');
    }
 
+   public function quickSaleOrderItems()
+   {
+       return $this->hasMany(QuickSaleOrderItem::class, 'order_id');
+   }
+
 
    public function orderitemswithpreview()
    {

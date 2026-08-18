@@ -19,7 +19,7 @@ use App\Models\Price;
 use Cookie;
 use App\Models\Option;
 use Carbon\Carbon;
-use App\Models\Orderstock;
+use App\Models\QuickSaleOrderItem;
 use Illuminate\Support\Facades\Session;
 use App\Mail\PosUserEmail;
 use Cart;
@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
 use Exception;
 use App\Services\EventTicketEmailService;
+use App\Services\QuickSaleOrderService;
 use Stripe\Stripe;
 use Stripe\Token;
 use Stripe\PaymentIntent;
@@ -722,6 +723,41 @@ class PosApiController extends Controller
             ], 422);
         }
 
+        [$productItems, $quickSaleItems] = app(QuickSaleOrderService::class)
+            ->partitionPosOrderItems($request->input('items', []));
+
+        if ($productItems === [] && $quickSaleItems === []) {
+            return response()->json([
+                'errors' => ['items' => ['At least one product or quick sale item is required.']],
+            ], 422);
+        }
+
+        foreach ($quickSaleItems as $index => $quickSaleItem) {
+            $quickSaleValidator = Validator::make($quickSaleItem, [
+                'descriptor' => 'nullable|string|max:255',
+                'descriptor_id' => 'nullable|integer|min:1',
+                'amount' => 'required|numeric|min:0.01',
+                'quantity' => 'required_without:qty|integer|min:1',
+                'qty' => 'required_without:quantity|integer|min:1',
+            ]);
+
+            if ($quickSaleValidator->fails()) {
+                return response()->json([
+                    'errors' => [
+                        'items.' . $index => $quickSaleValidator->errors()->all(),
+                    ],
+                ], 422);
+            }
+
+            if (empty($quickSaleItem['descriptor']) && empty($quickSaleItem['descriptor_id'])) {
+                return response()->json([
+                    'errors' => [
+                        'items.' . $index => ['Either descriptor or descriptor_id is required for quick sale items.'],
+                    ],
+                ], 422);
+            }
+        }
+
         $payment_identifiers = $request->payment_identifiers;
 
 
@@ -797,10 +833,10 @@ class PosApiController extends Controller
             $priceids = [];
             $cartid = null;
 
-            // Save bought items data
-            if($request->items){
+            // Save bought items data (regular POS products only — Quick Sale lines saved separately).
+            if (!empty($productItems)) {
 
-                $termIds = collect($request->items)->pluck('id');
+                $termIds = collect($productItems)->pluck('id')->filter()->values();
                 
                 // Retrieve terms with relationships
                 $terms = Term::whereIn('id', $termIds)
@@ -808,23 +844,25 @@ class PosApiController extends Controller
                 ->with(['excerpt', 'preview', 'firstprice'])
                 ->get();
                             
-                foreach ($request->items as $item) {
+                foreach ($productItems as $item) {
                     $info = $terms->firstWhere('id', $item['id']);
                     
-                    if (!empty($info)) {
-                        if (!empty($item['variation_id'])) {
-                            $info->load(['prices' => function ($query) use ($item) {
-                                $query->where('id', $item['variation_id']);
-                            }]);
-                        } else {
-                            $info->setRelation('prices', collect());
-                        }
+                    if (empty($info)) {
+                        continue;
+                    }
+
+                    if (!empty($item['variation_id'])) {
+                        $info->load(['prices' => function ($query) use ($item) {
+                            $query->where('id', $item['variation_id']);
+                        }]);
+                    } else {
+                        $info->setRelation('prices', collect());
                     }
                     
                     $data['order_id'] = $order->id;
                     $data['term_id'] = $item['id'];
                     $data['info'] = json_encode([
-                        'sku' => $item->firstprice->sku ?? '',
+                        'sku' => $info->firstprice->sku ?? '',
                         'options' => $info->prices[0] ?? []
                     ]);
                     
@@ -834,12 +872,19 @@ class PosApiController extends Controller
                     
                     array_push($priceids, ['order_id' => $order->id, 'price_id' => $info->firstprice->id, 'qty' => $item['cart_quantity']]);
                     
-                    $total_weight = $total_weight + $info->firstprice->weight;     
+                    $total_weight = $total_weight + ($info->firstprice->weight ?? 0);     
                 }
             }
             
 
-            $order->orderitems()->insert($oder_items);
+            if (!empty($oder_items)) {
+                $order->orderitems()->insert($oder_items);
+            }
+
+            // Additive: Quick Sale custom line items (separate table — not mixed with product sales history).
+            if (!empty($quickSaleItems)) {
+                app(QuickSaleOrderService::class)->createLinesForOrder($order, $quickSaleItems, $request);
+            }
 
             // Add empty delivery data. So we are able to use methods available to capture payment and the order details page does not break, adn to use other order relations functions
             $delivery_info['address'] = '';
@@ -890,7 +935,9 @@ class PosApiController extends Controller
             $data = ['order_id' => $order->id,'order_date' => $order->placed_at];
 
             $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($order->id);
-              $this->post_order_data_pos($order);
+            if ($order->orderitems->isNotEmpty()) {
+                $this->post_order_data_pos($order);
+            }
             DB::commit();
 
             trigger_product_sales_crm_sync_after_order($order->id);
@@ -2177,6 +2224,12 @@ class PosApiController extends Controller
             ->get()
             ->groupBy('order_id');
 
+        $quickSaleItemsByOrder = QuickSaleOrderItem::query()
+            ->whereIn('order_id', $orderIds)
+            ->orderBy('id')
+            ->get()
+            ->groupBy('order_id');
+
         $payload = $paginator->toArray();
 
         foreach ($orders as $index => $order) {
@@ -2185,9 +2238,36 @@ class PosApiController extends Controller
                 $partialLogsByOrder->get($order->id),
                 $transactionLogsByOrder->get($order->id, collect())
             );
+
+            $payload['data'][$index]['quick_sale_items'] = ($quickSaleItemsByOrder->get($order->id) ?? collect())
+                ->map(fn (QuickSaleOrderItem $line) => $this->formatPosQuickSaleOrderItem($line))
+                ->values()
+                ->all();
         }
 
         return $payload;
+    }
+
+    /** Additive: Quick Sale line payload for POS order list/history. */
+    private function formatPosQuickSaleOrderItem(QuickSaleOrderItem $line): array
+    {
+        return [
+            'id' => (int) $line->id,
+            'type' => 'quick_sale',
+            'descriptor_id' => $line->descriptor_id ? (int) $line->descriptor_id : null,
+            'descriptor' => $line->descriptor_name,
+            'title' => $line->title,
+            'display_label' => 'Quick Sale Item - ' . $line->descriptor_name,
+            'amount' => round((float) $line->unit_amount, 2),
+            'quantity' => (int) $line->qty,
+            'line_subtotal' => round((float) $line->line_subtotal, 2),
+            'tax_amount' => round((float) $line->tax_amount, 2),
+            'line_total' => round((float) $line->line_total, 2),
+            'order_invoice_no' => $line->order_invoice_no,
+            'order_placed_at' => optional($line->order_placed_at)->toDateTimeString(),
+            'payment_method' => $line->payment_method,
+            'created_at' => optional($line->created_at)->toDateTimeString(),
+        ];
     }
 
     private function buildPosOrderListOrderLastTransPayload(Order $order, $partialLogsRaw, $transactionLogRows): array

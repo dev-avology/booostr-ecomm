@@ -74,6 +74,10 @@ Route::group([
     Route::get('/pos-product/{id}', 'Api\PosApiController@posProductDetail');
     Route::post('/pos-make-order', 'Api\PosApiController@posMakeOrder');
 
+    // Additive: POS Quick Sale module (separate from regular product inventory).
+    Route::post('/pos-quick-sale-add-descriptor', 'Api\PosQuickSaleApiController@addDescriptor');
+    Route::post('/pos-quick-sale-get-descriptors', 'Api\PosQuickSaleApiController@getDescriptors');
+
     Route::post('/pos-get-store-details', 'Api\PosApiController@posGetStoreDetails');
 
     Route::post('/pos-order-info', 'Api\PosApiController@posOrderInfo');
