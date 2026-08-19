@@ -15,10 +15,17 @@ use Illuminate\Support\Facades\Validator;
 class PosQuickSaleApiController extends Controller
 {
     /**
-     * Add Descriptor API — create a Quick Sale descriptor for this club/tenant.
+     * Add Descriptor API — create one or many Quick Sale descriptors for this club/tenant.
+     *
+     * Single add (unchanged): { "name", "price", "is_default", "sort_order" }
+     * Bulk add (additive):     { "descriptors": [ { "name", ... }, ... ] }
      */
     public function addDescriptor(Request $request): JsonResponse
     {
+        if ($request->has('descriptors') && is_array($request->input('descriptors'))) {
+            return $this->addDescriptorsBulk($request);
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'price' => 'nullable|numeric|min:0',
@@ -36,26 +43,12 @@ class PosQuickSaleApiController extends Controller
 
         try {
             $descriptor = DB::transaction(function () use ($request) {
-                $isDefault = $request->boolean('is_default');
-                $sortOrder = $request->filled('sort_order')
-                    ? (int) $request->input('sort_order')
-                    : ((int) QuickSaleDescriptor::max('sort_order') + 1);
-
-                if ($isDefault) {
-                    QuickSaleDescriptor::query()->update(['is_default' => false]);
-                }
-
-                $hasDefault = QuickSaleDescriptor::where('is_default', true)->exists();
-                if (!$hasDefault) {
-                    $isDefault = true;
-                }
-
-                return QuickSaleDescriptor::create([
-                    'name' => trim((string) $request->input('name')),
-                    'price' => round((float) $request->input('price', 0), 2),
-                    'is_default' => $isDefault,
-                    'sort_order' => max(1, $sortOrder),
-                ]);
+                return $this->createDescriptorFromPayload([
+                    'name' => $request->input('name'),
+                    'price' => $request->input('price', 0),
+                    'is_default' => $request->boolean('is_default'),
+                    'sort_order' => $request->filled('sort_order') ? (int) $request->input('sort_order') : null,
+                ], true);
             });
 
             return response()->json([
@@ -73,6 +66,124 @@ class PosQuickSaleApiController extends Controller
                 'message' => 'Unable to add Quick Sale descriptor.',
             ], 500);
         }
+    }
+
+    /**
+     * Additive: bulk create descriptors via descriptors[] on the same add endpoint.
+     */
+    private function addDescriptorsBulk(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'descriptors' => 'required|array|min:1',
+            'descriptors.*.name' => 'required|string|max:255',
+            'descriptors.*.price' => 'nullable|numeric|min:0',
+            'descriptors.*.is_default' => 'nullable|boolean',
+            'descriptors.*.sort_order' => 'nullable|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $descriptors = DB::transaction(function () use ($request) {
+                $items = $request->input('descriptors', []);
+                $created = [];
+                $nextAutoSort = (int) QuickSaleDescriptor::max('sort_order');
+
+                foreach ($items as $item) {
+                    if (!is_array($item)) {
+                        continue;
+                    }
+
+                    $requestedSort = array_key_exists('sort_order', $item) && $item['sort_order'] !== null
+                        ? max(0, (int) $item['sort_order'])
+                        : null;
+
+                    if ($requestedSort === null) {
+                        $nextAutoSort++;
+                        $requestedSort = $nextAutoSort;
+                    } else {
+                        $nextAutoSort = max($nextAutoSort, $requestedSort);
+                    }
+
+                    $created[] = $this->createDescriptorFromPayload([
+                        'name' => $item['name'],
+                        'price' => $item['price'] ?? 0,
+                        'is_default' => filter_var($item['is_default'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'sort_order' => $requestedSort,
+                    ], false);
+                }
+
+                if ($created === []) {
+                    throw new \InvalidArgumentException('No valid descriptors provided.');
+                }
+
+                $this->ensureDefaultDescriptorExists();
+
+                return collect($created)
+                    ->map(fn (QuickSaleDescriptor $descriptor) => $this->formatDescriptor($descriptor->fresh()))
+                    ->values()
+                    ->all();
+            });
+
+            return response()->json([
+                'error' => false,
+                'message' => 'Quick Sale descriptors added successfully.',
+                'count' => count($descriptors),
+                'descriptors' => $descriptors,
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage(),
+            ], 422);
+        } catch (\Throwable $e) {
+            \Log::error('POS Quick Sale bulk add descriptors failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'error' => true,
+                'message' => 'Unable to add Quick Sale descriptors.',
+            ], 500);
+        }
+    }
+
+    /**
+     * @param  array{name: mixed, price?: mixed, is_default?: bool, sort_order?: int|null}  $payload
+     */
+    private function createDescriptorFromPayload(array $payload, bool $ensureDefaultWhenMissing): QuickSaleDescriptor
+    {
+        $isDefault = (bool) ($payload['is_default'] ?? false);
+        $sortOrder = $payload['sort_order'] ?? null;
+        if ($sortOrder === null) {
+            $sortOrder = max(1, (int) QuickSaleDescriptor::max('sort_order') + 1);
+        } else {
+            $sortOrder = max(0, (int) $sortOrder);
+        }
+
+        if ($isDefault) {
+            QuickSaleDescriptor::query()->update(['is_default' => false]);
+        }
+
+        if ($ensureDefaultWhenMissing) {
+            $hasDefault = QuickSaleDescriptor::where('is_default', true)->exists();
+            if (!$hasDefault) {
+                $isDefault = true;
+            }
+        }
+
+        return QuickSaleDescriptor::create([
+            'name' => trim((string) ($payload['name'] ?? '')),
+            'price' => round((float) ($payload['price'] ?? 0), 2),
+            'is_default' => $isDefault,
+            'sort_order' => max(1, (int) $sortOrder),
+        ]);
     }
 
     /**
