@@ -41,6 +41,16 @@ class PosQuickSaleApiController extends Controller
             ], 422);
         }
 
+        if ($this->descriptorNameExists((string) $request->input('name'))) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Validation failed.',
+                'errors' => [
+                    'name' => ['A descriptor with this name already exists.'],
+                ],
+            ], 422);
+        }
+
         try {
             $descriptor = DB::transaction(function () use ($request) {
                 return $this->createDescriptorFromPayload([
@@ -56,6 +66,14 @@ class PosQuickSaleApiController extends Controller
                 'message' => 'Quick Sale descriptor added successfully.',
                 'descriptor' => $this->formatDescriptor($descriptor),
             ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage(),
+                'errors' => str_contains(strtolower($e->getMessage()), 'name')
+                    ? ['name' => [$e->getMessage()]]
+                    : [],
+            ], 422);
         } catch (\Throwable $e) {
             \Log::error('POS Quick Sale add descriptor failed', [
                 'error' => $e->getMessage(),
@@ -87,6 +105,11 @@ class PosQuickSaleApiController extends Controller
                 'message' => 'Validation failed.',
                 'errors' => $validator->errors(),
             ], 422);
+        }
+
+        $duplicateResponse = $this->validateBulkDescriptorNamesUnique($request->input('descriptors', []));
+        if ($duplicateResponse instanceof JsonResponse) {
+            return $duplicateResponse;
         }
 
         try {
@@ -178,8 +201,17 @@ class PosQuickSaleApiController extends Controller
             }
         }
 
+        $name = trim((string) ($payload['name'] ?? ''));
+        if ($name === '') {
+            throw new \InvalidArgumentException('Descriptor name is required.');
+        }
+
+        if ($this->descriptorNameExists($name)) {
+            throw new \InvalidArgumentException('A descriptor with this name already exists.');
+        }
+
         return QuickSaleDescriptor::create([
-            'name' => trim((string) ($payload['name'] ?? '')),
+            'name' => $name,
             'price' => round((float) ($payload['price'] ?? 0), 2),
             'is_default' => $isDefault,
             'sort_order' => max(1, (int) $sortOrder),
@@ -369,5 +401,64 @@ class PosQuickSaleApiController extends Controller
             $fallback->is_default = true;
             $fallback->save();
         }
+    }
+
+    private function normalizeDescriptorName(string $name): string
+    {
+        return strtolower(trim($name));
+    }
+
+    private function descriptorNameExists(string $name, ?int $ignoreId = null): bool
+    {
+        $normalized = $this->normalizeDescriptorName($name);
+        if ($normalized === '') {
+            return false;
+        }
+
+        return QuickSaleDescriptor::query()
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+            ->whereRaw('LOWER(TRIM(name)) = ?', [$normalized])
+            ->exists();
+    }
+
+    /** @param  array<int, mixed>  $items */
+    private function validateBulkDescriptorNamesUnique(array $items): ?JsonResponse
+    {
+        $seen = [];
+        $errors = [];
+
+        foreach ($items as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $name = trim((string) ($item['name'] ?? ''));
+            $normalized = $this->normalizeDescriptorName($name);
+
+            if ($normalized === '') {
+                continue;
+            }
+
+            if (isset($seen[$normalized])) {
+                $errors["descriptors.{$index}.name"] = ['Duplicate descriptor name in request.'];
+                continue;
+            }
+
+            $seen[$normalized] = true;
+
+            if ($this->descriptorNameExists($name)) {
+                $errors["descriptors.{$index}.name"] = ['A descriptor with this name already exists.'];
+            }
+        }
+
+        if ($errors !== []) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Validation failed.',
+                'errors' => $errors,
+            ], 422);
+        }
+
+        return null;
     }
 }
