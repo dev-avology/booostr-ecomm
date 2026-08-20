@@ -896,7 +896,19 @@
         }
     }
 
-    $salesHistoryMapExportRow = function ($sale) use ($isTicket) {
+    $resolveSaleQuantity = function ($sale) use ($isTicket) {
+        if ($isTicket) {
+            return 1;
+        }
+
+        if (isset($sale->qty) && $sale->qty !== null && $sale->qty !== '') {
+            return (int) $sale->qty;
+        }
+
+        return 1;
+    };
+
+    $salesHistoryMapExportRow = function ($sale) use ($isTicket, $resolveSaleQuantity) {
         if ($isTicket) {
             $ticket = $sale;
             $order = $ticket->order ?? null;
@@ -943,6 +955,7 @@
                 $phone,
                 !empty($order->created_at) ? date('m/d/Y', strtotime($order->created_at)) : '-',
                 $orderNo,
+                $resolveSaleQuantity($sale),
                 $channel,
                 $ticketId,
                 $ticketStatus,
@@ -1019,6 +1032,7 @@
             $phone,
             !empty($order->created_at) ? date('m/d/Y', strtotime($order->created_at)) : '-',
             $orderNo,
+            $resolveSaleQuantity($sale),
             $channel,
         ];
 
@@ -1033,8 +1047,8 @@
     };
 
     $salesHistoryExportHeaders = $isTicket
-        ? ['FIRST NAME', 'LAST NAME', 'EMAIL', 'PHONE', 'ORDER DATE', 'ORDER #', 'CHANNEL', 'TICKET ID', 'TICKET STATUS']
-        : ['FIRST NAME', 'LAST NAME', 'EMAIL', 'PHONE', 'ORDER DATE', 'ORDER #', 'CHANNEL', 'VARIANT ORDERED'];
+        ? ['FIRST NAME', 'LAST NAME', 'EMAIL', 'PHONE', 'ORDER DATE', 'ORDER #', 'QUANTITY', 'CHANNEL', 'TICKET ID', 'TICKET STATUS']
+        : ['FIRST NAME', 'LAST NAME', 'EMAIL', 'PHONE', 'ORDER DATE', 'ORDER #', 'QUANTITY', 'CHANNEL', 'VARIANT ORDERED'];
 
     $crmSyncAllContacts = [];
     $salesHistoryExportRows = [];
@@ -1142,6 +1156,7 @@
                         <th>PHONE</th>
                         <th>ORDER DATE</th>
                         <th>ORDER #</th>
+                        <th>QUANTITY</th>
                         <th>CHANNEL</th>
 
                         @if($isTicket)
@@ -1221,6 +1236,8 @@
                             } else {
                                 $channel = 'Ecommerce';
                             }
+
+                            $saleQuantity = $resolveSaleQuantity($sale);
                         @endphp
 
                         <tr>
@@ -1238,6 +1255,7 @@
                                     -
                                 @endif
                             </td>
+                            <td>{{ $saleQuantity }}</td>
                             <td>{{ $channel }}</td>
 
                             @if($isTicket)
@@ -1279,7 +1297,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $isTicket ? 10 : 9 }}" class="text-center py-5">
+                            <td colspan="{{ $isTicket ? 11 : 10 }}" class="text-center py-5">
                                 No sales found for this product.
                             </td>
                         </tr>
