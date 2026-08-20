@@ -598,6 +598,13 @@
 
                         $ordermeta = json_decode(optional($row->ordermeta)->value ?? '');
                         $customerName = optional($ordermeta)->name ?? optional($row->user)->name ?? __('Guest User');
+                        $orderItemsQtyTotal = collect($row->orderitems ?? [])->sum(function ($item) {
+                            if ($item->qty === null || $item->qty === '') {
+                                return 1;
+                            }
+
+                            return (int) $item->qty;
+                        });
                         $gatewayName = optional($row->getway)->name;
                         $isFullyRefunded = (int) $row->payment_status === 5;
                         $isPartialRefund = !$isFullyRefunded
@@ -741,7 +748,7 @@
                             </td>
                             {{-- <td>{{ $row->order_method }}</td> --}}
                             <td> {{$order_type}} </td>
-                            <td>{{ $row->orderitems_count }}</td>
+                            <td>{{ $orderItemsQtyTotal }}</td>
                             <td>
                                 <a target="_blank" href="{{ route('seller.order.print',$row->id) }}" class="btn btn-primary">Print</a>
                             </td>
