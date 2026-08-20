@@ -107,6 +107,22 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            $productIds = collect($posts->items())->pluck('id')->filter()->values()->all();
+                            $productSalesQtyTotals = [];
+
+                            if (!empty($productIds)) {
+                                $productSalesQtyTotals = \App\Models\Orderitem::query()
+                                    ->whereIn('term_id', $productIds)
+                                    ->selectRaw('term_id, SUM(COALESCE(qty, 1)) as total_qty')
+                                    ->groupBy('term_id')
+                                    ->pluck('total_qty', 'term_id')
+                                    ->map(function ($qty) {
+                                        return (int) $qty;
+                                    })
+                                    ->all();
+                            }
+                        @endphp
                         @foreach($posts as $row)
                         <tr id="data-{{  $row->id }}">
                             <td>
@@ -166,7 +182,7 @@
 
                                   
                                   <td class="text-right"><span class="badge badge-{{ $row->status == 1 ? 'success' : 'danger' }}">{{ $row->status == 1 ? 'Active' : 'Disable' }}</span></td>
-                                  <td>{{ $row->orders_count }}</td>
+                                  <td>{{ $productSalesQtyTotals[$row->id] ?? 0 }}</td>
                                   <td class="text-right">{{ date('d-m-Y', strtotime($row->created_at)) }}</td>
                                   <td class="text-right">
                                     <a class="text-primary" href="{{ route('seller.product.edit', $row->id) }}"><i class="fa fa-edit"></i></a>
