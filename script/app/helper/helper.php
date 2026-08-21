@@ -177,6 +177,18 @@ function bust_pos_api_cache(): void
     }
 }
 
+/** Bust Redis caches for store product read APIs (/storedata/categories, /products, etc.). */
+function bust_store_product_api_cache(): void
+{
+    try {
+        app(\App\Services\StoreProductApiCacheService::class)->bump();
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::warning('bust_store_product_api_cache failed', [
+            'error' => $e->getMessage(),
+        ]);
+    }
+}
+
 
 function imageSizes()
 {

@@ -273,6 +273,7 @@ class ProductController extends Controller
 
             DB::commit();
             bust_pos_api_cache();
+            bust_store_product_api_cache();
         } catch (\Throwable $th) {
             DB::rollback();
 
@@ -505,6 +506,7 @@ class ProductController extends Controller
                
                 DB::commit();
                 bust_pos_api_cache();
+                bust_store_product_api_cache();
             } catch (\Throwable $th) {
                 DB::rollback();
                 return $th;
@@ -672,6 +674,7 @@ class ProductController extends Controller
                 }
                 DB::commit();
                 bust_pos_api_cache();
+                bust_store_product_api_cache();
             } catch (\Throwable $th) {
                 DB::rollback();
                 $errors['errors']['error'] = 'Oops something wrong';
@@ -709,6 +712,7 @@ class ProductController extends Controller
                 }
                 DB::commit();
                 bust_pos_api_cache();
+                bust_store_product_api_cache();
             } catch (\Throwable $th) {
                 DB::rollback();
                 $errors['errors']['error'] = 'Oops something wrong';
@@ -768,6 +772,7 @@ class ProductController extends Controller
                 }
                 DB::commit();
                 bust_pos_api_cache();
+                bust_store_product_api_cache();
             } catch (\Throwable $th) {
                 DB::rollback();
                 $errors['errors']['error'] = 'Oops something wrong';
@@ -804,6 +809,7 @@ class ProductController extends Controller
             if ($request->method == 'delete') {
                 Term::query()->where('type', 'product')->where('id', $request->ids)->delete();
                 bust_pos_api_cache();
+                bust_store_product_api_cache();
 
                 return response()->json('Successfully Product Deleted...!!!');
             }elseif ($request->method == 'duplicate') {
@@ -811,6 +817,7 @@ class ProductController extends Controller
                     $this->duplicateProduct($id);
                 }
                 bust_pos_api_cache();
+                bust_store_product_api_cache();
 
                 return response()->json('Successfully Product duplicated...!!!');
             } else {
@@ -823,6 +830,7 @@ class ProductController extends Controller
                     }
                 }
                 bust_pos_api_cache();
+                bust_store_product_api_cache();
                 return response()->json('Successfully Product Deleted...!!!');
             }
         }
@@ -839,6 +847,7 @@ class ProductController extends Controller
 
         Excel::import(new ProductImport,  $request->file('file'));
         bust_pos_api_cache();
+        bust_store_product_api_cache();
 
         return response()->json(['Product Imported Successfully']);
     }
@@ -858,6 +867,7 @@ class ProductController extends Controller
 
         if($delete_res){
             bust_pos_api_cache();
+            bust_store_product_api_cache();
             return response()->json(['status' => 'success']);
         }
     }
@@ -885,6 +895,7 @@ class ProductController extends Controller
 
             $productOption->delete();
             bust_pos_api_cache();
+            bust_store_product_api_cache();
             return response()->json(['status' => 'success']);
         }
         return response()->json(['status' => 'Some thing went wrong']);
@@ -991,6 +1002,7 @@ class ProductController extends Controller
 
             DB::commit();
             bust_pos_api_cache();
+            bust_store_product_api_cache();
         } catch (\Throwable $th) {
             DB::rollback();
             return 0;
@@ -1009,6 +1021,7 @@ class ProductController extends Controller
         }
 
         bust_pos_api_cache();
+        bust_store_product_api_cache();
 
         return response()->json(["status" => true, "message" => "product list successfully", "result" => $data]);
     }

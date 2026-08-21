@@ -25,7 +25,6 @@ use Exception;
 use Stancl\Tenancy\Database\Models\Domain;
 use Stripe\Stripe;
 use Stripe\PaymentMethodDomain;
-use Illuminate\Support\Facades\Redis;
 
 class ProductController extends Controller
 {
@@ -34,15 +33,18 @@ class ProductController extends Controller
    public function categoryList(Request $request){
        
        $cacheKey = 'category_list';
+       $storeCache = app(\App\Services\StoreProductApiCacheService::class);
 
-        $cachedData = $this->redisGet($cacheKey);
+        if (!$storeCache->shouldSkipCache($request)) {
+            $cachedData = $storeCache->get($cacheKey);
     
-        if ($cachedData) {
-            return response()->json([
-                "status" => true,
-                "message" => "categories fetched from redis",
-                "result" => $cachedData
-            ]);
+            if ($cachedData) {
+                return response()->json([
+                    "status" => true,
+                    "message" => "categories fetched from redis",
+                    "result" => $cachedData
+                ]);
+            }
         }
 
        //$posts=Category::where('type','category')->with('preview','icon','show_on')->withCount('products')->get();
@@ -62,7 +64,7 @@ class ProductController extends Controller
         'product_count' => $product_count
        ];
        
-        $this->redisSet($cacheKey, $result, 600);
+        $storeCache->set($cacheKey, $result);
 
        return response()->json([
         "status" => true,
@@ -80,15 +82,18 @@ class ProductController extends Controller
         $page = $request->page ?? 1;
     
         $cacheKey = 'product_list_category_' . $category . '_page_' . $page;
+        $storeCache = app(\App\Services\StoreProductApiCacheService::class);
     
-        $cachedData = $this->redisGet($cacheKey);
+        if (!$storeCache->shouldSkipCache($request)) {
+            $cachedData = $storeCache->get($cacheKey);
     
-        if ($cachedData) {
-            return response()->json([
-                "status" => true,
-                "message" => "products fetched from redis",
-                "result" => $cachedData
-            ]);
+            if ($cachedData) {
+                return response()->json([
+                    "status" => true,
+                    "message" => "products fetched from redis",
+                    "result" => $cachedData
+                ]);
+            }
         }
         
        $posts = Term::query()->where('type', 'product')->where('status', 1)
@@ -103,7 +108,7 @@ class ProductController extends Controller
         
         $result = $posts->toArray();
 
-        $this->redisSet($cacheKey, $result, 600);
+        $storeCache->set($cacheKey, $result);
     
         return response()->json([
             "status" => true,
@@ -178,16 +183,19 @@ class ProductController extends Controller
     {
         
         $cacheKey = 'product_detail_' . $id;
+        $storeCache = app(\App\Services\StoreProductApiCacheService::class);
 
-        $cachedData = $this->redisGet($cacheKey);
+        if (!$storeCache->shouldSkipCache($request)) {
+            $cachedData = $storeCache->get($cacheKey);
     
-        if ($cachedData) {
-            return response()->json([
-                "status" => true,
-                "message" => "product fetched from redis",
-                "result" => $cachedData['result'],
-                "galleries" => $cachedData['galleries']
-            ]);
+            if ($cachedData) {
+                return response()->json([
+                    "status" => true,
+                    "message" => "product fetched from redis",
+                    "result" => $cachedData['result'],
+                    "galleries" => $cachedData['galleries']
+                ]);
+            }
         }
         
         $info=Term::query()->where('type','product')->where('status',1)->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo','formType')->withCount('reviews')->where('id', $id)->first();
@@ -211,7 +219,7 @@ class ProductController extends Controller
             'galleries' => $galleries
         ];
         
-        $this->redisSet($cacheKey, $result, 600);
+        $storeCache->set($cacheKey, $result);
         
          return response()->json([
             "status" => true,
@@ -225,16 +233,19 @@ class ProductController extends Controller
     public function productDetailBySlug(Request $request,$id)
     {
          $cacheKey = 'product_detail_slug_' . $id;
+         $storeCache = app(\App\Services\StoreProductApiCacheService::class);
 
-        $cachedData = $this->redisGet($cacheKey);
+        if (!$storeCache->shouldSkipCache($request)) {
+            $cachedData = $storeCache->get($cacheKey);
     
-        if ($cachedData) {
-            return response()->json([
-                "status" => true,
-                "message" => "product fetched from redis",
-                "result" => $cachedData['result'],
-                "galleries" => $cachedData['galleries']
-            ]);
+            if ($cachedData) {
+                return response()->json([
+                    "status" => true,
+                    "message" => "product fetched from redis",
+                    "result" => $cachedData['result'],
+                    "galleries" => $cachedData['galleries']
+                ]);
+            }
         }
         
         $info=Term::query()->where('type','product')->where('status',1)->whereIn('list_type', [0,1])->with('tags','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo','formType')->withCount('reviews')->where('slug', $id)->first();
@@ -258,7 +269,7 @@ class ProductController extends Controller
             'galleries' => $galleries
         ];
     
-        $this->redisSet($cacheKey, $result, 600);
+        $storeCache->set($cacheKey, $result);
     
         return response()->json([
             "status" => true,
@@ -1260,26 +1271,5 @@ public function registerPaymentMethodDomain(Request $request)
         ], 500);
     }
 }
-
-
-private function redisGet($key)
-{
-    $cachedData = Redis::get($key);
-
-    if ($cachedData) {
-        return json_decode($cachedData, true);
-    }
-
-    return null;
-}
-
-    private function redisSet($key, $data, $ttl = null)
-    {
-        if ($ttl) {
-            Redis::setex($key, $ttl, json_encode($data));
-        } else {
-            Redis::set($key, json_encode($data));
-        }
-    }
 
 }
