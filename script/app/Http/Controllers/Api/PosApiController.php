@@ -738,8 +738,7 @@ class PosApiController extends Controller
                 'descriptor' => 'nullable|string|max:255',
                 'descriptor_id' => 'nullable|integer|min:1',
                 'amount' => 'required|numeric|min:0.01',
-                'quantity' => 'required_without:qty|integer|min:1',
-                'qty' => 'required_without:quantity|integer|min:1',
+                'cart_quantity' => 'required|integer|min:1',
             ]);
 
             if ($quickSaleValidator->fails()) {

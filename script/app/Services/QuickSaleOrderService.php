@@ -27,7 +27,7 @@ class QuickSaleOrderService
 
             $descriptorName = trim((string) ($item['descriptor'] ?? ''));
             $descriptorId = (int) ($item['descriptor_id'] ?? 0);
-            $qty = max(1, (int) ($item['quantity'] ?? $item['qty'] ?? 1));
+            $qty = max(1, (int) ($item['cart_quantity'] ?? $item['quantity'] ?? $item['qty'] ?? 1));
             $unitAmount = round((float) ($item['amount'] ?? 0), 2);
             $lineSubtotal = round($unitAmount * $qty, 2);
             $taxAmount = round((float) ($item['tax_amount'] ?? 0), 2);
