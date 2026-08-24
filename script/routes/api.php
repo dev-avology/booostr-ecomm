@@ -98,6 +98,9 @@ Route::group([
 
     // Additive: POS refund (full / item / dollar) — POS orders only (order_from 4/5).
     Route::post('/pos-refund-payment', 'Api\PosRefundApiController@refundPayment');
+
+    // Additive: POS Quick Sale refund (full / item / dollar) — separate from regular product refunds.
+    Route::post('/pos-quick-sale-refund-payment', 'Api\PosQuickSaleRefundApiController@refundPayment');
 });
 
 Route::group([

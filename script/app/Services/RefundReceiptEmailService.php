@@ -31,6 +31,7 @@ class RefundReceiptEmailService
             'orderstatus',
             'orderitems.term',
             'orderitems.term.termcategories',
+            'quickSaleOrderItems',
             'getway',
             'user',
             'shippingwithinfo',
@@ -202,6 +203,18 @@ class RefundReceiptEmailService
                     'amount' => (float) $orderItem->amount,
                     'line_total' => (float) $orderItem->amount * (int) $orderItem->qty,
                 ];
+            }
+
+            if (empty($items)) {
+                foreach ($order->quickSaleOrderItems ?? [] as $line) {
+                    $qty = max(1, (int) $line->qty);
+                    $items[] = [
+                        'label' => $line->title ?: $line->descriptor_name ?: 'Quick Sale Item',
+                        'qty' => $qty,
+                        'amount' => (float) $line->unit_amount,
+                        'line_total' => (float) $line->line_subtotal,
+                    ];
+                }
             }
 
             return $items;
