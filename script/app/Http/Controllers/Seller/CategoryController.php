@@ -95,6 +95,7 @@ class CategoryController extends Controller
             
             DB::commit();
             bust_pos_api_cache();
+            bust_store_product_api_cache();
         } catch (\Throwable $th) {
             DB::rollback();
             
@@ -228,6 +229,7 @@ class CategoryController extends Controller
             
             DB::commit();
             bust_pos_api_cache();
+            bust_store_product_api_cache();
         } catch (\Throwable $th) {
             DB::rollback();
 
@@ -252,6 +254,7 @@ class CategoryController extends Controller
         if(!in_array($id,$ignore_status)){
          $category=Category::destroy($id);
          bust_pos_api_cache();
+         bust_store_product_api_cache();
         
         }
          return back();
