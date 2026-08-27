@@ -898,7 +898,6 @@
 
     $orderProductQtyTotals = $isTicket
     ? \App\Models\EventTicket::query()
-        ->where('term_id', $product->id)
         ->select('order_id')
         ->get()
         ->groupBy('order_id')
@@ -907,14 +906,16 @@
         })
         ->all()
     : \App\Models\Orderitem::query()
-        ->where('term_id', $product->id)
-        ->select('order_id', 'qty')
+        ->select('order_id', 'term_id', 'qty')
         ->get()
         ->groupBy('order_id')
         ->map(function ($items) {
-            return $items->pluck('qty')
-                ->map(fn ($qty) => (int) ($qty ?? 0))
-                ->all();
+            return $items->map(function ($item) {
+                return [
+                    'term_id' => $item->term_id,
+                    'qty' => (int) ($item->qty ?? 0),
+                ];
+            })->values()->all();
         })
         ->all();
 
