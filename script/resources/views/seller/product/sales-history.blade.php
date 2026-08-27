@@ -899,15 +899,23 @@
     $orderProductQtyTotals = $isTicket
     ? \App\Models\EventTicket::query()
         ->where('term_id', $product->id)
-        ->selectRaw('order_id, COUNT(*) as total_qty')
+        ->select('order_id')
+        ->get()
         ->groupBy('order_id')
-        ->pluck('total_qty', 'order_id')
-        ->map(fn ($qty) => (int) $qty)
+        ->map(function ($tickets) {
+            return $tickets->count();
+        })
         ->all()
     : \App\Models\Orderitem::query()
         ->where('term_id', $product->id)
-        ->pluck('qty', 'order_id')
-        ->map(fn ($qty) => (int) ($qty ?? 0))
+        ->select('order_id', 'qty')
+        ->get()
+        ->groupBy('order_id')
+        ->map(function ($items) {
+            return $items->pluck('qty')
+                ->map(fn ($qty) => (int) ($qty ?? 0))
+                ->all();
+        })
         ->all();
 
     $resolveSaleQuantity = function ($sale) use ($isTicket, $orderProductQtyTotals) {
