@@ -896,49 +896,16 @@
         }
     }    
 
-    $orderProductQtyTotals = $isTicket
-    ? \App\Models\EventTicket::query()
-        ->select('order_id')
-        ->get()
-        ->groupBy('order_id')
-        ->map(function ($tickets) {
-            return $tickets->count();
-        })
-        ->all()
-    : \App\Models\Orderitem::query()
-        ->select('order_id', 'term_id', 'qty')
-        ->get()
-        ->groupBy('order_id')
-        ->map(function ($items) {
-            return $items->map(function ($item) {
-                return [
-                    'term_id' => $item->term_id,
-                    'qty' => (int) ($item->qty ?? 0),
-                ];
-            })->values()->all();
-        })
-        ->all();
-
-    $resolveSaleQuantity = function ($sale) use ($isTicket, $orderProductQtyTotals) {
-        $orderId = $sale->order_id ?? optional($sale->order)->id;
-
-        if (!$orderId) {
-            return $isTicket ? 1 : ((isset($sale->qty) && $sale->qty !== null && $sale->qty !== '') ? (int) $sale->qty : 1);
-        }
-
-        if (array_key_exists($orderId, $orderProductQtyTotals)) {
-            return (int) $orderProductQtyTotals[$orderId];
-        }
-
-        if ($isTicket) {
-            return 1;
-        }
-
-        if (isset($sale->qty) && $sale->qty !== null && $sale->qty !== '') {
-            return (int) $sale->qty;
-        }
-
+    $resolveSaleQuantity = function ($sale) use ($isTicket) {
+    if ($isTicket) {
+        // Each EventTicket row represents one ticket.
         return 1;
+    }
+
+    // Return the quantity of this exact order-item/product row.
+    return (isset($sale->qty) && $sale->qty !== null && $sale->qty !== '')
+        ? (int) $sale->qty
+        : 1;
     };
 
     $salesHistoryMapExportRow = function ($sale) use ($isTicket, $resolveSaleQuantity) {
