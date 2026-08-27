@@ -493,7 +493,12 @@
 
                             // One query for partial-refund markers (qty + dollar), avoids N+1 and keeps controller untouched.
                             $partialRefundOrderIds = \App\Models\Ordermeta::whereIn('order_id', $orderListIds)
-                                ->whereIn('key', ['partial_refunded_items', 'partial_dollar_refunded_items'])
+                                ->whereIn('key', [
+                                    'partial_refunded_items',
+                                    'partial_dollar_refunded_items',
+                                    'quick_sale_partial_refunded_items',
+                                    'quick_sale_partial_dollar_refunded_items',
+                                ])
                                 ->whereNotNull('value')
                                 ->where('value', '!=', '')
                                 ->where('value', '!=', '{}')
