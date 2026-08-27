@@ -894,27 +894,15 @@
                     });
             });
         }
-    }
+    }    
 
-    $orderProductQtyTotals = $isTicket
-        ? \App\Models\EventTicket::query()
-            ->where('term_id', $product->id)
-            ->selectRaw('order_id, COUNT(*) as total_qty')
-            ->groupBy('order_id')
-            ->pluck('total_qty', 'order_id')
-            ->map(function ($qty) {
-                return (int) $qty;
-            })
-            ->all()
-        : \App\Models\Orderitem::query()
-            ->where('term_id', $product->id)
-            ->selectRaw('order_id, SUM(COALESCE(qty, 0)) as total_qty')
-            ->groupBy('order_id')
-            ->pluck('total_qty', 'order_id')
-            ->map(function ($qty) {
-                return (int) $qty;
-            })
-            ->all();
+    $orderProductQtyTotals = \App\Models\Orderitem::query()
+        ->where('term_id', $product->id)
+        ->pluck('qty', 'order_id')
+        ->map(function ($qty) {
+            return (int) ($qty ?? 0);
+        })
+        ->all();
 
     $resolveSaleQuantity = function ($sale) use ($isTicket, $orderProductQtyTotals) {
         $orderId = $sale->order_id ?? optional($sale->order)->id;
