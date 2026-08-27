@@ -303,7 +303,7 @@ class OrderController extends Controller
     {
         abort_if(!getpermission('order'),401);
 
-        $info=Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule','ordertable')->findorFail($id);
+        $info=Order::with('orderstatus','orderitems','quickSaleOrderItems','getway','user','shippingwithinfo','ordermeta','getway','schedule','ordertable')->findorFail($id);
 
         $ordermeta=json_decode($info->ordermeta->value ?? '');
         $order_status=Category::where([['type','status'],['status',1]])->where('id','!=',3)->orderBy('featured','ASC')->get();

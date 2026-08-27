@@ -1050,6 +1050,32 @@
                             </li>
                         @endforeach
 
+                        @foreach ($info->quickSaleOrderItems ?? [] as $quickSaleRow)
+                            @php
+                                $quickSaleQty = max(1, (int) ($quickSaleRow->qty ?? 1));
+                                $quickSaleUnit = round((float) ($quickSaleRow->unit_amount ?? 0), 2);
+                                $quickSaleLineTotal = round((float) ($quickSaleRow->line_subtotal ?? ($quickSaleUnit * $quickSaleQty)), 2);
+                                $quickSaleTitle = trim((string) ($quickSaleRow->title ?? ''));
+                                if ($quickSaleTitle === '') {
+                                    $quickSaleTitle = 'Quick Sale - ' . ($quickSaleRow->descriptor_name ?: 'Miscellaneous Item');
+                                }
+                            @endphp
+                            <li class="list-group-item">
+                                <div class="row align-items-center">
+                                    <div class="col-6">
+                                        {{ $quickSaleTitle }}
+                                    </div>
+                                    <div class="col-3 text-right">
+                                        {{ currency_formate($quickSaleUnit) }} × {{ $quickSaleQty }}
+                                    </div>
+                                    <div class="col-3 text-right">
+                                        @php $subtotal = $subtotal + $quickSaleLineTotal; @endphp
+                                        {{ currency_formate($quickSaleLineTotal) }}
+                                    </div>
+                                </div>
+                            </li>
+                        @endforeach
+
                         @php
                         $count = count($selected_product_type);
 
