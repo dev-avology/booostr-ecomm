@@ -103,4 +103,44 @@ class QuickSaleOrderService
     {
         return strtolower(trim((string) ($item['type'] ?? ''))) === 'quick_sale';
     }
+
+    public function hasRemainingRefundableLines(Order $order, ?array $refundedQuantities = null, ?array $refundedDollarAmounts = null): bool
+    {
+        $order->loadMissing('quickSaleOrderItems');
+
+        if ($order->quickSaleOrderItems->isEmpty()) {
+            return false;
+        }
+
+        if ($refundedQuantities === null) {
+            $refundedQuantities = json_decode(
+                (string) (\App\Models\Ordermeta::where('order_id', $order->id)
+                    ->where('key', 'quick_sale_partial_refunded_items')
+                    ->value('value') ?? '{}'),
+                true
+            ) ?: [];
+        }
+
+        if ($refundedDollarAmounts === null) {
+            $refundedDollarAmounts = json_decode(
+                (string) (\App\Models\Ordermeta::where('order_id', $order->id)
+                    ->where('key', 'quick_sale_partial_dollar_refunded_items')
+                    ->value('value') ?? '{}'),
+                true
+            ) ?: [];
+        }
+
+        foreach ($order->quickSaleOrderItems as $line) {
+            $unitAmount = round((float) $line->unit_amount, 2);
+            $lineTotal = round($unitAmount * max(1, (int) $line->qty), 2);
+            $refunded = (((int) ($refundedQuantities[$line->id] ?? 0)) * $unitAmount)
+                + (float) ($refundedDollarAmounts[$line->id] ?? 0);
+
+            if (($lineTotal - $refunded) > 0.01) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

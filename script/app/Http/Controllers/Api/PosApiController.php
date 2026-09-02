@@ -2230,6 +2230,16 @@ class PosApiController extends Controller
             ->get()
             ->groupBy('order_id');
 
+        $qsQtyRefundedByOrder = Ordermeta::query()
+            ->whereIn('order_id', $orderIds)
+            ->where('key', 'quick_sale_partial_refunded_items')
+            ->pluck('value', 'order_id');
+
+        $qsDollarRefundedByOrder = Ordermeta::query()
+            ->whereIn('order_id', $orderIds)
+            ->where('key', 'quick_sale_partial_dollar_refunded_items')
+            ->pluck('value', 'order_id');
+
         $payload = $paginator->toArray();
 
         foreach ($orders as $index => $order) {
@@ -2243,6 +2253,17 @@ class PosApiController extends Controller
                 ->map(fn (QuickSaleOrderItem $line) => $this->formatPosQuickSaleOrderItem($line))
                 ->values()
                 ->all();
+
+            if ((int) $order->payment_status === 5) {
+                $order->setRelation('quickSaleOrderItems', $quickSaleItemsByOrder->get($order->id) ?? collect());
+                $qsQtyMap = json_decode((string) ($qsQtyRefundedByOrder->get($order->id) ?? '{}'), true) ?: [];
+                $qsDollarMap = json_decode((string) ($qsDollarRefundedByOrder->get($order->id) ?? '{}'), true) ?: [];
+
+                if (app(QuickSaleOrderService::class)->hasRemainingRefundableLines($order, $qsQtyMap, $qsDollarMap)) {
+                    $payload['data'][$index]['payment_status'] = 1;
+                    $payload['data'][$index]['refunded_at'] = null;
+                }
+            }
         }
 
         return $payload;

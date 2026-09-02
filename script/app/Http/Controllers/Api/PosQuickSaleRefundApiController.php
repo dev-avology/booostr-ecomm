@@ -47,7 +47,7 @@ class PosQuickSaleRefundApiController extends PosRefundApiController
 
         try {
             $order = $this->resolvePosQuickSaleOrderByPaymentId($request->input('paymentId'));
-            $this->assertPosOrderRefundable($order);
+            $this->assertPosQuickSaleOrderRefundable($order);
 
             $refundType = $this->determinePosRefundType($request);
             $reason = (string) $request->input('reason', '');
@@ -85,6 +85,24 @@ class PosQuickSaleRefundApiController extends PosRefundApiController
         }
 
         return $order;
+    }
+
+    protected function assertPosQuickSaleOrderRefundable(Order $order): void
+    {
+        $hasRemainingQuickSale = app(\App\Services\QuickSaleOrderService::class)
+            ->hasRemainingRefundableLines($order);
+
+        if ((int) $order->payment_status === 5 && !$hasRemainingQuickSale) {
+            throw new \Exception('This POS order has already been fully refunded.');
+        }
+
+        if ((int) $order->payment_status === 5 && $hasRemainingQuickSale) {
+            return;
+        }
+
+        if (!in_array((int) $order->payment_status, [1], true)) {
+            throw new \Exception('Only captured/paid POS orders can be refunded.');
+        }
     }
 
     protected function executePosQuickSaleFullRefund(Order $order, Request $request, string $reason): array
@@ -438,6 +456,9 @@ class PosQuickSaleRefundApiController extends PosRefundApiController
             $order->payment_status = 5;
             $order->status_id = $order->status_id == 1 ? 1 : 2;
             $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
+        } elseif ((int) $order->payment_status === 5) {
+            $order->payment_status = 1;
+            $order->refunded_at = null;
         }
 
         $order->save();

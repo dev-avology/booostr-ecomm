@@ -18,6 +18,7 @@ use App\Models\Getway;
 use App\Models\EventTicket;
 use Carbon\Carbon;
 use App\Services\RefundReceiptEmailService;
+use App\Services\QuickSaleOrderService;
 use App\Services\TicketCancelRefundService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Arr;
@@ -2117,7 +2118,7 @@ class OrderController extends Controller
             }
         }
 
-        if ($allItemsFullyRefunded) {
+        if ($allItemsFullyRefunded && !app(QuickSaleOrderService::class)->hasRemainingRefundableLines($order)) {
             $order->payment_status = 5;
             $order->status_id = $order->status_id == 1 ? 1 : 2;
             $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
@@ -2248,7 +2249,7 @@ class OrderController extends Controller
             }
         }
 
-        if ($allItemsFullyRefunded) {
+        if ($allItemsFullyRefunded && !app(QuickSaleOrderService::class)->hasRemainingRefundableLines($order)) {
             $order->payment_status = 5;
             $order->status_id = $order->status_id == 1 ? 1 : 2;
             $order->refunded_at = Carbon::now()->setTimezone(config('app.timezone'));
