@@ -41,6 +41,18 @@
     font-weight: 600;
     font-family: "Roboto";
 }
+#product-purchase-warning-body p {
+    font-size: 14px;
+    letter-spacing: 0px;
+    color: #505050;
+    font-weight: 400;
+    font-family: "Roboto";
+    margin: 0;
+    line-height: normal;
+}
+#product-purchase-warning-body p strong {
+    font-weight: 800;
+}
   .product-purchase-warning-body {
     color: #444;
     font-size: 13px;

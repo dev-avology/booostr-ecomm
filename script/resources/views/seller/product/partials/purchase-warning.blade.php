@@ -7,10 +7,10 @@
     ];
     $warningActions = [];
     if (!empty($purchaseWarnings['is_draft'])) {
-        $warningActions[] = 'Change the Product Status from DRAFT to PUBLISH.';
+        $warningActions[] = 'Change the Product Status from <strong>DRAFT</strong> to <strong>PUBLISH</strong>.';
     }
     if (!empty($purchaseWarnings['is_out_of_stock'])) {
-        $warningActions[] = 'Under Price change the Stock Status from OUT OF STOCK to IN STOCK.';
+        $warningActions[] = 'Under Price change the Stock Status from <strong>OUT OF STOCK</strong> to <strong>IN STOCK</strong>.';
     }
     $inventoryOnlyWarning = !empty($purchaseWarnings['is_zero_inventory'])
         && empty($purchaseWarnings['is_draft'])
@@ -34,7 +34,7 @@
                     {{ implode(' ', $warningActions) }}</p>
                 </div>
                 <div class="product-purchase-warning-note">
-                    <p>Note: Under Price, If Manage Stock is set to YES, you ALSO need to have Stock Quantity set to greater than "0" for the item to show in stock.</p>
+                    <p>Note: Under Price, <strong>If Manage Stock is set to YES</strong>, you ALSO need to have <strong>Stock Quantity set to greater than "0" </strong>for the item to show in stock.</p>
                 </div>
             @endif
         @endif
