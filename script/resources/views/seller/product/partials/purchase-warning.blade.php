@@ -26,15 +26,15 @@
         @if(!empty($purchaseWarnings['show']))
             @if($inventoryOnlyWarning)
                 <div class="product-purchase-warning-title">This product is unable to be purchased as its inventory is showing 0.</div>
-                <div>This product has Manage Stock set to YES and your current Stock Quantity is at 0. To start selling this product you need to go to Price section and update the Stock Quantity set to greater than "0".</div>
+                <div><p>This product has Manage Stock set to YES and your current Stock Quantity is at 0. To start selling this product you need to go to Price section and update the Stock Quantity set to greater than "0".</p></div>
             @else
                 <div class="product-purchase-warning-title">This product cannot be purchased by your supporters yet</div>
-                <div>
-                    To sell this product, update {{ $warningCountWords[$purchaseWarnings['settings_count']] ?? 'these' }} of this product's settings:
-                    {{ implode(' ', $warningActions) }}
+                <div class="product-purchase-warning-body">
+                    <p>To sell this product, update {{ $warningCountWords[$purchaseWarnings['settings_count']] ?? 'these' }} of this product's settings:</p>
+                    <p>{{ implode(' ', $warningActions) }}</p>
                 </div>
                 <div class="product-purchase-warning-note">
-                    Note: Under Price, If Manage Stock is set to YES, you ALSO need to have Stock Quantity set to greater than "0" for the item to show in stock.
+                    <p>Note: Under Price, If Manage Stock is set to YES, you ALSO need to have Stock Quantity set to greater than "0" for the item to show in stock.</p>
                 </div>
             @endif
         @endif

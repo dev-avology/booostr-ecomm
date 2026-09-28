@@ -34,10 +34,13 @@
     border: 2px solid #e0b03a;
   }
   .product-purchase-warning-title {
-    font-weight: 700;
-    margin-bottom: 4px;
-    color: #3d3d3d;
-  }
+    margin-bottom: 8px;
+    font-size: 18px;
+    letter-spacing: 0px;
+    color: #231616;
+    font-weight: 600;
+    font-family: "Roboto";
+}
   .product-purchase-warning-body {
     color: #444;
     font-size: 13px;
