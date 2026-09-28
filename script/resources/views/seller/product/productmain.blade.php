@@ -102,6 +102,7 @@
               <a class="nav-link product-edit-tab-link {{ url('/seller/product/edit/'.$product_id.'/price') == url()->current() ? 'active' : '' }}"  href="{{ url('/seller/product/edit/'.$product_id.'/price') }}">
                 <span>{{ __('Price') }}</span>
                 <span class="product-tab-warning" id="product-tab-warning-price" title="{{ __('Price or stock settings need attention') }}" @if(empty($purchaseWarnings['is_out_of_stock']) && empty($purchaseWarnings['is_zero_inventory'])) style="display:none;" @endif>!</span>
+              </a>
             </li>
             <li class="nav-item">
               <a class="nav-link {{ url('/seller/product/edit/'.$product_id.'/image') == url()->current() ? 'active' : '' }}"  href="{{ url('/seller/product/edit/'.$product_id.'/image') }}">{{ __('Images') }}</a>
