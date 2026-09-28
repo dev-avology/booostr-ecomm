@@ -30,8 +30,8 @@
             @else
                 <div class="product-purchase-warning-title">This product cannot be purchased by your supporters yet</div>
                 <div class="product-purchase-warning-body">
-                    <p>To sell this product, update {{ $warningCountWords[$purchaseWarnings['settings_count']] ?? 'these' }} of this product's settings:
-                    {{ implode(' ', $warningActions) }}</p>
+                    <p>To sell this product, update {{ !! $warningCountWords[$purchaseWarnings['settings_count']] ?? 'these' !!}} of this product's settings:
+                    {{!! implode(' ', $warningActions) !!}}</p>
                 </div>
                 <div class="product-purchase-warning-note">
                     <p>Note: Under Price, <strong>If Manage Stock is set to YES</strong>, you ALSO need to have <strong>Stock Quantity set to greater than "0" </strong>for the item to show in stock.</p>
