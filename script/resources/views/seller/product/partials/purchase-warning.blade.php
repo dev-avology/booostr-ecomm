@@ -16,7 +16,7 @@
         && empty($purchaseWarnings['is_draft'])
         && empty($purchaseWarnings['is_out_of_stock']);
     if (!empty($purchaseWarnings['is_zero_inventory']) && !$inventoryOnlyWarning) {
-        $warningActions[] = 'Under Price update the Stock Quantity set to greater than "0".';
+        $warningActions[] = 'Under Price update the <strong>Stock Quantity set to greater than "0".</strong>';
     }
 @endphp
 
