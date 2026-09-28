@@ -7,16 +7,17 @@
   $purchaseWarnings = get_product_purchase_warnings($info ?? null);
 @endphp
 <style>
-  .product-purchase-warning {
-    background: #f8e3a8;
-    border: 1px solid #e6c66a;
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+.product-purchase-warning {
     border-radius: 4px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
+    margin-bottom: 15px;
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-  }
+    gap: 20px;
+    background-color: #ffe2aa;
+    border: 1px solid #c99954;
+    padding: 17px 24px;
+}
   .product-purchase-warning-icon {
     width: 34px;
     height: 34px;
