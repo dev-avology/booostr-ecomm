@@ -16,7 +16,7 @@
         && empty($purchaseWarnings['is_draft'])
         && empty($purchaseWarnings['is_out_of_stock']);
     if (!empty($purchaseWarnings['is_zero_inventory']) && !$inventoryOnlyWarning) {
-        $warningActions[] = 'Under Price update the <strong>Stock Quantity set to greater than "0".</strong>';
+        $warningActions[] = 'Under Price update the Stock Quantity set to greater than "0".';
     }
 @endphp
 
@@ -26,7 +26,7 @@
         @if(!empty($purchaseWarnings['show']))
             @if($inventoryOnlyWarning)
                 <div class="product-purchase-warning-title">This product is unable to be purchased as its inventory is showing 0.</div>
-                <div><p>This product has Manage Stock set to YES and your current Stock Quantity is at 0. To start selling this product you need to go to Price section and update the Stock Quantity set to greater than "0".</p></div>
+                <div><p>This product has Manage Stock set to YES and your current Stock Quantity is at 0. To start selling this product you need to go to Price section and update the <strong>Stock Quantity set to greater than "0".</strong></p></div>
             @else
                 <div class="product-purchase-warning-title">This product cannot be purchased by your supporters yet</div>
                 <div class="product-purchase-warning-body">
