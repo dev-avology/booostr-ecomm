@@ -8,7 +8,7 @@
 @endphp
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
-.product-purchase-warning {
+  .product-purchase-warning {
     border-radius: 4px;
     margin-bottom: 15px;
     display: flex;
@@ -17,22 +17,23 @@
     background-color: #ffe2aa;
     border: 1px solid #c99954;
     padding: 17px 24px;
+    align-items: center;
 }
-  .product-purchase-warning-icon {
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
+.product-purchase-warning-icon {
+    width: 51px;
+    height: 51px;
     border-radius: 50%;
     background: #f0c14b;
-    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 20px;
+    font-weight: 900;
+    font-size: 29px;
     line-height: 1;
-    border: 2px solid #e0b03a;
-  }
+    background-color: #ffae00;
+    border: 2px solid #000000;
+    color: #312100;
+}
   .product-purchase-warning-title {
     margin-bottom: 8px;
     font-size: 18px;
@@ -68,19 +69,20 @@
   }
   .product-tab-warning {
     display: inline-flex;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: #f0c14b;
-    color: #fff;
+    color: #2a2910;
     font-size: 12px;
     font-weight: 700;
     align-items: center;
     justify-content: center;
     margin-left: 8px;
     line-height: 1;
-    border: 1px solid #e0b03a;
-  }
+    background-color: #ffae00;
+    border: 1px solid #000000;
+}
 </style>
 <div class="row">
   <div class="col-sm-12">
