@@ -189,6 +189,72 @@ function bust_store_product_api_cache(): void
     }
 }
 
+/**
+ * Additive: seller product edit warnings (draft / out of stock / managed qty at 0).
+ */
+function get_product_purchase_warnings($product): array
+{
+    $isDraft = false;
+    $isOutOfStock = false;
+    $isZeroInventory = false;
+
+    if (!$product) {
+        return [
+            'is_draft' => false,
+            'is_out_of_stock' => false,
+            'is_zero_inventory' => false,
+            'show' => false,
+            'settings_count' => 0,
+        ];
+    }
+
+    $isDraft = (int) ($product->status ?? 1) === 0;
+
+    try {
+        $product->loadMissing(['price', 'prices']);
+    } catch (\Throwable $e) {
+        // Keep warnings limited to draft if price relations cannot load.
+    }
+
+    $isVariation = (int) ($product->is_variation ?? 0) === 1;
+
+    if ($isVariation) {
+        $prices = $product->prices ?? collect();
+        if ($prices && $prices->isNotEmpty()) {
+            $isOutOfStock = $prices->every(function ($price) {
+                return (int) ($price->stock_status ?? 1) === 0;
+            });
+
+            $managedPrices = $prices->filter(function ($price) {
+                return (int) ($price->stock_manage ?? 0) === 1;
+            });
+
+            if ($managedPrices->isNotEmpty()) {
+                $isZeroInventory = $managedPrices->every(function ($price) {
+                    return (int) ($price->qty ?? 0) <= 0;
+                });
+            }
+        }
+    } else {
+        $price = $product->price ?? null;
+        if ($price) {
+            $isOutOfStock = (int) ($price->stock_status ?? 1) === 0;
+            $isZeroInventory = (int) ($price->stock_manage ?? 0) === 1
+                && (int) ($price->qty ?? 0) <= 0;
+        }
+    }
+
+    $settingsCount = (int) $isDraft + (int) $isOutOfStock + (int) $isZeroInventory;
+
+    return [
+        'is_draft' => $isDraft,
+        'is_out_of_stock' => $isOutOfStock,
+        'is_zero_inventory' => $isZeroInventory,
+        'show' => $settingsCount > 0,
+        'settings_count' => $settingsCount,
+    ];
+}
+
 
 function imageSizes()
 {
