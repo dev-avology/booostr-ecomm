@@ -13,7 +13,7 @@
 <div class="write-in-amount-box" data-write-in-block>
     <div class="write-in-amount-title">Allow Customer To Enter Price?</div>
     <p class="write-in-amount-intro mb-2">{{ $intro }}</p>
-    <div class="write-in-amount-radios mb-2">
+    <div class="write-in-amount-radios mb-0">
         <label class="mr-3 mb-0">
             <input type="radio"
                    class="write-in-amount-radio"
@@ -33,5 +33,5 @@
             Yes
         </label>
     </div>
-    <p class="write-in-amount-yes-help mb-0" @if(!$enabled) style="display:none;" @endif>{{ $yesHelp }}</p>
 </div>
+<p class="write-in-amount-yes-help" @if(!$enabled) style="display:none;" @endif>{{ $yesHelp }}</p>

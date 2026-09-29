@@ -437,7 +437,7 @@
 
 @push('script')
 <script src="{{ asset('admin/js/select2.min.js') }}"></script>
-<script src="{{ asset('admin/js/product-price.js?v=2') }}"></script>
+<script src="{{ asset('admin/js/product-price.js?v=3') }}"></script>
 @include('seller.product.partials.write-in-amount-script')
 
 <script>

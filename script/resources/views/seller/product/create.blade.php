@@ -450,7 +450,7 @@
 <script src="{{ asset('admin/plugins/dropzone/components-multiple-upload.js') }}"></script>
 <script src="{{ asset('admin/js/media.js') }}"></script>
 <script src="{{ asset('admin/js/select2.min.js') }}"></script>
-<script src="{{ asset('admin/js/product-create.js') }}?ver=4"></script>
+<script src="{{ asset('admin/js/product-create.js') }}?ver=5"></script>
 @include('seller.product.partials.write-in-amount-script')
 <script>
 

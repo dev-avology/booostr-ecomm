@@ -17,8 +17,8 @@
                   <input type="radio" class="write-in-amount-radio" name="${fieldName}" id="write-in-yes-${uid}" value="1"> Yes
                </label>
             </div>
-            <p class="write-in-amount-yes-help mb-0" style="display:none;">You are choosing to allow customers to enter in the price they would like to pay for this product variant. Due to payment processing minimums, by default the lowest input price a customer can enter in is $0.75. We do allow you to set an alternative minimum amount as well to over-ride Booostr minimum, but your custom minimum must be $0.75 or greater. The default or custom minimum price prevents your customers from entering an amount below the minimum default or set threshold.</p>
          </div>
+         <p class="write-in-amount-yes-help" style="display:none;">You are choosing to allow customers to enter in the price they would like to pay for this product variant. Due to payment processing minimums, by default the lowest input price a customer can enter in is $0.75. We do allow you to set an alternative minimum amount as well to over-ride Booostr minimum, but your custom minimum must be $0.75 or greater. The default or custom minimum price prevents your customers from entering an amount below the minimum default or set threshold.</p>
          <div class="from-group write-in-price-wrap">
             <label class="write-in-label-fixed">Price : </label>
             <label class="write-in-label-min" style="display:none;">Alternate Product Purchase Minimum :</label>

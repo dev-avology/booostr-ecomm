@@ -11,10 +11,19 @@
     color: #222;
 }
 .write-in-amount-intro,
-.write-in-amount-yes-help,
 .write-in-min-hint {
     font-size: 13px;
     color: #444;
+    line-height: 1.45;
+}
+.write-in-amount-yes-help {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0 0 12px;
+    font-size: 13px;
+    font-weight: 400;
+    color: #212529;
     line-height: 1.45;
 }
 .write-in-amount-radios input[type="radio"] {
