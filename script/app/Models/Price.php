@@ -22,6 +22,7 @@ class Price extends Model
         'stock_manage',
         'stock_status',
         'tax',
+        'is_write_in_amount_enabled',
        
         
     ];

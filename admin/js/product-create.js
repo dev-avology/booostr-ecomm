@@ -3,6 +3,33 @@
    var short=1;
    const parentAttributes= JSON.parse($('#parentattributes').val());
 
+   function writeInAmountFieldsHtml(fieldName, uid) {
+      return `
+      <div class="col-lg-12 write-in-amount-block mb-2">
+         <div class="write-in-amount-box" data-write-in-block>
+            <div class="write-in-amount-title">Allow Customer To Enter Price?</div>
+            <p class="write-in-amount-intro mb-2">Normally stores set the product pricing for each product variant, and that is how we set your products by default. However, in some cases you may offer a product where you are asking for a donation in exchange for the product or product variant. In these instances you would want to Allow the Customer to enter a price.</p>
+            <div class="write-in-amount-radios mb-2">
+               <label class="mr-3 mb-0">
+                  <input type="radio" class="write-in-amount-radio" name="${fieldName}" id="write-in-no-${uid}" value="0" checked> No
+               </label>
+               <label class="mb-0">
+                  <input type="radio" class="write-in-amount-radio" name="${fieldName}" id="write-in-yes-${uid}" value="1"> Yes
+               </label>
+            </div>
+            <p class="write-in-amount-yes-help mb-0" style="display:none;">You are choosing to allow customers to enter in the price they would like to pay for this product variant. Due to payment processing minimums, by default the lowest input price a customer can enter in is $0.75. We do allow you to set an alternative minimum amount as well to over-ride Booostr minimum, but your custom minimum must be $0.75 or greater. The default or custom minimum price prevents your customers from entering an amount below the minimum default or set threshold.</p>
+         </div>
+         <div class="from-group write-in-price-wrap">
+            <label class="write-in-label-fixed">Price : </label>
+            <label class="write-in-label-min" style="display:none;">Alternate Product Purchase Minimum :</label>
+            <div>
+               <input type="number" required step="any" class="form-control" name="${fieldName.replace('[is_write_in_amount_enabled]', '[price]')}" value="0"/>
+               <small class="write-in-min-hint form-text text-muted" style="display:none;">Must be $0.75 or greater. Leaving it at zero will default to the Booostr $0.75 minimum.</small>
+            </div>
+         </div>
+      </div>`;
+   }
+
    console.log(parentAttributes);
   
    $('.product_type').on('change',function(){
@@ -211,6 +238,7 @@ $(document).on('change','.childattribute',function (argument) {
  
             // if (type == 'new') {
                 var price_name=`childattribute[childrens][${variationIndex}][price]`;
+                var write_in_name=`childattribute[childrens][${variationIndex}][is_write_in_amount_enabled]`;
                 var qtyname=`childattribute[childrens][${variationIndex}][qty]`;
                 var skuname=`childattribute[childrens][${variationIndex}][sku]`;
                 var stock_manage_name=`childattribute[childrens][${variationIndex}][stock_manage]`;
@@ -235,14 +263,7 @@ $(document).on('change','.childattribute',function (argument) {
              </div>      
           </div> <div class="accordion-body collapse show" id="panel-body-${variationIndex}new" data-parent="#children_attribute_render_area">
           <div class="row">
-                      
-                       <div class="from-group col-lg-6">
-                         <label for="" >Price : </label>
-                         <div >
-                            <input type="number" required step="any" class="form-control" name="${price_name}" value="0"/>
-                         </div>
-                      </div>
-                       
+                      ${writeInAmountFieldsHtml(write_in_name, 'create-var-' + variationIndex)}
                        <div class="from-group col-lg-6  mb-2">
                          <label for="">Stock Quantity : </label>
                          <div >
@@ -292,6 +313,9 @@ $(document).on('change','.childattribute',function (argument) {
          console.log(html);
          
          $('#children_attribute_render_area').append(html);  
+         if (typeof window.syncAllWriteInAmountBlocks === 'function') {
+            window.syncAllWriteInAmountBlocks();
+         }
  
          $('.create_variation_product').hide();
  

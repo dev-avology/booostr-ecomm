@@ -219,7 +219,7 @@ class ProductController extends Controller
                     $storedPrice = ticket_seller_base_to_stored_price($storedPrice);
                 }
 
-                $term->price()->create([
+                $term->price()->create($this->withWriteInAmountFields([
                     'price' => $storedPrice,
                     'qty' => $request->qty,
                     'sku' => $request->sku,
@@ -227,7 +227,7 @@ class ProductController extends Controller
                     'stock_manage' => $request->stock_manage,
                     'stock_status' => $request->stock_status,
                     'tax' => $request->tax
-                ]);
+                ], $request, (int) $request->product_type === 2));
             } else {
 
                 $product_options = [];
@@ -259,6 +259,7 @@ class ProductController extends Controller
                               $data['stock_manage'] = $child_row['stock_manage'] ?? 0;
                               $data['stock_status'] = $child_row['stock_status'] ?? 0;
                               $data['tax'] = $request->tax ?? 1;
+                              $data = $this->withWriteInAmountFields($data, $child_row);
                               $varition = Price::create($data);
                               $varitions_data = [];
                               foreach($child_row['varition'] ?? [] as $key=>$opt){
@@ -535,9 +536,9 @@ class ProductController extends Controller
                         );
                     }
                     if (empty($term->price)) {
-                        $term->price()->create(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => 0, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status,'tax' => $request->tax]);
+                        $term->price()->create($this->withWriteInAmountFields(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => 0, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status,'tax' => $request->tax], $request, is_ticket_product_term($term)));
                     } else {
-                        $term->price()->update(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => 0, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status,'tax' => $request->tax]);
+                        $term->price()->update($this->withWriteInAmountFields(['price' => $valid_price, 'qty' => $request->qty, 'sku' => $request->sku, 'weight' => 0, 'stock_manage' => $request->stock_manage, 'stock_status' => $request->stock_status,'tax' => $request->tax], $request, is_ticket_product_term($term)));
                     }
                     //end single price
                 } else {
@@ -581,6 +582,7 @@ class ProductController extends Controller
                                 $data['stock_manage'] = $child_row['stock_manage'] ?? 0;
                                 $data['stock_status'] = $child_row['stock_status'] ?? 0;
                                 $data['tax'] = $request->tax ?? 1;
+                                $data = $this->withWriteInAmountFields($data, $child_row);
                                 $varition = Price::create($data);
                                 $varitions_data = [];
                                 foreach($child_row['varition'] ?? [] as $key=>$opt){
@@ -605,6 +607,7 @@ class ProductController extends Controller
                             $data['stock_manage'] = $child_row['stock_manage'] ?? 0;
                             $data['stock_status'] = $child_row['stock_status'] ?? 0;
                             $data['tax'] = $request->tax ?? 1;
+                            $data = $this->withWriteInAmountFields($data, $child_row);
                             $varition->update($data);
                             $varitions_data = [];
                             foreach($child_row['varition'] ?? [] as $key=>$opt){
@@ -629,6 +632,7 @@ class ProductController extends Controller
                             $data['stock_manage'] = $child_row['stock_manage'] ?? 0;
                             $data['stock_status'] = $child_row['stock_status'] ?? 0;
                             $data['tax'] = $request->tax ?? 1;
+                            $data = $this->withWriteInAmountFields($data, $child_row);
                             $varition = Price::create($data);
                             $varitions_data = [];
                             foreach($child_row['varition'] ?? [] as $key=>$opt){
@@ -950,15 +954,19 @@ class ProductController extends Controller
 
             if ($product->is_variation != 1) {
 
-                $term->price()->create([
+                $simplePriceData = [
                     'price' => $product->price->price,
                     'qty' => $product->price->qty,
                     'sku' => '',
                     'weight' => $product->price->weight,
                     'stock_manage' => 0,
                     'stock_status' => $product->price->stock_status,
-                    'tax' => $product->price->tax
-                ]);
+                    'tax' => $product->price->tax,
+                ];
+                if (\Illuminate\Support\Facades\Schema::hasColumn('prices', 'is_write_in_amount_enabled')) {
+                    $simplePriceData['is_write_in_amount_enabled'] = (int) ($product->price->is_write_in_amount_enabled ?? 0) === 1 ? 1 : 0;
+                }
+                $term->price()->create($simplePriceData);
             } else {
 
                 $product_options = [];
@@ -981,6 +989,9 @@ class ProductController extends Controller
                     $data['stock_manage'] =  0;
                     $data['stock_status'] =  0;
                     $data['tax'] = $price->tax;
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('prices', 'is_write_in_amount_enabled')) {
+                        $data['is_write_in_amount_enabled'] = (int) ($price->is_write_in_amount_enabled ?? 0) === 1 ? 1 : 0;
+                    }
                     $varition = Price::create($data);
                     $varitions_data = [];
                     foreach($price->varitions as $old_varition){
@@ -1631,4 +1642,34 @@ public function ticketStatusUpdate(Request $request)
 
     return response()->json(['success' => true]);
 }
+
+    /**
+     * Additive: persist write-in/donation price flag without changing existing price fields.
+     */
+    protected function withWriteInAmountFields(array $data, $source, bool $isTicket = false): array
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('prices', 'is_write_in_amount_enabled')) {
+            return $data;
+        }
+
+        if ($isTicket) {
+            $data['is_write_in_amount_enabled'] = 0;
+            return $data;
+        }
+
+        $enabled = 0;
+        if (is_array($source)) {
+            $enabled = (int) ($source['is_write_in_amount_enabled'] ?? 0) === 1 ? 1 : 0;
+        } elseif ($source instanceof Request) {
+            $enabled = (int) $source->input('is_write_in_amount_enabled', 0) === 1 ? 1 : 0;
+        }
+
+        $data['is_write_in_amount_enabled'] = $enabled;
+
+        if ($enabled === 1 && (float) ($data['price'] ?? 0) < 0.75) {
+            $data['price'] = 0.75;
+        }
+
+        return $data;
+    }
 }

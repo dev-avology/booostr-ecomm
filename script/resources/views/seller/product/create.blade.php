@@ -19,6 +19,8 @@
     margin-top: 24px;
 }
 
+@include('seller.product.partials.write-in-amount-styles')
+
 </style>
 @endpush
 
@@ -331,10 +333,20 @@
                <div class="col-lg-8">
                   <div class="card card-primary">
                      <div class="accordion-body card-body">
-                     <div class="from-group row mb-2">
-                        <div class="col-lg-4">
-                        <label class="price_label">Base Ticket Price :</label>
+                     <div class="from-group row mb-2 write-in-amount-block">
+                        <div class="col-lg-12 write-in-simple-wrap mb-2">
+                           @include('seller.product.partials.write-in-amount', [
+                              'name' => 'is_write_in_amount_enabled',
+                              'uid' => 'simple-create',
+                              'enabled' => false,
+                              'isVariant' => false,
+                           ])
+                        </div>
+                        <div class="col-lg-4 write-in-price-wrap">
+                        <label class="price_label write-in-label-fixed">Base Ticket Price :</label>
+                        <label class="write-in-label-min" style="display:none;">Alternate Product Purchase Minimum :</label>
                         <input type="number" step="any" class="form-control" name="price" id="base_ticket_price" placeholder="0.00" value="">
+                        <small class="write-in-min-hint form-text text-muted" style="display:none;">Must be $0.75 or greater. Leaving it at zero will default to the Booostr $0.75 minimum.</small>
                         </div>
 
                         <div class="col-lg-1 text-center ticket_fee_area">
@@ -438,7 +450,8 @@
 <script src="{{ asset('admin/plugins/dropzone/components-multiple-upload.js') }}"></script>
 <script src="{{ asset('admin/js/media.js') }}"></script>
 <script src="{{ asset('admin/js/select2.min.js') }}"></script>
-<script src="{{ asset('admin/js/product-create.js') }}?ver=3"></script>
+<script src="{{ asset('admin/js/product-create.js') }}?ver=4"></script>
+@include('seller.product.partials.write-in-amount-script')
 <script>
 
 $(document).on('change', '.manage_stock', function() {
@@ -534,6 +547,11 @@ function toggleTicketFields() {
         $('.ticket_instructions_area').show();
         $('.ticket_fields').show();
         $('.ticket_fee_area').show();
+        $('.write-in-simple-wrap').hide();
+        $('.write-in-simple-wrap .write-in-amount-radio[value="0"]').prop('checked', true);
+        if (typeof window.syncAllWriteInAmountBlocks === 'function') {
+            window.syncAllWriteInAmountBlocks();
+        }
 
         $('.price_label').text('Base Ticket Price :');
 
@@ -562,8 +580,12 @@ function toggleTicketFields() {
         $('.ticket_instructions_area').hide();
         $('.ticket_fields').hide();
         $('.ticket_fee_area').hide();
+        $('.write-in-simple-wrap').show();
 
         $('.price_label').text('Product Price :');
+        if (typeof window.syncAllWriteInAmountBlocks === 'function') {
+            window.syncAllWriteInAmountBlocks();
+        }
 
         $('.single_product_price_area strong').text('Simple Product Information');
         $('.single_product_price_area p').text('Add your simple product description and necessary information from here');

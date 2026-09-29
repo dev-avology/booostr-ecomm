@@ -5,6 +5,7 @@
    .hide.weight{
       display:none;
    }
+   @include('seller.product.partials.write-in-amount-styles')
 </style>
 
 @endpush
@@ -87,16 +88,26 @@
 
 @else
 
-   <div class="from-group row mb-2">
-      <label class="col-lg-12">{{ __('Product Price') }} :</label>
+   <div class="write-in-amount-block">
+      @include('seller.product.partials.write-in-amount', [
+         'name' => 'is_write_in_amount_enabled',
+         'uid' => 'simple-edit-'.$info->id,
+         'enabled' => (int)($info->price->is_write_in_amount_enabled ?? 0) === 1,
+         'isVariant' => false,
+      ])
+      <div class="from-group row mb-2 write-in-price-wrap">
+         <label class="col-lg-12 write-in-label-fixed">{{ __('Product Price') }} :</label>
+         <label class="col-lg-12 write-in-label-min" style="{{ (int)($info->price->is_write_in_amount_enabled ?? 0) === 1 ? '' : 'display:none;' }}">Alternate Product Purchase Minimum :</label>
 
-      <div class="col-lg-12">
-         <input type="text"
-                step="any"
-                class="form-control product_price_input"
-                name="price"
-                value="@if($info->price){{ $info?->price->price ? '$'.number_format($info?->price->price, 2) : '' }}@endif"
-                placeholder="$0.00">
+         <div class="col-lg-12">
+            <input type="text"
+                   step="any"
+                   class="form-control product_price_input"
+                   name="price"
+                   value="@if($info->price){{ $info?->price->price ? '$'.number_format($info?->price->price, 2) : '' }}@endif"
+                   placeholder="$0.00">
+            <small class="write-in-min-hint form-text text-muted" style="{{ (int)($info->price->is_write_in_amount_enabled ?? 0) === 1 ? '' : 'display:none;' }}">Must be $0.75 or greater. Leaving it at zero will default to the Booostr $0.75 minimum.</small>
+         </div>
       </div>
    </div>
 
@@ -328,10 +339,20 @@
                                  </h5>
                               </div>
                               @else
-                              <div class="from-group col-lg-6">
-                                 <label for="" >{{ __('Price :') }} </label>
-                                 <div >
-                                    <input type="number" step="any" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][price]" value="{{ $priceswithcategory->price }}" />
+                              <div class="col-lg-12 write-in-amount-block mb-2">
+                                 @include('seller.product.partials.write-in-amount', [
+                                    'name' => 'childattribute[priceoption]['.$priceswithcategory->id.'][is_write_in_amount_enabled]',
+                                    'uid' => 'variant-'.$priceswithcategory->id,
+                                    'enabled' => (int)($priceswithcategory->is_write_in_amount_enabled ?? 0) === 1,
+                                    'isVariant' => true,
+                                 ])
+                                 <div class="from-group write-in-price-wrap">
+                                    <label class="write-in-label-fixed">{{ __('Price :') }} </label>
+                                    <label class="write-in-label-min" style="{{ (int)($priceswithcategory->is_write_in_amount_enabled ?? 0) === 1 ? '' : 'display:none;' }}">Alternate Product Purchase Minimum :</label>
+                                    <div>
+                                       <input type="number" step="any" class="form-control" name="childattribute[priceoption][{{$priceswithcategory->id}}][price]" value="{{ $priceswithcategory->price }}" />
+                                       <small class="write-in-min-hint form-text text-muted" style="{{ (int)($priceswithcategory->is_write_in_amount_enabled ?? 0) === 1 ? '' : 'display:none;' }}">Must be $0.75 or greater. Leaving it at zero will default to the Booostr $0.75 minimum.</small>
+                                    </div>
                                  </div>
                               </div>
                               @endif
@@ -416,7 +437,8 @@
 
 @push('script')
 <script src="{{ asset('admin/js/select2.min.js') }}"></script>
-<script src="{{ asset('admin/js/product-price.js?v=1') }}"></script>
+<script src="{{ asset('admin/js/product-price.js?v=2') }}"></script>
+@include('seller.product.partials.write-in-amount-script')
 
 <script>
   $(document).on('change', '.manage_stock', function() {
