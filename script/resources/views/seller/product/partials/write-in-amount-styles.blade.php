@@ -19,10 +19,11 @@
 .write-in-amount-yes-help {
     background: none;
     border: 0;
-    padding: 0;
-    margin: 0 0 12px;
+    padding-left: 25px;
+    padding-right: 25px;
+    margin: 0 0 14px;
     font-size: 13px;
-    font-weight: 400;
+    font-weight: 630;
     color: #212529;
     line-height: 1.45;
 }
