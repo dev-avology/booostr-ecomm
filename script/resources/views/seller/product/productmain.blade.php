@@ -9,13 +9,13 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
   .product-purchase-warning {
-    border-radius: 4px;
+    border-radius: 8px;
     margin-bottom: 15px;
     display: flex;
     align-items: flex-start;
     gap: 20px;
     background-color: #ffe2aa;
-    border: 1px solid #c99954;
+    border: 2px solid #c99954;
     padding: 17px 24px;
     align-items: center;
 }
