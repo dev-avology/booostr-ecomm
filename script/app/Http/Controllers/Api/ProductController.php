@@ -17,7 +17,9 @@ use App\Models\Coupon;
 use App\Models\Orderstock;
 use App\Models\Option;
 use App\Models\ProductForm;
+use App\Models\CartItemWriteInAmount;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 use Cart;
 use DB;
 use Auth;
@@ -336,6 +338,7 @@ class ProductController extends Controller
         if ($info->is_variation == 1) {
 
             $price=$info->prices[0];
+            $writeInAmount = $this->resolvedWriteInCartAmount($request, $price);
                             
             $exist_qty=0;
 
@@ -360,20 +363,27 @@ class ProductController extends Controller
                 return $cartItem->id == $info->id;
             });
             
-            if ($existingCartItem->isNotEmpty() && (int)$request->variation_id == $existingCartItem->first()->options->options->first()->id && !$FormFlag) {
+            if ($existingCartItem->isNotEmpty() && (int)$request->variation_id == $existingCartItem->first()->options->options->first()->id && !$FormFlag && $this->shouldMergeWriteInCartItem($existingCartItem->first(), $writeInAmount)) {
 
                 $rowId = $existingCartItem->first()->rowId;
                 Cart::update($rowId, $exist_qty);
+                $this->persistCartItemWriteInAmount($cartid, $rowId, $info->id, $writeInAmount);
             }else{
-                $cart_item = Cart::add(
-                        ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $info->prices[0]['price'], 'weight' => $info->prices[0]['weight'], 
-                        'options' => [
+                $variationOptions = [
                             'tax' =>$info->prices[0]['tax'],
                             'options' => $info->prices, 'sku' => $info->prices[0]['sku'], 'stock' => null, 'price_id' => $info->prices[0]['id'],'short_description'=>($info->excerpt->value ?? ''),
                             'preview'=>asset($info->preview->value ?? 'uploads/default.png')
-                        ],
+                        ];
+                if ($writeInAmount !== null) {
+                    $variationOptions['write_in_amount'] = $writeInAmount;
+                }
+                $linePrice = $writeInAmount !== null ? $writeInAmount : $info->prices[0]['price'];
+                $cart_item = Cart::add(
+                        ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $linePrice, 'weight' => $info->prices[0]['weight'], 
+                        'options' => $variationOptions,
                         'formData'=>($FormFlag)?$fdata:''    
                         ]);
+                $this->persistCartItemWriteInAmount($cartid, $cart_item->rowId, $info->id, $writeInAmount);
 
 
 
@@ -409,6 +419,7 @@ class ProductController extends Controller
             $exist_qty=$exist_qty+$request->qty;
 
             $price=$info->firstprice;
+            $writeInAmount = $this->resolvedWriteInCartAmount($request, $price);
             $weight=$price->weight ?? 0;
 
             $stockCheck = $this->addStockValidation($price,$exist_qty,$cartid);
@@ -420,10 +431,11 @@ class ProductController extends Controller
                 return $cartItem->id == $info->id ? $rowId:false;
             });
 
-            if ($existingCartItem->isNotEmpty() && !$FormFlag) {
+            if ($existingCartItem->isNotEmpty() && !$FormFlag && $this->shouldMergeWriteInCartItem($existingCartItem->first(), $writeInAmount)) {
            
                 $rowId = $existingCartItem->first()->rowId;
                 Cart::update($rowId, $exist_qty);
+                $this->persistCartItemWriteInAmount($cartid, $rowId, $info->id, $writeInAmount);
             }else{
                 $options = [
                     'sku' => $price->sku,
@@ -434,6 +446,9 @@ class ProductController extends Controller
                     'short_description'=>($info->excerpt->value ?? ''),
                     'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
                 ];
+                if ($writeInAmount !== null) {
+                    $options['write_in_amount'] = $writeInAmount;
+                }
     
                 if (($price->stock_manage == 1 && $price->stock_status == 1) || $price->stock_status == 1 ) {
                     $options['stock'] = $price->qty;
@@ -442,10 +457,9 @@ class ProductController extends Controller
                     $options['stock'] = null;
                 }
           
-              $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price->price, 'weight' => $weight, 'options' => $options,'formData'=>($FormFlag)?$fdata:'']);          
-              
-
-             
+              $linePrice = $writeInAmount !== null ? $writeInAmount : $price->price;
+              $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $linePrice, 'weight' => $weight, 'options' => $options,'formData'=>($FormFlag)?$fdata:'']);          
+              $this->persistCartItemWriteInAmount($cartid, $cart_item->rowId, $info->id, $writeInAmount);
 
               if($price->tax == 1){
                 $cart_item->setTaxRate(getTaxRate());
@@ -541,6 +555,7 @@ class ProductController extends Controller
         if(Cart::content()->isEmpty()){
             return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
         }
+        $this->hydrateCartWriteInAmounts($cartid);
         //resave cart
         try{
             Cart::store($cartid);
@@ -1271,5 +1286,92 @@ public function registerPaymentMethodDomain(Request $request)
         ], 500);
     }
 }
+
+    /**
+     * Resolve write_in_amount only when the payload is present and the price row allows it.
+     */
+    protected function resolvedWriteInCartAmount(Request $request, $priceRow): ?float
+    {
+        if (!$request->exists('write_in_amount') || $request->input('write_in_amount') === '' || $request->input('write_in_amount') === null) {
+            return null;
+        }
+
+        if (!Schema::hasColumn('prices', 'is_write_in_amount_enabled')) {
+            return null;
+        }
+
+        if ((int) ($priceRow->is_write_in_amount_enabled ?? 0) !== 1) {
+            return null;
+        }
+
+        $amount = (float) preg_replace('/[^0-9.]/', '', (string) $request->input('write_in_amount'));
+        $min = max(0.75, (float) ($priceRow->price ?? 0));
+        if ($amount < $min) {
+            $amount = $min;
+        }
+
+        return round($amount, 2);
+    }
+
+    protected function cartItemWriteInAmount($cartItem): ?float
+    {
+        if (empty($cartItem) || empty($cartItem->options)) {
+            return null;
+        }
+
+        $val = $cartItem->options->write_in_amount ?? null;
+        if ($val === null || $val === '') {
+            return null;
+        }
+
+        return round((float) $val, 2);
+    }
+
+    protected function shouldMergeWriteInCartItem($existingItem, ?float $requestWriteIn): bool
+    {
+        $existingWriteIn = $this->cartItemWriteInAmount($existingItem);
+        if ($requestWriteIn === null && $existingWriteIn === null) {
+            return true;
+        }
+        if ($requestWriteIn === null || $existingWriteIn === null) {
+            return false;
+        }
+
+        return abs($requestWriteIn - $existingWriteIn) < 0.001;
+    }
+
+    protected function persistCartItemWriteInAmount($cartId, $rowId, $productId, ?float $amount): void
+    {
+        if ($amount === null || empty($cartId) || empty($rowId)) {
+            return;
+        }
+        if (!Schema::hasTable('cart_item_write_in_amounts')) {
+            return;
+        }
+
+        CartItemWriteInAmount::updateOrCreate(
+            ['cart_id' => (string) $cartId, 'rowid' => (string) $rowId],
+            ['product_id' => $productId, 'write_in_amount' => $amount]
+        );
+    }
+
+    protected function hydrateCartWriteInAmounts($cartId): void
+    {
+        if (empty($cartId) || !Schema::hasTable('cart_item_write_in_amounts')) {
+            return;
+        }
+
+        $rows = CartItemWriteInAmount::where('cart_id', (string) $cartId)->get()->keyBy('rowid');
+        if ($rows->isEmpty()) {
+            return;
+        }
+
+        foreach (Cart::content() as $item) {
+            if (!$rows->has($item->rowId)) {
+                continue;
+            }
+            $item->options->write_in_amount = round((float) $rows[$item->rowId]->write_in_amount, 2);
+        }
+    }
 
 }
