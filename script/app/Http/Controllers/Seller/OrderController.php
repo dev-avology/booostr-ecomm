@@ -858,7 +858,7 @@ class OrderController extends Controller
         ];
     }
 
-    public function post_order_data($order,$post_type = 'capture'){
+    public function post_order_data($order,$post_type = 'capture', $payment_intent_id = null){
 
         if (!is_order_syncable_to_financial_manager($order, $post_type)) {
             return null;
@@ -866,6 +866,10 @@ class OrderController extends Controller
 
         if ($post_type === 'capture' && has_financial_manager_capture_sync((int) $order->id)) {
             return null;
+        }
+
+        if (empty($payment_intent_id)) {
+            $payment_intent_id = get_order_payment_intent_id($order);
         }
 
         $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
@@ -950,6 +954,7 @@ class OrderController extends Controller
         // Additive: refund text + amount as memo (full refund only).
         'memo'=> ($post_type == 'refund') ? financial_manager_refund_detail_to_memo(financial_manager_full_refund_detail($order)) : '',
         'store_t_type' => ($post_type == 'refund') ? 'refund' : null,
+        'payment_intent_id' => $payment_intent_id,
       ]);
         // 'order_date' => $order_date, 
         // 'order_subtotal' => $sub_total,
@@ -997,7 +1002,7 @@ class OrderController extends Controller
     }
 
 
-    public function post_order_data_POS($order,$post_type = 'capture'){
+    public function post_order_data_POS($order,$post_type = 'capture', $payment_intent_id = null){
 
         if (!is_order_syncable_to_financial_manager($order, $post_type)) {
             return null;
@@ -1005,6 +1010,10 @@ class OrderController extends Controller
 
         if ($post_type === 'capture' && has_financial_manager_capture_sync((int) $order->id)) {
             return null;
+        }
+
+        if (empty($payment_intent_id)) {
+            $payment_intent_id = get_order_payment_intent_id($order);
         }
 
         $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
@@ -1066,6 +1075,7 @@ class OrderController extends Controller
             // Additive: refund text + amount as memo (full refund only).
             'memo'=> ($post_type == 'refund') ? financial_manager_refund_detail_to_memo(financial_manager_full_refund_detail($order)) : '',
         'store_t_type' => ($post_type == 'refund') ? 'refund' : null,
+        'payment_intent_id' => $payment_intent_id,
         ]);
 
    

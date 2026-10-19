@@ -950,7 +950,7 @@ class PosApiController extends Controller
 
 
 
-    public function post_order_data_pos($order,$post_type = 'capture'){
+    public function post_order_data_pos($order,$post_type = 'capture', $payment_intent_id = null){
 
             if (!is_order_syncable_to_financial_manager($order, $post_type)) {
                 return null;
@@ -958,6 +958,10 @@ class PosApiController extends Controller
 
             if ($post_type === 'capture' && has_financial_manager_capture_sync((int) $order->id)) {
                 return null;
+            }
+
+            if (empty($payment_intent_id)) {
+                $payment_intent_id = get_order_payment_intent_id($order);
             }
 
             $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
@@ -1017,6 +1021,7 @@ class PosApiController extends Controller
             'deposite_date'=>$order->captured_at,
             'transfer_refund_date'=> ($post_type == 'refund') ? $order->refunded_at : null,
             'record_type' => $post_type,
+            'payment_intent_id' => $payment_intent_id,
         ]);
 
 
@@ -3080,6 +3085,17 @@ private function send_order_recipts($data){
                 ]);
             }
             
+            // Additive: resolve payment_intent_id from /api/storedata/order/create request or Stripe charge
+            $resolvedPaymentIntentId = $request->input('payment_intent_id')
+                ?: $request->input('payment_intent')
+                ?: ((!empty($order->transaction_id) && strpos($order->transaction_id, 'pi_') === 0) ? $order->transaction_id : null)
+                ?: ($paymentresult['transaction_log']['payment_intent'] ?? null)
+                ?: ((!empty($paymentresult['payment_id']) && strpos($paymentresult['payment_id'], 'pi_') === 0) ? $paymentresult['payment_id'] : null);
+
+            if (!empty($resolvedPaymentIntentId)) {
+                $order->payment_intent_id = $resolvedPaymentIntentId;
+            }
+
             if (!empty($request->name) || !empty($request->email) || !empty($request->phone) || !empty($request->comment)) {
                 $customer_info['name'] = $request->name;
                 $customer_info['email'] = $request->email;
@@ -3098,12 +3114,27 @@ private function send_order_recipts($data){
                 if ($isCashPayment) {
                     $customer_info['payment_method_label'] = 'cash/check';
                 }
+                // Additive: payment_intent_id passed through to /financial-manager.
+                if (!empty($resolvedPaymentIntentId)) {
+                    $customer_info['payment_intent_id'] = $resolvedPaymentIntentId;
+                }
 
                 $order->ordermeta()->create([
                     'key' => 'orderinfo',
                     'value' => json_encode($customer_info)
                 ]);
-                
+
+                if (!empty($resolvedPaymentIntentId)) {
+                    try {
+                        \App\Models\Ordermeta::create([
+                            'order_id' => $order->id,
+                            'key'      => 'payment_intent_id',
+                            'value'    => $resolvedPaymentIntentId,
+                        ]);
+                    } catch (\Throwable $e) {
+                        // ignore if already present or error
+                    }
+                }
             }
             
             
@@ -3117,10 +3148,15 @@ private function send_order_recipts($data){
 
             trigger_product_sales_crm_sync_after_order($order->id);
 
+            // Additive: safely get payment_intent_id from order after commit
+            $paymentIntentIdForSync = $order->payment_intent_id
+                ?: get_order_payment_intent_id($order)
+                ?: $resolvedPaymentIntentId;
+
             // Additive: API cash/check orders skip WP financial-manager + user-recipt.
             // Stripe manual-capture (Authorized) orders also skip until captured on /seller/order.
             if (!$isCashPayment && (int) $order->payment_status === 1) {
-                sync_order_to_financial_manager($order->id);
+                sync_order_to_financial_manager($order->id, 'capture', $paymentIntentIdForSync);
 
                 $reciptdata = $this->order_recipt_data($order->id);
                 $recipt =  $this->send_order_recipt($reciptdata);

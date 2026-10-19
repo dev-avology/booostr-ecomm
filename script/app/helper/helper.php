@@ -1097,12 +1097,65 @@ if (!function_exists('mark_financial_manager_capture_synced')) {
     }
 }
 
+if (!function_exists('get_order_payment_intent_id')) {
+    /**
+     * Safely resolve payment_intent_id from an Order instance, ordermeta, or Order ID.
+     */
+    function get_order_payment_intent_id($order): ?string
+    {
+        if (is_numeric($order)) {
+            $order = \App\Models\Order::with('ordermeta')->find((int) $order);
+        }
+
+        if (!$order) {
+            return null;
+        }
+
+        // 1. Direct dynamic property if already set on instance
+        if (!empty($order->payment_intent_id)) {
+            return (string) $order->payment_intent_id;
+        }
+
+        // 2. From ordermeta ('orderinfo')
+        $ordermeta = [];
+        if (isset($order->ordermeta)) {
+            $metaVal = $order->ordermeta->value ?? null;
+            $ordermeta = is_array($metaVal) ? $metaVal : (json_decode((string) $metaVal, true) ?: []);
+        }
+        if (!empty($ordermeta['payment_intent_id'])) {
+            return (string) $ordermeta['payment_intent_id'];
+        }
+        if (!empty($ordermeta['payment_intent'])) {
+            return (string) $ordermeta['payment_intent'];
+        }
+
+        // 3. From dedicated ordermeta key
+        try {
+            $dedicatedMeta = \App\Models\Ordermeta::where('order_id', $order->id)
+                ->whereIn('key', ['payment_intent_id', 'payment_intent'])
+                ->first();
+            if ($dedicatedMeta && !empty($dedicatedMeta->value)) {
+                return (string) $dedicatedMeta->value;
+            }
+        } catch (\Throwable $e) {
+            // Table/connection safeguard
+        }
+
+        // 4. From transaction_id if it is a Stripe PaymentIntent ID (pi_...)
+        if (!empty($order->transaction_id) && strpos($order->transaction_id, 'pi_') === 0) {
+            return (string) $order->transaction_id;
+        }
+
+        return null;
+    }
+}
+
 if (!function_exists('sync_order_to_financial_manager')) {
   /**
    * Real-time Financial Manager sync for captured/refund-eligible orders.
    * Safe to call after order placement; skips authorized-only orders.
    */
-    function sync_order_to_financial_manager($orderId, string $post_type = 'capture'): void
+    function sync_order_to_financial_manager($orderId, string $post_type = 'capture', ?string $payment_intent_id = null): void
     {
         try {
             $order = \App\Models\Order::with('orderitems', 'ordermeta', 'shippingwithinfo', 'getway', 'user')->find($orderId);
@@ -1114,12 +1167,16 @@ if (!function_exists('sync_order_to_financial_manager')) {
                 return;
             }
 
+            if (empty($payment_intent_id)) {
+                $payment_intent_id = get_order_payment_intent_id($order);
+            }
+
             $controller = app(\App\Http\Controllers\Seller\OrderController::class);
 
             if (in_array((int) $order->order_from, [4, 5], true)) {
-                $controller->post_order_data_POS($order, $post_type);
+                $controller->post_order_data_POS($order, $post_type, $payment_intent_id);
             } else {
-                $controller->post_order_data($order, $post_type);
+                $controller->post_order_data($order, $post_type, $payment_intent_id);
             }
         } catch (\Throwable $e) {
             \Log::error('Financial Manager sync failed', [
@@ -1679,6 +1736,7 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
             // on this order, so a double refund shows both details with their amounts.
             'memo' => financial_manager_partial_refunds_memo($order),
             'store_t_type' => 'refund',
+            'payment_intent_id' => get_order_payment_intent_id($order),
         ];
 
         if ($isPos) {
