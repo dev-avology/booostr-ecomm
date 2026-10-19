@@ -2533,7 +2533,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
         
             $url = env("WP_CLUB_URL");
         
-            $url = ($url != '') ? $url."wp-json/store-api/v1/sync-store-form-data/": "https://staging3.booostr.co/wp-json/store-api/v1/sync-store-form-data/";
+            $url = ($url != '') ? $url."wp-json/store-api/v1/sync-store-form-data/": "https://app4.booostr.co/wp-json/store-api/v1/sync-store-form-data/";
     
 
             $ch = curl_init();
@@ -2576,7 +2576,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
         $url = env("WP_API_URL");
         
-        $url = ($url != '') ? $url.'/user-recipt' : "https://staging3.booostr.co/wp-json/store-api/v1/user-recipt";
+        $url = ($url != '') ? $url.'/user-recipt' : "https://app4.booostr.co/wp-json/store-api/v1/user-recipt";
 
         // dd($url);die;
         $ch = curl_init();
