@@ -109,7 +109,15 @@ class TenantSyncService
             $booster_platform_fee = $shipping_data['booster_platform_fee'];
             $processing_fees = $credit_card_fee+$booster_platform_fee;
     
-            $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
+            $gateway = Getway::find($order->getway_id);
+            if ($gateway && $gateway->name == 'cash') {
+                $gateway_name = 0;
+            } else {
+                $gateway_name = 3;
+            }
+
+            $isCash = ($gateway_name === 0 || ($gateway && $gateway->name == 'cash') || (int)($order->order_from ?? 0) === 5);
+            $net_recieved_amount = $isCash ? ($order_total - $sales_tax) : ($order_total - ($sales_tax + $processing_fees));
 
             $user_recipt = [
                 'receipts_date'=>$order->placed_at,
@@ -133,13 +141,7 @@ class TenantSyncService
 
 
     
-            $gateway=Getway::find($order->getway_id);
-    
-            if($gateway && $gateway->name == 'cash'){
-                $gateway_name = 0;
-            }else{
-                $gateway_name = 3;
-            }
+            // gateway resolved above
     
             //$jsonString = $order->shippingwithinfo['info'];
     

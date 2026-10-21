@@ -1690,8 +1690,10 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
         //   net_revenue        = transaction_amount - Sales Tax - Processing Fees
         $refundedItemTotal = (float) ($remaining['refunded_item_total'] ?? 0);
         $refundedTaxTotal = (float) ($remaining['refunded_tax_total'] ?? 0);
-        $transactionAmount = max(0, round($orderTotal - $refundedItemTotal - $refundedTaxTotal, 2));
-        $netRevenue = round($transactionAmount - ($salesTax + $processingFees), 2);
+        $isCash = (($gateway && $gateway->name === 'cash') || (int)($order->order_from ?? 0) === 5);
+        $netRevenue = $isCash 
+            ? round($transactionAmount - $salesTax, 2)
+            : round($transactionAmount - ($salesTax + $processingFees), 2);
 
         $refundDate = !empty($refundEntry['refunded_at'])
             ? \Carbon\Carbon::parse($refundEntry['refunded_at'])->setTimezone(config('app.timezone'))

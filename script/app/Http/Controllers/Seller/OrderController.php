@@ -915,7 +915,8 @@ class OrderController extends Controller
 
         $customer_contact_data = $order->user;
 
-        $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
+        $isCash = (($gateway->name ?? '') == 'cash' || (int)($order->order_from ?? 0) === 5);
+        $net_recieved_amount = $isCash ? ($order_total - $sales_tax) : ($order_total - ($sales_tax + $processing_fees));
 
         $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 
@@ -1036,7 +1037,8 @@ class OrderController extends Controller
         $booster_platform_fee = $fees['booster_platform_fee'];
         $processing_fees = $credit_card_fee + $booster_platform_fee;
 
-        $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
+        $isCash = (($gateway->name ?? '') == 'cash' || (int)($order->order_from ?? 0) === 5);
+        $net_recieved_amount = $isCash ? ($order_total - $sales_tax) : ($order_total - ($sales_tax + $processing_fees));
 
         $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 

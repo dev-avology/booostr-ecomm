@@ -163,7 +163,8 @@ class SyncfinitialsRecordWP extends Command
             $booster_platform_fee = $shipping_data['booster_platform_fee'] ?? 0;
             $processing_fees = $credit_card_fee+$booster_platform_fee;
     
-            $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
+            $isCash = ($gateway_name === 0 || ($gateway && $gateway->name == 'cash') || (int)($order->order_from ?? 0) === 5);
+            $net_recieved_amount = $isCash ? ($order_total - $sales_tax) : ($order_total - ($sales_tax + $processing_fees));
     
             $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
 

@@ -988,11 +988,12 @@ class PosApiController extends Controller
             $booster_platform_fee = $shipping_data['booster_platform_fee'];
             $processing_fees = $credit_card_fee+$booster_platform_fee;
 
-            $net_recieved_amount = $order_total-($sales_tax+$processing_fees);
+            $gateway=Getway::find($order->getway_id);
+
+            $isCash = (($gateway->name ?? '') == 'cash' || (int)($order->order_from ?? 0) === 5);
+            $net_recieved_amount = $isCash ? ($order_total - $sales_tax) : ($order_total - ($sales_tax + $processing_fees));
 
             $shipped_and_fullfilldate = Carbon::parse($order->updated_at)->format('Y-m-d');
-
-            $gateway=Getway::find($order->getway_id);
 
             $postData = json_encode([
             'category_type'=> 'Booostr Ecommerce',
