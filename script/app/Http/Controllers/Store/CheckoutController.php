@@ -1454,6 +1454,8 @@ class CheckoutController extends Controller
           
             DB::commit();
 
+            dd($request->payment_intent_id,'sync_order_to_financial_manager');
+
             trigger_product_sales_crm_sync_after_order($order->id);
             sync_order_to_financial_manager($order->id);
             
