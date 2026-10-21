@@ -189,7 +189,7 @@ class SyncfinitialsRecordWP extends Command
                 'payement_method'=> $gateway_name,
                 'invoicenumber'=>$order->invoice_no,
                 'invoicreatedate'=>$order->placed_at,
-                'invoiceprocessingfee'=>$processing_fees,
+                'invoiceprocessingfee'=> ($gateway_name === 0 || ($gateway && $gateway->name == 'cash') || (int)($order->order_from ?? 0) === 5) ? 0 : $processing_fees,
                 'invoicesalestax'=> $sales_tax,
                 'invoiceopt'=>$order->invoice_no,
                 'deposite_date'=>$order->captured_at,

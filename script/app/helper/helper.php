@@ -1723,7 +1723,7 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
             'payement_method' => ($gateway && $gateway->name === 'cash') ? 0 : 3,
             'invoicenumber' => $order->invoice_no,
             'invoicreatedate' => $order->placed_at,
-            'invoiceprocessingfee' => round($processingFees, 2),
+            'invoiceprocessingfee' => (($gateway && $gateway->name === 'cash') || (int)($order->order_from ?? 0) === 5) ? 0 : round($processingFees, 2),
             'invoicesalestax' => $remainingSalesTax,
             'invoiceopt' => $order->invoice_no,
             'deposite_date' => $order->captured_at,
