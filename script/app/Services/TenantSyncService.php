@@ -178,6 +178,7 @@ class TenantSyncService
                     'deposite_date'=>$order->captured_at,
                     'transfer_refund_date'=> ($order->refunded_at != null) ? $order->refunded_at : null,
                     'record_type' => ($order->refunded_at != null) ? 'refund' : 'capture',
+                    'payment_intent_id' => get_order_payment_intent_id($order),
                 ];
 
             }else{

@@ -1146,6 +1146,25 @@ if (!function_exists('get_order_payment_intent_id')) {
             return (string) $order->transaction_id;
         }
 
+        // 5. From last_transcation_log / transcation_log ordermeta
+        try {
+            $transMeta = \App\Models\Ordermeta::where('order_id', $order->id)
+                ->whereIn('key', ['last_transcation_log', 'transcation_log'])
+                ->latest()
+                ->first();
+            if ($transMeta && !empty($transMeta->value)) {
+                $transVal = is_array($transMeta->value) ? $transMeta->value : (json_decode((string) $transMeta->value, true) ?: []);
+                if (!empty($transVal['payment_intent']) && is_string($transVal['payment_intent']) && strpos($transVal['payment_intent'], 'pi_') === 0) {
+                    return (string) $transVal['payment_intent'];
+                }
+                if (!empty($transVal['id']) && is_string($transVal['id']) && strpos($transVal['id'], 'pi_') === 0) {
+                    return (string) $transVal['id'];
+                }
+            }
+        } catch (\Throwable $e) {
+            // Table/connection safeguard
+        }
+
         return null;
     }
 }
