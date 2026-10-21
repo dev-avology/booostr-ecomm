@@ -1028,7 +1028,7 @@ class PosApiController extends Controller
         $url = env("WP_API_URL");
 
       //  $url = ($url != '') ? $url.'/financial-manager-pos' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager-pos";
-        $url = ($url != '') ? $url.'/financial-manager' : "https://app4.booostr.co/wp-json/store-api/v1/financial-manager";
+        $url = ($url != '') ? $url.'/financial-manager' : "https://staging3.booostr.co/wp-json/store-api/v1/financial-manager";
 
        // $url = "https://booostr.co/wp-json/store-api/v1/financial-manager-pos";
 

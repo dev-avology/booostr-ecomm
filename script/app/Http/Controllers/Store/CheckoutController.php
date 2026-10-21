@@ -1249,10 +1249,8 @@ class CheckoutController extends Controller
             'automatic_payment_methods' => ['enabled' => true],
         ]);
 
-        // Additive: resolve payment_intent_id from PaymentIntent or request
-        $resolvedPaymentIntentId = (!empty($paymentIntent->id) ? $paymentIntent->id : null)
-            ?: $request->input('payment_intent_id')
-            ?: $request->input('payment_intent');
+       
+
 
         DB::beginTransaction();
         try {
@@ -1308,9 +1306,6 @@ class CheckoutController extends Controller
             $order->transaction_id = $paymentIntent->id;
             $order->payment_status = 0;
             $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
-            if (!empty($resolvedPaymentIntentId)) {
-                $order->payment_intent_id = $resolvedPaymentIntentId;
-            }
             $order->save();
             
             
@@ -1428,10 +1423,6 @@ class CheckoutController extends Controller
                 $customer_info['sms_consent'] = $sms_consent;
                 $customer_info['ticket_fee_total'] = $ticket_fee_total;
 
-                // Additive: payment_intent_id passed through to /financial-manager.
-                if (!empty($resolvedPaymentIntentId)) {
-                    $customer_info['payment_intent_id'] = $resolvedPaymentIntentId;
-                }
                         
                  Session::put('stripe_customer_data', [
                         'name'  => $customer_info['name'],
@@ -1443,17 +1434,6 @@ class CheckoutController extends Controller
                     ['order_id' => $order->id, 'key' => 'orderinfo'],
                     ['value' => json_encode($customer_info)]
                 );
-
-                if (!empty($resolvedPaymentIntentId)) {
-                    try {
-                        \App\Models\Ordermeta::updateOrCreate(
-                            ['order_id' => $order->id, 'key' => 'payment_intent_id'],
-                            ['value' => $resolvedPaymentIntentId]
-                        );
-                    } catch (\Throwable $e) {
-                        // ignore if already present or error
-                    }
-                }
                 // $transcation_log = new Ordermeta;
                 // $transcation_log->order_id = $order->id;
                 // $transcation_log->key = 'transcation_log';
@@ -1464,17 +1444,6 @@ class CheckoutController extends Controller
                 //     'key' => 'last_transcation_log',
                 //     'value' => json_encode($paymentresult['transaction_log'])
                 // ]);
-            } else {
-                if (!empty($resolvedPaymentIntentId)) {
-                    try {
-                        \App\Models\Ordermeta::updateOrCreate(
-                            ['order_id' => $order->id, 'key' => 'payment_intent_id'],
-                            ['value' => $resolvedPaymentIntentId]
-                        );
-                    } catch (\Throwable $e) {
-                        // ignore if already present or error
-                    }
-                }
             }
 
             if (count($priceids) != 0) {
@@ -1486,13 +1455,7 @@ class CheckoutController extends Controller
             DB::commit();
 
             trigger_product_sales_crm_sync_after_order($order->id);
-
-            // Additive: safely get payment_intent_id from order after commit
-            $paymentIntentIdForSync = $order->payment_intent_id
-                ?: get_order_payment_intent_id($order)
-                ?: $resolvedPaymentIntentId;
-
-            sync_order_to_financial_manager($order->id, 'capture', $paymentIntentIdForSync);
+            sync_order_to_financial_manager($order->id);
             
             $club_info = tenant_club_info();
             
@@ -1936,13 +1899,6 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
             // Manual-capture (Authorized) orders: skip user-recipt until seller captures on /seller/order.
             if ((int) $order->payment_status === 1) {
-                // Additive: safely sync captured order to financial-manager with payment_intent_id
-                $paymentIntentIdForSync = $order->payment_intent_id
-                    ?: get_order_payment_intent_id($order)
-                    ?: ($order->transaction_id ?? null);
-
-                sync_order_to_financial_manager($order->id, 'capture', $paymentIntentIdForSync);
-
                 $reciptdata = $this->order_recipt_data($order_id);
        
                 $recipt =  $this->send_order_recipt($reciptdata);
@@ -2414,14 +2370,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             DB::commit();
 
             trigger_product_sales_crm_sync_after_order($order->id);
-
-            // Additive: safely get payment_intent_id from order after commit
-            $paymentIntentIdForSync = $order->payment_intent_id
-                ?: get_order_payment_intent_id($order)
-                ?: ($paymentresult['transaction_log']['payment_intent'] ?? null)
-                ?: ($paymentresult['transaction_log']['id'] ?? null);
-
-            sync_order_to_financial_manager($order->id, 'capture', $paymentIntentIdForSync);
+            sync_order_to_financial_manager($order->id);
             
             $club_info = tenant_club_info();
 
