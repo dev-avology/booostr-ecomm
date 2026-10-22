@@ -2503,7 +2503,7 @@ class OrderController extends Controller
             $gateway_data_info = json_decode($gateway->data);
         
             foreach ($orders as $order) {
-                if (in_array($order->risk_level, ['normal', 'low']) && in_array($order->payment_status, [4, 5])) {
+                if ((count($orders) === 1 || in_array($order->risk_level, ['normal', 'low'])) && in_array($order->payment_status, [4, 5])) {
                     $status = 3; // Default to pending fulfillment
         
                     if ($order->payment_status == 5) {
@@ -2655,8 +2655,8 @@ class OrderController extends Controller
             }
         
         $message = empty($updated) 
-                ? 'No eligible low-risk orders.'
-                : 'Captured authorized low-risk orders.';
+                ? (count($orders) === 1 ? 'Order could not be captured (check payment status or credentials).' : 'No eligible low-risk orders.')
+                : (count($orders) === 1 ? 'Payment captured successfully.' : 'Captured authorized low-risk orders.');
         
             return response()->json([
                 'message' => $message,

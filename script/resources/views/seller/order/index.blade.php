@@ -388,12 +388,12 @@
                 <div class="input-group">
                      <select class="form-control selectric" name="method" form="bulkActionForm">
                         <option disabled selected>Select Capture/Fulfillment</option>
-                        <option value="capture_authorized">Capture Authorized Payments</option>
-                        <option value="set_capture_payment">set capture payment</option>
-                        <option value="complete_fulfillment">Complete Fulfillment</option>
+                        <option value="capture_authorized">Capture Authorized CC Payments</option>
+                        <option value="set_capture_payment">Update Cash/Check Payment Received</option>
+                        <option value="complete_fulfillment">Complete Order Fulfillment</option>
                         <option value="cancel_order">Cancel Order</option>
-                        <option value="mark_pending">Mark As Pending</option>
-                        <option value="delete">Delete Permanently</option>
+                        <option value="mark_pending">Mark Order As Pending</option>
+                        <option value="delete">Delete Order Permanently</option>
                     </select>
 
                     <div class="input-group-append">

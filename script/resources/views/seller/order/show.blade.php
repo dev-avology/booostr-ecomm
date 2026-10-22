@@ -787,6 +787,90 @@
     background-color: #dc3545 !important;
     color: #fff !important;
 }
+
+/* Dropdown plus button option next to Status */
+.order-detail-bulk-actions {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+}
+
+.order-detail-bulk-actions form {
+    margin-bottom: 0;
+}
+
+.order-detail-bulk-actions .input-group {
+    flex-wrap: nowrap;
+    margin-bottom: 0;
+}
+
+.order-detail-bulk-actions .selectric-wrapper {
+    width: auto;
+    min-width: 185px;
+    max-width: 230px;
+    flex: 1 1 auto;
+}
+
+.order-detail-bulk-actions .selectric {
+    height: 35px;
+    line-height: 35px;
+    border-radius: 4px 0 0 4px;
+    background: #fff;
+    border: 1px solid #e4e6fc;
+}
+
+.order-detail-bulk-actions .selectric .label {
+    height: 35px;
+    line-height: 35px;
+    font-size: 13px;
+    padding-left: 10px;
+    margin-right: 28px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+}
+
+.order-detail-bulk-actions .selectric .button {
+    height: 35px;
+    line-height: 35px;
+}
+
+.order-detail-bulk-actions .selectric-items {
+    min-width: 240px;
+    z-index: 1050;
+}
+
+.order-detail-bulk-actions .selectric-items li {
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 18px;
+}
+
+.order-detail-bulk-actions .btn {
+    height: 35px;
+    font-size: 13px;
+    padding: 0 14px;
+    border-radius: 0 4px 4px 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.order-status-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.order-status-card-header h4 {
+    margin-bottom: 0;
+    line-height: 35px;
+}
 </style>
 @endsection
 @section('content')
@@ -1463,7 +1547,7 @@
         <div class="col-12 col-lg-4">
             <div class="card-grouping">
                 <div class="card card-primary">
-                    <div class="card-header" style="justify-content: space-between;">
+                    <div class="card-header order-status-card-header" style="justify-content: space-between;">
                         <h4>{{ __('Status') }}</h4>
                         @php
                             // Prefer flags computed at top of page; keep local decode as fallback.
@@ -1472,45 +1556,59 @@
                             $isCashCheckCaptured = $isCashCheckCaptured ?? ($isCashCheckOrder && !empty($statusOrdermeta['cash_check_captured_at']));
                         @endphp
 
-                        @if ($info->payment_status == 4 && ($isCashCheckOrder || optional($info->getway)->name !== 'cash'))
-                            <div class="capture-btn">
-                                <form method="POST" action="{{ route('seller.order.capture', $info->id) }}">
-                                    @csrf
-                                    <button type="submit" name="capture_payment"
-                                        class="btn btn-primary float-right mt-2 text-right">Capture Payment</button>
-                                </form>
-                            </div>
-                        @endif
-
-                        @if ($info->payment_status == 1 && optional($info->getway)->name !== 'cash')
-                        <div class="capture-btn">
-                            <button type="button"
-                                class="btn btn-primary float-right mt-2 text-right"
-                                id="show-order-refund-view-btn">
-                                Cancel Order & Refund Payment
-                            </button>
+                        <div class="order-detail-bulk-actions">
+                            <form method="post" action="{{ route('seller.order.multipledelete') }}" id="orderDetailActionForm">
+                                @csrf
+                                <input type="hidden" name="ids[]" value="{{ $info->id }}">
+                                <div class="input-group">
+                                    <select class="form-control selectric" name="method" id="orderDetailActionMethod">
+                                        <option disabled selected>{{ __('Select Capture/Fulfillment') }}</option>
+                                        <option value="capture_authorized">{{ __('Capture Authorized CC Payments') }}</option>
+                                        <option value="set_capture_payment">{{ __('Update Cash/Check Payment Received') }}</option>
+                                        <option value="complete_fulfillment">{{ __('Complete Order Fulfillment') }}</option>
+                                        <option value="cancel_order">{{ __('Cancel Order') }}</option>
+                                        <option value="mark_pending">{{ __('Mark Order As Pending') }}</option>
+                                        <option value="delete">{{ __('Delete Order Permanently') }}</option>
+                                    </select>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary basicbtn" type="submit">{{ __('Submit') }}</button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
 
-                            <!-- <div class="capture-btn">
-                                <form method="POST" action="{{ route('seller.order.refund', $info->id) }}">
-                                    @csrf
-                                    <button type="submit" name="refund_payment"
-                                        class="btn btn-primary float-right mt-2 text-right">Cancel Order & Refund
-                                        Payment</button>
-                                </form>
-                            </div> -->
-                        @endif
+                        {{-- Hidden legacy buttons preserved so no existing JS or route bindings break --}}
+                        <div style="display: none !important;">
+                            @if ($info->payment_status == 4 && ($isCashCheckOrder || optional($info->getway)->name !== 'cash'))
+                                <div class="capture-btn">
+                                    <form method="POST" action="{{ route('seller.order.capture', $info->id) }}" id="legacyCaptureForm">
+                                        @csrf
+                                        <button type="submit" name="capture_payment" id="legacyCaptureBtn"
+                                            class="btn btn-primary float-right mt-2 text-right">Capture Payment</button>
+                                    </form>
+                                </div>
+                            @endif
 
-                        {{-- Additive: cash/check captured — same refund UI as Stripe (full/partial/dollar). --}}
-                        @if ($info->payment_status == 1 && $isCashCheckCaptured)
-                            <div class="capture-btn">
-                                <button type="button"
-                                    class="btn btn-primary float-right mt-2 text-right"
-                                    id="show-cash-check-refund-view-btn">
-                                    {{ __('Cancel Order & Refund Cash Payment') }}
-                                </button>
-                            </div>
-                        @endif
+                            @if ($info->payment_status == 1 && optional($info->getway)->name !== 'cash')
+                                <div class="capture-btn">
+                                    <button type="button"
+                                        class="btn btn-primary float-right mt-2 text-right"
+                                        id="show-order-refund-view-btn">
+                                        Cancel Order & Refund Payment
+                                    </button>
+                                </div>
+                            @endif
+
+                            @if ($info->payment_status == 1 && $isCashCheckCaptured)
+                                <div class="capture-btn">
+                                    <button type="button"
+                                        class="btn btn-primary float-right mt-2 text-right"
+                                        id="show-cash-check-refund-view-btn">
+                                        {{ __('Cancel Order & Refund Cash Payment') }}
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
 
                     </div>
                     <div class="card-body">
@@ -2720,11 +2818,140 @@
                                 {{ __('Close and Take Me To Orders') }}
                             </a>
                         </div>
-                    </div>
                 </div>
             </div>
         </div>
     @endif
+
+<!-- Capture Authorized Payments Modal -->
+<div class="modal fade" id="captureModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">{{ __('Fraud Protection') }}</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          Bulk capturing order payments will only capture authorized payments for <strong>low risk</strong> orders.<br>
+          If you have selected any other risk level, those orders will be skipped, and you will need to manually capture those higher-risk orders individually.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Cancel') }}</button>
+        <button type="button" class="btn btn-primary" id="proceedCapture">{{ __('Proceed') }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Set Capture Payment Modal (cash/check only) -->
+<div class="modal fade" id="setCapturePaymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">{{ __('set capture payment') }}</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          This action only works for <strong>cash/check</strong> orders.<br>
+          It will sync the selected cash/check payment(s) to Financial Manager and send the user receipt.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Cancel') }}</button>
+        <button type="button" class="btn btn-primary" id="proceedSetCapturePayment">{{ __('Proceed') }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Complete Fulfillment Modal -->
+<div class="modal fade" id="fulfillModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">{{ __('Limitations') }}</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          Choosing bulk <strong>Complete Order Fulfillment</strong> will only complete digital orders that:
+          <br><br>
+          - Payment status is <strong>Complete (Paid)</strong><br>
+          - Do not require shipping/tracking information<br><br>
+          Any order with authorized payment status, refunded payment status, or the order contains physical goods that need to be shipped will need to be managed and/or completed manually.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Cancel') }}</button>
+        <button type="button" class="btn btn-primary" id="proceedFulfill">{{ __('Proceed') }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Order Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">{{ __('Cancel Order Confirmation') }}</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          This will cancel the selected orders and process refunds where applicable.<br>
+          This action cannot be undone for refunded orders.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Cancel') }}</button>
+        <button type="button" class="btn btn-danger" id="proceedCancel">{{ __('Proceed') }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mark As Pending Modal -->
+<div class="modal fade" id="pendingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">{{ __('Mark As Pending Confirmation') }}</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          This will mark the selected orders as pending.<br>
+          This will update the fulfillment status for the orders.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Cancel') }}</button>
+        <button type="button" class="btn btn-warning" id="proceedPending">{{ __('Proceed') }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Permanently Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-center d-block">
+        <h5 class="modal-title w-100 font-weight-bold">{{ __('Delete Confirmation') }}</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+          This will permanently delete uncaptured orders only.<br>
+          Captured or refunded orders will be skipped.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Cancel') }}</button>
+        <button type="button" class="btn btn-danger" id="proceedDelete">{{ __('Proceed') }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 @endsection
 
 @push('script')
@@ -3126,6 +3353,13 @@
                 resetPartialRefundSelections();
                 resetPartialDollarRefundSelections();
                 updateRefundViewState();
+                var $actionMethod = $('#orderDetailActionMethod');
+                if ($actionMethod.length) {
+                    $actionMethod.prop('selectedIndex', 0);
+                    if (jQuery().selectric) {
+                        $actionMethod.selectric('refresh');
+                    }
+                }
             }
 
             $('#show-order-refund-view-btn, #show-cash-check-refund-view-btn').on('click', function () {
@@ -3221,6 +3455,109 @@
                 resetRefundCancellationView();
                 $('#refundSuccessModal').modal('show');
             @endif
+
+            // Submit handler for the order detail action form next to Status
+            $('#orderDetailActionForm').on('submit', function(e){
+                e.preventDefault();
+
+                let method = $('#orderDetailActionMethod').val();
+                if (!method) {
+                    alert(@json(__('Please select an option.')));
+                    return;
+                }
+
+                if(method === 'capture_authorized'){
+                    $('#captureModal').modal('show');
+                } else if (method === 'set_capture_payment'){
+                    $('#setCapturePaymentModal').modal('show');
+                } else if (method === 'complete_fulfillment'){ 
+                    $('#fulfillModal').modal('show'); 
+                } else if (method === 'cancel_order'){
+                    @if ($info->payment_status == 1 && (optional($info->getway)->name !== 'cash' || !empty($isCashCheckCaptured)))
+                        $orderDetailsView.hide();
+                        $orderRefundView.show();
+                        $orderHeaderTitle.text(refundHeaderTitle);
+                        $('#order_refund_type_select').val('');
+                        updateRefundViewState();
+                    @else
+                        $('#cancelModal').modal('show');
+                    @endif
+                } else if (method === 'mark_pending'){ 
+                    $('#pendingModal').modal('show'); 
+                } else if (method === 'delete'){ 
+                    $('#deleteModal').modal('show'); 
+                } else {
+                    sendOrderDetailAjax($(this));
+                }
+            });
+
+            // Proceed in Capture modal
+            $('#proceedCapture').on('click', function(){
+                let form = $('#orderDetailActionForm');
+                sendOrderDetailAjax(form);
+                $('#captureModal').modal('hide');
+            });
+
+            // Proceed in set capture payment modal (cash/check only)
+            $('#proceedSetCapturePayment').on('click', function(){
+                let form = $('#orderDetailActionForm');
+                sendOrderDetailAjax(form);
+                $('#setCapturePaymentModal').modal('hide');
+            });
+
+            // Proceed in Fulfill modal
+            $('#proceedFulfill').on('click', function(){
+                let form = $('#orderDetailActionForm');
+                sendOrderDetailAjax(form);
+                $('#fulfillModal').modal('hide');
+            });
+
+            // Proceed in Cancel modal
+            $('#proceedCancel').on('click', function(){
+                let form = $('#orderDetailActionForm');
+                sendOrderDetailAjax(form);
+                $('#cancelModal').modal('hide');
+            });
+
+            // Proceed in Pending modal
+            $('#proceedPending').on('click', function(){
+                let form = $('#orderDetailActionForm');
+                sendOrderDetailAjax(form);
+                $('#pendingModal').modal('hide');
+            });
+
+            // Proceed in Delete modal
+            $('#proceedDelete').on('click', function(){
+                let form = $('#orderDetailActionForm');
+                sendOrderDetailAjax(form, true);
+                $('#deleteModal').modal('hide');
+            });
+
+            function sendOrderDetailAjax(form, isDelete){
+                var data = form.serialize();
+                var $methodSelect = $('#orderDetailActionMethod');
+
+                if ($methodSelect.length && data.indexOf('method=') === -1) {
+                    data += (data ? '&' : '') + encodeURIComponent($methodSelect.attr('name')) + '=' + encodeURIComponent($methodSelect.val() || '');
+                }
+
+                $.ajax({
+                    url: form.attr('action'),
+                    method: form.attr('method'),
+                    data: data,
+                    success: function(res){
+                        alert(res.message);
+                        if (isDelete) {
+                            window.location.href = @json(route('seller.order.index'));
+                        } else {
+                            location.reload();
+                        }
+                    },
+                    error: function(err){
+                        alert(err.responseJSON?.error || 'Something went wrong!');
+                    }
+                });
+            }
         });
     </script>
 
