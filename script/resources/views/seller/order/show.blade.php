@@ -848,8 +848,9 @@
 }
 
 .order-detail-bulk-actions .btn {
-    height: 35px;
+    height: 42px;
     font-size: 13px;
+    margin: 0px !important;
     padding: 0 14px;
     border-radius: 0 4px 4px 0 !important;
     display: inline-flex;
@@ -870,6 +871,28 @@
 .order-status-card-header h4 {
     margin-bottom: 0;
     line-height: 35px;
+}
+
+/* Disabled Order Status dropdown styling for cancelled orders */
+.order-status-disabled-select,
+.selectric-wrapper.selectric-order-status-disabled-select .selectric,
+.selectric-wrapper.selectric-order-status-disabled-select.selectric-disabled .selectric {
+    background-color: #e9ecef !important;
+    border-color: #dce3ea !important;
+    opacity: 0.8 !important;
+    cursor: not-allowed !important;
+}
+
+.selectric-wrapper.selectric-order-status-disabled-select .selectric .label,
+.selectric-wrapper.selectric-order-status-disabled-select.selectric-disabled .selectric .label {
+    color: #495057 !important;
+    font-weight: 600 !important;
+}
+
+.selectric-wrapper.selectric-order-status-disabled-select .selectric .button,
+.selectric-wrapper.selectric-order-status-disabled-select.selectric-disabled .selectric .button {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
 }
 </style>
 @endsection
@@ -1017,6 +1040,17 @@
         $isOrderFullyRefundedDisplay = (int) $info->payment_status === 5
             && !$hasItemPartialRefundLogs
             && !$hasDollarPartialRefundLogs;
+
+        $orderStatusName = optional($info->orderstatus)->name ?? '';
+        $orderStatusSlug = optional($info->orderstatus)->slug ?? '';
+        $isStatusCancelled = (int) $info->status_id === 2
+            || strcasecmp(trim((string) $orderStatusName), 'cancel') === 0
+            || strcasecmp(trim((string) $orderStatusName), 'cancelled') === 0
+            || strcasecmp(trim((string) $orderStatusSlug), 'cancel') === 0;
+
+        $isOrderCancelled = $isStatusCancelled
+            || (int) $info->payment_status === 0
+            || $isOrderFullyRefundedDisplay;
     @endphp
 
     @if(session('success') && !$refundSuccess && !$partialRefundSuccess && !$partialDollarRefundSuccess)
@@ -1383,15 +1417,22 @@
 
                                 <div class="col-sm-4">
                                     <div class="form-group text-left">
-                                        <label>Select Order Status </label>
-                                        <select class="form-control selectric" id="mainSelect" name="status" required="">
-                                            <option value=""><b>{{ __('Select Order Status') }}</b></option>
-                                            @foreach ($order_status ?? [] as $row)
-                                                <option value="{{ $row->id }}"
-                                                    @if ($info->status_id == $row->id) selected="" @endif>
-                                                    {{ $row->name }}</option>
-                                            @endforeach
-                                        </select>
+                                        <label>{{ $isOrderCancelled ? __('Order Status') : __('Select Order Status') }} </label>
+                                        @if ($isOrderCancelled)
+                                            <select class="form-control selectric order-status-disabled-select" id="mainSelect" name="status" disabled style="background-color: #e9ecef; cursor: not-allowed;">
+                                                <option value="2" selected>{{ __('Cancelled') }}</option>
+                                            </select>
+                                            <input type="hidden" name="status" value="{{ $info->status_id ?? 2 }}">
+                                        @else
+                                            <select class="form-control selectric" id="mainSelect" name="status" required="">
+                                                <option value=""><b>{{ __('Select Order Status') }}</b></option>
+                                                @foreach ($order_status ?? [] as $row)
+                                                    <option value="{{ $row->id }}"
+                                                        @if ($info->status_id == $row->id) selected="" @endif>
+                                                        {{ $row->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        @endif
                                     </div>
                                 </div>
                                 @php
@@ -1638,10 +1679,12 @@
                         </p>
 
                         <p>{{ __('Order Status') }}
-                        @if($info->order_from == 4 || $info->order_from == 5)
-                        <span class="badge badge-success float-right text-white" style="background-color:#028a74">POS (In Person)</span>
+                        @if ($isOrderCancelled)
+                            <span class="badge badge-danger float-right text-white">{{ __('Cancelled') }}</span>
+                        @elseif($info->order_from == 4 || $info->order_from == 5)
+                            <span class="badge badge-success float-right text-white" style="background-color:#028a74">POS (In Person)</span>
                         @elseif($info->order_from == 0)
-                        <span class="badge badge-success float-right text-white" style="background-color:#028a74">POS Web (In Person)</span>
+                            <span class="badge badge-success float-right text-white" style="background-color:#028a74">POS Web (In Person)</span>
                         @elseif ($info->status_id != null)
                                 @php
                                     $orderStatusName = optional($info->orderstatus)->name ?? '';

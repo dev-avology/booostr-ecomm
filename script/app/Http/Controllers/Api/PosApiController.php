@@ -2881,6 +2881,8 @@ private function send_order_recipts($data){
          * 5. PAYMENT (Stripe or Cash)
          * =============================== */
 
+        $chargeResult = [];
+
         if ($isCashPayment) {
             // Additive cash path: skip Stripe; save captured payment to DB.
             $gateway_settings = Getway::where('name', 'cash')->first();
@@ -2938,6 +2940,7 @@ private function send_order_recipts($data){
 
 
             $paymentresult = $gateway_settings->namespace::charge_payment($payment_data);
+            $chargeResult = $paymentresult;
             
             if (!in_array((int)($paymentresult['payment_status'] ?? 0), [1, 4], true)) {
                 return response()->json([
@@ -3086,12 +3089,8 @@ private function send_order_recipts($data){
                 ]);
             }
             
-            // Additive: resolve payment_intent_id from /api/storedata/order/create request or Stripe charge
-            $resolvedPaymentIntentId = $request->input('payment_intent_id')
-                ?: $request->input('payment_intent')
-                ?: ((!empty($order->transaction_id) && strpos($order->transaction_id, 'pi_') === 0) ? $order->transaction_id : null)
-                ?: ($paymentresult['transaction_log']['payment_intent'] ?? null)
-                ?: ((!empty($paymentresult['payment_id']) && strpos($paymentresult['payment_id'], 'pi_') === 0) ? $paymentresult['payment_id'] : null);
+            // Additive: robustly resolve payment_intent_id from request, Stripe charge/capture, or transaction
+            $resolvedPaymentIntentId = $this->resolvePaymentIntentIdForOrder($request, $order, $paymentresult ?? [], $chargeResult ?? []);
 
             if (!empty($resolvedPaymentIntentId)) {
                 $order->payment_intent_id = $resolvedPaymentIntentId;
@@ -3124,25 +3123,44 @@ private function send_order_recipts($data){
                     'key' => 'orderinfo',
                     'value' => json_encode($customer_info)
                 ]);
+            }
 
-                if (!empty($resolvedPaymentIntentId)) {
-                    try {
-                        \App\Models\Ordermeta::create([
-                            'order_id' => $order->id,
-                            'key'      => 'payment_intent_id',
-                            'value'    => $resolvedPaymentIntentId,
-                        ]);
-                    } catch (\Throwable $e) {
-                        // ignore if already present or error
-                    }
+            // Additive: unconditionally persist payment_intent_id to dedicated ordermeta
+            if (!empty($resolvedPaymentIntentId)) {
+                try {
+                    \App\Models\Ordermeta::updateOrCreate(
+                        ['order_id' => $order->id, 'key' => 'payment_intent_id'],
+                        ['value' => $resolvedPaymentIntentId]
+                    );
+                } catch (\Throwable $e) {
+                    // ignore if error
                 }
             }
-            
+
+            // Additive: persist transaction log to ordermeta so get_order_payment_intent_id can find it
+            $latestLog = (!empty($paymentresult['transaction_log']))
+                ? $paymentresult['transaction_log']
+                : ($chargeResult['transaction_log'] ?? null);
+
+            if (!empty($latestLog)) {
+                try {
+                    $logVal = is_string($latestLog) ? $latestLog : json_encode($latestLog);
+                    \App\Models\Ordermeta::updateOrCreate(
+                        ['order_id' => $order->id, 'key' => 'transcation_log'],
+                        ['value' => $logVal]
+                    );
+                    \App\Models\Ordermeta::updateOrCreate(
+                        ['order_id' => $order->id, 'key' => 'last_transcation_log'],
+                        ['value' => $logVal]
+                    );
+                } catch (\Throwable $e) {
+                    // ignore if error
+                }
+            }
             
             if (count($priceids) != 0) {
                 $order->orderstockitems()->insert($priceids);
             }
-            
     
             Cart::destroy($request->cartId);
             DB::commit();
@@ -3151,8 +3169,45 @@ private function send_order_recipts($data){
 
             // Additive: safely get payment_intent_id from order after commit
             $paymentIntentIdForSync = $order->payment_intent_id
-                ?: get_order_payment_intent_id($order)
-                ?: $resolvedPaymentIntentId;
+                ?: $resolvedPaymentIntentId
+                ?: get_order_payment_intent_id($order);
+
+            if (empty($paymentIntentIdForSync)) {
+                $paymentIntentIdForSync = get_order_payment_intent_id($order->id);
+            }
+
+            if (empty($paymentIntentIdForSync)) {
+                $paymentIntentIdForSync = $this->resolvePaymentIntentIdForOrder($request, $order, $paymentresult ?? [], $chargeResult ?? []);
+            }
+
+            if (!empty($paymentIntentIdForSync)) {
+                $order->payment_intent_id = $paymentIntentIdForSync;
+
+                // Sync back to ordermeta and orderinfo if missing
+                try {
+                    \App\Models\Ordermeta::updateOrCreate(
+                        ['order_id' => $order->id, 'key' => 'payment_intent_id'],
+                        ['value' => $paymentIntentIdForSync]
+                    );
+                    $orderInfoMeta = \App\Models\Ordermeta::where('order_id', $order->id)->where('key', 'orderinfo')->first();
+                    if ($orderInfoMeta) {
+                        $infoData = json_decode((string) $orderInfoMeta->value, true) ?: [];
+                        if (empty($infoData['payment_intent_id'])) {
+                            $infoData['payment_intent_id'] = $paymentIntentIdForSync;
+                            $orderInfoMeta->value = json_encode($infoData);
+                            $orderInfoMeta->save();
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // ignore
+                }
+            }
+
+            // Ensure captured_at is set if payment_status is 1 so is_order_syncable_to_financial_manager succeeds
+            if ((int) $order->payment_status === 1 && empty($order->captured_at)) {
+                $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                $order->save();
+            }
 
             // Additive: API cash/check orders skip WP financial-manager + user-recipt.
             // Stripe manual-capture (Authorized) orders also skip until captured on /seller/order.
@@ -3227,5 +3282,164 @@ private function send_order_recipts($data){
     {
         return strtolower(trim((string) $request->input('producttype', ''))) === 'tickets';
     }
-    
+
+    /**
+     * Additive: safely and exhaustively resolve payment_intent_id for /api/storedata/order/create.
+     */
+    protected function resolvePaymentIntentIdForOrder(Request $request, Order $order, array $paymentresult = [], array $chargeResult = []): ?string
+    {
+        // 1. Direct request fields (snake_case, camelCase, aliases)
+        $directKeys = [
+            'payment_intent_id',
+            'payment_intent',
+            'paymentIntentId',
+            'paymentIntent',
+            'stripe_payment_intent_id',
+            'stripe_payment_intent',
+            'stripePaymentIntentId',
+            'stripePaymentIntent',
+            'intent_id',
+            'intent',
+            'pi_id',
+            'pi',
+        ];
+        foreach ($directKeys as $key) {
+            $val = $request->input($key);
+            if (empty($val) && method_exists($request, 'json')) {
+                $val = $request->json($key);
+            }
+            if (!empty($val) && is_string($val) && trim($val) !== '') {
+                return trim($val);
+            }
+        }
+
+        // 2. From payment_details input (array or JSON-encoded string)
+        if ($request->has('payment_details') || ($request->isJson() && $request->json('payment_details'))) {
+            $pdRaw = $request->input('payment_details') ?: ($request->isJson() ? $request->json('payment_details') : null);
+            if (is_string($pdRaw)) {
+                $pdRaw = json_decode($pdRaw, true) ?: [];
+            }
+            if (is_array($pdRaw)) {
+                foreach (['payment_intent_id', 'payment_intent', 'paymentIntentId', 'paymentIntent', 'id'] as $pdKey) {
+                    if (!empty($pdRaw[$pdKey]) && is_string($pdRaw[$pdKey])) {
+                        $cand = trim($pdRaw[$pdKey]);
+                        if (strpos($cand, 'pi_') === 0 || in_array($pdKey, ['payment_intent_id', 'paymentIntentId', 'payment_intent'], true)) {
+                            return $cand;
+                        }
+                    }
+                }
+                if (!empty($pdRaw['paymentIntent']['id']) && is_string($pdRaw['paymentIntent']['id'])) {
+                    return trim($pdRaw['paymentIntent']['id']);
+                }
+                if (!empty($pdRaw['charges'][0]['payment_intent']) && is_string($pdRaw['charges'][0]['payment_intent'])) {
+                    return trim($pdRaw['charges'][0]['payment_intent']);
+                }
+            }
+        }
+
+        // 3. Check transaction_id / payment_id / stripeToken / paymentMethodId in request if starting with 'pi_'
+        foreach (['transaction_id', 'payment_id', 'stripeToken', 'paymentMethodId'] as $tokKey) {
+            $cand = $request->input($tokKey);
+            if (empty($cand) && method_exists($request, 'json')) {
+                $cand = $request->json($tokKey);
+            }
+            if (!empty($cand) && is_string($cand) && strpos(trim($cand), 'pi_') === 0) {
+                return trim($cand);
+            }
+        }
+
+        // 4. Scan all top-level request parameters for any string matching 'pi_...'
+        foreach ($request->all() as $paramVal) {
+            if (is_string($paramVal) && preg_match('/^pi_[a-zA-Z0-9_]+$/', trim($paramVal))) {
+                return trim($paramVal);
+            }
+        }
+
+        // 5. From $order->transaction_id if starting with 'pi_'
+        if (!empty($order->transaction_id) && is_string($order->transaction_id) && strpos($order->transaction_id, 'pi_') === 0) {
+            return $order->transaction_id;
+        }
+
+        // 6. From $paymentresult or $chargeResult payment_id if starting with 'pi_'
+        if (!empty($paymentresult['payment_id']) && is_string($paymentresult['payment_id']) && strpos($paymentresult['payment_id'], 'pi_') === 0) {
+            return $paymentresult['payment_id'];
+        }
+        if (!empty($chargeResult['payment_id']) && is_string($chargeResult['payment_id']) && strpos($chargeResult['payment_id'], 'pi_') === 0) {
+            return $chargeResult['payment_id'];
+        }
+
+        // 7. From transaction_log in $paymentresult or $chargeResult
+        foreach ([$paymentresult, $chargeResult] as $res) {
+            if (!empty($res['transaction_log'])) {
+                $tLog = $res['transaction_log'];
+                if (is_object($tLog)) {
+                    $tLog = method_exists($tLog, 'toArray') ? $tLog->toArray() : (array) $tLog;
+                } elseif (is_string($tLog)) {
+                    $tLog = json_decode($tLog, true) ?: [];
+                }
+                if (is_array($tLog)) {
+                    if (!empty($tLog['payment_intent']) && is_string($tLog['payment_intent']) && strpos($tLog['payment_intent'], 'pi_') === 0) {
+                        return (string) $tLog['payment_intent'];
+                    }
+                    if (!empty($tLog['id']) && is_string($tLog['id']) && strpos($tLog['id'], 'pi_') === 0) {
+                        return (string) $tLog['id'];
+                    }
+                    if (!empty($tLog['payment_intent_id']) && is_string($tLog['payment_intent_id']) && strpos($tLog['payment_intent_id'], 'pi_') === 0) {
+                        return (string) $tLog['payment_intent_id'];
+                    }
+                    if (!empty($tLog['charges']['data'][0]['payment_intent']) && is_string($tLog['charges']['data'][0]['payment_intent'])) {
+                        return (string) $tLog['charges']['data'][0]['payment_intent'];
+                    }
+                    if (!empty($tLog['latest_charge']['payment_intent']) && is_string($tLog['latest_charge']['payment_intent'])) {
+                        return (string) $tLog['latest_charge']['payment_intent'];
+                    }
+                }
+            }
+        }
+
+        // 8. If transaction_id is a Stripe charge 'ch_...', retrieve PaymentIntent from Stripe Charge
+        $candidateChargeId = (!empty($order->transaction_id) && is_string($order->transaction_id) && strpos($order->transaction_id, 'ch_') === 0)
+            ? $order->transaction_id
+            : ((!empty($paymentresult['payment_id']) && is_string($paymentresult['payment_id']) && strpos($paymentresult['payment_id'], 'ch_') === 0)
+                ? $paymentresult['payment_id']
+                : null);
+
+        if (!empty($candidateChargeId)) {
+            try {
+                $gwSettings = Getway::where('status', '!=', 0)->where('namespace', 'App\Lib\Stripe')->first();
+                if ($gwSettings && !empty($gwSettings->data)) {
+                    $gwData = json_decode($gwSettings->data, true);
+                    $sKey = ($gwSettings->test_mode == 1) ? ($gwData['test_secret_key'] ?? '') : ($gwData['secret_key'] ?? '');
+                    if (!empty($sKey)) {
+                        \Stripe\Stripe::setApiKey($sKey);
+                        $stripeCharge = \Stripe\Charge::retrieve($candidateChargeId);
+                        if (!empty($stripeCharge->payment_intent) && is_string($stripeCharge->payment_intent) && strpos($stripeCharge->payment_intent, 'pi_') === 0) {
+                            return (string) $stripeCharge->payment_intent;
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Safe fallback
+            }
+        }
+
+        // 9. From request header if passed
+        $hdrPi = $request->header('X-Payment-Intent-Id') ?: $request->header('Payment-Intent-Id');
+        if (!empty($hdrPi) && is_string($hdrPi) && trim($hdrPi) !== '') {
+            return trim($hdrPi);
+        }
+
+        // 10. Existing ordermeta or helper
+        $existing = get_order_payment_intent_id($order);
+        if (!empty($existing)) {
+            return (string) $existing;
+        }
+
+        // 11. Last resort fallback to transaction_id if present
+        if (!empty($order->transaction_id) && is_string($order->transaction_id) && trim($order->transaction_id) !== '') {
+            return trim($order->transaction_id);
+        }
+
+        return null;
+    }
 }
