@@ -21,10 +21,10 @@ class Orderstatusmail extends Mailable
      *
      * @return void
      */
-    public function __construct($data,$subject)
+    public function __construct($data, $subject = null)
     {
         $this->data = $data;
-        $this->subject = $subject;
+        $this->subject = $subject ?: ($data['subject'] ?? 'Order Status');
     }
 
     /**

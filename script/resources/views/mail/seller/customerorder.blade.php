@@ -112,7 +112,20 @@
             <tbody>
                 @php
                     $clubLogo = tenant_club_logo();
-                    $clubDisplayName = $invoice_info->store_legal_name ?? (tenant_club_info()['club_name'] ?? '');
+                    $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+                    $clubDisplayName = trim((string) ($clubInfo['club_name'] ?? ''));
+                    if ($clubDisplayName === '') {
+                        $clubDisplayName = trim((string) ($invoice_info->store_legal_name ?? ''));
+                    }
+                    if ($clubDisplayName === '') {
+                        $clubDisplayName = trim((string) (tenant('store_name') ?? 'Booostr'));
+                    }
+                    if ($clubDisplayName === '') {
+                        $clubDisplayName = 'Booostr';
+                    }
+
+                    $orderStatusId = (int) ($data['data']['status_id'] ?? ($order->status_id ?? 0));
+                    $orderPaymentStatus = (int) ($data['data']['payment_status'] ?? ($order->payment_status ?? 0));
                 @endphp
                 <tr style="background-color: #ffffff; width: 100%;">
                     <td class="section-padding" style="padding-top: 26px; padding-bottom: 18px; vertical-align: middle;">
@@ -147,24 +160,7 @@
             </tbody>
         </table>
 
-        @if ($data['data']['status_id'] == '3')
-            <table class="section-table">
-                <tbody>
-                    <tr>
-                        <td class="section-padding" style="padding-top: 12px; padding-bottom: 12px;">
-                            <div style="background-color: #dff8ec; padding: 24px 20px; text-align: center;">
-                            <p
-                                style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; font-size: 17px; font-weight: 400; color: #171717; line-height: 1.35;">
-                                Thank you for your order and support!
-                            </p>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        @endif
-
-        @if ($data['data']['status_id'] == '1')
+        @if ($orderStatusId == 1)
             <table class="section-table">
                 <tbody>
                     <tr>
@@ -173,6 +169,36 @@
                             <p
                                 style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; font-size: 17px; font-weight: 400; color: #171717; line-height: 1.35;">
                                 Your order has shipped!
+                            </p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        @elseif ($orderPaymentStatus == 4)
+            <table class="section-table">
+                <tbody>
+                    <tr>
+                        <td class="section-padding" style="padding-top: 12px; padding-bottom: 12px;">
+                            <div style="background-color: #e8f4fd; padding: 24px 20px; text-align: center;">
+                            <p
+                                style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; font-size: 17px; font-weight: 400; color: #171717; line-height: 1.35;">
+                                We have received your order!
+                            </p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        @elseif ($orderStatusId == 3 || $orderPaymentStatus == 1)
+            <table class="section-table">
+                <tbody>
+                    <tr>
+                        <td class="section-padding" style="padding-top: 12px; padding-bottom: 12px;">
+                            <div style="background-color: #dff8ec; padding: 24px 20px; text-align: center;">
+                            <p
+                                style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; font-size: 17px; font-weight: 400; color: #171717; line-height: 1.35;">
+                                Thank you for your order and support!
                             </p>
                             </div>
                         </td>
@@ -194,29 +220,27 @@
 
                         @endphp
 
-                        @if ($data['data']['status_id'] == '2')
+                        @if ($orderStatusId == 2 || $orderPaymentStatus == 5)
                             <p
                                 class="muted-copy">
                                 Hi {{ $firstName }}, we are sorry that your order had to be cancelled. We have
                                 refunded your order. Your original order details are below for your records. You should
                                 see the funds returned to the payment method used for the order in 3-5 business days.
                             </p>
-                        @endif
-
-
-                        @if ($data['data']['status_id'] == '1')
+                        @elseif ($orderStatusId == 1)
                             <p
                                 class="muted-copy">
                                 Hi {{ $firstName }}, we are excited to let you know that your order from
-                                {{ $invoice_info->store_legal_name ?? '' }} Store has shipped! Your shipping carrier and
+                                {{ $clubDisplayName }} Store has shipped! Your shipping carrier and
                                 tracking information are below.</p>
-                        @endif
-
-
-                        @if ($data['data']['status_id'] == '3')
+                        @elseif ($orderPaymentStatus == 4)
                             <p
                                 class="muted-copy">
-                                Thank you for your order from {{ $invoice_info->store_legal_name ?? '' }} Store. We have
+                                Thank you for your order from {{ $clubDisplayName }} Store. We have received your order and are processing your payment. We will follow up with your receipt and fulfillment details once payment is confirmed. We really appreciate the support!</p>
+                        @else
+                            <p
+                                class="muted-copy">
+                                Thank you for your order from {{ $clubDisplayName }} Store. We have
                                 included your order details below for your records. You should receive a shipping
                                 confirmation email soon. We really appreciate the support!</p>
                         @endif

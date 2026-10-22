@@ -1908,12 +1908,23 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
             \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
             
+            $customerEmail = trim((string) ($ordermeta['email'] ?? optional($order->user)->email ?? ''));
+
             if ((int) $order->payment_status === 1) {
-                \App\Lib\NotifyToUser::sendEmail($order, $ordermeta['email'], 'user');
+                if ($customerEmail !== '') {
+                    \App\Lib\NotifyToUser::sendEmail($order, $customerEmail, 'user');
+                }
             
                 $order->load('orderitems.term');
 
-                $this->sendEventTickets($order, $ordermeta['email']);
+                if ($customerEmail !== '') {
+                    $this->sendEventTickets($order, $customerEmail);
+                }
+            } elseif ((int) $order->payment_status === 4) {
+                // Placed but manual-capture required: send "Order Received" email to user
+                if ($customerEmail !== '') {
+                    \App\Lib\NotifyToUser::sendEmail($order, $customerEmail, 'user');
+                }
             }
 
         }

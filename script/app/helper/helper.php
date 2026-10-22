@@ -994,8 +994,15 @@ if (!function_exists('store_receipt_mail_from')) {
             $slug = 'booostr';
         }
 
-        // Sender email from site settings (/seller/site-settings/general).
-        $replyTo = trim((string) get_option('store_sender_email'));
+        // Reply-To uses club profile email
+        $replyTo = trim((string) ($clubInfo['club_email'] ?? ''));
+        if ($replyTo === '' || !filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
+            $adminUser = \App\Models\User::where('role_id', 3)->first();
+            $replyTo = trim((string) ($adminUser->email ?? ''));
+        }
+        if ($replyTo === '' || !filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
+            $replyTo = trim((string) get_option('store_sender_email'));
+        }
         if ($replyTo === '' || !filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
             $replyTo = trim((string) ($invoiceInfo->store_legal_email ?? ''));
         }
@@ -1005,7 +1012,7 @@ if (!function_exists('store_receipt_mail_from')) {
 
         return [
             'address' => $slug . '+receipt@mktg.booostr.co',
-            'name' => $clubName . ' (via Booostr)',
+            'name' => $clubName,
             'reply_to' => $replyTo,
         ];
     }

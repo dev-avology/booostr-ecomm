@@ -3239,15 +3239,18 @@ private function send_order_recipts($data){
                 ]);
             }
 
-            // Additive: API producttype=tickets — order receipt + ticket QR emails when payment is complete (same as web checkout).
-            // Cash tickets: send on create even though payment_status stays Authorized (4) until seller capture.
-            $shouldSendApiTicketsEmails = $isApiTicketsCheckout
-                && !empty($request->email)
-                && (((int) $order->payment_status === 1) || $isCashPayment);
+            // User receipt email on order create:
+            // 1) Captured automatically / cash: send receipt email (+ event tickets if tickets order).
+            // 2) Authorized, Not Captured: send "Order Received" email.
+            $customerEmail = trim((string) ($request->email ?? ''));
+            if ($customerEmail === '' && $order->relationLoaded('ordermeta')) {
+                $ordermetaArr = json_decode(optional($order->ordermeta)->value ?? '{}', true) ?: [];
+                $customerEmail = trim((string) ($ordermetaArr['email'] ?? optional($order->user)->email ?? ''));
+            }
 
-            if ($shouldSendApiTicketsEmails) {
+            if ($customerEmail !== '') {
                 try {
-                    $orderForMail = $order->fresh([
+                    $orderForUserMail = $order->fresh([
                         'orderstatus',
                         'orderitems.term',
                         'getway',
@@ -3255,24 +3258,40 @@ private function send_order_recipts($data){
                         'shippingwithinfo',
                         'ordermeta',
                     ]);
-                    $orderForMail->notify_driver = 'mail';
+                    if ($orderForUserMail) {
+                        $orderForUserMail->notify_driver = 'mail';
 
-                    \App\Lib\NotifyToUser::sendEmail(
-                        $orderForMail,
-                        (string) $request->email,
-                        'user',
-                        ['shipping_information' => 'Digital Delivery']
-                    );
+                        $isCapturedOrder = ((int) $orderForUserMail->payment_status === 1) || $isCashPayment;
+                        $isAuthorizedUncaptured = ((int) $orderForUserMail->payment_status === 4) && !$isCashPayment;
 
-                    app(EventTicketEmailService::class)->sendForOrder(
-                        $orderForMail,
-                        (string) $request->email
-                    );
-                } catch (\Throwable $ticketMailError) {
-                    \Log::error('API tickets checkout: post-order emails failed', [
+                        if ($isCapturedOrder) {
+                            $receiptOptions = $isApiTicketsCheckout ? ['shipping_information' => 'Digital Delivery'] : [];
+                            \App\Lib\NotifyToUser::sendEmail(
+                                $orderForUserMail,
+                                $customerEmail,
+                                'user',
+                                $receiptOptions
+                            );
+
+                            if ($isApiTicketsCheckout) {
+                                app(EventTicketEmailService::class)->sendForOrder(
+                                    $orderForUserMail,
+                                    $customerEmail
+                                );
+                            }
+                        } elseif ($isAuthorizedUncaptured) {
+                            \App\Lib\NotifyToUser::sendEmail(
+                                $orderForUserMail,
+                                $customerEmail,
+                                'user'
+                            );
+                        }
+                    }
+                } catch (\Throwable $userMailError) {
+                    \Log::error('API order create: user receipt email failed', [
                         'order_id' => $order->id,
-                        'email' => $request->email,
-                        'error' => $ticketMailError->getMessage(),
+                        'email' => $customerEmail,
+                        'error' => $userMailError->getMessage(),
                     ]);
                 }
             }

@@ -500,7 +500,18 @@ class OrderController extends Controller
                 } else {
                     $this->post_order_data($order);
                 }
-            
+
+                // Notify Admin
+                if (!empty($to)) {
+                    \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
+                }
+
+                // Notify User with Shipped confirmation email
+                $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}');
+                $customerEmail = trim((string) ($ordermeta->email ?? optional($order->user)->email ?? ''));
+                if ($customerEmail !== '') {
+                    \App\Lib\NotifyToUser::sendEmail($order, $customerEmail, 'user');
+                }
             }
         }
     
@@ -785,6 +796,13 @@ class OrderController extends Controller
     
             // Send notification
             \App\Lib\NotifyToUser::sendEmail($order, $admin->email, 'admin');
+
+            // Send captured receipt to customer
+            $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}');
+            $customerEmail = trim((string) ($ordermeta->email ?? optional($order->user)->email ?? ''));
+            if ($customerEmail !== '') {
+                \App\Lib\NotifyToUser::sendEmail($order, $customerEmail, 'user');
+            }
         }
     
         return redirect()->back();
@@ -816,6 +834,13 @@ class OrderController extends Controller
             $checkout = app(\App\Http\Controllers\Store\CheckoutController::class);
             $reciptdata = $checkout->order_recipt_data($order->id);
             $checkout->send_order_recipt($reciptdata);
+
+            // Send captured receipt to customer
+            $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}');
+            $customerEmail = trim((string) ($ordermeta->email ?? optional($order->user)->email ?? ''));
+            if ($customerEmail !== '') {
+                \App\Lib\NotifyToUser::sendEmail($order, $customerEmail, 'user');
+            }
         } catch (\Throwable $e) {
             \Log::error('cash/check user-recipt failed on capture', [
                 'order_id' => $order->id,

@@ -133,25 +133,43 @@ class NotifyToUser
 					$data['reply_to'] = $receiptFrom['reply_to'] ?? null;
 				}
 				
+				$status_id = (int) ($info->status_id ?? ($info['status_id'] ?? 0));
+				$payment_status = (int) ($info->payment_status ?? ($info['payment_status'] ?? 0));
+				$invoiceNo = $info->invoice_no ?? ($info['invoice_no'] ?? '');
+
+				$clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+				$storeName = trim((string) ($clubInfo['club_name'] ?? ''));
+				if ($storeName === '') {
+					$storeName = trim((string) ($invoice_info->store_legal_name ?? ''));
+				}
+				if ($storeName === '') {
+					$storeName = trim((string) (tenant('store_name') ?? 'Booostr'));
+				}
+				if ($storeName === '') {
+					$storeName = 'Booostr';
+				}
+
+				$subject = '';
+				if ($status_id === 2 || $payment_status === 5) {
+					$subject = 'Cancelled & Refunded! - Your ' . $storeName . ' Store order: #' . $invoiceNo . ' has been cancelled.';
+				} elseif ($status_id === 1) {
+					$subject = "Shipped! - Your " . $storeName . " Store order: #" . $invoiceNo . " is on it's way";
+				} elseif ($payment_status === 4) {
+					$subject = 'We have received your ' . $storeName . ' Store order: #' . $invoiceNo;
+				} elseif ($payment_status === 1 || $status_id === 3) {
+					$subject = 'Thank you for your ' . $storeName . ' Store order: #' . $invoiceNo;
+				} else {
+					$subject = 'Order #' . $invoiceNo . ' from ' . $storeName . ' Store';
+				}
+
+				$data['subject'] = $subject;
+				
 				if (env('QUEUE_MAIL') == 'on') {
 					\Config::set('queue.connections', 'central');
 					dispatch(new TenantMailJob($data));
 				}
 				else{
-					$status_id = $info->status_id;
-					
-					$subject = '';
-					if($status_id == 3){
-					$subject = 'Thank you for your '.$invoice_info->store_legal_name.' Store order: #'.$info->invoice_no;
-					}else if($status_id == 1){
-						$subject = "Shipped! - Your " . $invoice_info->store_legal_name . " Store order: #" . $info->invoice_no . " is on it's way";
-					}else if($status_id == 2){
-						$subject = 'Cancelled & Refunded! - Your ' .$invoice_info->store_legal_name . ' Store order: #'. $info->invoice_no. ' has been cancelled.';
-					}else{
-						$subject = 'Order Info';
-					}
-		
-					$mail = new Orderstatusmail($data,$subject);
+					$mail = new Orderstatusmail($data, $subject);
 					Mail::to($to)->send($mail);
 				}	
 			}
@@ -274,29 +292,44 @@ class NotifyToUser
 		}
 		
 		
+		$status_id = (int) ($info->status_id ?? ($info['status_id'] ?? 0));
+		$payment_status = (int) ($info->payment_status ?? ($info['payment_status'] ?? 0));
+		$invoiceNo = $info->invoice_no ?? ($info['invoice_no'] ?? '');
+
+		$clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+		$storeName = trim((string) ($clubInfo['club_name'] ?? ''));
+		if ($storeName === '') {
+			$storeName = trim((string) ($invoice_info->store_legal_name ?? ''));
+		}
+		if ($storeName === '') {
+			$storeName = trim((string) (tenant('store_name') ?? 'Booostr'));
+		}
+		if ($storeName === '') {
+			$storeName = 'Booostr';
+		}
+
+		$subject = '';
+		if ($status_id === 2 || $payment_status === 5) {
+			$subject = 'Cancelled & Refunded! - Your ' . $storeName . ' Store order: #' . $invoiceNo . ' has been cancelled.';
+		} elseif ($status_id === 1) {
+			$subject = "Shipped! - Your " . $storeName . " Store order: #" . $invoiceNo . " is on it's way";
+		} elseif ($payment_status === 4) {
+			$subject = 'We have received your ' . $storeName . ' Store order: #' . $invoiceNo;
+		} elseif ($payment_status === 1 || $status_id === 3) {
+			$subject = 'Thank you for your ' . $storeName . ' Store order: #' . $invoiceNo;
+		} else {
+			$subject = 'Order #' . $invoiceNo . ' from ' . $storeName . ' Store';
+		}
+
+		$data['subject'] = $subject;
+		
 		if (env('QUEUE_MAIL') == 'on') {
 			\Config::set('queue.connections', 'central');
-			
-		    dispatch(new TenantMailJob($data));
+			dispatch(new TenantMailJob($data));
 		}
 		else{
-
-			$status_id = $info->status_id;
-			
-            $subject = '';
-            if($status_id == 3){
-             $subject = 'Thank you for your '.$invoice_info->store_legal_name.' Store order: #'.$info->invoice_no;
-            }else if($status_id == 1){
-				$subject = "Shipped! - Your " . $invoice_info->store_legal_name . " Store order: #" . $info->invoice_no . " is on it's way";
-            }else if($status_id == 2){
-                $subject = 'Cancelled & Refunded! - Your ' .$invoice_info->store_legal_name . ' Store order: #'. $info->invoice_no. ' has been cancelled.';
-            }else{
-				$subject = 'Order Info';
-			}
-
-			$mail = new Orderstatusmail($data,$subject);
-		
-            Mail::to($mail_to)->send($mail);
+			$mail = new Orderstatusmail($data, $subject);
+			Mail::to($mail_to)->send($mail);
 		}
 		
 		
