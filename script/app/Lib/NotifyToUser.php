@@ -102,9 +102,13 @@ class NotifyToUser
 						}
 					}
 
-					$mail = new Adminsendmail($info, $subject, $mailType);
-					if (!empty($to)) {
-						Mail::to($to)->send($mail);
+					try {
+						$mail = new Adminsendmail($info, $subject, $mailType);
+						if (!empty($to)) {
+							Mail::to($to)->send($mail);
+						}
+					} catch (\Throwable $th) {
+						\Log::error('NotifyToUser sendEmail admin error: ' . $th->getMessage());
 					}
 				}
 
@@ -169,8 +173,12 @@ class NotifyToUser
 					dispatch(new TenantMailJob($data));
 				}
 				else{
-					$mail = new Orderstatusmail($data, $subject);
-					Mail::to($to)->send($mail);
+					try {
+						$mail = new Orderstatusmail($data, $subject);
+						Mail::to($to)->send($mail);
+					} catch (\Throwable $th) {
+						\Log::error('NotifyToUser sendEmail customer error: ' . $th->getMessage());
+					}
 				}	
 			}
 		

@@ -391,7 +391,7 @@ class OrderController extends Controller
         $admin_details = User::where('role_id', 3)->first();
         $to = $admin_details->email;
     
-        $order = Order::with(['orderitems.term.termcategories', 'ordermeta', 'user', 'orderlasttrans', 'orderstatus'])->findOrFail($id);
+        $order = Order::with(['orderitems.term.termcategories', 'ordermeta', 'user', 'orderlasttrans', 'orderstatus', 'shippingwithinfo'])->findOrFail($id);
     
         // Determine order type
         $product_type = Category::where('type', 'product_type')->get();
@@ -491,6 +491,40 @@ class OrderController extends Controller
 
             // For non-Digital orders or other statuses, update as requested
             $order->status_id = $request->status;
+
+            // Update shipping driver / tracking number if provided
+            $shippingDriver = null;
+            if ($request->filled('chooseTracking')) {
+                $shippingDriver = $request->chooseTracking === 'Other' ? $request->input('shipping_service') : $request->input('chooseTracking');
+            } elseif ($request->filled('shipping_service')) {
+                $shippingDriver = $request->input('shipping_service');
+            }
+
+            $trackingNo = $request->input('tacking_number') ?? $request->input('tracking_number') ?? $request->input('tracking_no');
+
+            if ($shippingDriver !== null || $trackingNo !== null) {
+                $orderShipping = $order->shippingwithinfo ?? Ordershipping::where('order_id', $order->id)->first();
+                if ($orderShipping) {
+                    if ($shippingDriver !== null && trim((string) $shippingDriver) !== '') {
+                        $orderShipping->shipping_driver = trim((string) $shippingDriver);
+                    }
+                    if ($trackingNo !== null) {
+                        $orderShipping->tracking_no = trim((string) $trackingNo);
+                    }
+                    $orderShipping->save();
+                } else {
+                    $orderShipping = new Ordershipping();
+                    $orderShipping->order_id = $order->id;
+                    $orderShipping->user_id = $order->user_id ?? 0;
+                    $orderShipping->shipping_driver = $shippingDriver !== null ? trim((string) $shippingDriver) : '';
+                    $orderShipping->tracking_no = $trackingNo !== null ? trim((string) $trackingNo) : '';
+                    $orderShipping->save();
+                }
+                $order->unsetRelation('shippingwithinfo');
+                $order->load('shippingwithinfo');
+            }
+
+            $order->save();
             
             if($request->status == 1){
                 
@@ -503,14 +537,22 @@ class OrderController extends Controller
 
                 // Notify Admin
                 if (!empty($to)) {
-                    \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
+                    try {
+                        \App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
+                    } catch (\Throwable $th) {
+                        \Log::error('Seller OrderController update admin notification failed: ' . $th->getMessage());
+                    }
                 }
 
                 // Notify User with Shipped confirmation email
                 $ordermeta = json_decode(optional($order->ordermeta)->value ?? '{}');
                 $customerEmail = trim((string) ($ordermeta->email ?? optional($order->user)->email ?? ''));
                 if ($customerEmail !== '') {
-                    \App\Lib\NotifyToUser::sendEmail($order, $customerEmail, 'user');
+                    try {
+                        \App\Lib\NotifyToUser::sendEmail($order, $customerEmail, 'user');
+                    } catch (\Throwable $th) {
+                        \Log::error('Seller OrderController update user notification failed: ' . $th->getMessage());
+                    }
                 }
             }
         }

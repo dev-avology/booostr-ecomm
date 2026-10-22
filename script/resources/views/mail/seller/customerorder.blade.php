@@ -126,6 +126,12 @@
 
                     $orderStatusId = (int) ($data['data']['status_id'] ?? ($order->status_id ?? 0));
                     $orderPaymentStatus = (int) ($data['data']['payment_status'] ?? ($order->payment_status ?? 0));
+                    $order_type = $order_type ?? 'Goods';
+
+                    $shippingWith = $data['data']['shippingwithinfo'] ?? ($order->shippingwithinfo ?? ($data['data']->shippingwithinfo ?? null));
+                    $shipping_info = json_decode($shippingWith->info ?? '');
+                    $orderMethod = $order->order_method ?? ($data['data']['order_method'] ?? ($data['data']->order_method ?? ''));
+                    $isPickup = ($orderMethod === 'pickup') || (($shipping_info->shipping_label ?? '') === 'In-Person Pick Up');
                 @endphp
                 <tr style="background-color: #ffffff; width: 100%;">
                     <td class="section-padding" style="padding-top: 26px; padding-bottom: 18px; vertical-align: middle;">
@@ -250,7 +256,7 @@
         </table>
 
 
-        @if ($data['data']['status_id'] == '1' && $order_type !== 'Digital' && !$isPickup)
+        @if ($orderStatusId == 1 && ($order_type ?? '') !== 'Digital' && empty($isPickup))
             <table class="section-table">
                 <tr>
                     <td colspan="2">
@@ -265,7 +271,7 @@
                             SHIPPER:</h4>
                         <span
                             style="padding-left: 24px; margin: 0; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-weight: 500; font-size: 14px;">
-                            {{ $data['data']['shippingwithinfo']->shipping_driver ?? '' }}
+                            {{ $shippingWith->shipping_driver ?? ($data['data']['shippingwithinfo']->shipping_driver ?? '') }}
                         </span>
                     </td>
                     <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"
@@ -274,7 +280,7 @@
                             style="font-weight: 700; font-family: Arial, 'Segoe UI', sans-serif; font-size: 14px; color: #3c3c3c; padding-left: 24px;">
                             TRACKING #:</h4>
                         <span
-                            style="padding-left: 24px; margin: 0; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-weight: 500; font-size: 14px;">{{ $data['data']['shippingwithinfo']->tracking_no ?? '' }}</span>
+                            style="padding-left: 24px; margin: 0; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-weight: 500; font-size: 14px;">{{ $shippingWith->tracking_no ?? ($data['data']['shippingwithinfo']->tracking_no ?? '') }}</span>
                     </td>
                 </tr>
             </table>
@@ -282,9 +288,10 @@
 
         @php
 
+            $orderId = $data['data']->id ?? ($data['data']['id'] ?? ($order->id ?? 0));
             $jsonString = optional($data['data']->orderlasttrans)->value
                 ?? optional(
-                    \App\Models\Ordermeta::where('order_id', $data['data']->id)
+                    \App\Models\Ordermeta::where('order_id', $orderId)
                         ->where('key', 'transcation_log')
                         ->orderByDesc('id')
                         ->first()
@@ -301,11 +308,12 @@
                 }
             }
            
-            $shippingWith = $data['data']['shippingwithinfo'] ?? null;  
-            $shipping_info = json_decode($shippingWith->info ?? '');
-            $isPickup = (($order->order_method ?? '') === 'pickup') || (($shipping_info->shipping_label ?? '') === 'In-Person Pick Up');
-
-
+            if (!isset($shippingWith)) {
+                $shippingWith = $data['data']['shippingwithinfo'] ?? ($order->shippingwithinfo ?? ($data['data']->shippingwithinfo ?? null));  
+                $shipping_info = json_decode($shippingWith->info ?? '');
+                $orderMethod = $order->order_method ?? ($data['data']['order_method'] ?? ($data['data']->order_method ?? ''));
+                $isPickup = ($orderMethod === 'pickup') || (($shipping_info->shipping_label ?? '') === 'In-Person Pick Up');
+            }
 
         @endphp
 
