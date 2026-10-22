@@ -557,6 +557,9 @@ class OrderController extends Controller
             }
         }
     
+        if ($order->offsetExists('invoice_data')) {
+            $order->offsetUnset('invoice_data');
+        }
         $order->save();
     
         return response()->json(['message' => 'Order Updated']);

@@ -46,7 +46,7 @@
 
     // Resolve Club / Store name
     $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
-    $invoiceInfo = $data['invoice_data'] ?? get_option('invoice_data', true);
+    $invoiceInfo = $invoice_data ?? ($data['invoice_data'] ?? get_option('invoice_data', true));
     $clubDisplayName = trim((string) ($clubInfo['club_name'] ?? ''));
     if ($clubDisplayName === '') {
         $clubDisplayName = trim((string) ($invoiceInfo->store_legal_name ?? ''));

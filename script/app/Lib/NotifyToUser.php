@@ -60,8 +60,12 @@ class NotifyToUser
 		    if($email_identity == 'admin'){
 				$currency=get_option('currency_info');
 				$invoice_info=get_option('invoice_data',true);
-				$info['invoice_data'] = $invoice_info;
-				$invoiceNo = $info['invoice_no'];	
+				if (is_array($info)) {
+					$info['invoice_data'] = $invoice_info;
+				} elseif ($info instanceof \Illuminate\Database\Eloquent\Model && $info->offsetExists('invoice_data')) {
+					$info->offsetUnset('invoice_data');
+				}
+				$invoiceNo = $info->invoice_no ?? ($info['invoice_no'] ?? '');	
 				
 				if (env('QUEUE_MAIL') == 'on') {
 					\Config::set('queue.connections', 'central');

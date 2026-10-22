@@ -42,6 +42,7 @@ class Adminsendmail extends Mailable
         $fromName = $alertIdentity['name'] ?? 'Store';
         $replyTo = $alertIdentity['reply_to'] ?? 'Noreply@mktg.booostr.co';
         $clubDisplayName = $alertIdentity['club_name'] ?? 'Booostr';
+        $invoiceInfo = get_option('invoice_data', true);
 
         return $this->view('mail.adminsendmail')
             ->from($fromAddress, $fromName)
@@ -53,6 +54,7 @@ class Adminsendmail extends Mailable
                 'mailType' => $mailType,
                 'clubDisplayName' => $clubDisplayName,
                 'storeName' => $clubDisplayName,
+                'invoice_data' => $invoiceInfo,
             ]);
     }
 }
