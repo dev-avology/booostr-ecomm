@@ -904,8 +904,12 @@
 
         // Shared cash/check flags for Status button + refund modals (additive).
         $statusOrdermeta = json_decode(optional($info->ordermeta)->value ?? '', true) ?: [];
-        $isCashCheckOrder = ($statusOrdermeta['payment_method_label'] ?? '') === 'cash/check';
-        $isCashCheckCaptured = $isCashCheckOrder && !empty($statusOrdermeta['cash_check_captured_at']);
+        $isCashCheckOrder = ($statusOrdermeta['payment_method_label'] ?? '') === 'cash/check'
+            || strtolower((string)($statusOrdermeta['payment_method'] ?? '')) === 'cash'
+            || strtolower((string)($statusOrdermeta['payment_method_label'] ?? '')) === 'cash'
+            || (int) $info->order_from === 5
+            || strtolower(optional($info->getway)->name ?? '') === 'cash';
+        $isCashCheckCaptured = $isCashCheckOrder && (!empty($statusOrdermeta['cash_check_captured_at']) || (int) $info->payment_status === 1);
 
         // Build refund history rows for order details totals (display only).
         $orderRefundHistoryLogs = json_decode(
@@ -1593,8 +1597,12 @@
                         @php
                             // Prefer flags computed at top of page; keep local decode as fallback.
                             $statusOrdermeta = $statusOrdermeta ?? (json_decode(optional($info->ordermeta)->value ?? '', true) ?: []);
-                            $isCashCheckOrder = $isCashCheckOrder ?? (($statusOrdermeta['payment_method_label'] ?? '') === 'cash/check');
-                            $isCashCheckCaptured = $isCashCheckCaptured ?? ($isCashCheckOrder && !empty($statusOrdermeta['cash_check_captured_at']));
+                            $isCashCheckOrder = $isCashCheckOrder ?? (($statusOrdermeta['payment_method_label'] ?? '') === 'cash/check'
+                                || strtolower((string)($statusOrdermeta['payment_method'] ?? '')) === 'cash'
+                                || strtolower((string)($statusOrdermeta['payment_method_label'] ?? '')) === 'cash'
+                                || (int) $info->order_from === 5
+                                || strtolower(optional($info->getway)->name ?? '') === 'cash');
+                            $isCashCheckCaptured = $isCashCheckCaptured ?? ($isCashCheckOrder && (!empty($statusOrdermeta['cash_check_captured_at']) || (int) $info->payment_status === 1));
                         @endphp
 
                         <div class="order-detail-bulk-actions">
@@ -1659,7 +1667,7 @@
                             @elseif ($info->payment_status == 2)
                                 <span class="badge badge-warning float-right">{{ __('Pending') }}</span>
                             @elseif($info->payment_status == 1)
-                                @if($isCashCheckOrder && !empty($statusOrdermeta['cash_check_captured_at']))
+                                @if($isCashCheckOrder && (!empty($statusOrdermeta['cash_check_captured_at']) || (int) $info->payment_status === 1))
                                     {{-- Captured via "set capture payment": same label as the order list. --}}
                                     <span class="badge badge-success float-right">{{ __('Complete') }}</span>
                                 @elseif($isCashCheckOrder)

@@ -452,6 +452,43 @@ class OrderController extends Controller
                 }
             }
         } else {
+            // Cancel logic if status = 2
+            if ($request->status == 2) {
+                $ordermetaArr = json_decode(optional($order->ordermeta)->value ?? '{}', true) ?: [];
+                $pm = strtolower((string) ($ordermetaArr['payment_method'] ?? ''));
+                $pml = strtolower((string) ($ordermetaArr['payment_method_label'] ?? ''));
+                $gwName = strtolower((string) optional($order->getway)->name ?? '');
+
+                $isCashOrder = $pml === 'cash/check'
+                    || $pml === 'cash'
+                    || $pm === 'cash'
+                    || (int) $order->order_from === 5
+                    || $gwName === 'cash';
+
+                if ($isCashOrder) {
+                    $isCaptured = ((int) $order->payment_status === 1)
+                        || (!empty($ordermetaArr['cash_check_captured_at']));
+
+                    // If cash order is not yet captured, capture it first before cancelling
+                    if (!$isCaptured) {
+                        $this->captureCashCheckOrderWithoutStripe($order);
+                        $order = $order->fresh(['orderitems.term.termcategories', 'ordermeta', 'user', 'orderlasttrans', 'orderstatus', 'getway', 'shippingwithinfo', 'schedule']);
+                    }
+
+                    // Now execute cash full refund/cancellation
+                    $this->executeCashCheckFullRefund($order, $to, false);
+
+                    return response()->json(['message' => 'Order Updated']);
+                }
+
+                // Existing Stripe / non-cash cancel & refund logic
+                $order->status_id = 2;
+                $order->save();
+                $this->refund($id, false);
+
+                return response()->json(['message' => 'Order Updated']);
+            }
+
             // For non-Digital orders or other statuses, update as requested
             $order->status_id = $request->status;
             
@@ -468,12 +505,6 @@ class OrderController extends Controller
         }
     
         $order->save();
-    
-        // Refund logic if status = 2
-        if ($request->status == 2) {
-            //$this->processRefund($order);
-            $this->refund($id,false);
-        }
     
         return response()->json(['message' => 'Order Updated']);
     }
@@ -806,12 +837,40 @@ class OrderController extends Controller
                 ->first();
 
             if (!$orderInfoMeta) {
+                $orderInfo = [
+                    'payment_method' => 'cash',
+                    'payment_method_label' => 'cash/check',
+                    'cash_check_captured_at' => now()->setTimezone(config('app.timezone'))->toDateTimeString(),
+                ];
+                Ordermeta::create([
+                    'order_id' => $order->id,
+                    'key' => 'orderinfo',
+                    'value' => json_encode($orderInfo),
+                ]);
                 return;
             }
 
             $orderInfo = json_decode($orderInfoMeta->value ?? '', true);
-            if (!is_array($orderInfo) || ($orderInfo['payment_method_label'] ?? '') !== 'cash/check') {
+            if (!is_array($orderInfo)) {
+                $orderInfo = [];
+            }
+
+            $pm = strtolower((string) ($orderInfo['payment_method'] ?? ''));
+            $pml = strtolower((string) ($orderInfo['payment_method_label'] ?? ''));
+            $gwName = strtolower((string) optional($order->getway)->name ?? '');
+
+            $isCash = $pml === 'cash/check'
+                || $pml === 'cash'
+                || $pm === 'cash'
+                || (int) $order->order_from === 5
+                || $gwName === 'cash';
+
+            if (!$isCash) {
                 return;
+            }
+
+            if (empty($orderInfo['payment_method_label'])) {
+                $orderInfo['payment_method_label'] = 'cash/check';
             }
 
             if (!empty($orderInfo['cash_check_captured_at'])) {
@@ -1119,9 +1178,17 @@ class OrderController extends Controller
     protected function isCapturedCashCheckOrder(Order $order): bool
     {
         $ordermetaArr = json_decode(optional($order->ordermeta)->value ?? '{}', true) ?: [];
+        $pm = strtolower((string) ($ordermetaArr['payment_method'] ?? ''));
+        $pml = strtolower((string) ($ordermetaArr['payment_method_label'] ?? ''));
+        $gwName = strtolower((string) optional($order->getway)->name ?? '');
 
-        return ($ordermetaArr['payment_method_label'] ?? '') === 'cash/check'
-            && !empty($ordermetaArr['cash_check_captured_at']);
+        $isCash = $pml === 'cash/check'
+            || $pml === 'cash'
+            || $pm === 'cash'
+            || (int) $order->order_from === 5
+            || $gwName === 'cash';
+
+        return $isCash && (!empty($ordermetaArr['cash_check_captured_at']) || (int) $order->payment_status === 1);
     }
 
     /**
@@ -1291,8 +1358,25 @@ class OrderController extends Controller
 
         $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($id);
 
-        // Additive: cash/check captured orders use DB-only full refund (Stripe path below untouched).
-        if ($this->isCapturedCashCheckOrder($order)) {
+        // Additive: cash/check orders use DB-only full refund (Stripe path below untouched).
+        $ordermetaArr = json_decode(optional($order->ordermeta)->value ?? '{}', true) ?: [];
+        $pm = strtolower((string) ($ordermetaArr['payment_method'] ?? ''));
+        $pml = strtolower((string) ($ordermetaArr['payment_method_label'] ?? ''));
+        $gwName = strtolower((string) optional($order->getway)->name ?? '');
+
+        $isCashOrder = $pml === 'cash/check'
+            || $pml === 'cash'
+            || $pm === 'cash'
+            || (int) $order->order_from === 5
+            || $gwName === 'cash';
+
+        if ($isCashOrder) {
+            $isCaptured = ((int) $order->payment_status === 1) || (!empty($ordermetaArr['cash_check_captured_at']));
+            if (!$isCaptured) {
+                $this->captureCashCheckOrderWithoutStripe($order);
+                $order = $order->fresh(['orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule']);
+            }
+
             return $this->executeCashCheckFullRefund($order, $to, $silent);
         }
 
