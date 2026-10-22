@@ -12,15 +12,18 @@ class Adminsendmail extends Mailable
     use Queueable, SerializesModels;
     public $data;
     public $subject;
+    public $mailType;
+
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($data,$subject)
+    public function __construct($data, $subject, $mailType = null)
     {
         $this->data = $data;
         $this->subject = $subject;
+        $this->mailType = $mailType;
     }
 
     /**
@@ -32,6 +35,24 @@ class Adminsendmail extends Mailable
     {
         $data = $this->data;
         $subject = $this->subject;
-        return $this->markdown('mail.adminsendmail')->subject($subject)->with('data', $data);
+        $mailType = $this->mailType;
+
+        $alertIdentity = function_exists('store_admin_alert_mail_from') ? store_admin_alert_mail_from() : [];
+        $fromAddress = $alertIdentity['address'] ?? 'noreply+store-alert@mktg.booostr.co';
+        $fromName = $alertIdentity['name'] ?? 'Store';
+        $replyTo = $alertIdentity['reply_to'] ?? 'Noreply@mktg.booostr.co';
+        $clubDisplayName = $alertIdentity['club_name'] ?? 'Booostr';
+
+        return $this->view('mail.adminsendmail')
+            ->from($fromAddress, $fromName)
+            ->replyTo($replyTo)
+            ->subject($subject)
+            ->with([
+                'data' => $data,
+                'subject' => $subject,
+                'mailType' => $mailType,
+                'clubDisplayName' => $clubDisplayName,
+                'storeName' => $clubDisplayName,
+            ]);
     }
 }

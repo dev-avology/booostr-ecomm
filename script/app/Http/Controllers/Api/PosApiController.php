@@ -3218,6 +3218,27 @@ private function send_order_recipts($data){
                 $recipt =  $this->send_order_recipt($reciptdata);
             }
 
+            // Admin notification alert on order create (captured or authorized-not-captured)
+            try {
+                $orderForAdminMail = $order->fresh([
+                    'orderstatus',
+                    'orderitems.term',
+                    'getway',
+                    'user',
+                    'shippingwithinfo',
+                    'ordermeta',
+                ]);
+                if ($orderForAdminMail) {
+                    $orderForAdminMail->notify_driver = 'mail';
+                    \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($orderForAdminMail);
+                }
+            } catch (\Throwable $adminMailError) {
+                \Log::error('API order create: admin notification email failed', [
+                    'order_id' => $order->id,
+                    'error' => $adminMailError->getMessage(),
+                ]);
+            }
+
             // Additive: API producttype=tickets — order receipt + ticket QR emails when payment is complete (same as web checkout).
             // Cash tickets: send on create even though payment_status stays Authorized (4) until seller capture.
             $shouldSendApiTicketsEmails = $isApiTicketsCheckout
@@ -3235,8 +3256,6 @@ private function send_order_recipts($data){
                         'ordermeta',
                     ]);
                     $orderForMail->notify_driver = 'mail';
-
-                    \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($orderForMail);
 
                     \App\Lib\NotifyToUser::sendEmail(
                         $orderForMail,

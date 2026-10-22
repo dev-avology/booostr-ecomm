@@ -1011,6 +1011,46 @@ if (!function_exists('store_receipt_mail_from')) {
     }
 }
 
+if (!function_exists('store_admin_alert_mail_from')) {
+    /**
+     * Mail From + Reply-To for Admin notification alerts sent to club's profile email address.
+     * From Name: <club name> Store
+     * From Email: <club slug>+store-alert@mktg.booostr.co
+     * Example: Hello Tester Club Store <hello-tester-club+store-alert@mktg.booostr.co>
+     * Reply to Email: Noreply@mktg.booostr.co
+     */
+    function store_admin_alert_mail_from(): array
+    {
+        $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+        $invoiceInfo = get_option('invoice_data', true);
+
+        $clubName = trim((string) ($clubInfo['club_name'] ?? ''));
+        if ($clubName === '') {
+            $clubName = trim((string) ($invoiceInfo->store_legal_name ?? ''));
+        }
+        if ($clubName === '') {
+            $clubName = trim((string) (tenant('store_name') ?? 'Booostr'));
+        }
+        if ($clubName === '') {
+            $clubName = 'Booostr';
+        }
+
+        $slug = strtolower(trim((string) (tenant('id') ?? '')));
+        $slug = preg_replace('/[^a-z0-9\-]+/', '-', $slug) ?? '';
+        $slug = trim($slug, '-');
+        if ($slug === '') {
+            $slug = 'booostr';
+        }
+
+        return [
+            'address' => $slug . '+store-alert@mktg.booostr.co',
+            'name' => $clubName . ' Store',
+            'reply_to' => 'Noreply@mktg.booostr.co',
+            'club_name' => $clubName,
+        ];
+    }
+}
+
 if (!function_exists('apply_store_receipt_mail_identity')) {
     /**
      * Apply formatted From + Reply-To to customer receipt emails.

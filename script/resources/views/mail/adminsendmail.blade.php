@@ -1,145 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>{{ $subject ?? 'Store Alert' }}</title>
 </head>
-<style>
-    table,
-    th,
-    td {
-        border-collapse: collapse;
+<body style="margin: 0; padding: 35px 15px; background-color: #f4f6f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333333; -webkit-font-smoothing: antialiased;">
+@php
+    $orderModel = null;
+    $orderData = [];
+
+    if ($data instanceof \App\Models\Order) {
+        $orderModel = $data;
+        $orderData = $data->toArray();
+    } elseif (is_array($data)) {
+        if (isset($data['data']) && $data['data'] instanceof \App\Models\Order) {
+            $orderModel = $data['data'];
+            $orderData = $orderModel->toArray();
+        } elseif (isset($data['data']) && is_array($data['data'])) {
+            $orderData = $data['data'];
+        } else {
+            $orderData = $data;
+        }
+
+        $orderId = (int) ($orderData['id'] ?? 0);
+        if ($orderId > 0 && !$orderModel) {
+            $orderModel = \App\Models\Order::with(['ordermeta', 'user', 'orderlasttrans', 'orderstatus'])->find($orderId);
+        }
     }
-    p {
-        padding: 0;
-        margin: 0;
+
+    $invoiceNo = $orderData['invoice_no'] ?? ($orderModel->invoice_no ?? '');
+    $statusId = (int) ($orderData['status_id'] ?? ($orderModel->status_id ?? 0));
+    $paymentStatus = (int) ($orderData['payment_status'] ?? ($orderModel->payment_status ?? 0));
+
+    // Determine mailType if not provided
+    if (empty($mailType)) {
+        if ($statusId === 2 || $paymentStatus === 5) {
+            $mailType = 'cancelled';
+        } elseif ($paymentStatus === 4) {
+            $mailType = 'authorized_not_captured';
+        } else {
+            $mailType = 'captured';
+        }
     }
-</style>
 
-<body style="background-color: #f4f6f9;">
-    <table
-        style="position: fixed; width: 650px; background-color: #fff;transform: translate(-50%, -50%);left: 50%; top: 50%;border-radius: 20px; overflow: hidden;margin-left: 161px;">
-        <tbody>
-            <tr style="background-color:#00c0ff; width: 100%;">
-                <th style="width: 50%; text-align: left; padding: 20px;">
-                    <img src="{{ env('WP_URL') }}{{'uploads/2022/03/booostr-logo-long-top-header.png'}}" alt="logo" style="width: 100%; max-width: 120px;" />
-                </th>
-                <th style="width: 50%; padding-right: 40px; text-align: right;">
-                    <a href="{{ env('WP_CLUB_URL') }}login"
-                        style="color: #fff;font-size: 20px;font-weight: 100;text-transform: uppercase; text-decoration: none; font-family: 'Nunito', 'Segoe UI', arial;">login</a>
-                </th>
-            </tr>
-            <tr>
-                <td colspan="2" style="font-family: 'Nunito', 'Segoe UI', Arial; padding-top: 39px; padding-bottom: 39px; font-size: 24px; font-weight: normal; text-align: center;     text-transform: capitalize;">
-     
-                    {{ $data['invoice_data']->store_legal_name ?? '' }} Store
-                </td>
-            </tr>
-            
-            <tr>
-                <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order #: {{ $data['invoice_no'] ?? '' }}</p>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order Total: {{ currency_formate((float)($data['total'] ?? 0)) }}</p>
-                </td>
-            </tr>
+    // Resolve Club / Store name
+    $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+    $invoiceInfo = $data['invoice_data'] ?? get_option('invoice_data', true);
+    $clubDisplayName = trim((string) ($clubInfo['club_name'] ?? ''));
+    if ($clubDisplayName === '') {
+        $clubDisplayName = trim((string) ($invoiceInfo->store_legal_name ?? ''));
+    }
+    if ($clubDisplayName === '') {
+        $clubDisplayName = trim((string) (tenant('store_name') ?? 'Booostr'));
+    }
+    if ($clubDisplayName === '') {
+        $clubDisplayName = 'Booostr';
+    }
 
-            @php
+    // Dates
+    $placedAt = $orderData['placed_at'] ?? ($orderModel->placed_at ?? ($orderData['created_at'] ?? ($orderModel->created_at ?? now())));
+    $orderDate = \Carbon\Carbon::parse($placedAt)->setTimezone(config('app.timezone'))->format('m/d/Y');
 
-            $date = date_create($data['placed_at']);
-            $date_format = date_format($date, "m/d/Y");
+    $refundedAt = $orderModel->refunded_at ?? ($orderData['refunded_at'] ?? ($orderModel->updated_at ?? ($orderData['updated_at'] ?? now())));
+    $cancelDate = \Carbon\Carbon::parse($refundedAt)->setTimezone(config('app.timezone'))->format('m/d/Y');
 
-         
-            $jsonString = optional($data->orderlasttrans)->value
-                ?: optional(
-                    \App\Models\Ordermeta::where('order_id', $data->id ?? $data['id'] ?? 0)
-                        ->where('key', 'transcation_log')
-                        ->orderByDesc('id')
-                        ->first()
-                )->value;
+    // Customer Name & Email
+    $ordermetaArr = [];
+    if ($orderModel && $orderModel->ordermeta) {
+        $ordermetaArr = json_decode($orderModel->ordermeta->value ?? '{}', true) ?: [];
+    } elseif (!empty($orderData['ordermeta'])) {
+        $metaVal = is_array($orderData['ordermeta']) ? ($orderData['ordermeta']['value'] ?? '{}') : (optional($orderData['ordermeta'])->value ?? '{}');
+        $ordermetaArr = json_decode((string) $metaVal, true) ?: [];
+    }
+    $customerName = trim((string) ($ordermetaArr['name'] ?? ($orderModel->user->name ?? ($orderData['user']['name'] ?? 'Guest User'))));
+    if ($customerName === '') {
+        $customerName = 'Guest User';
+    }
+    $customerEmail = trim((string) ($ordermetaArr['email'] ?? ($orderModel->user->email ?? ($orderData['user']['email'] ?? ''))));
 
-            $decodedJsonLastTrans = json_decode($jsonString ?: '{}', true) ?: [];
-            $timestamp = $decodedJsonLastTrans['created'] ?? '';
-            $cancel_date_format = '';
-            if (!empty($timestamp)) {
-                $cancelDate = \Carbon\Carbon::createFromTimestamp($timestamp)->toDateTimeString();
-                $cancel_date = date_create($cancelDate);
-                $cancel_date_format = date_format($cancel_date, "m/d/Y");
+    // Totals
+    $totalAmount = (float) ($orderData['total'] ?? ($orderModel->total ?? 0));
+    $refundTotal = $totalAmount;
+    if ($orderModel) {
+        $lastTransVal = optional($orderModel->orderlasttrans)->value;
+        if (!empty($lastTransVal)) {
+            $decodedTrans = json_decode($lastTransVal, true) ?: [];
+            $refundCents = $decodedTrans['amount_refunded'] ?? ($decodedTrans['amount'] ?? 0);
+            if ($refundCents > 0) {
+                $refundTotal = (float) ($refundCents / 100);
             }
-            $refundedCents = $decodedJsonLastTrans['amount_refunded'] ?? $decodedJsonLastTrans['amount'] ?? 0;
-            $amountRefunded = $refundedCents > 0 ? (float) ($refundedCents / 100) : 0;
+        }
+    }
 
+    // Header Logo & URLs
+    $clubLogo = function_exists('tenant_club_logo') ? tenant_club_logo() : null;
+    if (empty($clubLogo) && function_exists('tenant') && !empty(tenant('logo'))) {
+        $clubLogo = asset(tenant('logo'));
+    }
+    if (empty($clubLogo)) {
+        $clubLogo = 'https://staging3.booostr.co/wp-content/uploads/2022/03/booostr-logo-long-top-header.png';
+    }
 
-            @endphp
+    $loginUrl = env('WP_CLUB_URL', 'https://app.booostr.co/') . 'login';
+    $clubId = function_exists('tenant') ? (tenant('club_id') ?? '') : '';
+    $manageOrdersUrl = !empty($clubId)
+        ? (env('WP_CLUB_URL', 'https://app.booostr.co/') . 'dashboard/?ua=storemanager&item=' . $clubId)
+        : (env('WP_CLUB_URL', 'https://app.booostr.co/') . 'dashboard/?ua=storemanager');
+@endphp
 
-            @php
-                if ($data['status_id'] == 1) {
+<table align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width: 580px; width: 100%; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
+    <tr>
+        <td style="padding: 28px 36px 36px 36px;">
+            <!-- Header: Logo & Login Link -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+                <tr>
+                    <td align="left" style="vertical-align: middle;">
+                        <table cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="vertical-align: middle; padding-right: 10px;">
+                                    <img src="{{ $clubLogo }}" alt="{{ $clubDisplayName }}" style="max-height: 42px; max-width: 140px; display: block; border: 0;" />
+                                </td>
+                                <td style="vertical-align: middle; font-size: 18px; font-weight: 700; color: #111111; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                                    {{ $clubDisplayName }}
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td align="right" style="vertical-align: middle;">
+                        <a href="{{ $loginUrl }}" target="_blank" style="color: #777777; font-size: 13px; font-weight: 500; text-decoration: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">Login</a>
+                    </td>
+                </tr>
+            </table>
 
-                    $main_message = 'This email is to alert you that you have successfully completed & shipped order #: ' . $data['invoice_no'] . '. The customer has been emailed their tracking information.';
+            <hr style="border: 0; border-top: 1px solid #e8e8e8; margin: 12px 0 24px 0;" />
 
-                } elseif ($data['status_id'] == 2) {
-
-                    $main_message = 'This email is to alert you that you have cancelled and refunded order #: ' . $data['invoice_no'] . ' from ' . $data['invoice_data']->store_legal_name . ' Store.';
-
-                } elseif ($data['status_id'] == 3) {
-
-                    $main_message = 'This email is to alert you that '. $data['invoice_data']->store_legal_name .' has received a new order via their Booostr Store.' ;
-
-                }elseif ($data['status_id'] == 4){
-
-                    $main_message = 'This email is to alert you that you have successfully captured the payment for order #: ' . $data['invoice_no'] . ', and the funds will be transferred to your bank account within 1-3 business days. Please make sure the order is fulfilled as quickly as possible.';
-
-                }
-            @endphp
-            <tr>
-                <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0;margin: 0;padding-left: 30px;font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Order Date: {{ $date_format  ?? ''}}</p>
-                </td>
-            </tr>
-
-            @if ($data['status_id'] == 2)
-            <tr>
-                <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0; margin: 0; padding-left: 30px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Cancel Date: {{ $cancel_date_format ?? ''}}</p>
-                </td>
-            </tr>
+            <!-- Hero Heading -->
+            @if ($mailType === 'cancelled')
+                <h2 style="font-size: 21px; font-weight: 700; color: #111111; text-align: center; margin: 0 0 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    Order #{{ $invoiceNo }} Has Been Cancelled
+                </h2>
+            @elseif ($mailType === 'authorized_not_captured')
+                <h2 style="font-size: 21px; font-weight: 700; color: #111111; text-align: center; margin: 0 0 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    We Received A New Order - Please CAPTURE Payment
+                </h2>
+            @else
+                <h2 style="font-size: 21px; font-weight: 700; color: #111111; text-align: center; margin: 0 0 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    We Received A New Order - Payment is Captured
+                </h2>
             @endif
 
-            @if ($data['status_id'] == 2)
-            <tr>
-                <td colspan="2" style="width: 100%;">
-                    <p style="padding: 0; margin: 0; padding-left: 30px; font-weight: bold; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">Refund Amount: {{currency_formate((float)($amountRefunded ?? 0))}}</p>
-                </td>
-            </tr>
+            <hr style="border: 0; border-top: 1px solid #e8e8e8; margin: 0 0 24px 0;" />
+
+            <!-- Salutation -->
+            <p style="margin: 0 0 16px 0; font-size: 14px; color: #333333; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                Hello,
+            </p>
+
+            <!-- Body Message -->
+            @if ($mailType === 'cancelled')
+                <p style="margin: 0 0 16px 0; font-size: 14px; color: #333333; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    This is an automated alert to confirm you have successfully cancelled and refunded order #{{ $invoiceNo }} from your store. If the order was purchased with a credit card via Booostr/Stripe - the funds will automatically be refunded within 8-10 business days. If the purchase was made with Cash/Check or other method offline from Booostr - you will need to refund the order manually.
+                </p>
+                <p style="margin: 0 0 24px 0; font-size: 14px; color: #333333; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    To view the order details or work with additional orders, <a href="{{ $manageOrdersUrl }}" target="_blank" style="color: #0088cc; text-decoration: underline;">login to your account to here</a>.
+                </p>
+            @elseif ($mailType === 'authorized_not_captured')
+                <p style="margin: 0 0 16px 0; font-size: 14px; color: #333333; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    This is an automated alert to let you know you have received an new order. This order has it's payment Authorized, but NOT CAPTURED. This could be because you have automatic capture turned off, OR the order has an elevated fraud risk score.
+                </p>
+                <p style="margin: 0 0 24px 0; font-size: 14px; color: #333333; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    You will need to capture the payment for the order within 48 hours as the authorization could drop off after that and the payment will not be able to be captured. To capture payment and manage the order, <a href="{{ $manageOrdersUrl }}" target="_blank" style="color: #0088cc; text-decoration: underline;">login to your account to here</a>.
+                </p>
+            @else
+                <p style="margin: 0 0 24px 0; font-size: 14px; color: #333333; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    This is an automated alert to let you know you have received an new order. Because you have automatic processing turned ON, the order was low fraud risk and payment has been captured. If you need to fulfill the order, <a href="{{ $manageOrdersUrl }}" target="_blank" style="color: #0088cc; text-decoration: underline;">login to your account to manage the order</a>.
+                </p>
             @endif
 
-            <tr>
-                <td colspan="2" style="width: 100%; padding-top: 40px; padding-bottom: 50px; font-size: 15px;">
-                    <p style="padding: 0;margin: 0;padding-left: 30px; font-family: 'Nunito', 'Segoe UI', Arial; color: #3c3c3c;">{{ $main_message ?? '' }}</p>
-                </td>
-            </tr>
-        
-             <tr>
-                <td colspan="2" style="width: 100%; padding-top: 15px; padding-bottom: 35px; padding-left: 30px;">
-                    <a href="{{ env('WP_CLUB_URL')}}dashboard/?ua=storemanager&item=<?php echo tenant()->club_id; ?>" style="font-size: 15px; color: #00c0ffba; font-weight: 700; font-family: 'Nunito', 'Segoe UI', Arial;">Click to Login and View Order</a>
-                </td>                
-            </tr>
-            <tr>
-                <td colspan="2" style="width: 100%; ;padding-left: 30px">
-                    <p style="font-family: 'Nunito', 'Segoe UI', Arial; font-size: 15px; color: #3c3c3c; padding-bottom: 30px;line-height: 23px;
-                    ">From, <br>
-                        The Booostr Team on behalf of {{ $data['invoice_data']->store_legal_name ?? '' }}
-                    </p>
-                </td>
-            </tr>
-            
-        </tbody>
-    </table>
+            <!-- Subheading -->
+            <p style="margin: 0 0 16px 0; font-size: 14px; color: #333333; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                The basic order details are below.
+            </p>
+
+            <!-- Order Details List -->
+            <table cellpadding="0" cellspacing="0" style="margin-bottom: 30px; font-size: 14px; color: #333333; line-height: 1.85; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                <tr>
+                    <td style="font-weight: 700; padding-right: 6px;">Order #:</td>
+                    <td>{{ $invoiceNo }}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 700; padding-right: 6px;">Order Date:</td>
+                    <td>{{ $orderDate }}</td>
+                </tr>
+                @if ($mailType === 'cancelled')
+                    <tr>
+                        <td style="font-weight: 700; padding-right: 6px;">Cancel Date:</td>
+                        <td>{{ $cancelDate }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700; padding-right: 6px;">Payment Status:</td>
+                        <td>CANCELLED &amp; REFUNDED</td>
+                    </tr>
+                @elseif ($mailType === 'authorized_not_captured')
+                    <tr>
+                        <td style="font-weight: 700; padding-right: 6px;">Payment Status:</td>
+                        <td>AUTHORIZED, NOT CAPTURED</td>
+                    </tr>
+                @else
+                    <tr>
+                        <td style="font-weight: 700; padding-right: 6px;">Payment Status:</td>
+                        <td>AUTHORIZED, AND CAPTURED</td>
+                    </tr>
+                @endif
+                <tr>
+                    <td style="font-weight: 700; padding-right: 6px;">Ordered by:</td>
+                    <td>{{ $customerName }}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 700; padding-right: 6px;">Order Email:</td>
+                    <td>{{ $customerEmail }}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 700; padding-right: 6px;">Order Total:</td>
+                    <td>${{ number_format($totalAmount, 2) }}</td>
+                </tr>
+                @if ($mailType === 'cancelled')
+                    <tr>
+                        <td style="font-weight: 700; padding-right: 6px;">Refund Total:</td>
+                        <td>${{ number_format($refundTotal, 2) }}</td>
+                    </tr>
+                @endif
+            </table>
+
+            <!-- Center Button -->
+            <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 30px auto;">
+                <tr>
+                    <td align="center" style="background-color: #0088cc; border-radius: 5px;">
+                        <a href="{{ $manageOrdersUrl }}" target="_blank" style="display: inline-block; padding: 12px 28px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 5px;">
+                            Login &amp; Manage Orders
+                        </a>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Footer -->
+            <p style="text-align: center; font-size: 11px; color: #999999; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                powered by <a href="https://booostr.co" target="_blank" style="color: #999999; text-decoration: underline;">Booostr</a>
+            </p>
+        </td>
+    </tr>
+</table>
 </body>
-
 </html>

@@ -68,24 +68,44 @@ class NotifyToUser
 					dispatch(new TenantMailJob($data));
 				}
 				else{
-					
-					$status_id = $info['status_id'];
-					$payment_status = $info['payment_status'];
-					$subject = '';
+					$status_id = (int) ($info['status_id'] ?? 0);
+					$payment_status = (int) ($info['payment_status'] ?? 0);
 
-					if ($status_id == 3 && $payment_status == 4) {
-						$subject = $invoice_info->store_legal_name . ' You have received a new order' . ' #' . $invoiceNo . ' via your Booostr Online Store';
-					} else if ($status_id == 1) {
-						$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Completed & Shipped';
-					} else if ($status_id == 2) {
-						$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Cancelled & Refunded';
-					} else if ($status_id == 4) {
-						$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Payment Captured';
-					} else {
-						$subject = $invoice_info->store_legal_name . ' #' . $invoiceNo;
+					$clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+					$storeName = trim((string) ($clubInfo['club_name'] ?? ''));
+					if ($storeName === '') {
+						$storeName = trim((string) ($invoice_info->store_legal_name ?? ''));
 					}
-					$mail = new Adminsendmail($info,$subject);
-					Mail::to($to)->send($mail);
+					if ($storeName === '') {
+						$storeName = trim((string) (tenant('store_name') ?? 'Booostr'));
+					}
+					if ($storeName === '') {
+						$storeName = 'Booostr';
+					}
+
+					if ($status_id === 2 || $payment_status === 5) {
+						$mailType = 'cancelled';
+						$subject = 'Cancelled Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - Cancelled & Refunded';
+					} elseif ($payment_status === 4) {
+						$mailType = 'authorized_not_captured';
+						$subject = 'New Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - AUTHORIZED, NOT CAPTURED';
+					} else {
+						$mailType = 'captured';
+						$subject = 'New Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - Captured & Ready to Fulfill';
+					}
+
+					if (empty($to)) {
+						$admin_details = User::where('role_id', 3)->first();
+						$to = $admin_details->email ?? null;
+						if (empty($to)) {
+							$to = $clubInfo['club_email'] ?? ($invoice_info->store_legal_email ?? null);
+						}
+					}
+
+					$mail = new Adminsendmail($info, $subject, $mailType);
+					if (!empty($to)) {
+						Mail::to($to)->send($mail);
+					}
 				}
 
 			}else {
@@ -173,29 +193,44 @@ class NotifyToUser
 		else{
 			
 
-			$status_id = $new_array['status_id'];
-            $payment_status = $new_array['payment_status'];
-            $subject = '';
+			$status_id = (int) ($new_array['status_id'] ?? 0);
+			$payment_status = (int) ($new_array['payment_status'] ?? 0);
 
-			if ($status_id == 3 && $payment_status == 4) {
-				$subject = $invoice_info->store_legal_name . ' You have received a new order' . ' #' . $invoiceNo . ' via your Booostr Online Store';
-				//if you need payment status when shipped order then you can add this && $payment_status == 1
-			} else if ($status_id == 1) {
-				$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Completed & Shipped';
-			   //if you need payment status when cancel order then you can add this && $payment_status == 5
-			} else if ($status_id == 2) {
-				$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Cancelled & Refunded';
-			} else if ($status_id == 4) {
-				$subject = $invoice_info->store_legal_name . ' Order' . ' #' . $invoiceNo . ' - Payment Captured';
-			} else {
-				$subject = $invoice_info->store_legal_name . ' #' . $invoiceNo;
+			$clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+			$storeName = trim((string) ($clubInfo['club_name'] ?? ''));
+			if ($storeName === '') {
+				$storeName = trim((string) ($invoice_info->store_legal_name ?? ''));
 			}
-			
-			 $mail = new Adminsendmail($data,$subject);
-		
-			
+			if ($storeName === '') {
+				$storeName = trim((string) (tenant('store_name') ?? 'Booostr'));
+			}
+			if ($storeName === '') {
+				$storeName = 'Booostr';
+			}
 
-            Mail::to($mail_to)->send($mail);
+			if ($status_id === 2 || $payment_status === 5) {
+				$mailType = 'cancelled';
+				$subject = 'Cancelled Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - Cancelled & Refunded';
+			} elseif ($payment_status === 4) {
+				$mailType = 'authorized_not_captured';
+				$subject = 'New Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - AUTHORIZED, NOT CAPTURED';
+			} else {
+				$mailType = 'captured';
+				$subject = 'New Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - Captured & Ready to Fulfill';
+			}
+
+			if (empty($mail_to)) {
+				$admin_details = User::where('role_id', 3)->first();
+				$mail_to = $admin_details->email ?? null;
+				if (empty($mail_to)) {
+					$mail_to = $clubInfo['club_email'] ?? ($invoice_info->store_legal_email ?? null);
+				}
+			}
+
+			$mail = new Adminsendmail($data, $subject, $mailType);
+			if (!empty($mail_to)) {
+				Mail::to($mail_to)->send($mail);
+			}
 		}
 	
 

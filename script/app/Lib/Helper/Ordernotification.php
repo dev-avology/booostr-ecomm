@@ -20,11 +20,18 @@ class Ordernotification
 			return redirect('/thanks');
 		}
 
-		if ($order->notify_driver == 'mail') {
-			$customermail=json_decode($order->ordermeta->value ?? '');
-			if (isset($customermail->email)) {
-				$admin_details = User::where('role_id',3)->first();
-				$to = $admin_details->email;
+		$notifyDriver = $order->notify_driver ?? 'mail';
+		if ($notifyDriver == 'mail') {
+			$admin_details = User::where('role_id', 3)->first();
+			$to = $admin_details->email ?? null;
+			if (empty($to)) {
+				$clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+				$to = $clubInfo['club_email'] ?? (get_option('invoice_data', true)->store_legal_email ?? null);
+			}
+			if (!empty($to)) {
+				if ($order instanceof \Illuminate\Database\Eloquent\Model) {
+					$order->loadMissing(['ordermeta', 'user', 'orderlasttrans', 'orderstatus']);
+				}
 				\App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
 			}
 			// return redirect('/thanks');
