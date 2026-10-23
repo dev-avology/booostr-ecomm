@@ -1243,22 +1243,30 @@ class OrderController extends Controller
 
 
     /**
-     * Additive: true only for API cash/check orders that were manually captured.
+     * Additive: true for cash/check orders regardless of captured state.
      */
-    protected function isCapturedCashCheckOrder(Order $order): bool
+    protected function isCashCheckOrder(Order $order): bool
     {
         $ordermetaArr = json_decode(optional($order->ordermeta)->value ?? '{}', true) ?: [];
         $pm = strtolower((string) ($ordermetaArr['payment_method'] ?? ''));
         $pml = strtolower((string) ($ordermetaArr['payment_method_label'] ?? ''));
         $gwName = strtolower((string) optional($order->getway)->name ?? '');
 
-        $isCash = $pml === 'cash/check'
-            || $pml === 'cash'
+        return $pml === 'cash/check'
+            || str_contains($pml, 'cash')
+            || str_contains($pml, 'check')
             || $pm === 'cash'
             || (int) $order->order_from === 5
             || $gwName === 'cash';
+    }
 
-        return $isCash && (!empty($ordermetaArr['cash_check_captured_at']) || (int) $order->payment_status === 1);
+    /**
+     * Additive: true only for API cash/check orders that were manually captured.
+     */
+    protected function isCapturedCashCheckOrder(Order $order): bool
+    {
+        $ordermetaArr = json_decode(optional($order->ordermeta)->value ?? '{}', true) ?: [];
+        return $this->isCashCheckOrder($order) && (!empty($ordermetaArr['cash_check_captured_at']) || (int) $order->payment_status === 1);
     }
 
     /**
@@ -1859,7 +1867,11 @@ class OrderController extends Controller
         }
 
         // Additive: cash/check captured — DB-only partial refund (Stripe block below untouched).
-        if ($this->isCapturedCashCheckOrder($order)) {
+        if ($this->isCashCheckOrder($order)) {
+            if (!$this->isCapturedCashCheckOrder($order)) {
+                $this->captureCashCheckOrderWithoutStripe($order);
+                $order = $order->fresh(['orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule']);
+            }
             return $this->executeCashCheckPartialRefund($order, $refundDetails, $adminEmail);
         }
 
@@ -2067,7 +2079,11 @@ class OrderController extends Controller
         }
 
         // Additive: cash/check captured — DB-only partial dollar refund (Stripe block below untouched).
-        if ($this->isCapturedCashCheckOrder($order)) {
+        if ($this->isCashCheckOrder($order)) {
+            if (!$this->isCapturedCashCheckOrder($order)) {
+                $this->captureCashCheckOrderWithoutStripe($order);
+                $order = $order->fresh(['orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule']);
+            }
             return $this->executeCashCheckPartialDollarRefund($order, $refundDetails, $adminEmail);
         }
 

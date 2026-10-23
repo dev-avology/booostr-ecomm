@@ -904,12 +904,17 @@
 
         // Shared cash/check flags for Status button + refund modals (additive).
         $statusOrdermeta = json_decode(optional($info->ordermeta)->value ?? '', true) ?: [];
-        $isCashCheckOrder = ($statusOrdermeta['payment_method_label'] ?? '') === 'cash/check'
-            || strtolower((string)($statusOrdermeta['payment_method'] ?? '')) === 'cash'
-            || strtolower((string)($statusOrdermeta['payment_method_label'] ?? '')) === 'cash'
+        $statusPml = strtolower(trim((string)($statusOrdermeta['payment_method_label'] ?? '')));
+        $statusPm = strtolower(trim((string)($statusOrdermeta['payment_method'] ?? '')));
+        $statusGwName = strtolower(trim((string)(optional($info->getway)->name ?? '')));
+        $isCashCheckOrder = $statusPml === 'cash/check'
+            || str_contains($statusPml, 'cash')
+            || str_contains($statusPml, 'check')
+            || $statusPm === 'cash'
             || (int) $info->order_from === 5
-            || strtolower(optional($info->getway)->name ?? '') === 'cash';
+            || $statusGwName === 'cash';
         $isCashCheckCaptured = $isCashCheckOrder && (!empty($statusOrdermeta['cash_check_captured_at']) || (int) $info->payment_status === 1);
+        $canRefundOrder = (($info->payment_status == 1 && $statusGwName !== 'cash') || ($isCashCheckOrder && !in_array((int)$info->payment_status, [0, 5], true)) || !empty($isCashCheckCaptured));
 
         // Build refund history rows for order details totals (display only).
         $orderRefundHistoryLogs = json_decode(
@@ -1252,7 +1257,7 @@
                             $booster_platform_fee = 0;
                             $shipping_price = $shipping_price ?? 0;
                             $cover_fee = $booster_platform_fee + $credit_card_fee;
-                            if (!empty($ordermeta) && $info->getway->name !== 'cash' ) {
+                            if (!empty($ordermeta) && optional($info->getway)->name !== 'cash' ) {
                                 $credit_card_fee = isset($ordermeta->credit_card_fee) ? $ordermeta->credit_card_fee : 0;
                                 $booster_platform_fee =isset($ordermeta->booster_platform_fee) ? $ordermeta->booster_platform_fee : 0 ;
                                 $cover_fee = isset($ordermeta->cover_fee) ? $ordermeta->cover_fee : 0;
@@ -1287,7 +1292,7 @@
 
                         @endphp
 
-                       @if($info->getway->name !== 'cash')
+                       @if(optional($info->getway)->name !== 'cash')
                         <li class="list-group-item">
                             <div class="row align-items-center text-grey">
                                 <div class="col-9 text-right">{{ __('Credit Card Processing ') }}</div>
@@ -1597,12 +1602,17 @@
                         @php
                             // Prefer flags computed at top of page; keep local decode as fallback.
                             $statusOrdermeta = $statusOrdermeta ?? (json_decode(optional($info->ordermeta)->value ?? '', true) ?: []);
-                            $isCashCheckOrder = $isCashCheckOrder ?? (($statusOrdermeta['payment_method_label'] ?? '') === 'cash/check'
-                                || strtolower((string)($statusOrdermeta['payment_method'] ?? '')) === 'cash'
-                                || strtolower((string)($statusOrdermeta['payment_method_label'] ?? '')) === 'cash'
+                            $statusPml = $statusPml ?? strtolower(trim((string)($statusOrdermeta['payment_method_label'] ?? '')));
+                            $statusPm = $statusPm ?? strtolower(trim((string)($statusOrdermeta['payment_method'] ?? '')));
+                            $statusGwName = $statusGwName ?? strtolower(trim((string)(optional($info->getway)->name ?? '')));
+                            $isCashCheckOrder = $isCashCheckOrder ?? ($statusPml === 'cash/check'
+                                || str_contains($statusPml, 'cash')
+                                || str_contains($statusPml, 'check')
+                                || $statusPm === 'cash'
                                 || (int) $info->order_from === 5
-                                || strtolower(optional($info->getway)->name ?? '') === 'cash');
+                                || $statusGwName === 'cash');
                             $isCashCheckCaptured = $isCashCheckCaptured ?? ($isCashCheckOrder && (!empty($statusOrdermeta['cash_check_captured_at']) || (int) $info->payment_status === 1));
+                            $canRefundOrder = $canRefundOrder ?? (($info->payment_status == 1 && $statusGwName !== 'cash') || ($isCashCheckOrder && !in_array((int)$info->payment_status, [0, 5], true)) || !empty($isCashCheckCaptured));
                         @endphp
 
                         <div class="order-detail-bulk-actions">
@@ -1648,7 +1658,7 @@
                                 </div>
                             @endif
 
-                            @if ($info->payment_status == 1 && $isCashCheckCaptured)
+                            @if ($canRefundOrder && ($isCashCheckOrder || !empty($isCashCheckCaptured)))
                                 <div class="capture-btn">
                                     <button type="button"
                                         class="btn btn-primary float-right mt-2 text-right"
@@ -1927,7 +1937,7 @@
             $refund_shipping_price = 0;
             $refund_cover_fee = $refund_booster_platform_fee + $refund_credit_card_fee;
 
-            if (!empty($ordermeta) && $info->getway->name !== 'cash') {
+            if (!empty($ordermeta) && optional($info->getway)->name !== 'cash') {
                 $refund_credit_card_fee = $ordermeta->credit_card_fee ?? 0;
                 $refund_booster_platform_fee = $ordermeta->booster_platform_fee ?? 0;
                 $refund_cover_fee = $ordermeta->cover_fee ?? 0;
@@ -1953,7 +1963,7 @@
             <div class="card-body">
                 <h4 class="order-refund-title" id="order-refund-section-title">{{ __('Order Refund & Cancellation') }}</h4>
                 <p class="order-refund-desc mb-0">
-                    @if (!empty($isCashCheckCaptured))
+                    @if (!empty($isCashCheckCaptured) || !empty($isCashCheckOrder))
                         {{ __('Refund & cancel full or partial cash/check orders. Refunds are recorded in Store Manager without Stripe. Please return the cash/check amount to the purchaser outside of Stripe.') }}
                     @else
                         {{ __('Refund & cancel full or partial orders. We do not charge any fees for refunds, but the full or partial original processing fee is not refunded. All refunds are handled via Stripe will be deducted from your connected bank account and sent to the customer\'s original payment method used for the transaction. Payment processing fees cannot be refunded.') }}
@@ -2082,7 +2092,7 @@
                                 <div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
                             </div>
                         </li>
-                        @if($info->getway->name !== 'cash')
+                        @if(optional($info->getway)->name !== 'cash')
                             <li class="list-group-item">
                                 <div class="row align-items-center text-grey">
                                     <div class="col-3">
@@ -2297,7 +2307,7 @@
                                         <div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
                                     </div>
                                 </li>
-                                @if($info->getway->name !== 'cash')
+                                @if(optional($info->getway)->name !== 'cash')
                                     <li class="list-group-item">
                                         <div class="row align-items-center text-grey">
                                             <div class="col-3">
@@ -2544,7 +2554,7 @@
                                         <div class="col-3 text-right">{{ currency_formate($info->total) }}</div>
                                     </div>
                                 </li>
-                                @if($info->getway->name !== 'cash')
+                                @if(optional($info->getway)->name !== 'cash')
                                     <li class="list-group-item">
                                         <div class="row align-items-center text-grey">
                                             <div class="col-3">
@@ -2633,7 +2643,7 @@
         </div>
     </div>
 
-    @if ($info->payment_status == 1 && (optional($info->getway)->name !== 'cash' || !empty($isCashCheckCaptured)))
+    @if ($canRefundOrder)
         <div class="modal fade" id="refundConfirmModal" tabindex="-1" role="dialog" aria-labelledby="refundConfirmModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered order-refund-confirm-dialog" role="document">
                 <div class="modal-content order-refund-confirm-content">
@@ -3488,7 +3498,7 @@
 
             $('#cancel-order-refund-process-btn, #cancel-order-refund-process-btn-full, #cancel-order-refund-process-btn-partial, #cancel-order-refund-process-btn-partial-dollar').on('click', resetRefundCancellationView);
 
-            @if (request()->query('refund') && !$refundSuccess && !$partialRefundSuccess && !$partialDollarRefundSuccess && $info->payment_status == 1 && (optional($info->getway)->name !== 'cash' || !empty($isCashCheckCaptured)))
+            @if (request()->query('refund') && !$refundSuccess && !$partialRefundSuccess && !$partialDollarRefundSuccess && $canRefundOrder)
                 $orderDetailsView.hide();
                 $orderRefundView.show();
                 $orderHeaderTitle.text(refundHeaderTitle);
@@ -3524,7 +3534,7 @@
                 } else if (method === 'complete_fulfillment'){ 
                     $('#fulfillModal').modal('show'); 
                 } else if (method === 'cancel_order'){
-                    @if ($info->payment_status == 1 && (optional($info->getway)->name !== 'cash' || !empty($isCashCheckCaptured)))
+                    @if ($canRefundOrder)
                         $orderDetailsView.hide();
                         $orderRefundView.show();
                         $orderHeaderTitle.text(refundHeaderTitle);
