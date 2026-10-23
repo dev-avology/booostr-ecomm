@@ -802,6 +802,7 @@
 .order-detail-bulk-actions .input-group {
     flex-wrap: nowrap;
     margin-bottom: 0;
+    align-items: stretch;
 }
 
 .order-detail-bulk-actions .selectric-wrapper {
@@ -812,39 +813,56 @@
 }
 
 .order-detail-bulk-actions .selectric {
-    height: 35px;
-    line-height: 35px;
+    height: 42px;
+    min-height: 42px;
+    line-height: 40px;
     border-radius: 4px 0 0 4px;
     background: #fff;
     border: 1px solid #e4e6fc;
+    box-sizing: border-box;
 }
 
 .order-detail-bulk-actions .selectric .label {
-    height: 35px;
-    line-height: 35px;
+    height: 40px;
+    line-height: 40px;
     font-size: 13px;
-    padding-left: 10px;
-    margin-right: 28px;
+    padding-left: 12px;
+    margin-right: 30px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: left;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
 }
 
 .order-detail-bulk-actions .selectric .button {
-    height: 35px;
-    line-height: 35px;
+    height: 40px;
+    line-height: 40px;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .order-detail-bulk-actions .selectric-items {
     min-width: 240px;
     z-index: 1050;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .order-detail-bulk-actions .selectric-items li {
-    padding: 8px 12px;
+    padding: 0 14px;
     font-size: 13px;
-    line-height: 18px;
+    line-height: 38px;
+    min-height: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
 }
 
 .order-detail-bulk-actions .btn {
@@ -856,6 +874,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
 }
 
 .order-status-card-header {
@@ -1613,8 +1632,14 @@
                                 || $statusGwName === 'cash');
                             $isCashCheckCaptured = $isCashCheckCaptured ?? ($isCashCheckOrder && (!empty($statusOrdermeta['cash_check_captured_at']) || (int) $info->payment_status === 1));
                             $canRefundOrder = $canRefundOrder ?? (($info->payment_status == 1 && $statusGwName !== 'cash') || ($isCashCheckOrder && !in_array((int)$info->payment_status, [0, 5], true)) || !empty($isCashCheckCaptured));
+
+                            $isOrderCancelledOrRefunded = !empty($isOrderCancelled)
+                                || (int) $info->status_id === 2
+                                || (int) $info->payment_status === 0
+                                || (int) $info->payment_status === 5;
                         @endphp
 
+                        @if (!$isOrderCancelledOrRefunded)
                         <div class="order-detail-bulk-actions">
                             <form method="post" action="{{ route('seller.order.multipledelete') }}" id="orderDetailActionForm">
                                 @csrf
@@ -1635,6 +1660,7 @@
                                 </div>
                             </form>
                         </div>
+                        @endif
 
                         {{-- Hidden legacy buttons preserved so no existing JS or route bindings break --}}
                         <div style="display: none !important;">
