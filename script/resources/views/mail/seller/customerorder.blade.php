@@ -186,7 +186,7 @@
                 <tbody>
                     <tr>
                         <td class="section-padding" style="padding-top: 12px; padding-bottom: 12px;">
-                            <div style="background-color: #e8f4fd; padding: 24px 20px; text-align: center;">
+                            <div style="background-color: #dff8ec; padding: 24px 20px; text-align: center;">
                             <p
                                 style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; font-size: 17px; font-weight: 400; color: #171717; line-height: 1.35;">
                                 We have received your order!
