@@ -72,8 +72,8 @@ class NotifyToUser
 					dispatch(new TenantMailJob($data));
 				}
 				else{
-					$status_id = (int) ($info['status_id'] ?? 0);
-					$payment_status = (int) ($info['payment_status'] ?? 0);
+					$status_id = (int) ($info->status_id ?? ($info['status_id'] ?? 0));
+					$payment_status = (int) ($info->payment_status ?? ($info['payment_status'] ?? 0));
 
 					$clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
 					$storeName = trim((string) ($clubInfo['club_name'] ?? ''));
@@ -87,9 +87,47 @@ class NotifyToUser
 						$storeName = 'Booostr';
 					}
 
+					// Resolve cash/check order flags
+					$ordermetaArr = [];
+					if ($info instanceof \App\Models\Order && $info->ordermeta) {
+						$ordermetaArr = json_decode($info->ordermeta->value ?? '{}', true) ?: [];
+					} elseif (is_array($info) && !empty($info['ordermeta'])) {
+						$metaVal = is_array($info['ordermeta']) ? ($info['ordermeta']['value'] ?? '{}') : (optional($info['ordermeta'])->value ?? '{}');
+						$ordermetaArr = json_decode((string) $metaVal, true) ?: [];
+					} elseif ($info instanceof \App\Models\Order) {
+						$ordermetaArr = json_decode(optional($info->ordermeta)->value ?? '{}', true) ?: [];
+					}
+
+					$pml = strtolower(trim((string) ($ordermetaArr['payment_method_label'] ?? '')));
+					$pm = strtolower(trim((string) ($ordermetaArr['payment_method'] ?? '')));
+					$gwName = '';
+					if ($info instanceof \App\Models\Order) {
+						$gwName = strtolower(trim((string) optional($info->getway)->name));
+					} elseif (is_array($info)) {
+						$gwName = strtolower(trim((string) ($info['getway']['name'] ?? '')));
+					}
+					$orderFrom = (int) ($info->order_from ?? ($info['order_from'] ?? 0));
+					$lastTransPm = '';
+					if ($info instanceof \App\Models\Order) {
+						$lastTransPm = strtolower(trim((string) optional($info->orderlasttrans)->payment_method));
+					} elseif (is_array($info)) {
+						$lastTransPm = strtolower(trim((string) ($info['orderlasttrans']['payment_method'] ?? '')));
+					}
+
+					$isCashCheck = ($pml === 'cash/check'
+						|| str_contains($pml, 'cash')
+						|| str_contains($pml, 'check')
+						|| $pm === 'cash'
+						|| $orderFrom === 5
+						|| $gwName === 'cash'
+						|| $lastTransPm === 'cash');
+
 					if ($status_id === 2 || $payment_status === 5) {
 						$mailType = 'cancelled';
 						$subject = 'Cancelled Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - Cancelled & Refunded';
+					} elseif ($isCashCheck) {
+						$mailType = 'cash_check';
+						$subject = 'New Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - AUTHORIZED, NOT CAPTURED';
 					} elseif ($payment_status === 4) {
 						$mailType = 'authorized_not_captured';
 						$subject = 'New Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - AUTHORIZED, NOT CAPTURED';
@@ -238,9 +276,31 @@ class NotifyToUser
 				$storeName = 'Booostr';
 			}
 
+			$ordermetaArr = [];
+			if (is_array($new_array) && !empty($new_array['ordermeta'])) {
+				$metaVal = is_array($new_array['ordermeta']) ? ($new_array['ordermeta']['value'] ?? '{}') : (optional($new_array['ordermeta'])->value ?? '{}');
+				$ordermetaArr = json_decode((string) $metaVal, true) ?: [];
+			}
+			$pml = strtolower(trim((string) ($ordermetaArr['payment_method_label'] ?? '')));
+			$pm = strtolower(trim((string) ($ordermetaArr['payment_method'] ?? '')));
+			$gwName = strtolower(trim((string) ($new_array['getway']['name'] ?? '')));
+			$orderFrom = (int) ($new_array['order_from'] ?? 0);
+			$lastTransPm = strtolower(trim((string) ($new_array['orderlasttrans']['payment_method'] ?? '')));
+
+			$isCashCheck = ($pml === 'cash/check'
+				|| str_contains($pml, 'cash')
+				|| str_contains($pml, 'check')
+				|| $pm === 'cash'
+				|| $orderFrom === 5
+				|| $gwName === 'cash'
+				|| $lastTransPm === 'cash');
+
 			if ($status_id === 2 || $payment_status === 5) {
 				$mailType = 'cancelled';
 				$subject = 'Cancelled Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - Cancelled & Refunded';
+			} elseif ($isCashCheck) {
+				$mailType = 'cash_check';
+				$subject = 'New Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - AUTHORIZED, NOT CAPTURED';
 			} elseif ($payment_status === 4) {
 				$mailType = 'authorized_not_captured';
 				$subject = 'New Order for ' . $storeName . ' - Order #' . $invoiceNo . ' - AUTHORIZED, NOT CAPTURED';

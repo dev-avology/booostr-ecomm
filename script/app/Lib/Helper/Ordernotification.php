@@ -30,7 +30,7 @@ class Ordernotification
 			}
 			if (!empty($to)) {
 				if ($order instanceof \Illuminate\Database\Eloquent\Model) {
-					$order->loadMissing(['ordermeta', 'user', 'orderlasttrans', 'orderstatus']);
+					$order->loadMissing(['ordermeta', 'user', 'orderlasttrans', 'orderstatus', 'getway']);
 				}
 				\App\Lib\NotifyToUser::sendEmail($order, $to, 'admin');
 			}

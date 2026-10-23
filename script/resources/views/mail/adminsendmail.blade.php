@@ -33,10 +33,50 @@
     $statusId = (int) ($orderData['status_id'] ?? ($orderModel->status_id ?? 0));
     $paymentStatus = (int) ($orderData['payment_status'] ?? ($orderModel->payment_status ?? 0));
 
-    // Determine mailType if not provided
-    if (empty($mailType)) {
+    // Customer Name & Email & Meta
+    $ordermetaArr = [];
+    if ($orderModel && $orderModel->ordermeta) {
+        $ordermetaArr = json_decode($orderModel->ordermeta->value ?? '{}', true) ?: [];
+    } elseif (!empty($orderData['ordermeta'])) {
+        $metaVal = is_array($orderData['ordermeta']) ? ($orderData['ordermeta']['value'] ?? '{}') : (optional($orderData['ordermeta'])->value ?? '{}');
+        $ordermetaArr = json_decode((string) $metaVal, true) ?: [];
+    }
+    $customerName = trim((string) ($ordermetaArr['name'] ?? ($orderModel->user->name ?? ($orderData['user']['name'] ?? 'Guest User'))));
+    if ($customerName === '') {
+        $customerName = 'Guest User';
+    }
+    $customerEmail = trim((string) ($ordermetaArr['email'] ?? ($orderModel->user->email ?? ($orderData['user']['email'] ?? ''))));
+
+    $pml = strtolower(trim((string) ($ordermetaArr['payment_method_label'] ?? '')));
+    $pm = strtolower(trim((string) ($ordermetaArr['payment_method'] ?? '')));
+    $gwName = '';
+    if ($orderModel) {
+        $gwName = strtolower(trim((string) (optional($orderModel->getway)->name ?? '')));
+    } elseif (!empty($orderData['getway'])) {
+        $gwName = strtolower(trim((string) ($orderData['getway']['name'] ?? '')));
+    }
+    $orderFrom = (int) ($orderData['order_from'] ?? ($orderModel->order_from ?? 0));
+    $lastTransPm = '';
+    if ($orderModel) {
+        $lastTransPm = strtolower(trim((string) (optional($orderModel->orderlasttrans)->payment_method ?? '')));
+    } elseif (!empty($orderData['orderlasttrans'])) {
+        $lastTransPm = strtolower(trim((string) ($orderData['orderlasttrans']['payment_method'] ?? '')));
+    }
+
+    $isCashCheckOrder = ($pml === 'cash/check'
+        || str_contains($pml, 'cash')
+        || str_contains($pml, 'check')
+        || $pm === 'cash'
+        || $orderFrom === 5
+        || $gwName === 'cash'
+        || $lastTransPm === 'cash');
+
+    // Determine mailType if not provided or if cash/check order
+    if (empty($mailType) || ($mailType !== 'cancelled' && $isCashCheckOrder)) {
         if ($statusId === 2 || $paymentStatus === 5) {
             $mailType = 'cancelled';
+        } elseif ($isCashCheckOrder) {
+            $mailType = 'cash_check';
         } elseif ($paymentStatus === 4) {
             $mailType = 'authorized_not_captured';
         } else {
@@ -64,20 +104,6 @@
 
     $refundedAt = $orderModel->refunded_at ?? ($orderData['refunded_at'] ?? ($orderModel->updated_at ?? ($orderData['updated_at'] ?? now())));
     $cancelDate = \Carbon\Carbon::parse($refundedAt)->setTimezone(config('app.timezone'))->format('m/d/Y');
-
-    // Customer Name & Email
-    $ordermetaArr = [];
-    if ($orderModel && $orderModel->ordermeta) {
-        $ordermetaArr = json_decode($orderModel->ordermeta->value ?? '{}', true) ?: [];
-    } elseif (!empty($orderData['ordermeta'])) {
-        $metaVal = is_array($orderData['ordermeta']) ? ($orderData['ordermeta']['value'] ?? '{}') : (optional($orderData['ordermeta'])->value ?? '{}');
-        $ordermetaArr = json_decode((string) $metaVal, true) ?: [];
-    }
-    $customerName = trim((string) ($ordermetaArr['name'] ?? ($orderModel->user->name ?? ($orderData['user']['name'] ?? 'Guest User'))));
-    if ($customerName === '') {
-        $customerName = 'Guest User';
-    }
-    $customerEmail = trim((string) ($ordermetaArr['email'] ?? ($orderModel->user->email ?? ($orderData['user']['email'] ?? ''))));
 
     // Totals
     $totalAmount = (float) ($orderData['total'] ?? ($orderModel->total ?? 0));
@@ -140,6 +166,10 @@
                 <h2 style="font-size: 21px; font-weight: 700; color: #111111; text-align: center; margin: 0 0 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
                     Order #{{ $invoiceNo }} Has Been Cancelled
                 </h2>
+            @elseif ($mailType === 'cash_check')
+                <h2 style="font-size: 21px; font-weight: 700; color: #111111; text-align: center; margin: 0 0 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    We Received A New Order - Cash/Check Payment Method
+                </h2>
             @elseif ($mailType === 'authorized_not_captured')
                 <h2 style="font-size: 21px; font-weight: 700; color: #111111; text-align: center; margin: 0 0 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
                     We Received A New Order - Please CAPTURE Payment
@@ -164,6 +194,10 @@
                 </p>
                 <p style="margin: 0 0 24px 0; font-size: 14px; color: #333333; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
                     To view the order details or work with additional orders, <a href="{{ $manageOrdersUrl }}" target="_blank" style="color: #0088cc; text-decoration: underline;">login to your account to here</a>.
+                </p>
+            @elseif ($mailType === 'cash_check')
+                <p style="margin: 0 0 24px 0; font-size: 14px; color: #333333; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    This is an automated alert to let you know you have received an new order. This order was paid using the cash/check payment method. Because you have enabled Cash/Check Payment as a checkout option, you will need to manually update the order status in your store manager once you have received payment. To manage this order, <a href="{{ $manageOrdersUrl }}" target="_blank" style="color: #0088cc; text-decoration: underline;">login to your account to here</a>.
                 </p>
             @elseif ($mailType === 'authorized_not_captured')
                 <p style="margin: 0 0 16px 0; font-size: 14px; color: #333333; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
@@ -201,6 +235,11 @@
                     <tr>
                         <td style="font-weight: 700; padding-right: 6px;">Payment Status:</td>
                         <td>CANCELLED &amp; REFUNDED</td>
+                    </tr>
+                @elseif ($mailType === 'cash_check')
+                    <tr>
+                        <td style="font-weight: 700; padding-right: 6px;">Payment Status:</td>
+                        <td>CASH/CHECK PAYMENT</td>
                     </tr>
                 @elseif ($mailType === 'authorized_not_captured')
                     <tr>
