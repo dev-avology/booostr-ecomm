@@ -810,14 +810,25 @@ class ProductController extends Controller
     {
         abort_if(!getpermission('products'), 401);
         if ($request->ids) {
+            $ids = is_array($request->ids) ? $request->ids : explode(',', (string) $request->ids);
+            $ids = array_values(array_filter(array_map('intval', $ids)));
+
+            if (empty($ids)) {
+                return response()->json('Select Some product...!!!');
+            }
+
             if ($request->method == 'delete') {
-                Term::query()->where('type', 'product')->where('id', $request->ids)->delete();
+                Term::query()->where('type', 'product')->whereIn('id', $ids)->delete();
+                try {
+                    \App\Models\ProductSalesCrmSync::whereIn('product_id', $ids)->delete();
+                } catch (\Throwable $th) {}
+
                 bust_pos_api_cache();
                 bust_store_product_api_cache();
 
                 return response()->json('Successfully Product Deleted...!!!');
-            }elseif ($request->method == 'duplicate') {
-                foreach ($request->ids as $id) {
+            } elseif ($request->method == 'duplicate') {
+                foreach ($ids as $id) {
                     $this->duplicateProduct($id);
                 }
                 bust_pos_api_cache();
@@ -825,8 +836,7 @@ class ProductController extends Controller
 
                 return response()->json('Successfully Product duplicated...!!!');
             } else {
-                foreach ($request->ids as $id) {
-
+                foreach ($ids as $id) {
                     $product = Term::where('type', 'product')->find($id);
                     if (!empty($product)) {
                         $product->status = $request->method;
