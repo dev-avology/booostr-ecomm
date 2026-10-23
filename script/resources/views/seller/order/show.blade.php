@@ -894,18 +894,24 @@
 
 /* Disabled Order Status dropdown styling for cancelled orders */
 .order-status-disabled-select,
+.selectric-wrapper.selectric-order-status-disabled-select,
 .selectric-wrapper.selectric-order-status-disabled-select .selectric,
 .selectric-wrapper.selectric-order-status-disabled-select.selectric-disabled .selectric {
     background-color: #e9ecef !important;
     border-color: #dce3ea !important;
-    opacity: 0.8 !important;
     cursor: not-allowed !important;
+}
+
+.selectric-wrapper.selectric-order-status-disabled-select .selectric,
+.selectric-wrapper.selectric-order-status-disabled-select.selectric-disabled .selectric {
+    opacity: 0.8 !important;
 }
 
 .selectric-wrapper.selectric-order-status-disabled-select .selectric .label,
 .selectric-wrapper.selectric-order-status-disabled-select.selectric-disabled .selectric .label {
     color: #495057 !important;
     font-weight: 600 !important;
+    cursor: not-allowed !important;
 }
 
 .selectric-wrapper.selectric-order-status-disabled-select .selectric .button,
@@ -1077,7 +1083,9 @@
             || strcasecmp(trim((string) $orderStatusSlug), 'cancel') === 0;
 
         $isOrderCancelled = $isStatusCancelled
+            || (int) $info->status_id === 2
             || (int) $info->payment_status === 0
+            || (int) $info->payment_status === 5
             || $isOrderFullyRefundedDisplay;
     @endphp
 
@@ -1470,26 +1478,35 @@
                               <div class="col-sm-4" id="hiddenChooseTracking" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;" @endif>
                                     <div class="form-group text-left">
                                         <label>Select shipping service </label>
-                                        <select class="form-control selectric" id="chooseTracking" name="chooseTracking">
-                                            <option value="" selected><b>{{ __('Select option') }}</b></option>
+                                        <select class="form-control selectric @if($isOrderCancelled) order-status-disabled-select @endif" id="chooseTracking" name="chooseTracking" @if($isOrderCancelled) disabled style="background-color: #e9ecef; cursor: not-allowed;" @endif>
+                                            <option value="" @if(empty($info->shippingwithinfo->shipping_driver)) selected="" @endif><b>{{ __('Select option') }}</b></option>
                                             <option value="FedEx" @if ($info->shippingwithinfo->shipping_driver == 'FedEx') selected="" @endif>{{ __('FedEx') }}</option>
                                             <option value="UPS" @if ($info->shippingwithinfo->shipping_driver == 'UPS') selected="" @endif><b>{{ __('UPS') }}</b></option>
                                             <option value="US Postal Service" @if ($info->shippingwithinfo->shipping_driver == 'US Postal Service') selected="" @endif><b>{{ __('US Postal Service') }}</b></option>
                                             <option value="Other" @if ($info->shippingwithinfo->shipping_driver != 'local' && !in_array($info->shippingwithinfo->shipping_driver,$shipping_servics)) selected="" @endif><b>{{ __('Other') }}</b></option>
                                         </select>
+                                        @if($isOrderCancelled)
+                                            <input type="hidden" name="chooseTracking" value="{{ $info->shippingwithinfo->shipping_driver ?? '' }}">
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="col-sm-3" id="hide_shipping_service" @if($info->shippingwithinfo->shipping_driver == 'local' || $info->shippingwithinfo->shipping_driver == 'FedEx' || $info->shippingwithinfo->shipping_driver == 'UPS' || $info->shippingwithinfo->shipping_driver == 'US Postal Service')style="display:none;"@endif>
 									<div class="form-group text-left">
 										<label>Enter shipping service</label>
-									<input type="text" class="form-control" name="shipping_service" id="shipping_service" value="{{$info->shippingwithinfo->shipping_driver??''}}">
+									<input type="text" class="form-control" name="shipping_service" id="shipping_service" value="{{$info->shippingwithinfo->shipping_driver??''}}" @if($isOrderCancelled) readonly disabled style="background-color: #e9ecef; cursor: not-allowed;" @endif>
+									@if($isOrderCancelled)
+										<input type="hidden" name="shipping_service" value="{{$info->shippingwithinfo->shipping_driver??''}}">
+									@endif
 									</div>
 								</div>
 
 								<div class="col-sm-3" id="hide_tacking_number" @if($info->shippingwithinfo->shipping_driver == 'local')style="display:none;"@endif>
 									<div class="form-group text-left">
 										<label>Enter tracking number</label>
-										<input type="text" value="{{$info->shippingwithinfo->tracking_no}}" class="form-control" name="tacking_number" id="tacking_number" id="tacking_number">
+										<input type="text" value="{{$info->shippingwithinfo->tracking_no}}" class="form-control" name="tacking_number" id="tacking_number" @if($isOrderCancelled) readonly disabled style="background-color: #e9ecef; cursor: not-allowed;" @endif>
+										@if($isOrderCancelled)
+											<input type="hidden" name="tacking_number" value="{{$info->shippingwithinfo->tracking_no}}">
+										@endif
 									</div>
 								</div>
 							@php 
@@ -1515,7 +1532,8 @@
                             </div>
                     </div>
                     <button type="submit"
-                        class="btn btn-primary float-right mt-2 ml-2 basicbtn">{{ __('Save Changes') }}</button>
+                        class="btn btn-primary float-right mt-2 ml-2 basicbtn"
+                        @if($isOrderCancelled) disabled style="cursor: not-allowed; opacity: 0.65;" @endif>{{ __('Save Changes') }}</button>
                     <a href="{{ route('seller.order.edit', $info->id) }}"
                         class="btn btn-primary text-right float-right mt-2">{{ __('Print Invoice') }}</a>
                     </form>
