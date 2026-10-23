@@ -818,7 +818,20 @@ class ProductController extends Controller
             }
 
             if ($request->method == 'delete') {
-                Term::query()->where('type', 'product')->whereIn('id', $ids)->delete();
+                try {
+                    \DB::connection()->getPdo()->setAttribute(\PDO::ATTR_EMULATE_PREPARES, true);
+                } catch (\Throwable $th) {}
+
+                foreach ($ids as $id) {
+                    try {
+                        Term::query()->where('type', 'product')->where('id', $id)->delete();
+                    } catch (\Throwable $th) {
+                        try {
+                            \DB::statement("DELETE FROM `terms` WHERE `type` = 'product' AND `id` = ?", [$id]);
+                        } catch (\Throwable $e) {}
+                    }
+                }
+
                 try {
                     \App\Models\ProductSalesCrmSync::whereIn('product_id', $ids)->delete();
                 } catch (\Throwable $th) {}
