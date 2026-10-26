@@ -132,6 +132,22 @@
                     $shipping_info = json_decode($shippingWith->info ?? '');
                     $orderMethod = $order->order_method ?? ($data['data']['order_method'] ?? ($data['data']->order_method ?? ''));
                     $isPickup = ($orderMethod === 'pickup') || (($shipping_info->shipping_label ?? '') === 'In-Person Pick Up');
+
+                    $ordermetaArr = is_array($ordermeta) ? $ordermeta : (json_decode(json_encode($ordermeta), true) ?: []);
+                    $pm = strtolower((string) ($ordermetaArr['payment_method'] ?? ''));
+                    $pml = strtolower((string) ($ordermetaArr['payment_method_label'] ?? ''));
+                    $gwName = strtolower((string) (optional($order->getway)->name ?? ($data['data']['getway']['name'] ?? '')));
+                    $orderFrom = (int) ($order->order_from ?? ($data['data']['order_from'] ?? 0));
+                    $lastTransPm = strtolower(trim((string) (optional($order->orderlasttrans)->payment_method ?? ($data['data']['orderlasttrans']['payment_method'] ?? ''))));
+
+                    $isCashCheckOrder = ($pml === 'cash/check'
+                        || str_contains($pml, 'cash')
+                        || str_contains($pml, 'check')
+                        || $pm === 'cash'
+                        || $pm === 'cash/check'
+                        || $orderFrom === 5
+                        || $gwName === 'cash'
+                        || $lastTransPm === 'cash');
                 @endphp
                 <tr style="background-color: #ffffff; width: 100%;">
                     <td class="section-padding" style="padding-top: 26px; padding-bottom: 18px; vertical-align: middle;">
@@ -430,9 +446,15 @@
                             style="padding-left: 24px; font-weight: 500; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-size: 14px; text-transform: capitalize; line-height: 1.55;">Status:
                             <span>{{ $authorized ?? '' }}</span>
                         </span>
+                        @if($isCashCheckOrder)
+                        <p
+                            style="padding-left: 24px; font-weight: 500; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-size: 14px; text-transform: none; line-height: 1.55;">
+                            Cash/Check Payment</p>
+                        @else
                         <p
                             style="padding-left: 24px; font-weight: 500; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-size: 14px; text-transform: capitalize; line-height: 1.55;">
                             Card: <span>{{ $card_number ?? '' }}</span></p>
+                        @endif
                         <p
                             style="padding-left: 24px; font-weight: 500; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-size: 14px; text-transform: capitalize; line-height: 1.55;">
                             Name: <span>{{ $ordermeta->name ?? '' }}</span></p>
@@ -443,93 +465,162 @@
                 </tr>
             </tbody>
         </table>
-        @if($order_type !== 'Digital')
-            <table class="section-table">
+        <table class="section-table">
             <tbody>
                 <tr><td colspan="2"><hr width="88%" style="border-top:0px;" color="#ececec" /></td></tr>
 
-                <tr class="border-style">
-                {{-- LEFT --}}
-                <td style="width:50%;padding-left:15px;padding-right:15px;" class="spac-top spac-btm">
+                @if($order_type === 'Digital')
+                    <tr class="border-style">
+                        <td colspan="2" style="width:100%;padding-left:15px;padding-right:15px;padding-bottom: 24px;" class="spac-top spac-btm">
+                            <h5 style="padding-left:24px;font-weight:700;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:15px;">
+                                Shipping Information:
+                            </h5>
+                            <span style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
+                                All Digital Purchase - No Shipping Needed.
+                            </span>
+                        </td>
+                    </tr>
+                @else
+                    <tr class="border-style">
+                        {{-- LEFT --}}
+                        <td style="width:50%;padding-left:15px;padding-right:15px;" class="spac-top spac-btm">
 
-                    @if($isPickup)
-                    <h5 style="padding-left:24px;font-weight:700;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:15px;">
-                        In-Person Pick Up Instructions
-                    </h5>
+                            @if($isPickup)
+                            <h5 style="padding-left:24px;font-weight:700;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:15px;">
+                                In-Person Pick Up Instructions
+                            </h5>
 
-                    @php
-                        $opt = \App\Models\Option::where('key','inperson_pickup_details')->first();
-                        $pickup = $opt && $opt->value ? json_decode($opt->value, true) : [];
-                    @endphp
+                            @php
+                                $opt = \App\Models\Option::where('key','inperson_pickup_details')->first();
+                                $pickup = $opt && $opt->value ? json_decode($opt->value, true) : [];
+                            @endphp
 
-                    <p style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
-                        {{ $pickup['address_line1'] ?? '' }}<br>
-                        {{ $pickup['address_line2'] ?? '' }}<br>
-                        {{ ($pickup['city'] ?? '') }}{{ !empty($pickup['city']) ? ', ' : '' }}{{ $pickup['state'] ?? '' }} {{ $pickup['zip'] ?? '' }}
-                    </p>
+                            <p style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
+                                @if(($pickup['use_store_address'] ?? 'yes') === 'yes')
+                                    {{ $invoice_info->store_legal_address ?? '' }}<br>
+                                    {{ $invoice_info->store_legal_city ?? '' }},
+                                    {{ $invoice_info->store_legal_state ?? '' }}
+                                    {{ $invoice_info->post_code ?? '' }}<br>
+                                    {{ $invoice_info->country ?? '' }}
+                                @else
+                                    {{ $pickup['address_line1'] ?? '' }}<br>
+                                    @if(!empty($pickup['address_line2']))
+                                        {{ $pickup['address_line2'] }}<br>
+                                    @endif
+                                    {{ $pickup['city'] ?? '' }},
+                                    {{ $pickup['state'] ?? '' }}
+                                    {{ $pickup['zip'] ?? '' }}
+                                @endif
+                            </p>
 
-                    @if(!empty($pickup['instructions']))
-                        <p style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:13px;white-space:pre-line;line-height:1.55;">
-                        {{ $pickup['instructions'] }}
-                        </p>
-                    @endif
-                    @else
-                    <h5 style="padding-left:24px;font-weight:700;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:15px;">
-                        Shipping Address:
-                    </h5>
+                            @if(!empty($pickup['instructions']))
+                                <p style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:13px;white-space:pre-line;line-height:1.55;">
+                                {{ $pickup['instructions'] }}
+                                </p>
+                            @endif
+                            @else
+                            <h5 style="padding-left:24px;font-weight:700;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:15px;">
+                                Shipping Address:
+                            </h5>
 
-                    @php
-                        $ship_name = $ordermeta->shipping->name ?? '';
-                        $ship_phone = $ordermeta->shipping->phone ?? '';
-                        $ship_add = $ordermeta->shipping->address ?? '';
-                        $ship_city = $ordermeta->shipping->city ?? '';
-                        $ship_state = $ordermeta->shipping->state ?? '';
-                        $ship_country = $ordermeta->shipping->country ?? '';
-                        $ship_zip = $ordermeta->shipping->post_code ?? '';
+                            @php
+                                $shippingObj = $ordermeta->shipping ?? null;
+                                $shippingName = '';
+                                if (is_object($shippingObj)) {
+                                    $shippingName = trim((string) ($shippingObj->name ?? ''));
+                                    $ship_phone = trim((string) ($shippingObj->phone ?? ''));
+                                    $ship_add = trim((string) ($shippingObj->address ?? ''));
+                                    $ship_city = trim((string) ($shippingObj->city ?? ''));
+                                    $ship_state = trim((string) ($shippingObj->state ?? ''));
+                                    $ship_country = trim((string) ($shippingObj->country ?? ''));
+                                    $ship_zip = trim((string) ($shippingObj->post_code ?? ''));
+                                } elseif (is_array($shippingObj)) {
+                                    $shippingName = trim((string) ($shippingObj['name'] ?? ''));
+                                    $ship_phone = trim((string) ($shippingObj['phone'] ?? ''));
+                                    $ship_add = trim((string) ($shippingObj['address'] ?? ''));
+                                    $ship_city = trim((string) ($shippingObj['city'] ?? ''));
+                                    $ship_state = trim((string) ($shippingObj['state'] ?? ''));
+                                    $ship_country = trim((string) ($shippingObj['country'] ?? ''));
+                                    $ship_zip = trim((string) ($shippingObj['post_code'] ?? ''));
+                                } else {
+                                    $ship_phone = '';
+                                    $ship_add = '';
+                                    $ship_city = '';
+                                    $ship_state = '';
+                                    $ship_country = '';
+                                    $ship_zip = '';
+                                }
 
-                        $new_shiiping_address =
-                        $ship_name . '<br>' .
-                        $ship_add . '<br>' .
-                        $ship_city . ', ' . $ship_state . ' ' . $ship_zip . '<br>' .
-                        $ship_country . '<br>' .
-                        $ship_phone . '<br>' .
-                        ($billing_email ?? '');
-                    @endphp
+                                $billingObj = $ordermeta->billing ?? null;
+                                $billingName = '';
+                                if (is_object($billingObj)) {
+                                    $billingName = trim((string) ($billingObj->name ?? ''));
+                                } elseif (is_array($billingObj)) {
+                                    $billingName = trim((string) ($billingObj['name'] ?? ''));
+                                }
+                                if ($billingName === '') {
+                                    $billingName = trim((string) ($ordermeta->name ?? ($billing_name ?? '')));
+                                }
 
-                    <p style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
-                        {!! $new_shiiping_address !!}
-                    </p>
-                    @endif
+                                // If shipping name was entered, use it; if same as billing or empty, use billing first/last name
+                                $ship_name = $shippingName !== '' ? $shippingName : $billingName;
 
-                </td>
+                                $cityStateZip = trim($ship_city . ($ship_city && ($ship_state || $ship_zip) ? ', ' : ' ') . trim($ship_state . ' ' . $ship_zip));
 
-                {{-- RIGHT --}}
-                <td style="width:50%;padding-left:15px;padding-right:15px;padding-bottom: {{ $isPickup ? '30px' : '150px' }};"
-                    class="spac-top spac-btm">
+                                $shippingLines = array_filter([
+                                    $ship_name,
+                                    $ship_add,
+                                    $cityStateZip,
+                                    $ship_country,
+                                    $ship_phone,
+                                    $billing_email ?? '',
+                                ], function($val) {
+                                    return trim((string) $val) !== '';
+                                });
+                                $new_shiiping_address = implode('<br>', $shippingLines);
+                            @endphp
 
-                    <h5 style="padding-left:24px;font-weight:700;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:15px;">
-                    Shipping Information:
-                    </h5>
+                            <p style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
+                                {!! $new_shiiping_address !!}
+                            </p>
+                            @endif
 
-                    @if(!empty($receipt_view_options['shipping_information'] ?? ''))
-                    <span style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
-                        {{ $receipt_view_options['shipping_information'] }}
-                    </span>
-                    @elseif($isPickup)
-                    <span style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
-                        In-Person Pick Up
-                    </span>
-                    @else
-                    <span style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;text-transform:capitalize;line-height:1.55;">
-                        {{ $shipping_info->shipping_label ?? '' }} Shipping
-                    </span>
-                    @endif
+                        </td>
 
-                </td>
-                </tr>
+                        {{-- RIGHT --}}
+                        <td style="width:50%;padding-left:15px;padding-right:15px;padding-bottom: {{ $isPickup ? '30px' : '150px' }};"
+                            class="spac-top spac-btm">
+
+                            <h5 style="padding-left:24px;font-weight:700;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:15px;">
+                            Shipping Information:
+                            </h5>
+
+                            @if(!empty($receipt_view_options['shipping_information'] ?? ''))
+                            <span style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
+                                {{ ucwords(str_replace('_', ' ', $receipt_view_options['shipping_information'])) }}
+                            </span>
+                            @elseif($isPickup)
+                            <span style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
+                                In-Person Pick Up
+                            </span>
+                            @else
+                            @php
+                                $rawLabel = trim((string) ($shipping_info->shipping_label ?? ''));
+                                $cleanLabel = ucwords(str_replace('_', ' ', $rawLabel));
+                                if ($cleanLabel !== '' && !str_ends_with(strtolower($cleanLabel), 'shipping')) {
+                                    $cleanLabel .= ' Shipping';
+                                }
+                            @endphp
+                            <span style="padding-left:24px;font-weight:500;font-family:Arial,'Segoe UI',sans-serif;color:#3c3c3c;font-size:14px;line-height:1.55;">
+                                {{ $cleanLabel }}
+                            </span>
+                            @endif
+
+                        </td>
+                    </tr>
+                @endif
             </tbody>
             </table>
-        @endif
 
         <table class="section-table">
             <tbody>
@@ -728,8 +819,13 @@
                     <td class="section-padding" style="width: 100%; padding-top: 20px; padding-bottom: 28px; font-size: 15px;">
                         <p
                             style="margin: 0; font-family: Arial, 'Segoe UI', sans-serif; color: #4d4d4d; font-size: 13px; font-weight: 500; line-height: 1.65;">
-                            If you have questions about your order, please don't hesitate to reach out. You will receive
-                            an email confirmation once your order has shipped.</p>
+                            @if(!empty($isCashCheckOrder))
+                                If you have questions about your order, please don't hesitate to reach out. You will receive an email confirmation once your payment has been received and another confirmation when it ships (if shipping is required).
+                            @else
+                                If you have questions about your order, please don't hesitate to reach out. You will receive
+                                an email confirmation once your order has shipped.
+                            @endif
+                        </p>
 
                         <p
                             style="margin: 16px 0 0 0; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; font-size: 13px; font-weight: 500;">

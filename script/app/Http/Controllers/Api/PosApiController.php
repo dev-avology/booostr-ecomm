@@ -907,7 +907,13 @@ class PosApiController extends Controller
                 $customer_info['wpuid'] = null;
                 $customer_info['note'] = $request->comment ?? "";
                 $customer_info['billing'] = $request->billing ?? "";
-                $customer_info['shipping'] = $request->shipping ?? "";
+                $shipping_info_data = $request->shipping ?? "";
+                if (is_array($shipping_info_data)) {
+                    if (empty($shipping_info_data['name'])) {
+                        $shipping_info_data['name'] = $request->name ?? ($customer_info['name'] ?? '');
+                    }
+                }
+                $customer_info['shipping'] = $shipping_info_data;
                 $customer_info['credit_card_fee'] = $credit_card_fee;
                 $customer_info['booster_platform_fee'] = $booster_platform_fee;
 
@@ -3103,7 +3109,13 @@ private function send_order_recipts($data){
                 $customer_info['wpuid'] = $request->wpuid??0;
                 $customer_info['note'] = $request->comment ?? "";
                 $customer_info['billing'] = $request->billing ?? "";
-                $customer_info['shipping'] = $request->shipping ?? "";
+                $shipping_info_data = $request->shipping ?? "";
+                if (is_array($shipping_info_data)) {
+                    if (empty($shipping_info_data['name'])) {
+                        $shipping_info_data['name'] = $request->name ?? ($customer_info['name'] ?? '');
+                    }
+                }
+                $customer_info['shipping'] = $shipping_info_data;
                 $customer_info['credit_card_fee'] = $credit_card_fee;
                 $customer_info['booster_platform_fee'] = $booster_platform_fee;
                 $customer_info['cover_fee'] = $cover_fee;

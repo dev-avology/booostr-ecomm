@@ -76,7 +76,7 @@ class Orderstatusmail extends Mailable
             ->all();
         }
      
-        $selected_product_type = Arr::flatten($selected_product_type);
+        $selected_product_type = array_values(array_unique(Arr::flatten($selected_product_type)));
 
         $count = count($selected_product_type);
 
