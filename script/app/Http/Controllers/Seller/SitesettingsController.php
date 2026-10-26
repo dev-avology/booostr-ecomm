@@ -605,8 +605,13 @@ class SitesettingsController extends Controller
 
         try {
             $response = Http::withOptions(['verify' => false])
+                ->withHeaders([
+                    'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                    'Pragma' => 'no-cache',
+                    'Expires' => '0',
+                ])
                 ->timeout(10)
-                ->get('https://app.booostr.co/wp-json/booostr/v1/club-timezone/' . $clubId);
+                ->get('https://app.booostr.co/wp-json/booostr/v1/club-timezone/' . $clubId . '?_=' . time());
 
             if (!$response->successful()) {
                 return $existing;
@@ -633,7 +638,10 @@ class SitesettingsController extends Controller
                 $existing->save();
                 TenantCacheClear('timezone');
                 TenantCacheClear('autoload');
+                bust_pos_api_cache();
             }
+
+            \Config::set('app.timezone', $resolvedTimezone);
 
             return $existing;
         } catch (\Throwable $e) {
