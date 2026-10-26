@@ -2115,3 +2115,130 @@ if (!function_exists('ticket_seller_base_to_stored_price')) {
         return round($basePrice + $fee, 2);
     }
 }
+
+/**
+ * Get the selected timezone strictly from /seller/site-settings/general (options table key = 'timezone').
+ * Does NOT check app.timezone or .env.
+ *
+ * @param string|null $fallback Optional fallback timezone if no option is found (default 'America/Los_Angeles')
+ * @return string Valid IANA PHP timezone (e.g. 'America/Chicago', 'America/Los_Angeles')
+ */
+if (!function_exists('get_tenant_timezone')) {
+    function get_tenant_timezone(?string $fallback = null): string
+    {
+        $selectedTimezone = '';
+
+        try {
+            // Read directly from options table where the /seller/site-settings/general timezone dropdown is saved
+            if (class_exists(\App\Models\Option::class)) {
+                $option = \App\Models\Option::where('key', 'timezone')->first();
+                if ($option && !empty($option->value)) {
+                    $selectedTimezone = trim((string) $option->value);
+                }
+            }
+        } catch (\Throwable $e) {
+            // Safe fallback if tenant DB is not reachable
+        }
+
+        // Map abbreviations (e.g. CST, PST, EST) to valid IANA zones if present
+        if ($selectedTimezone !== '') {
+            $abbrMap = [
+                'UTC'  => 'UTC',
+                'GMT'  => 'UTC',
+                'EST'  => 'America/New_York',
+                'EDT'  => 'America/New_York',
+                'CST'  => 'America/Chicago',
+                'CDT'  => 'America/Chicago',
+                'MST'  => 'America/Denver',
+                'MDT'  => 'America/Denver',
+                'PST'  => 'America/Los_Angeles',
+                'PDT'  => 'America/Los_Angeles',
+                'AKST' => 'America/Anchorage',
+                'AKDT' => 'America/Anchorage',
+                'HST'  => 'Pacific/Honolulu',
+                'HAST' => 'Pacific/Honolulu',
+                'HADT' => 'Pacific/Honolulu',
+            ];
+
+            $upper = strtoupper($selectedTimezone);
+            if (isset($abbrMap[$upper])) {
+                return $abbrMap[$upper];
+            }
+
+            try {
+                new \DateTimeZone($selectedTimezone);
+                return $selectedTimezone;
+            } catch (\Throwable $e) {
+                // Invalid timezone string
+            }
+        }
+
+        if ($fallback !== null && $fallback !== '') {
+            try {
+                new \DateTimeZone($fallback);
+                return $fallback;
+            } catch (\Throwable $e) {
+            }
+        }
+
+        // Default Booostr club timezone
+        return 'America/Los_Angeles';
+    }
+}
+
+/**
+ * Get Carbon date/time instance or formatted string converted to the tenant's selected timezone.
+ *
+ * Usage examples:
+ * - tenant_time()                           => Carbon instance in tenant timezone (current time)
+ * - tenant_time('2026-10-26 10:00:00')      => Carbon instance in tenant timezone
+ * - tenant_time(null, 'Y-m-d H:i:s')        => '2026-10-26 12:30:00' (current time formatted for DB storage)
+ * - tenant_time($order->placed_at, 'm/d/Y') => '10/26/2026' (formatted for emails or UI)
+ *
+ * @param mixed $date Optional: Carbon|DateTime|string|timestamp (null for current time)
+ * @param string|null $format Optional: date format string e.g. 'Y-m-d H:i:s', 'm/d/Y h:i A' (null returns Carbon instance)
+ * @param string|null $timezone Optional: override timezone (null uses get_tenant_timezone())
+ * @return \Carbon\Carbon|string
+ */
+if (!function_exists('tenant_time')) {
+    function tenant_time($date = null, ?string $format = null, ?string $timezone = null)
+    {
+        $tz = $timezone ?: get_tenant_timezone();
+
+        try {
+            if ($date === null || $date === '' || $date === 'now') {
+                $carbon = \Carbon\Carbon::now($tz);
+            } elseif ($date instanceof \Carbon\Carbon) {
+                $carbon = $date->copy()->setTimezone($tz);
+            } elseif ($date instanceof \DateTimeInterface) {
+                $carbon = \Carbon\Carbon::instance($date)->setTimezone($tz);
+            } elseif (is_numeric($date)) {
+                $carbon = \Carbon\Carbon::createFromTimestamp((int) $date, $tz);
+            } else {
+                $carbon = \Carbon\Carbon::parse($date)->setTimezone($tz);
+            }
+        } catch (\Throwable $e) {
+            $carbon = \Carbon\Carbon::now($tz);
+        }
+
+        return $format !== null ? $carbon->format($format) : $carbon;
+    }
+}
+
+/**
+ * Convenience helper to get current time in tenant's selected timezone.
+ *
+ * Usage examples:
+ * - tenant_now()                  => Carbon instance in tenant timezone
+ * - tenant_now('Y-m-d H:i:s')     => '2026-10-26 12:30:00' (ready for DB timestamp / placed_at / captured_at)
+ * - tenant_now('m/d/Y h:i A')     => '10/26/2026 12:30 PM' (ready for email / receipt)
+ *
+ * @param string|null $format Optional: format e.g. 'Y-m-d H:i:s', 'm/d/Y', 'm/d/Y h:i A'
+ * @return \Carbon\Carbon|string
+ */
+if (!function_exists('tenant_now')) {
+    function tenant_now(?string $format = null)
+    {
+        return tenant_time(null, $format);
+    }
+}

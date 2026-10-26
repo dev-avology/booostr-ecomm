@@ -918,7 +918,7 @@ class ProductController extends Controller
             $orderlasttrans = json_decode($transactionJson ?: '{}');
             $timestamp = $orderlasttrans->created ?? '';
 
-            $createdAt = Carbon::parse($info->placed_at)->format('m/d/Y h:i A');
+            $createdAt = tenant_time($info->placed_at, 'm/d/Y h:i A');
 
             $amount_refunded = $orderlasttrans->amount_refunded ?? $orderlasttrans->amount ?? 0;
             $lastdigit = $orderlasttrans->source->last4??'';

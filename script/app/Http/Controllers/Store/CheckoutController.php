@@ -1305,7 +1305,7 @@ class CheckoutController extends Controller
             $order->notify_driver = $notify_driver;
             $order->transaction_id = $paymentIntent->id;
             $order->payment_status = 0;
-            $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
+            $order->placed_at = tenant_now('Y-m-d H:i:s');
             $order->save();
             
             
@@ -1864,19 +1864,19 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
                     if($captured->status === 'succeeded'){
                        $order->payment_status =1;
                        $order->risk_level = $riskLevel;
-                       $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                       $order->captured_at = tenant_now('Y-m-d H:i:s');
                        $order->save(); 
                     }
                     
                 }else if($paymentIntent->status === 'requires_capture'){
                    $order->payment_status =4;
                    $order->risk_level = $riskLevel;
-                   $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                   $order->captured_at = tenant_now('Y-m-d H:i:s');
                    $order->save();  
                 }else if($paymentIntent->status === 'succeeded'){
                    $order->payment_status =1;
                    $order->risk_level = $riskLevel;
-                   $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                   $order->captured_at = tenant_now('Y-m-d H:i:s');
                    $order->save();  
                 }
                 
@@ -2250,7 +2250,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             $order->transaction_id = $paymentresult['payment_id'];
             $order->payment_status =$paymentresult['payment_status'];
             $order->risk_level = $paymentresult['risk_level'];
-            $order->placed_at = Carbon::now()->setTimezone(config('app.timezone'));
+            $order->placed_at = tenant_now('Y-m-d H:i:s');
             $order->save();
 
              // ✅ Save pickup details if in-person pickup selected
@@ -2274,7 +2274,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
                      
                 if($paymentresult['payment_status'] == 1){
                    $order->payment_status =$paymentresult['payment_status'];
-                   $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                   $order->captured_at = tenant_now('Y-m-d H:i:s');
                    $order->save(); 
                 }
             } 

@@ -1007,7 +1007,7 @@
             $taxAmount = sanitize_refund_tax_for_order($info, $taxAmount);
 
             $refundDate = !empty($refundLog['refunded_at'])
-                ? \Carbon\Carbon::parse($refundLog['refunded_at'])->format('m/d/Y')
+                ? tenant_time($refundLog['refunded_at'], 'm/d/Y')
                 : '';
 
             $isDollarType = (($refundLog['type'] ?? '') === 'dollar');
@@ -1054,7 +1054,7 @@
             $fullRefundTax = sanitize_refund_tax_for_order($info, (float) ($info->tax ?? 0));
             $fullRefundDateSource = $info->refunded_at ?: $info->updated_at;
             $fullRefundDate = $fullRefundDateSource
-                ? \Carbon\Carbon::parse($fullRefundDateSource)->format('m/d/Y')
+                ? tenant_time($fullRefundDateSource, 'm/d/Y')
                 : '';
 
             $orderRefundHistoryRows = [[
@@ -1770,14 +1770,14 @@
 
                         <p>{{ __('Order Placed') }}
                             <span class="badge badge-success float-right">
-                                {{ \Carbon\Carbon::parse($info->placed_at)->format('m/d/Y h:i A') }}
+                                {{ tenant_time($info->placed_at, 'm/d/Y h:i A') }}
                             </span>
                         </p>
 
                         @if($info->captured_at != null)
                         <p>{{ __('Order Capture') }}
                             <span class="badge badge-danger float-right">
-                            {{ \Carbon\Carbon::parse($info->captured_at)->format('m/d/Y h:i A') }}
+                            {{ tenant_time($info->captured_at, 'm/d/Y h:i A') }}
                             </span>
                         </p>
                         @endif
@@ -1786,7 +1786,7 @@
 
                         <p>{{ __('Order Refund') }}
                             <span class="badge badge-warning float-right">
-                                {{ \Carbon\Carbon::parse($info->refunded_at)->format('m/d/Y h:i A') }}
+                                {{ tenant_time($info->refunded_at, 'm/d/Y h:i A') }}
                             </span>
                         </p>
                         @endif

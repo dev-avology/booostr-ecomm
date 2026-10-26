@@ -824,8 +824,8 @@ class PosApiController extends Controller
                 $order->transaction_id = null;
             }
             $order->payment_status = 1;
-            $order->placed_at = Carbon::now()->setTimezone($request->timezone);
-            $order->captured_at = Carbon::now()->setTimezone($request->timezone);
+            $order->placed_at = tenant_now('Y-m-d H:i:s');
+            $order->captured_at = tenant_now('Y-m-d H:i:s');
             $order->save();
 
             $oder_items = [];
@@ -2976,9 +2976,9 @@ private function send_order_recipts($data){
             $order->payment_status = $paymentresult['payment_status'];
              $order->risk_level =    $paymentresult['risk_level'];
             if ((int)$paymentresult['payment_status'] === 1) {
-                $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                $order->captured_at = tenant_now('Y-m-d H:i:s');
             }
-            $order->placed_at      = now();
+            $order->placed_at      = tenant_now('Y-m-d H:i:s');
             $order->save();
 
             // Additive: bump coupon used_count after successful order save (same as web checkout).
@@ -3011,7 +3011,7 @@ private function send_order_recipts($data){
                      
                 if($paymentresult['payment_status'] == 1){
                   $order->payment_status =$paymentresult['payment_status'];
-                  $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                  $order->captured_at = tenant_now('Y-m-d H:i:s');
                   $order->save(); 
                 }
             } 
@@ -3205,7 +3205,7 @@ private function send_order_recipts($data){
 
             // Ensure captured_at is set if payment_status is 1 so is_order_syncable_to_financial_manager succeeds
             if ((int) $order->payment_status === 1 && empty($order->captured_at)) {
-                $order->captured_at = Carbon::now()->setTimezone(config('app.timezone'));
+                $order->captured_at = tenant_now('Y-m-d H:i:s');
                 $order->save();
             }
 

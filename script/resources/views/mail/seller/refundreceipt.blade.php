@@ -237,7 +237,7 @@
                     </span><br>
                     <span style="font-weight: 700; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; margin: 0; padding-left: 24px; font-size: 14px;">
                         Date Placed:<span style="font-weight: 500;">
-                            {{ \Carbon\Carbon::parse($order->placed_at)->format('m/d/Y h:i A') }}</span>
+                            {{ tenant_time($order->placed_at ?? null, 'm/d/Y h:i A') }}</span>
                     </span>
                 </td>
                 <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;" class="spac-top spac-btm">
