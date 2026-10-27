@@ -1788,17 +1788,36 @@
 
                         @if($info->captured_at != null)
                         <p>{{ __('Order Capture') }}
-                            <span class="badge badge-danger float-right">                           
-                            {{ date('m/d/Y h:i A', strtotime($info->captured_at)) }}
+                            <span class="badge badge-danger float-right">
+                                @php
+                                    $rawCapturedAt = $info->captured_at;
+                                    $capturedTimestamp = $rawCapturedAt instanceof \DateTimeInterface
+                                        ? $rawCapturedAt->getTimestamp()
+                                        : (is_numeric($rawCapturedAt) ? (int) $rawCapturedAt : strtotime((string) $rawCapturedAt));
+                                @endphp
+                                @if($capturedTimestamp && $capturedTimestamp < strtotime('2026-10-26 00:00:00'))
+                                    {{ tenant_time($rawCapturedAt, 'm/d/Y h:i A') }}
+                                @else
+                                    {{ $rawCapturedAt instanceof \DateTimeInterface ? $rawCapturedAt->format('m/d/Y h:i A') : date('m/d/Y h:i A', $capturedTimestamp ?: strtotime((string) $rawCapturedAt)) }}
+                                @endif
                             </span>
                         </p>
                         @endif
 
                         @if($info->refunded_at != null)
-
                         <p>{{ __('Order Refund') }}
                             <span class="badge badge-warning float-right">
-                            {{ date('m/d/Y h:i A', strtotime($info->refunded_at)) }}                               
+                                @php
+                                    $rawRefundedAt = $info->refunded_at;
+                                    $refundedTimestamp = $rawRefundedAt instanceof \DateTimeInterface
+                                        ? $rawRefundedAt->getTimestamp()
+                                        : (is_numeric($rawRefundedAt) ? (int) $rawRefundedAt : strtotime((string) $rawRefundedAt));
+                                @endphp
+                                @if($refundedTimestamp && $refundedTimestamp < strtotime('2026-10-26 00:00:00'))
+                                    {{ tenant_time($rawRefundedAt, 'm/d/Y h:i A') }}
+                                @else
+                                    {{ $rawRefundedAt instanceof \DateTimeInterface ? $rawRefundedAt->format('m/d/Y h:i A') : date('m/d/Y h:i A', $refundedTimestamp ?: strtotime((string) $rawRefundedAt)) }}
+                                @endif
                             </span>
                         </p>
                         @endif
