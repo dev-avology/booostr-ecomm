@@ -1788,8 +1788,8 @@
 
                         @if($info->captured_at != null)
                         <p>{{ __('Order Capture') }}
-                            <span class="badge badge-danger float-right">
-                            {{ tenant_time($info->captured_at, 'm/d/Y h:i A') }}
+                            <span class="badge badge-danger float-right">                           
+                            {{ date('m/d/Y h:i A', strtotime($info->captured_at)) }}
                             </span>
                         </p>
                         @endif
@@ -1798,7 +1798,7 @@
 
                         <p>{{ __('Order Refund') }}
                             <span class="badge badge-warning float-right">
-                                {{ tenant_time($info->refunded_at, 'm/d/Y h:i A') }}
+                            {{ date('m/d/Y h:i A', strtotime($info->refunded_at)) }}                               
                             </span>
                         </p>
                         @endif
