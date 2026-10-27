@@ -374,10 +374,21 @@
                         style="font-weight: 700; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; margin: 0; padding-left: 24px; font-size: 14px;">
                         Order #: <span style="font-weight: 500;">{{ $data['data']['invoice_no'] ?? '' }}</span>
                     </span><br>
+                    @php
+                        $orderPlacedAt = $order->placed_at ?? ($data['data']['placed_at'] ?? ($data['data']->placed_at ?? null));
+                        $formattedPlacedAt = '';
+                        if (!empty($orderPlacedAt)) {
+                            if ($orderPlacedAt instanceof \DateTimeInterface) {
+                                $formattedPlacedAt = $orderPlacedAt->format('m/d/Y h:i A');
+                            } else {
+                                $placedTs = is_numeric($orderPlacedAt) ? (int) $orderPlacedAt : strtotime((string) $orderPlacedAt);
+                                $formattedPlacedAt = $placedTs ? date('m/d/Y h:i A', $placedTs) : date('m/d/Y h:i A', strtotime((string) $orderPlacedAt));
+                            }
+                        }
+                    @endphp
                     <span
                         style="font-weight: 700; font-family: Arial, 'Segoe UI', sans-serif; color: #3c3c3c; margin: 0; padding-left: 24px; font-size: 14px;">Date
-                        Placed:<span style="font-weight: 500;">
-                            {{ tenant_time($order->placed_at ?? ($data['data']['placed_at'] ?? ($data['data']->placed_at ?? null)), 'm/d/Y h:i A') }}</span>
+                        Placed: <span style="font-weight: 500;">{{ $formattedPlacedAt }}</span>
                     </span>
                 </td>
                 <td style="width: 50%; padding-left: 15px; font-size: 15px; text-align: left;"

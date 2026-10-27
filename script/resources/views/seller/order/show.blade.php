@@ -1769,8 +1769,20 @@
                         </p>
 
                         <p>{{ __('Order Placed') }}
-                            <span class="badge badge-success float-right">                                
-                                  {{ date('m/d/Y h:i A', strtotime($info->placed_at)) }}
+                            <span class="badge badge-success float-right">
+                                @if(!empty($info->placed_at))
+                                    @php
+                                        $rawPlacedAt = $info->placed_at;
+                                        $placedTimestamp = $rawPlacedAt instanceof \DateTimeInterface
+                                            ? $rawPlacedAt->getTimestamp()
+                                            : (is_numeric($rawPlacedAt) ? (int) $rawPlacedAt : strtotime((string) $rawPlacedAt));
+                                    @endphp
+                                    @if($placedTimestamp && $placedTimestamp < strtotime('2026-10-26 00:00:00'))
+                                        {{ tenant_time($rawPlacedAt, 'm/d/Y h:i A') }}
+                                    @else
+                                        {{ $rawPlacedAt instanceof \DateTimeInterface ? $rawPlacedAt->format('m/d/Y h:i A') : date('m/d/Y h:i A', $placedTimestamp ?: strtotime((string) $rawPlacedAt)) }}
+                                    @endif
+                                @endif
                             </span>
                         </p>
 
