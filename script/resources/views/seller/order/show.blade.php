@@ -1769,8 +1769,8 @@
                         </p>
 
                         <p>{{ __('Order Placed') }}
-                            <span class="badge badge-success float-right">
-                                {{ tenant_time($info->placed_at, 'm/d/Y h:i A') }}
+                            <span class="badge badge-success float-right">                                
+                                  {{ date('m/d/Y h:i A', strtotime($info->placed_at)) }}
                             </span>
                         </p>
 
