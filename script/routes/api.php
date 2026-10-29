@@ -101,6 +101,10 @@ Route::group([
 
     // Additive: POS Quick Sale refund (full / item / dollar) — separate from regular product refunds.
     Route::post('/pos-quick-sale-refund-payment', 'Api\PosQuickSaleRefundApiController@refundPayment');
+
+    // Additive: Order Refund & Cancellation API (Cash & Stripe card full refund) — mirrors Order Details 'Cancel' status action.
+    Route::post('/order-refund-payment', 'Api\OrderCancelRefundApiController@refundOrder');
+    Route::post('/order-cancel-refund', 'Api\OrderCancelRefundApiController@refundOrder');
 });
 
 Route::group([
