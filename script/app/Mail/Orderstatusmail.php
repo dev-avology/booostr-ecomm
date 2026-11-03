@@ -62,6 +62,35 @@ class Orderstatusmail extends Mailable
         $billing_phone = $ordermeta->phone;
         $invoice_info=$this->data['invoice_data'];
 
+        $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+        $clubEmail = trim((string) ($clubInfo['club_email'] ?? ($clubInfo['email'] ?? '')));
+        if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+            $adminUser = \App\Models\User::where('role_id', 3)->first();
+            $clubEmail = trim((string) ($adminUser->email ?? ''));
+        }
+        if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+            $clubEmail = trim((string) get_option('store_sender_email'));
+        }
+        if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+            $clubEmail = trim((string) ($invoice_info->store_legal_email ?? ''));
+        }
+
+        $ordermetaArr = is_array($ordermeta) ? $ordermeta : (json_decode(json_encode($ordermeta), true) ?: []);
+        $pm = strtolower((string) ($ordermetaArr['payment_method'] ?? ''));
+        $pml = strtolower((string) ($ordermetaArr['payment_method_label'] ?? ''));
+        $gwName = strtolower(trim((string) optional($data['data']->getway)->name));
+        $lastTransPm = strtolower(trim((string) ($orderlasttrans->payment_method ?? '')));
+        $orderFrom = (int) ($data['data']->order_from ?? 0);
+
+        $isCashCheckOrder = ($pml === 'cash/check'
+            || str_contains($pml, 'cash')
+            || str_contains($pml, 'check')
+            || $pm === 'cash'
+            || $pm === 'cash/check'
+            || $orderFrom === 5
+            || $gwName === 'cash'
+            || $lastTransPm === 'cash');
+
         $product_type = Category::where('type', 'product_type')->select('id','slug', 'name')->orderBy('id', 'ASC')->get();
        
         $selected_product_type = [];
@@ -98,6 +127,8 @@ class Orderstatusmail extends Mailable
                 'card_number' => $card_number,
                 'amount_refunded' => $amount_refunded,
                 'order_type' => $order_type,
+                'club_email' => $clubEmail,
+                'is_cash_check_order' => $isCashCheckOrder,
                 'receipt_view_options' => $data['receipt_view_options'] ?? [],
             ]);
 

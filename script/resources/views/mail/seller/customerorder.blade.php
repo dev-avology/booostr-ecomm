@@ -124,6 +124,18 @@
                         $clubDisplayName = 'Booostr';
                     }
 
+                    $clubEmail = !empty($club_email) ? $club_email : trim((string) ($clubInfo['club_email'] ?? ($clubInfo['email'] ?? '')));
+                    if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+                        $adminUser = \App\Models\User::where('role_id', 3)->first();
+                        $clubEmail = trim((string) ($adminUser->email ?? ''));
+                    }
+                    if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+                        $clubEmail = trim((string) get_option('store_sender_email'));
+                    }
+                    if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+                        $clubEmail = trim((string) ($invoice_info->store_legal_email ?? ''));
+                    }
+
                     $orderStatusId = (int) ($data['data']['status_id'] ?? ($order->status_id ?? 0));
                     $orderPaymentStatus = (int) ($data['data']['payment_status'] ?? ($order->payment_status ?? 0));
                     $order_type = $order_type ?? 'Goods';
@@ -140,7 +152,8 @@
                     $orderFrom = (int) ($order->order_from ?? ($data['data']['order_from'] ?? 0));
                     $lastTransPm = strtolower(trim((string) (optional($order->orderlasttrans)->payment_method ?? ($data['data']['orderlasttrans']['payment_method'] ?? ''))));
 
-                    $isCashCheckOrder = ($pml === 'cash/check'
+                    $isCashCheckOrder = !empty($is_cash_check_order)
+                        || ($pml === 'cash/check'
                         || str_contains($pml, 'cash')
                         || str_contains($pml, 'check')
                         || $pm === 'cash'
@@ -243,12 +256,19 @@
                         @endphp
 
                         @if ($orderStatusId == 2 || $orderPaymentStatus == 5)
-                            <p
-                                class="muted-copy">
-                                Hi {{ $firstName }}, we are sorry that your order had to be cancelled. We have
-                                refunded your order. Your original order details are below for your records. You should
-                                see the funds returned to the payment method used for the order in 3-5 business days.
-                            </p>
+                            @if (!empty($isCashCheckOrder))
+                                <p
+                                    class="muted-copy">
+                                    Hi {{ $firstName }}, we are sorry that your order had to be cancelled. We have refunded your order. Your original order details are below for your records. Your refund will either be given or sent back via the same payment method use in the initial transaction unless otherwise agreed to. Please contact @if(!empty($clubEmail))<a href="mailto:{{ $clubEmail }}" style="color: #08bff3; text-decoration: underline;">{{ $clubEmail }}</a>@else{{ $invoice_info->store_legal_email ?? 'our club support email' }}@endif with any questions.
+                                </p>
+                            @else
+                                <p
+                                    class="muted-copy">
+                                    Hi {{ $firstName }}, we are sorry that your order had to be cancelled. We have
+                                    refunded your order. Your original order details are below for your records. You should
+                                    see the funds returned to the payment method used for the order in 3-5 business days.
+                                </p>
+                            @endif
                         @elseif ($orderStatusId == 1)
                             <p
                                 class="muted-copy">

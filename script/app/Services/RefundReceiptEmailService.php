@@ -74,6 +74,37 @@ class RefundReceiptEmailService
         $invoiceInfo = get_option('invoice_data', true);
         $storeName = $invoiceInfo->store_legal_name ?? (tenant_club_info()['club_name'] ?? 'Store');
 
+        $clubEmail = trim((string) ($clubInfo['club_email'] ?? ($clubInfo['email'] ?? '')));
+        if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+            $adminUser = \App\Models\User::where('role_id', 3)->first();
+            $clubEmail = trim((string) ($adminUser->email ?? ''));
+        }
+        if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+            $clubEmail = trim((string) get_option('store_sender_email'));
+        }
+        if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+            $clubEmail = trim((string) ($invoiceInfo->store_legal_email ?? ''));
+        }
+
+        $ordermetaArr = is_array($ordermeta) ? $ordermeta : (json_decode(json_encode($ordermeta), true) ?: []);
+        $pm = strtolower((string) ($ordermetaArr['payment_method'] ?? ''));
+        $pml = strtolower((string) ($ordermetaArr['payment_method_label'] ?? ''));
+        $gwName = strtolower(trim((string) optional($order->getway)->name));
+        $lastTransPm = strtolower(trim((string) ($orderlasttrans->payment_method ?? '')));
+        $resolvedPaymentMethodLabel = $this->resolvePaymentMethodLabel($order, $ordermeta, $orderlasttrans);
+        $paymentMethodLabelLower = strtolower(trim($resolvedPaymentMethodLabel));
+
+        $isCashCheckOrder = ($pml === 'cash/check'
+            || str_contains($pml, 'cash')
+            || str_contains($pml, 'check')
+            || $pm === 'cash'
+            || $pm === 'cash/check'
+            || (int) $order->order_from === 5
+            || $gwName === 'cash'
+            || $lastTransPm === 'cash'
+            || str_contains($paymentMethodLabelLower, 'cash')
+            || str_contains($paymentMethodLabelLower, 'check'));
+
         $mailData = [
             'from' => '',
             'from_name' => null,
@@ -84,7 +115,9 @@ class RefundReceiptEmailService
             'ordermeta' => $ordermeta,
             'order_type' => $this->resolveOrderType($order),
             'card_number' => $cardNumber,
-            'payment_method_label' => $this->resolvePaymentMethodLabel($order, $ordermeta, $orderlasttrans),
+            'payment_method_label' => $resolvedPaymentMethodLabel,
+            'is_cash_check_order' => $isCashCheckOrder,
+            'club_email' => $clubEmail,
             'refund' => [
                 'type' => $resolvedType,
                 'title' => $detail['title'] ?? 'Refund',

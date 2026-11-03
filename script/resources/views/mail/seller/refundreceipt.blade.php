@@ -111,13 +111,55 @@
             <tbody>
                 @php
                     $clubLogo = tenant_club_logo();
-                    $clubDisplayName = $invoice_info->store_legal_name ?? (tenant_club_info()['club_name'] ?? '');
+                    $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+                    $clubDisplayName = trim((string) ($clubInfo['club_name'] ?? ''));
+                    if ($clubDisplayName === '') {
+                        $clubDisplayName = trim((string) ($invoice_info->store_legal_name ?? ''));
+                    }
+                    if ($clubDisplayName === '') {
+                        $clubDisplayName = trim((string) (tenant('store_name') ?? 'Booostr'));
+                    }
+                    if ($clubDisplayName === '') {
+                        $clubDisplayName = 'Booostr';
+                    }
+
+                    $clubEmail = !empty($club_email) ? $club_email : trim((string) ($clubInfo['club_email'] ?? ($clubInfo['email'] ?? '')));
+                    if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+                        $adminUser = \App\Models\User::where('role_id', 3)->first();
+                        $clubEmail = trim((string) ($adminUser->email ?? ''));
+                    }
+                    if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+                        $clubEmail = trim((string) get_option('store_sender_email'));
+                    }
+                    if ($clubEmail === '' || !filter_var($clubEmail, FILTER_VALIDATE_EMAIL)) {
+                        $clubEmail = trim((string) ($invoice_info->store_legal_email ?? ''));
+                    }
                     $fullName = $ordermeta->name ?? '';
                     $nameParts = explode(' ', $fullName);
                     $firstName = $nameParts[0] ?? 'there';
                     $shippingWith = $order->shippingwithinfo ?? null;
                     $shipping_info = json_decode($shippingWith->info ?? '');
                     $isPickup = (($order->order_method ?? '') === 'pickup') || (($shipping_info->shipping_label ?? '') === 'In-Person Pick Up');
+
+                    $ordermetaArr = is_array($ordermeta) ? $ordermeta : (json_decode(json_encode($ordermeta), true) ?: []);
+                    $pm = strtolower((string) ($ordermetaArr['payment_method'] ?? ''));
+                    $pml = strtolower((string) ($ordermetaArr['payment_method_label'] ?? ''));
+                    $gwName = strtolower((string) (optional($order->getway)->name ?? ''));
+                    $orderFrom = (int) ($order->order_from ?? 0);
+                    $lastTransPm = strtolower(trim((string) (optional($order->orderlasttrans)->payment_method ?? '')));
+                    $paymentMethodLabelLower = strtolower(trim((string) ($payment_method_label ?? '')));
+
+                    $isCashCheckOrder = !empty($is_cash_check_order)
+                        || ($pml === 'cash/check'
+                        || str_contains($pml, 'cash')
+                        || str_contains($pml, 'check')
+                        || $pm === 'cash'
+                        || $pm === 'cash/check'
+                        || $orderFrom === 5
+                        || $gwName === 'cash'
+                        || $lastTransPm === 'cash'
+                        || str_contains($paymentMethodLabelLower, 'cash')
+                        || str_contains($paymentMethodLabelLower, 'check'));
                 @endphp
                 <tr style="background-color: #ffffff; width: 100%;">
                     <td class="section-padding" style="padding-top: 26px; padding-bottom: 18px; vertical-align: middle;">
@@ -173,12 +215,20 @@
             <tbody>
                 <tr>
                     <td class="section-padding" style="width: 100%; padding-top: 14px; padding-bottom: 16px; font-size: 15px;">
-                        <p class="muted-copy">
-                            Hi {{ $firstName }}, we have processed a refund for your order from
-                            {{ $invoice_info->store_legal_name ?? '' }} Store. Your refund details are below for your
-                            records. Depending on your payment method, you should see the funds returned in 3–5
-                            business days.
-                        </p>
+                        @if (!empty($isCashCheckOrder))
+                            <p class="muted-copy">
+                                Hi {{ $firstName }}, we are processing your refund for your order from
+                                {{ !empty($clubDisplayName) ? $clubDisplayName : ($invoice_info->store_legal_name ?? 'Booostr') }} Store. Your refund details are below for your
+                                records. Your refund will either be given or sent back via the same payment method use in the initial transaction unless otherwise agreed to. Please contact @if(!empty($clubEmail))<a href="mailto:{{ $clubEmail }}" style="color: #08bff3; text-decoration: underline;">{{ $clubEmail }}</a>@else{{ $invoice_info->store_legal_email ?? 'our club support email' }}@endif with any questions.
+                            </p>
+                        @else
+                            <p class="muted-copy">
+                                Hi {{ $firstName }}, we have processed a refund for your order from
+                                {{ $invoice_info->store_legal_name ?? '' }} Store. Your refund details are below for your
+                                records. Depending on your payment method, you should see the funds returned in 3–5
+                                business days.
+                            </p>
+                        @endif
                     </td>
                 </tr>
             </tbody>
