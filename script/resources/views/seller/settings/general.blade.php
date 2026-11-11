@@ -1259,28 +1259,57 @@
             <div class="col-lg-8">
                 <div class="card">
                     <div class="card-body">
+                        <!-- Website Integration -->
                         <div class="from-group row mb-3">
-                            <label class="col-lg-12 font-weight-bold">{{ __('Website Integration') }} :</label>
                             <div class="col-lg-12">
-                                <input type="text" class="form-control" value="{{ __('Always On and Ready to integrate with your Booostr Site Builder website') }}" readonly style="background-color: #f9f9f9; cursor: not-allowed;">
+                                <div class="p-3 rounded border d-flex justify-content-between align-items-center" style="background-color: #f8f9fa;">
+                                    <div>
+                                        <h6 class="mb-1 text-dark font-weight-bold">
+                                            <i class="fas fa-globe mr-1 text-primary"></i> {{ __('Website Integration') }}
+                                        </h6>
+                                        <small class="text-muted d-block">{{ __('Ready to integrate with your Booostr Site Builder website') }}</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge badge-success px-3 py-2 text-uppercase font-weight-bold" style="letter-spacing: 0.5px;">
+                                            <i class="fas fa-check-circle mr-1"></i> {{ __('Always On') }}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="from-group row mb-3">
-                            <label class="col-lg-12 font-weight-bold">{{ __('Booostr.co Profile Integration') }} :</label>
+                        <!-- Booostr.co Profile Integration -->
+                        <div class="from-group row mb-4">
                             <div class="col-lg-12">
-                                <input type="text" class="form-control" value="{{ __('Always On and Ready to integrate with your free Booostr.co organization profile') }}" readonly style="background-color: #f9f9f9; cursor: not-allowed;">
+                                <div class="p-3 rounded border d-flex justify-content-between align-items-center" style="background-color: #f8f9fa;">
+                                    <div>
+                                        <h6 class="mb-1 text-dark font-weight-bold">
+                                            <i class="fas fa-id-badge mr-1 text-info"></i> {{ __('Booostr.co Profile Integration') }}
+                                        </h6>
+                                        <small class="text-muted d-block">{{ __('Ready to integrate with your free Booostr.co organization profile') }}</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge badge-success px-3 py-2 text-uppercase font-weight-bold" style="letter-spacing: 0.5px;">
+                                            <i class="fas fa-check-circle mr-1"></i> {{ __('Always On') }}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
+                        <!-- Standalone Store -->
                         <div class="from-group row mb-3">
-                            <label class="col-lg-12 font-weight-bold">
-                                {{ __('Standalone Store') }}:
-                                @if(!empty($subdomainUrl))
-                                    <a href="{{ $subdomainUrl }}" target="_blank" class="ml-1 text-primary">{{ $subdomainUrl }}</a>
-                                @endif
-                            </label>
                             <div class="col-lg-12">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="font-weight-bold mb-0">
+                                        <i class="fas fa-store mr-1 text-primary"></i> {{ __('Standalone Store') }}:
+                                    </label>
+                                    @if(!empty($subdomainUrl))
+                                        <a href="{{ $subdomainUrl }}" target="_blank" class="text-primary font-weight-bold">
+                                            {{ $subdomainUrl }} <i class="fas fa-external-link-alt ml-1" style="font-size: 11px;"></i>
+                                        </a>
+                                    @endif
+                                </div>
                                 <select class="form-control selectric" name="standalone_store_status">
                                     <option value="off" @if(($standalone_store_status ?? 'off') == 'off') selected @endif>{{ __('OFF (default)') }}</option>
                                     <option value="on" @if(($standalone_store_status ?? 'off') == 'on') selected @endif>{{ __('ON (when chosen - it allows the store to be accessible at their store subdomain)') }}</option>
