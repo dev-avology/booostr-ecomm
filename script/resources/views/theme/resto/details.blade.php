@@ -2,7 +2,7 @@
 @section('content')
 
 		<!-- Start Breadcrumbs Area -->
-		<div class="breadcrumbs" style="background-image: url({{ asset($home_data->product_page_banner ?? '')  }}); ">
+		<div class="breadcrumbs" @if(!empty($product_page_banner)) style="background-image: url({{ asset($product_page_banner) }});" @endif>
 			<div class="container">
 				<div class="row">
 					<div class="col-lg-6 col-md-8 col-12">

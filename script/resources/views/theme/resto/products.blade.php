@@ -1,7 +1,7 @@
 @extends('theme.resto.layouts.app')
 @section('content')
 	<!-- Start Breadcrumbs Area -->
-		<div class="breadcrumbs" style="background-image:url({{ asset($products_page_banner)  }})">
+		<div class="breadcrumbs" @if(!empty($products_page_banner)) style="background-image:url({{ asset($products_page_banner) }})" @endif>
 			<div class="container">
 				<div class="row">
 					<div class="col-lg-6 col-md-8 col-12">

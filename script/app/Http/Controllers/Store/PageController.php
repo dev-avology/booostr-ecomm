@@ -55,7 +55,9 @@ class PageController extends Controller
         SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
 
         $page_data=$home_data->meta ?? '';
-        return view(baseview('index'),compact('page_data'));
+        $store_banner_image = get_option('banner_logo') ?: '';
+        $store_banner_url = get_option('banner_url') ?: '';
+        return view(baseview('index'),compact('page_data','store_banner_image','store_banner_url'));
     }
 
     public function category_product(Request $request)
@@ -99,6 +101,9 @@ class PageController extends Controller
         $page_title=$page_data->products_page_title ?? 'Products';
         $products_page_description=$page_data->products_page_description ?? '';
         $products_page_banner=$page_data->products_page_banner ?? '';
+        if (empty($products_page_banner)) {
+            $products_page_banner = get_option('banner_logo') ?: '';
+        }
         $products_page_product_ads_banner=$page_data->products_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->products_page_product_ads_link ?? '';
 
@@ -140,6 +145,9 @@ class PageController extends Controller
         $page_title=$page_data->deal_page_title ?? 'Products';
         $products_page_description=$page_data->deal_page_description ?? '';
         $products_page_banner=$page_data->products_deal_banner ?? '';
+        if (empty($products_page_banner)) {
+            $products_page_banner = get_option('banner_logo') ?: '';
+        }
         $products_page_product_ads_banner=$page_data->deal_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->deal_page_product_ads_link ?? '';
 
@@ -187,6 +195,9 @@ class PageController extends Controller
         $page_title=$category->name ?? 'Products';
         $products_page_description=$category->description->content ?? '';
         $products_page_banner=$page_data->products_page_banner ?? '';
+        if (empty($products_page_banner)) {
+            $products_page_banner = get_option('banner_logo') ?: '';
+        }
         $products_page_product_ads_banner=$page_data->products_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->products_page_product_ads_link ?? '';
 
@@ -234,6 +245,9 @@ class PageController extends Controller
         $page_title=$category->name ?? 'Products';
         $products_page_description=$category->description->content ?? '';
         $products_page_banner=$page_data->products_page_banner ?? '';
+        if (empty($products_page_banner)) {
+            $products_page_banner = get_option('banner_logo') ?: '';
+        }
         $products_page_product_ads_banner=$page_data->products_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->products_page_product_ads_link ?? '';
 
@@ -266,6 +280,9 @@ class PageController extends Controller
         $page_title=$category->name ?? 'Products';
         $products_page_description=$category->description->content ?? '';
         $products_page_banner=$page_data->products_page_banner ?? '';
+        if (empty($products_page_banner)) {
+            $products_page_banner = get_option('banner_logo') ?: '';
+        }
         $products_page_product_ads_banner=$page_data->products_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->products_page_product_ads_link ?? '';
 
@@ -312,6 +329,9 @@ class PageController extends Controller
         $page_title=$category->name ?? 'Products';
         $products_page_description=$category->description->content ?? '';
         $products_page_banner=$page_data->products_page_banner ?? '';
+        if (empty($products_page_banner)) {
+            $products_page_banner = get_option('banner_logo') ?: '';
+        }
         $products_page_product_ads_banner=$page_data->products_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->products_page_product_ads_link ?? '';
 
@@ -358,8 +378,12 @@ class PageController extends Controller
         $home_data=optionfromcache('product_page');
 
         $home_data=$home_data->meta ?? '';
+        $product_page_banner = $home_data->product_page_banner ?? '';
+        if (empty($product_page_banner)) {
+            $product_page_banner = get_option('banner_logo') ?: '';
+        }
        
-        return view(baseview('details'),compact('info','galleries','home_data'));
+        return view(baseview('details'),compact('info','galleries','home_data','product_page_banner'));
     }
 
     public function page($slug)
