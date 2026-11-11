@@ -1,18 +1,16 @@
 @extends('theme.resto.layouts.app')
 @section('content')
 @if(!empty($store_banner_image))
-   <div class="store-banner-area py-3">
-      <div class="container">
-         <div class="row">
-            <div class="col-12 text-center">
-               @if(!empty($store_banner_url))
-                  <a href="{{ $store_banner_url }}">
-                     <img src="{{ $store_banner_image }}" alt="{{ tenant('store_name') ?? 'Store Banner' }}" class="img-fluid rounded w-100" style="max-height: 350px; object-fit: cover;">
-                  </a>
-               @else
-                  <img src="{{ $store_banner_image }}" alt="{{ tenant('store_name') ?? 'Store Banner' }}" class="img-fluid rounded w-100" style="max-height: 350px; object-fit: cover;">
-               @endif
-            </div>
+   <div class="store-banner-area w-100 overflow-hidden" style="background-color: #f8f9fa;">
+      <div class="container-fluid p-0">
+         <div class="w-100 text-center">
+            @if(!empty($store_banner_url))
+               <a href="{{ $store_banner_url }}" class="d-block w-100">
+                  <img src="{{ $store_banner_image }}" alt="{{ tenant('store_name') ?? 'Store Banner' }}" class="d-block w-100" style="width: 100%; height: auto; max-height: 420px; min-height: 180px; object-fit: cover; object-position: center;">
+               </a>
+            @else
+               <img src="{{ $store_banner_image }}" alt="{{ tenant('store_name') ?? 'Store Banner' }}" class="d-block w-100" style="width: 100%; height: auto; max-height: 420px; min-height: 180px; object-fit: cover; object-position: center;">
+            @endif
          </div>
       </div>
    </div>
