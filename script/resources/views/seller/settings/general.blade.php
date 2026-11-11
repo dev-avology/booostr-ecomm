@@ -1237,14 +1237,6 @@
                        <p><b>The Automatic Capture method</b> {{ __('means you want the system to capture any order that Stripe Radar (fraud analysis) identifies as a LOW RISK of fraud. Any order you receive that Stripe Radar identifies as MEDIUM or HIGH RISK of fraud will still need to reviewed, approved and either manually capture or cancelled.') }} </p></label>
 
                     </div>
-                    <div class="from-group row mt-2">
-                       
-                       <div class="col-lg-4">
-                          <button type="button" class="basicbtn btn btn-primary">{{ __('Save changes') }}</button>
-                          <button type="submit" class="basicbtnsbt btn btn-primary" style="display:none">{{ __('Save changes') }}</button>
-                       </div>
-                       
-                   </div>
 
               </div>
             </div>
