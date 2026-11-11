@@ -1251,6 +1251,55 @@
           </div>
         </div>
 
+        <div class="row" id="store-publishing-locations-section">
+            <div class="col-lg-4">
+                <h6>{{ __('Store Publishing Locations') }}</h6>
+                <strong>{{ __('You have multiple ways to utilize your Booostr Store. You can integrate it into Booostr Website Builder, integrate it into your free Booostr.co organization profile and/or Allow access to your standalone store.') }}</strong>
+            </div>
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="from-group row mb-3">
+                            <label class="col-lg-12 font-weight-bold">{{ __('Website Integration') }} :</label>
+                            <div class="col-lg-12">
+                                <input type="text" class="form-control" value="{{ __('Always On and Ready to integrate with your Booostr Site Builder website') }}" readonly style="background-color: #f9f9f9; cursor: not-allowed;">
+                            </div>
+                        </div>
+
+                        <div class="from-group row mb-3">
+                            <label class="col-lg-12 font-weight-bold">{{ __('Booostr.co Profile Integration') }} :</label>
+                            <div class="col-lg-12">
+                                <input type="text" class="form-control" value="{{ __('Always On and Ready to integrate with your free Booostr.co organization profile') }}" readonly style="background-color: #f9f9f9; cursor: not-allowed;">
+                            </div>
+                        </div>
+
+                        <div class="from-group row mb-3">
+                            <label class="col-lg-12 font-weight-bold">
+                                {{ __('Standalone Store') }}:
+                                @if(!empty($subdomainUrl))
+                                    <a href="{{ $subdomainUrl }}" target="_blank" class="ml-1 text-primary">{{ $subdomainUrl }}</a>
+                                @endif
+                            </label>
+                            <div class="col-lg-12">
+                                <select class="form-control selectric" name="standalone_store_status">
+                                    <option value="off" @if(($standalone_store_status ?? 'off') == 'off') selected @endif>{{ __('OFF (default)') }}</option>
+                                    <option value="on" @if(($standalone_store_status ?? 'off') == 'on') selected @endif>{{ __('ON (when chosen - it allows the store to be accessible at their store subdomain)') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="from-group row mt-2">
+                            <div class="col-lg-4">
+                                <button type="button" class="basicbtn btn btn-primary">{{ __('Save changes') }}</button>
+                                <button type="submit" class="basicbtnsbt btn btn-primary" style="display:none">{{ __('Save changes') }}</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
           <div class="row" >
             {{-- left side --}}

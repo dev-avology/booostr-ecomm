@@ -157,10 +157,18 @@ class SitesettingsController extends Controller
             
 
             Option::where('key', 'allow_in_person_pickup')->delete();
-            
+
+            $standaloneStore = Option::where('key', 'standalone_store_status')->first();
+            $standalone_store_status = $standaloneStore ? $standaloneStore->value : 'off';
+
+            $subdomainRecord = tenant()->subdomain ?? null;
+            $subdomainHost = $subdomainRecord ? $subdomainRecord->domain : (tenant('id') . '.' . env('APP_PROTOCOLESS_URL'));
+            $subdomainUrl = 'https://' . preg_replace('#^https?://#', '', $subdomainHost);
+
            return view('seller.settings.general',compact('languages','lat_lang','address','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings',
            'banner_logo','bannerUrlValue','credit_card_processing_method',
-           'inperson_pickup', 'pickup_details', 'allow_in_person_pickup'));
+           'inperson_pickup', 'pickup_details', 'allow_in_person_pickup',
+           'standalone_store_status', 'subdomainUrl'));
        }
       
     }
@@ -580,6 +588,14 @@ class SitesettingsController extends Controller
          TenantCacheClear('order_settings');
          TenantCacheClear('measurment_type');
          TenantCacheClear('credit_card_processing_method');
+
+         $standaloneStoreStatus = $request->standalone_store_status === 'on' ? 'on' : 'off';
+         Option::updateOrCreate(
+             ['key' => 'standalone_store_status'],
+             ['value' => $standaloneStoreStatus, 'autoload' => 1]
+         );
+         TenantCacheClear('standalone_store_status');
+
          bust_pos_api_cache();
            
 

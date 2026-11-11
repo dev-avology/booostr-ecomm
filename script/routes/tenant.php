@@ -34,11 +34,13 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
 
     //ecommerce routes for public
     
-    //Route::get('/', 'Store\PageController@home');
-
     Route::get('/', function(){
+        if (get_option('standalone_store_status') === 'on') {
+            return app(\App\Http\Controllers\Store\PageController::class)->home();
+        }
+
         $data = json_decode(tenant()->club_info, true);
-        $clubUrl = $data['club_url'];
+        $clubUrl = $data['club_url'] ?? '/';
         return redirect($clubUrl);
     });
 
