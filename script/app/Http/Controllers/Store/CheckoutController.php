@@ -2411,7 +2411,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 								
 			$user_recipt = [
                 'contact_mgr_data'=>$contact_manager_data,
-                'opt_in_tools' => (int) ($ordermeta['sms_consent'] ?? 0),
+                // 'opt_in_tools' => (int) ($ordermeta['sms_consent'] ?? 0),
                 'receipts_date'=>Carbon::now()->setTimezone(config('app.timezone')),
                 'receipt_title'=>$ordermeta['name'],
                 'receipent_org'=>$club_info['club_name'].' Store',
