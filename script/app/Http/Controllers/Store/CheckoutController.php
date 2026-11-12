@@ -2247,9 +2247,40 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
             // Manual-capture (Authorized) orders: skip user-recipt until seller captures on /seller/order.
             if ((int) $order->payment_status === 1) {
-                $reciptdata = $this->order_recipt_data($order_id);
-       
-                $recipt =  $this->send_order_recipt($reciptdata);
+                // Real-time Financial Manager sync for captured order
+                try {
+                    $paymentIntentIdForSync = $order->payment_intent_id
+                        ?: get_order_payment_intent_id($order)
+                        ?: ($order->transaction_id ?? null);
+
+                    sync_order_to_financial_manager($order->id, 'capture', $paymentIntentIdForSync);
+                    \Log::info('Real-time Financial Manager sync triggered from processPayment', [
+                        'order_id' => $order->id,
+                        'invoice_no' => $order->invoice_no,
+                        'payment_intent_id' => $paymentIntentIdForSync,
+                    ]);
+                } catch (\Throwable $e) {
+                    \Log::error('Real-time Financial Manager sync error in processPayment', [
+                        'order_id' => $order->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                // Real-time Contact Manager user-recipt sync
+                try {
+                    $reciptdata = $this->order_recipt_data($order_id);
+                    $recipt =  $this->send_order_recipt($reciptdata);
+                    \Log::info('Contact Manager user-recipt sync triggered from processPayment', [
+                        'order_id' => $order->id,
+                        'invoice_no' => $order->invoice_no,
+                        'response' => $recipt,
+                    ]);
+                } catch (\Throwable $e) {
+                    \Log::error('Contact Manager user-recipt sync error in processPayment', [
+                        'order_id' => $order->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
 
             \App\Lib\Helper\Ordernotification::makeNotifyToAdmin($order);
@@ -2328,15 +2359,15 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
       $order = Order::with('orderstatus','orderlasttrans','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($order_id);
         
         $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
-        $qty = $order->orderitems[0]['qty'];
-        $product_amount = $order->orderitems[0]['amount'];
+        $qty = !empty($order->orderitems[0]['qty']) ? $order->orderitems[0]['qty'] : 1;
+        $product_amount = !empty($order->orderitems[0]['amount']) ? $order->orderitems[0]['amount'] : 0;
         $sub_total = $product_amount*$qty;
         $sales_tax = $order->tax;
         $order_total = $order->total;
 
-        $ordermeta=json_decode($order->ordermeta->value ?? '',true);
+        $ordermeta = json_decode($order->ordermeta->value ?? '', true) ?: [];
         
-        $name = explode(' ',$ordermeta['name']);
+        $name = explode(' ', $ordermeta['name'] ?? '');
         
         $club_info = tenant_club_info();
         
@@ -2345,7 +2376,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
         
         
         // Decode the JSON string into a PHP array
-        $shipping_data = json_decode($jsonString, true);
+        $shipping_data = json_decode($jsonString, true) ?: [];
 
         $credit_card_fee = $shipping_data['credit_card_fee'] ?? 0;
         $booster_platform_fee = $shipping_data['booster_platform_fee'] ??0;
@@ -2356,18 +2387,18 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
        $sub_total = $revenue - $shippingPrice;
        
                $contact_manager_data = array(
-									'first_name' => $name[0],
-									'last_name' => $name[1]??'',
-									'user_id' =>  $ordermeta['wpuid']??0,
-									'phone_number' => $ordermeta['phone'],					
-									'booster_name' => $name[0],
-									'country' =>   $ordermeta['billing']['country'],									
-									'address_1' => $ordermeta['billing']['address'],
+									'first_name' => $name[0] ?? '',
+									'last_name' => $name[1] ?? '',
+									'user_id' =>  $ordermeta['wpuid'] ?? 0,
+									'phone_number' => $ordermeta['phone'] ?? '',					
+									'booster_name' => $name[0] ?? '',
+									'country' =>   $ordermeta['billing']['country'] ?? '',									
+									'address_1' => $ordermeta['billing']['address'] ?? '',
 									'address_2' =>  '',
-									'city' => $ordermeta['billing']['city'],
-									'state' =>  $ordermeta['billing']['state'],
-									'zip' =>  $ordermeta['billing']['post_code'],													
-									'email' =>  $ordermeta['email'],                   
+									'city' => $ordermeta['billing']['city'] ?? '',
+									'state' =>  $ordermeta['billing']['state'] ?? '',
+									'zip' =>  $ordermeta['billing']['post_code'] ?? '',													
+									'email' =>  $ordermeta['email'] ?? '',                   
 									'booster_id' =>Tenant('club_id'),
 									'booster_level_id' => 1,
 									'contact_tags' => '',
@@ -2982,7 +3013,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
         // Check for cURL errors
         if (curl_errno($ch)) {
-            echo 'cURL error: ' . curl_error($ch);
+            \Log::error('cURL error in send_order_recipt: ' . curl_error($ch), ['url' => $url]);
         }
         curl_close($ch);
         return $response;
