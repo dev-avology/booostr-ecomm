@@ -122,7 +122,7 @@ class CustomerController extends Controller
 
         Auth::loginUsingId($user->id);
 
-        return redirect('/customer/dashboard');
+        return redirect()->intended('/customer/dashboard');
     }
 
     public function dashboard()

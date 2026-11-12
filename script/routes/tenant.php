@@ -87,7 +87,7 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::get('/get-stripe-paymentIntent', 'Store\CheckoutController@get_stripe_paymentIntent')->name('checkout.get_stripe_paymentIntent');
     Route::post('/applyTax', 'Store\CheckoutController@applyTax')->name('checkout.applyTax');
 
-    Route::get('/checkout', 'Store\PageController@checkout');
+    Route::get('/checkout', 'Store\CheckoutController@subdomainCheckout')->name('store.checkout');
     Route::post('/checkout/make-order', 'Store\CheckoutController@makeOrder')->name('checkout.makeorder');
     Route::post('/checkout/new-make-order', 'Store\CheckoutController@newMakeOrder')->name('checkout.newmakeorder');
     Route::post('/checkout/process-payment/{order_id}', 'Store\CheckoutController@processPayment')->name('checkout.processPayment');

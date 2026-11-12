@@ -691,6 +691,341 @@ class CheckoutController extends Controller
         return view('store.checkout.checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee','cover_fee'));
     }
 
+    public function subdomainCheckout(Request $request)
+    {
+        Cart::instance('default');
+
+        if (Cart::count() == 0) {
+            return redirect('/')->with('error', 'Oops, your cart is empty');
+        }
+
+        Session::put('cartid', 'default');
+        Session::put('url.intended', url('/checkout'));
+
+        if (!Session::has('redirect_url') || Session::get('redirect_url') == '/') {
+            Session::put('redirect_url', url('/'));
+        }
+
+        if ($request->has('guest')) {
+            Session::put('is_guest', true);
+        }
+
+        // If user is not logged in and not guest, show the Pre-Checkout Gate
+        if (!Auth::check() && !Session::get('is_guest')) {
+            $home_data = optionfromcache('checkout_page');
+            $seo = $home_data->seo ?? '';
+            SEOMeta::setTitle($seo->site_title ?? 'Checkout');
+            SEOMeta::setDescription($seo->description ?? '');
+            return view('store.checkout.pre-checkout');
+        }
+
+        // Build customer data
+        if (Session::has('customer_data')) {
+            $customer = Session::get('customer_data');
+        } else {
+            if (Auth::check()) {
+                $user = Auth::user();
+                $meta = !empty($user->meta) ? json_decode($user->meta, true) : [];
+                $customer = [
+                    "name"    => $user->name ?? '',
+                    "email"   => $user->email ?? '',
+                    "phone"   => $meta['phone'] ?? '',
+                    "address" => $meta['address'] ?? '',
+                    "city"    => $meta['city'] ?? '',
+                    "state"   => $meta['state'] ?? '',
+                    "country" => $meta['country'] ?? 'USA',
+                    "zip"     => $meta['zip'] ?? '',
+                    "wpuid"   => $meta['wpuid'] ?? '',
+                    "guest"   => "0",
+                ];
+            } else {
+                $customer = [
+                    "name"    => $request->name ?? '',
+                    "email"   => $request->email ?? '',
+                    "phone"   => $request->phone ?? '',
+                    "address" => $request->address ?? '',
+                    "city"    => $request->city ?? '',
+                    "state"   => $request->state ?? '',
+                    "country" => $request->country ?? 'USA',
+                    "zip"     => $request->zip ?? '',
+                    "wpuid"   => $request->wpuid ?? '',
+                    "guest"   => "1",
+                ];
+            }
+            Session::put('customer_data', $customer);
+        }
+
+        $club_info = tenant_club_info();
+        $address = explode(',', $club_info['address'] ?? '');
+        $store_state = isset($address[count($address) - 2]) ? trim($address[count($address) - 2]) : '';
+
+        if (isset($customer['state']) && ($customer['state'] == '' || $store_state != trim($customer['state']))) {
+            $tax = 0;
+            Cart::setGlobalTax($tax);
+        } else {
+            Cart::setGlobalTax(0);
+            $content = Cart::content();
+            if ($content && $content->count()) {
+                $content->each(function ($item, $key) {
+                    if ($item->options->tax == 1) {
+                        $item->setTaxRate(getTaxRate());
+                    }
+                });
+            }
+        }
+
+        $states_data = json_decode(file_get_contents(resource_path('us_states.json')), true);
+
+        $order_settings = get_option('order_settings', true);
+        if ($order_settings->shipping_amount_type != 'distance') {
+            $locations = Location::where([['status', 1]])->whereHas('shippings')->with('shippings')->get();
+        } else {
+            $locations = [];
+        }
+        $getways = Getway::where('status', '!=', 0)->where('namespace', '=', 'App\Lib\Stripe')->first();
+
+        $order_method = $request->t ?? 'delivery';
+
+        $invoice_data = optionfromcache('invoice_data');
+
+        $home_data = optionfromcache('checkout_page');
+
+        $seo = $home_data->seo ?? '';
+        SEOMeta::setTitle($seo->site_title ?? 'Checkout');
+        SEOMeta::setDescription($seo->description ?? '');
+
+        OpenGraph::setDescription($seo->description ?? '');
+        OpenGraph::setTitle($seo->site_title ?? 'Checkout');
+        OpenGraph::addProperty('keywords', $seo->tags ?? '');
+
+        TwitterCard::setTitle($seo->site_title ?? 'Checkout');
+        TwitterCard::setSite($seo->twitter_title ?? '');
+
+        JsonLd::setTitle($seo->site_title ?? 'Checkout');
+        JsonLd::setDescription($seo->description ?? '');
+        JsonLd::addImage($seo->meta_image ?? '');
+
+        SEOTools::setTitle($seo->site_title ?? 'Checkout');
+        SEOTools::setDescription($seo->description ?? '');
+        SEOTools::opengraph()->setUrl(url('/'));
+
+        SEOTools::twitter()->setSite($seo->twitter_title ?? '');
+        SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
+        SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
+
+        $page_data = $home_data->meta ?? '';
+
+        $pickup_order = $order_settings->pickup_order ?? 'off';
+        $pre_order = $order_settings->pre_order ?? 'off';
+        $source_code = $order_settings->source_code ?? 'on';
+
+        // Fetch all product types once
+        $product_type = Category::where('type', 'product_type')
+            ->select('id', 'slug', 'name')
+            ->get();
+
+        $p_types = $product_type->pluck('id')->all();
+
+        $cartTermIds = Cart::instance('default')->content()->pluck('id')->all();
+
+        $terms = Term::with('termcategories')
+            ->whereIn('id', $cartTermIds)
+            ->get();
+
+        // Get flat product type IDs from cart
+        $selected_product_type = $terms->flatMap(function ($term) use ($p_types) {
+            return $term->termcategories
+                ->pluck('category_id')
+                ->intersect($p_types);
+        })->unique()->values()->all();
+
+        $count = count($selected_product_type);
+
+        $order_type = match (true) {
+            $count > 1 => 'Mixed',
+            $count === 1 => optional(
+                $product_type->firstWhere('id', $selected_product_type[0])
+            )->slug === 'digital_product' ? 'Digital' : 'Goods',
+            default => 'Goods',
+        };
+
+        $hasOnlyEventTickets = true;
+
+        foreach (Cart::instance('default')->content() as $cartItem) {
+            $productKind = DB::table('termmetas')
+                ->where('term_id', $cartItem->id)
+                ->where('key', 'product_kind')
+                ->value('value');
+
+            if (trim((string) $productKind) !== 'event_ticket') {
+                $hasOnlyEventTickets = false;
+                break;
+            }
+        }
+
+        if ($hasOnlyEventTickets) {
+            $order_type = 'Digital';
+        }
+
+        $payment_data = [];
+        $payment_data['currency']   = $getways->currency_name ?? 'USD';
+        $payment_data['test_mode']  = $getways->test_mode ?? 0;
+        $payment_data['charge']     = $getways->charge ?? 0;
+        $payment_data['getway_id']  = $getways->id ?? '';
+        if (!empty($getways->data)) {
+            foreach (json_decode($getways->data ?? '') ?? [] as $key => $info) {
+                $payment_data[$key] = $info;
+            }
+
+            $payment_data['publishable_key'] = ($getways->test_mode == 1) ? ($payment_data['test_publishable_key'] ?? '') : ($payment_data['publishable_key'] ?? '');
+            $payment_data['secret_key'] = ($getways->test_mode == 1) ? ($payment_data['test_secret_key'] ?? '') : ($payment_data['secret_key'] ?? '');
+        }
+
+        $free_shipping = Option::where('key', 'free_shipping')->first();
+        $free_shipping = $free_shipping ? (int) $free_shipping->value : 0;
+
+        $shipping_price = 0;
+
+        $min_cart_total = Option::where('key', 'min_cart_total')->first();
+        $min_cart_total = $min_cart_total ? (int) $min_cart_total->value : 100;
+
+        $shipping_methods = null;
+        $subtotal = Cart::subtotal();
+
+        if ($free_shipping) {
+            if ((float) $subtotal >= (float) $min_cart_total) {
+                $shipping_methods = ['method_type' => 'free_shipping', 'label' => 'Free Shipping', 'pricing' => 0, 'base_pricing' => 0];
+                $shipping_price = 0;
+            }
+        }
+
+        if (empty($shipping_methods)) {
+            $shipping_option = Option::where('key', 'shipping_method')->first();
+            $shipping_methods = $shipping_option ? json_decode($shipping_option->value, true) : [];
+
+            if (!empty($shipping_methods['method_type'])) {
+                if ($shipping_methods['method_type'] == 'per_item') {
+                    $shipping_price = ($shipping_methods['base_pricing'] ?? 0) + Cart::count() * ($shipping_methods['pricing'] ?? 0);
+                } else if ($shipping_methods['method_type'] == 'weight_based') {
+                    $shipping_price = ($shipping_methods['base_pricing'] ?? 0) + Cart::weight() * ($shipping_methods['pricing'] ?? 0);
+                } else if ($shipping_methods['method_type'] == 'flat_rate') {
+                    if (is_array($shipping_methods['pricing'] ?? null)) {
+                        foreach ($shipping_methods['pricing'] as $index) {
+                            $from = (float) ($index['from'] ?? 0);
+                            $to = (float) ($index['to'] ?? 0) > 0 ? (float) $index['to'] : PHP_INT_MAX;
+                            if ($subtotal > $from && $subtotal <= $to) {
+                                $shipping_price = (float) ($index['price'] ?? 0);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $pickup_details = [];
+        $allow_inperson_pickup = 0;
+
+        $inperson_pickup = Option::where('key', 'inperson_pickup_details')->first();
+        if ($inperson_pickup && !empty($inperson_pickup->value)) {
+            $pickup_details = json_decode($inperson_pickup->value, true) ?: [];
+            $allow_inperson_pickup = (int) ($pickup_details['enabled'] ?? 0);
+        }
+
+        $shipping_options = [];
+
+        if ($order_type === 'Digital') {
+            $shipping_price = 0;
+            $shipping_options[] = [
+                'key'   => 'digital_delivery',
+                'label' => 'Digital Delivery',
+                'price' => 0,
+                'info'  => [
+                    'method_type' => 'digital_delivery',
+                    'label' => 'Digital Delivery',
+                    'pricing' => 0,
+                    'base_pricing' => 0,
+                ],
+            ];
+        } else {
+            if (!empty($shipping_methods) && !empty($shipping_methods['method_type'])) {
+                $shipping_options[] = [
+                    'key'   => $shipping_methods['method_type'],
+                    'label' => $shipping_methods['label'] ?? 'Standard Shipping',
+                    'price' => (float) $shipping_price,
+                    'info'  => $shipping_methods,
+                ];
+            }
+
+            if ($allow_inperson_pickup === 1) {
+                $shipping_options[] = [
+                    'key' => 'inperson_pickup',
+                    'label' => 'In-Person Pick Up',
+                    'price' => 0,
+                    'info' => [
+                        'method_type' => 'inperson_pickup',
+                        'label' => 'In-Person Pick Up',
+                        'pricing' => 0,
+                        'base_pricing' => 0,
+                        'details' => $pickup_details
+                    ],
+                ];
+            }
+        }
+
+        $ticket_fee_total = 0;
+
+        foreach (Cart::instance('default')->content() as $cartItem) {
+            $productKind = DB::table('termmetas')
+                ->where('term_id', $cartItem->id)
+                ->where('key', 'product_kind')
+                ->value('value');
+
+            $ticketFee = DB::table('termmetas')
+                ->where('term_id', $cartItem->id)
+                ->where('key', 'ticket_fee')
+                ->value('value');
+
+            if (trim((string) $productKind) === 'event_ticket') {
+                $ticket_fee_total += ((float) ($ticketFee ?: 0.75)) * (int) $cartItem->qty;
+            }
+        }
+        $total = ((float) str_replace(',', '', Cart::total())) + $shipping_price;
+
+        $credit_card_fee = credit_card_fee($total);
+        $booster_platform_fee = booster_club_chagre($total);
+
+        $fee_base = $total + $credit_card_fee + $booster_platform_fee;
+        $credit_card_fee1 = credit_card_fee($fee_base);
+        $booster_platform_fee1 = booster_club_chagre($fee_base);
+        $cover_fee = $credit_card_fee1 + $booster_platform_fee1;
+
+        return view('store.checkout.new-checkout', compact(
+            'locations',
+            'states_data',
+            'getways',
+            'request',
+            'order_method',
+            'order_settings',
+            'invoice_data',
+            'page_data',
+            'pickup_order',
+            'pre_order',
+            'source_code',
+            'payment_data',
+            'shipping_methods',
+            'shipping_price',
+            'customer',
+            'order_type',
+            'credit_card_fee',
+            'booster_platform_fee',
+            'cover_fee',
+            'shipping_options',
+            'pickup_details',
+            'allow_inperson_pickup',
+            'ticket_fee_total'
+        ));
+    }
+
 
     public function direct_new_checkout(Request $request,$cartid='',$redirect_url='/')
     {
@@ -2634,6 +2969,11 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             : 'https://www.boostr.co';
     
         $invoice = $request->query('invoice_id', '');
+
+        if ($redirect_url == url('/') || $redirect_url == '/' || empty($redirect_url)) {
+            Session::put('invoice_no', $invoice);
+            return redirect('/thanks');
+        }
     
         return redirect()->away(
             $redirect_url . '/?tab=thankyou&club_id=' . Tenant('club_id') .

@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 use Auth;
+use Session;
+
 class LoginController extends Controller
 {
     /*
@@ -36,6 +39,20 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    public function credentials(Request $request)
+    {
+        $login = $request->input('email');
+        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
+        return [$field => $login, 'password' => $request->input('password')];
+    }
+
+    protected function authenticated(Request $request, $user)
+    {
+        if (Session::has('url.intended')) {
+            return redirect(Session::pull('url.intended'));
+        }
     }
 
     public function redirectTo()
