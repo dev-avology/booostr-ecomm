@@ -2297,13 +2297,13 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
         if ($isStandalone) {
             Session::put('invoice_no', $order->invoice_no);
-            Cart::instance('default')->destroy();
+            Cart::destroy('default');
             return redirect('/thanks?invoice_id=' . $order->invoice_no);
         }
 
         return redirect()->away($redirect_url . '/?tab=thankyou&club_id='.Tenant('club_id').'&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
     
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error('Payment processing error: ' . $e->getMessage());
 
             $redirect_host = parse_url($redirect_url, PHP_URL_HOST);
@@ -2990,7 +2990,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
     
     public function success(Request $request)
     {
-        Cart::instance('default')->destroy();
+        Cart::destroy('default');
     
         $redirect_url = Session::has('redirect_url')
             ? Session::get('redirect_url')
