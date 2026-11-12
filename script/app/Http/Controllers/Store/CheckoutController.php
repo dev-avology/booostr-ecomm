@@ -701,10 +701,8 @@ class CheckoutController extends Controller
 
         Session::put('cartid', 'default');
         Session::put('url.intended', url('/checkout'));
-
-        if (!Session::has('redirect_url') || Session::get('redirect_url') == '/') {
-            Session::put('redirect_url', url('/'));
-        }
+        Session::put('redirect_url', url('/'));
+        Session::put('is_standalone_checkout', true);
 
         if ($request->has('guest')) {
             Session::put('is_guest', true);
@@ -1029,6 +1027,7 @@ class CheckoutController extends Controller
 
     public function direct_new_checkout(Request $request,$cartid='',$redirect_url='/')
     {
+        Session::forget('is_standalone_checkout');
 
         if(Session::has('redirect_url')){
             $redirect_url=Session::get('redirect_url');
@@ -1763,6 +1762,7 @@ class CheckoutController extends Controller
                 $customer_info['cart_id'] = $cartid;
                 $customer_info['sms_consent'] = $sms_consent;
                 $customer_info['ticket_fee_total'] = $ticket_fee_total;
+                $customer_info['is_standalone'] = Session::get('is_standalone_checkout') ? 1 : 0;
 
                         
                  Session::put('stripe_customer_data', [
@@ -1924,6 +1924,11 @@ class CheckoutController extends Controller
         $publishable_key = $gateway->test_mode ? $gateway_data->test_publishable_key : $gateway_data->publishable_key;
 
         $meta = json_decode($order->ordermeta->value, true);
+
+        if (!empty($meta['is_standalone'])) {
+            Session::put('is_standalone_checkout', true);
+            Session::put('redirect_url', url('/'));
+        }
         
        $stripe_customer = Session::get('stripe_customer_data', []);
 
@@ -2283,7 +2288,12 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
         
         
         $redirect_host = parse_url($redirect_url, PHP_URL_HOST);
-        $isStandalone = empty($redirect_url) || $redirect_url == '/' || $redirect_url == url('/') || $redirect_host === request()->getHost();
+        $isStandalone = !empty($ordermeta['is_standalone'])
+            || Session::get('is_standalone_checkout')
+            || empty($redirect_url)
+            || $redirect_url == '/'
+            || $redirect_url == url('/')
+            || $redirect_host === request()->getHost();
 
         if ($isStandalone) {
             Session::put('invoice_no', $order->invoice_no);
@@ -2297,7 +2307,12 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             \Log::error('Payment processing error: ' . $e->getMessage());
 
             $redirect_host = parse_url($redirect_url, PHP_URL_HOST);
-            $isStandalone = empty($redirect_url) || $redirect_url == '/' || $redirect_url == url('/') || $redirect_host === request()->getHost();
+            $isStandalone = !empty($ordermeta['is_standalone'])
+                || Session::get('is_standalone_checkout')
+                || empty($redirect_url)
+                || $redirect_url == '/'
+                || $redirect_url == url('/')
+                || $redirect_host === request()->getHost();
 
             if ($isStandalone) {
                 return redirect()->route('checkout.payment', $order_id)->with('error', 'Payment failed: ' . $e->getMessage());
