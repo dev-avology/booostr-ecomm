@@ -590,10 +590,10 @@ class PageController extends Controller
         return view(baseview('checkout'),compact('locations','getways','request','order_method','order_settings','invoice_data','meta','page_data','pickup_order','pre_order','source_code'));
     }
 
-    public function thanks()
+    public function thanks(Request $request)
     {
-        abort_if(!Session::has('invoice_no'),404);
-        $orderno=Session::get('invoice_no');
+        $orderno = Session::get('invoice_no') ?: $request->query('invoice_id');
+        abort_if(empty($orderno), 404);
         SEOMeta::setTitle($orderno.' - Thanks');
         return view(baseview('thanks'),compact('orderno'));
     }

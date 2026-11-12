@@ -2282,15 +2282,28 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
         }
         
         
-        $url = $redirect_url . '/?tab=thankyou&club_id='.Tenant('club_id').'&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no;
+        $redirect_host = parse_url($redirect_url, PHP_URL_HOST);
+        $isStandalone = empty($redirect_url) || $redirect_url == '/' || $redirect_url == url('/') || $redirect_host === request()->getHost();
+
+        if ($isStandalone) {
+            Session::put('invoice_no', $order->invoice_no);
+            Cart::instance('default')->destroy();
+            return redirect('/thanks?invoice_id=' . $order->invoice_no);
+        }
 
         return redirect()->away($redirect_url . '/?tab=thankyou&club_id='.Tenant('club_id').'&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
     
         } catch (\Exception $e) {
-            
-            dd($e);die;
-            
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Payment processing error: ' . $e->getMessage());
+
+            $redirect_host = parse_url($redirect_url, PHP_URL_HOST);
+            $isStandalone = empty($redirect_url) || $redirect_url == '/' || $redirect_url == url('/') || $redirect_host === request()->getHost();
+
+            if ($isStandalone) {
+                return redirect()->route('checkout.payment', $order_id)->with('error', 'Payment failed: ' . $e->getMessage());
+            }
+
+            return redirect()->away($redirect_url . '/?type=error&message=Oops something went wrong with payment');
         }
     }
     
