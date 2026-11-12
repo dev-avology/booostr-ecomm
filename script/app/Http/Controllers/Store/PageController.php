@@ -594,8 +594,12 @@ class PageController extends Controller
     {
         $orderno = Session::get('invoice_no') ?: $request->query('invoice_id');
         abort_if(empty($orderno), 404);
+
+        $order = \App\Models\Order::where('invoice_no', $orderno)->with('orderitems')->first();
+        $club_info = tenant_club_info();
+
         SEOMeta::setTitle($orderno.' - Thanks');
-        return view(baseview('thanks'),compact('orderno'));
+        return view(baseview('thanks'), compact('orderno', 'order', 'club_info'));
     }
 
     public function contact()
