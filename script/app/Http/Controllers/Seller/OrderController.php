@@ -1531,7 +1531,7 @@ class OrderController extends Controller
 
             $refundParams['reverse_transfer'] = true;
 
-            $refund = \Stripe\Refund::create($refundParams);
+            $refund = $this->createStripeRefundSafely($refundParams);
 
             if (!in_array($refund->status, ['succeeded', 'pending'], true)) {
                 throw new \Exception('Stripe refund was not completed.');
@@ -1548,6 +1548,37 @@ class OrderController extends Controller
             ]);
 
             return $this->refundResponse($silent, false, $e->getMessage());
+        }
+    }
+
+    protected function createStripeRefundSafely(array $refundParams): \Stripe\Refund
+    {
+        try {
+            return \Stripe\Refund::create($refundParams);
+        } catch (\Stripe\Exception\InvalidRequestException $e) {
+            $stripeError = method_exists($e, 'getError') ? $e->getError() : null;
+            $param = $stripeError ? ($stripeError->param ?? null) : null;
+            $code = method_exists($e, 'getStripeCode') ? $e->getStripeCode() : null;
+            $msg = (string) $e->getMessage();
+
+            $isInsufficientBalance = ($param === 'reverse_transfer')
+                || ($code === 'balance_insufficient')
+                || (stripos($msg, 'sufficient funds') !== false)
+                || (stripos($msg, 'reverse_transfer') !== false);
+
+            if ($isInsufficientBalance && !empty($refundParams['reverse_transfer'])) {
+                \Log::warning('Stripe reverse_transfer failed due to insufficient funds; retrying with reverse_transfer=false', [
+                    'charge' => $refundParams['charge'] ?? null,
+                    'amount' => $refundParams['amount'] ?? null,
+                    'error' => $msg,
+                ]);
+
+                $refundParams['reverse_transfer'] = false;
+
+                return \Stripe\Refund::create($refundParams);
+            }
+
+            throw $e;
         }
     }
 
@@ -1932,7 +1963,7 @@ class OrderController extends Controller
                 'reverse_transfer' => true,
             ];
 
-            $refund = \Stripe\Refund::create($refundParams);
+            $refund = $this->createStripeRefundSafely($refundParams);
 
             if (!in_array($refund->status, ['succeeded', 'pending'], true)) {
                 throw new \Exception('Stripe refund was not completed.');
@@ -2144,7 +2175,7 @@ class OrderController extends Controller
                 'reverse_transfer' => true,
             ];
 
-            $refund = \Stripe\Refund::create($refundParams);
+            $refund = $this->createStripeRefundSafely($refundParams);
 
             if (!in_array($refund->status, ['succeeded', 'pending'], true)) {
                 throw new \Exception('Stripe refund was not completed.');
