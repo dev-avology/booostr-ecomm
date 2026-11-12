@@ -2246,7 +2246,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
            //  dd($order);
 
             // Manual-capture (Authorized) orders: skip user-recipt until seller captures on /seller/order.
-            \Log::info("order->payment_status", $order->payment_status);
+            \Log::info("order->payment_status", ['payment_status' => $order->payment_status]);
             if ((int) $order->payment_status === 1) {
                 // Real-time Financial Manager sync for captured order
                 try {
