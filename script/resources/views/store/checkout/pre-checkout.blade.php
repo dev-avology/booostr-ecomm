@@ -1,14 +1,15 @@
 @extends('theme.resto.layouts.app')
 
 @section('content')
-<div class="pre-checkout-wrapper py-5" style="background-color: #ffffff; min-height: 60vh;">
-    <div class="container" style="max-width: 960px;">
+<!-- Pre-Checkout Authentication Gate -->
+<section class="login section py-5" style="background-color: #f9f9f9; min-height: 65vh;">
+    <div class="container" style="max-width: 980px;">
         
         <!-- Instruction Heading -->
         <div class="row mb-4">
             <div class="col-12 text-center">
-                <p class="mb-0" style="font-size: 1.15rem; color: #333; font-weight: 400;">
-                    Complete your purchase by logging in to your existing account, or creating a new account, or checking out as a guest.
+                <p class="mb-0" style="font-size: 16px; color: #2c3e50; font-weight: 500;">
+                    {{ __('Complete your purchase by logging in to your existing account, or creating a new account, or checking out as a guest.') }}
                 </p>
             </div>
         </div>
@@ -29,59 +30,75 @@
             </div>
         @endif
 
-        <!-- Two Columns -->
-        <div class="row mt-4 align-items-start">
+        <!-- Two Columns (Cards) -->
+        <div class="row align-items-stretch">
             
             <!-- Left Column: Log In -->
-            <div class="col-md-6 mb-5 mb-md-0 px-md-4">
-                <h2 class="text-center mb-4" style="font-size: 1.75rem; font-weight: 700; color: #1a1a1a;">Log In</h2>
-                
-                <form action="{{ route('login') }}" method="POST" class="auth-gate-form">
-                    @csrf
-                    
-                    <div class="form-group mb-3">
-                        <input type="text" name="email" class="form-control" placeholder="Email or Username" value="{{ old('email') }}" required style="background-color: #eef3fc; border: 1px solid #d4def0; border-radius: 4px; height: 48px; padding: 10px 16px; font-size: 15px; color: #333;">
+            <div class="col-md-6 mb-4 mb-md-0 d-flex">
+                <div class="form-head w-100 p-4 p-lg-5" style="background: #ffffff; border-radius: 10px; box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.07); border: 1px solid #f0f0f0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h4 class="title text-center mb-4" style="font-size: 24px; font-weight: 600; color: #081828;">{{ __('Log In') }}</h4>
+                        
+                        <form action="{{ route('login') }}" method="POST">
+                            @csrf
+                            
+                            <div class="form-group mb-3">
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; color: #081828;">{{ __('Email or Username') }}</label>
+                                <input type="text" name="email" class="form-control" placeholder="{{ __('Enter Email or Username') }}" value="{{ old('email') }}" required style="width: 100%; min-height: 48px; padding: 10px 16px; border: 1px solid #e5e5e5; border-radius: 5px; background-color: #f8f9fa; font-size: 14px; color: #081828;">
+                            </div>
+                            
+                            <div class="form-group mb-4">
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; color: #081828;">{{ __('Password') }}</label>
+                                <input type="password" name="password" class="form-control" placeholder="{{ __('Enter Password') }}" required style="width: 100%; min-height: 48px; padding: 10px 16px; border: 1px solid #e5e5e5; border-radius: 5px; background-color: #f8f9fa; font-size: 14px; color: #081828;">
+                            </div>
+                            
+                            <div class="button mt-2">
+                                <button type="submit" class="btn primary animate w-100" style="background: var(--primary); color: #ffffff; height: 50px; font-weight: 600; font-size: 14px; border: none; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s ease;">
+                                    {{ __('Sign In') }}
+                                </button>
+                            </div>
+                            
+                            <p class="outer-link text-center mt-3 mb-0" style="font-size: 13px; color: #666;">
+                                {{ __('Do not have an account?') }} 
+                                <a href="{{ url('/customer/register') }}" style="color: var(--primary); font-weight: 600; text-decoration: none;">{{ __('Create an account.') }}</a>
+                            </p>
+                        </form>
                     </div>
-                    
-                    <div class="form-group mb-4">
-                        <input type="password" name="password" class="form-control" placeholder="Password" required style="background-color: #eef3fc; border: 1px solid #d4def0; border-radius: 4px; height: 48px; padding: 10px 16px; font-size: 15px; color: #333;">
-                    </div>
-                    
-                    <button type="submit" class="btn w-100" style="background-color: #ff5722; border: none; color: #ffffff; font-weight: 700; font-size: 15px; padding: 13px 20px; border-radius: 4px; letter-spacing: 0.5px; text-transform: uppercase;">
-                        SIGN IN
-                    </button>
-                    
-                    <div class="text-center mt-3">
-                        <span style="color: #666; font-size: 14px;">Do not have an account?</span>
-                        <a href="{{ url('/customer/register') }}" style="color: #007bff; font-weight: 500; font-size: 14px; text-decoration: none;">Create an account.</a>
-                    </div>
-                </form>
+                </div>
             </div>
 
             <!-- Right Column: Guest Checkout -->
-            <div class="col-md-6 px-md-4">
-                <h2 class="text-center mb-4" style="font-size: 1.75rem; font-weight: 700; color: #1a1a1a;">Don't Want to Create an Account?</h2>
-                
-                <div class="guest-gate-wrapper" style="margin-top: 85px;">
-                    <a href="{{ url('/checkout?guest=1') }}" class="btn w-100 d-flex align-items-center justify-content-center" style="background-color: #ff5722; border: none; color: #ffffff; font-weight: 700; font-size: 15px; height: 48px; border-radius: 4px; text-decoration: none;">
-                        Checkout as a Guest
-                    </a>
+            <div class="col-md-6 d-flex">
+                <div class="form-head w-100 p-4 p-lg-5" style="background: #ffffff; border-radius: 10px; box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.07); border: 1px solid #f0f0f0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h4 class="title text-center mb-4" style="font-size: 24px; font-weight: 600; color: #081828;">{{ __("Don't Want to Create an Account?") }}</h4>
+                        <p class="text-center text-muted" style="font-size: 14px; line-height: 1.6; margin-top: 20px;">
+                            {{ __('Checkout quickly as a guest without creating an account. All order tracking and receipt notifications will be sent directly to your email.') }}
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <div class="button mt-4">
+                            <a href="{{ url('/checkout?guest=1') }}" class="btn primary animate w-100 d-flex align-items-center justify-content-center" style="background: var(--primary); color: #ffffff; height: 50px; font-weight: 600; font-size: 14px; border-radius: 5px; text-decoration: none; transition: all 0.3s ease;">
+                                {{ __('Checkout as a Guest') }}
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
         </div>
 
         <!-- Footer / Booster signup note -->
-        <div class="row mt-5 pt-4">
+        <div class="row mt-5 pt-3">
             <div class="col-12 text-center">
                 <p class="mb-0 text-muted" style="font-size: 13.5px; line-height: 1.6;">
-                    Do you manage a booster club, PTO, or small nonprofit? Get started with Booostr for FREE for your organization: 
-                    <a href="https://booostr.co" target="_blank" style="color: #007bff; text-decoration: none; font-weight: 500;">Add Your Organization</a>.
+                    {{ __('Do you manage a booster club, PTO, or small nonprofit? Get started with Booostr for FREE for your organization:') }} 
+                    <a href="https://booostr.co" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;">{{ __('Add Your Organization.') }}</a>
                 </p>
             </div>
         </div>
 
     </div>
-</div>
+</section>
 @endsection
-
