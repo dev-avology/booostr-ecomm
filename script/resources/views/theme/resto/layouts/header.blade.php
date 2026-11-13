@@ -70,6 +70,7 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
       <!--/ End Shopping Item -->
       @endif
       <!-- Topbar Area -->
+      @if(Auth::check())
       <div class="topbar-area">
          <div class="container">
             <div class="row">
@@ -97,44 +98,6 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                         <li class="accounts-top-btn"><a href="{{ url('/seller/dashboard') }}"><i class="icofont-dashboard-web"></i><span>{{ __('Admin Dashboard') }}</span></a></li>
                         @elseif(Auth::check() && Auth::user()->role_id == 4)
                         <li class="accounts-top-btn"><a href="{{ url('/customer/dashboard') }}"><i class="icofont-user-male"></i><span>{{ Auth::user()->name }}</span></a></li>
-                        @else
-                        <li class="accounts-top-btn"><a href="#"><i class="icofont-user-male"></i><span>{{ __('My Account') }}</span></a>
-                           <!-- Topbar Accounts Form -->
-                           <div class="accounts-signin-top-form">
-                              <form action="{{ route('login') }}" method="post" class="accounts-signin-inner">
-                                 @csrf
-                                 <div class="row">
-                                    <div class="col-12">
-                                       <div class="form-group">
-
-                                          <label><i class="icofont-ui-user"></i> {{ __('Email') }}</label>
-                                          <input type="email" name="email"  required="required" placeholder="Enter Email">
-                                          
-                                       </div>
-                                    </div>
-                                    <div class="col-12">
-                                       <div class="form-group">
-                                          <label><i class="icofont-ssl-security"></i> {{ __('Password') }}</label>
-                                          <input type="password" name="password" required="">
-                                          <a href="{{ url('/password/reset') }}">{{ __('Forgot password?') }}</a>
-                                       </div>
-                                    </div>
-                                    <div class="col-12">
-                                       <div class="accounts-signin-btn">
-                                          <button type="submit" class="theme-btn">{{ __('Sign in') }}</button>
-                                       </div>   
-                                    </div>   
-                                    <div class="col-12">
-                                       <div class="accounts-signin-bottom">
-                                          <p>{{ __('Dont have any account?') }}</p>
-                                          <a href="{{ url('customer/register') }}" class="theme-btn">Sign up</a>
-                                       </div>
-                                    </div>
-                                 </div>   
-                              </form>  
-                           </div>
-                           <!-- End Topbar Accounts Form -->
-                        </li>
                         @endif
                         @endif
                      </ul>
@@ -144,6 +107,7 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             </div>
          </div>
       </div>
+      @endif
       <!-- End Topbar Area -->
       
       <!-- Header Area -->

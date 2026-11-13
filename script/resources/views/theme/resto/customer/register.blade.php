@@ -21,14 +21,19 @@
 
 					<!-- Booostr SSO Split Button matching reference -->
 					<div class="mb-4">
-						<a href="{{ url('/customer/login') }}" class="booostr-sso-btn">
-							<div class="sso-logo-box">
-								<img src="https://app.booostr.co/wp-content/themes/booostr-app/assets/images/Header-logo.png" alt="Booostr">
+						<div class="sso-btn-wrapper">
+							<a href="javascript:void(0)" class="booostr-sso-btn" onclick="return false;">
+								<div class="sso-logo-box">
+									<img src="https://app.booostr.co/wp-content/themes/booostr-app/assets/images/Header-logo.png" alt="Booostr">
+								</div>
+								<div class="sso-text-box">
+									<span>{{ __('Sign up with your Booostr User Account') }}</span>
+								</div>
+							</a>
+							<div class="sso-tooltip-badge">
+								<i class="icofont-info-circle"></i> {{ __('In progress • Working on it') }}
 							</div>
-							<div class="sso-text-box">
-								<span>{{ __('Sign up with your Booostr User Account') }}</span>
-							</div>
-						</a>
+						</div>
 						<div class="or-separator" style="display: flex; align-items: center; text-align: center; margin: 24px 0 20px;">
 							<hr style="flex: 1; border: none; border-top: 1px solid #e2e8f0; margin: 0;">
 							<span style="padding: 0 14px; color: #94a3b8; font-size: 12px; font-weight: 700; letter-spacing: 1px;">OR</span>
@@ -103,7 +108,7 @@
 
 						<div class="form-group mb-3">
 							<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Age') }}</label>
-							<select name="age" class="custom-input" required style="width: 100%; height: 48px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0 16px; font-size: 14px; color: #334155; background-color: #fff;">
+							<select name="age" class="custom-input" required style="width: 100%; height: 48px; border-radius: 8px; padding: 0 16px; font-size: 14px; color: #334155; background-color: #fff;">
 								<option value="" disabled {{ old('age') ? '' : 'selected' }}>{{ __('Choose Age') }}</option>
 								<option value="child" {{ old('age') == 'child' ? 'selected' : '' }}>{{ __('Above 13 - Under 19') }}</option>
 								<option value="adult" {{ old('age') == 'adult' ? 'selected' : '' }}>{{ __('Above 19') }}</option>
@@ -113,40 +118,38 @@
 							@enderror
 						</div>
 
-						<!-- Terms and condition checkbox -->
-						<div class="form-group mb-3 mt-3">
-							<div class="d-flex align-items-start" style="gap: 10px;">
-								<input type="checkbox" name="agree_terms" id="agree_terms" required {{ old('agree_terms') ? 'checked' : '' }} style="width: 18px; height: 18px; margin-top: 3px; cursor: pointer; accent-color: var(--primary, #00A347);">
-								<label for="agree_terms" style="font-size: 13px; color: #475569; cursor: pointer; line-height: 1.5; margin-bottom: 0;">
-									{{ __("I've read and agree with") }} 
-									<a href="{{ url('/page/terms-and-conditions') }}" target="_blank" style="color: var(--primary, #00A347); font-weight: 600; text-decoration: underline;">{{ __('Terms and condition') }}</a> 
-									{{ __('and') }} 
-									<a href="{{ url('/page/privacy-policy') }}" target="_blank" style="color: var(--primary, #00A347); font-weight: 600; text-decoration: underline;">{{ __('privacy policy') }}</a>
-								</label>
-							</div>
-							@error('agree_terms')
-							<span class="text-danger small d-block mt-1"><strong>{{ $message }}</strong></span>
-							@enderror
+						<!-- Terms and condition checkbox properly aligned as single row -->
+						<div class="agree-terms-container">
+							<input type="checkbox" name="agree_terms" id="agree_terms" required {{ old('agree_terms') ? 'checked' : '' }}>
+							<label for="agree_terms">
+								{{ __("I've read and agree with") }} 
+								<a href="{{ url('/page/terms-and-conditions') }}" target="_blank">{{ __('Terms and condition') }}</a> 
+								{{ __('and') }} 
+								<a href="{{ url('/page/privacy-policy') }}" target="_blank">{{ __('privacy policy') }}</a>
+							</label>
 						</div>
+						@error('agree_terms')
+						<span class="text-danger small d-block mb-3"><strong>{{ $message }}</strong></span>
+						@enderror
 
-						<!-- reCAPTCHA Widget -->
-						<div class="form-group my-3 d-flex justify-content-center">
+						<!-- reCAPTCHA Widget Left-Aligned -->
+						<div class="recaptcha-wrapper">
 							<div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') ?: env('RECAPTCHA_SITE_KEY') }}"></div>
 						</div>
 						@error('g-recaptcha-response')
-						<span class="text-danger small d-block text-center mb-2"><strong>{{ $message }}</strong></span>
+						<span class="text-danger small d-block mt-1 mb-2"><strong>{{ $message }}</strong></span>
 						@enderror
 						
 						<!-- Register Submit Button (disabled until terms checked) -->
 						<div class="button mt-4">
-							<button type="submit" id="registerSubmitBtn" class="btn theme-btn w-100" style="height: 48px; border-radius: 8px; font-weight: 600; font-size: 15px; letter-spacing: 0.3px; transition: all 0.3s ease;">
+							<button type="submit" id="registerSubmitBtn" class="btn w-100">
 								{{ __('Register') }}
 							</button>
 						</div>
 
 						<p class="outer-link mt-4 text-center" style="font-size: 14px; color: #64748b;">
 							{{ __('Already have an account?') }} 
-							<a href="{{ url('/customer/login') }}" style="color: var(--primary, #00A347); font-weight: 600; text-decoration: none;">
+							<a href="{{ url('/customer/login') }}" class="login-link">
 								{{ __('Login here') }}
 							</a>
 						</p>
@@ -180,6 +183,7 @@
 	margin-bottom: 24px;
 }
 
+/* Clearly visible inputs with crisp borders */
 .login .form-head .custom-input {
 	width: 100% !important;
 	height: 48px !important;
@@ -187,7 +191,7 @@
 	padding: 10px 16px !important;
 	color: #1e293b !important;
 	background-color: #ffffff !important;
-	border: 1px solid #e2e8f0 !important;
+	border: 1.5px solid #cbd5e1 !important; /* Clearly visible, high-contrast border */
 	border-radius: 8px !important;
 	font-size: 14px !important;
 	line-height: 1.5 !important;
@@ -196,9 +200,13 @@
 	transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
+.login .form-head .custom-input:hover {
+	border-color: #94a3b8 !important;
+}
+
 .login .form-head .custom-input:focus {
-	border-color: var(--primary, #00A347) !important;
-	box-shadow: 0 0 0 3px rgba(0, 163, 71, 0.12) !important;
+	border-color: #528CD7 !important;
+	box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.2) !important;
 	background-color: #ffffff !important;
 }
 
@@ -208,7 +216,7 @@
 }
 
 .login .form-head .nice-select {
-	display: none !important; /* Hide unstyled nice-select replacement if initialized */
+	display: none !important;
 }
 
 .login .form-head select.custom-input {
@@ -218,60 +226,198 @@
 	appearance: menulist !important;
 }
 
+/* Booostr SSO Split Button */
+.sso-btn-wrapper {
+	position: relative;
+	width: 100%;
+}
+
 .booostr-sso-btn {
 	display: flex;
 	align-items: stretch;
-	border: 1.5px solid #2563eb;
+	border: 1.5px solid #528CD7;
 	border-radius: 8px;
 	overflow: hidden;
-	min-height: 50px;
+	height: 54px;
+	min-height: 54px;
 	text-decoration: none;
+	cursor: pointer;
 	transition: all 0.2s ease;
+	width: 100%;
 }
 
 .booostr-sso-btn:hover {
-	opacity: 0.95;
-	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+	opacity: 0.96;
+	box-shadow: 0 4px 14px rgba(82, 140, 215, 0.25);
 }
 
 .booostr-sso-btn .sso-logo-box {
 	background: #ffffff;
-	width: 110px;
-	min-width: 110px;
+	width: 135px;
+	min-width: 135px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 4px 12px;
-	border-right: 1.5px solid #2563eb;
+	padding: 4px 14px;
+	border-right: 1.5px solid #528CD7;
 }
 
 .booostr-sso-btn .sso-logo-box img {
-	max-height: 28px;
+	max-height: 32px;
 	max-width: 100%;
 	object-fit: contain;
 }
 
 .booostr-sso-btn .sso-text-box {
-	background: #2563eb;
+	background: #528CD7;
 	flex: 1;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	color: #ffffff;
 	font-weight: 600;
-	font-size: 14px;
-	padding: 0 12px;
+	font-size: 15px;
+	padding: 0 14px;
 	text-align: center;
+	letter-spacing: 0.2px;
+}
+
+/* Tooltip on hover */
+.sso-tooltip-badge {
+	position: absolute;
+	bottom: calc(100% + 10px);
+	left: 50%;
+	transform: translateX(-50%) translateY(4px);
+	background: #1e293b;
+	color: #ffffff;
+	font-size: 12.5px;
+	font-weight: 500;
+	padding: 7px 14px;
+	border-radius: 6px;
+	white-space: nowrap;
+	box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: all 0.25s ease;
+	z-index: 100;
+}
+
+.sso-tooltip-badge::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 5px;
+	border-style: solid;
+	border-color: #1e293b transparent transparent transparent;
+}
+
+.sso-btn-wrapper:hover .sso-tooltip-badge {
+	opacity: 1;
+	visibility: visible;
+	transform: translateX(-50%) translateY(0);
 }
 
 .password-toggle-icon:hover {
 	color: #475569 !important;
 }
 
+/* Terms and Condition Checkbox Row Alignment */
+.agree-terms-container {
+	display: flex !important;
+	align-items: center !important;
+	gap: 10px !important;
+	margin: 18px 0 16px !important;
+	width: 100% !important;
+}
+
+.agree-terms-container input[type="checkbox"] {
+	width: 18px !important;
+	min-width: 18px !important;
+	max-width: 18px !important;
+	height: 18px !important;
+	min-height: 18px !important;
+	max-height: 18px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	cursor: pointer !important;
+	accent-color: #528CD7 !important;
+	display: inline-block !important;
+	flex-shrink: 0 !important;
+	border: 1.5px solid #cbd5e1 !important;
+	background-color: #ffffff !important;
+	border-radius: 4px !important;
+}
+
+.agree-terms-container label {
+	font-size: 13.5px !important;
+	color: #475569 !important;
+	cursor: pointer !important;
+	margin: 0 !important;
+	line-height: 1.4 !important;
+	display: inline-block !important;
+}
+
+.agree-terms-container a {
+	color: #528CD7 !important;
+	font-weight: 600 !important;
+	text-decoration: underline !important;
+	transition: color 0.2s ease !important;
+}
+
+.agree-terms-container a:hover {
+	color: #3d71b5 !important;
+}
+
+/* reCAPTCHA Left Aligned */
+.recaptcha-wrapper {
+	display: flex;
+	justify-content: flex-start;
+	width: 100%;
+	margin: 18px 0;
+	overflow-x: auto;
+}
+
+/* Register Button Styled with #528CD7 */
+#registerSubmitBtn {
+	background: #528CD7 !important;
+	background-color: #528CD7 !important;
+	color: #ffffff !important;
+	border: none !important;
+	height: 48px !important;
+	border-radius: 8px !important;
+	font-weight: 600 !important;
+	font-size: 15px !important;
+	letter-spacing: 0.3px !important;
+	transition: all 0.25s ease !important;
+}
+
+#registerSubmitBtn:hover:not(:disabled) {
+	background: #3d71b5 !important;
+	background-color: #3d71b5 !important;
+	color: #ffffff !important;
+	box-shadow: 0 4px 14px rgba(82, 140, 215, 0.35) !important;
+}
+
 #registerSubmitBtn:disabled {
 	opacity: 0.55 !important;
 	cursor: not-allowed !important;
-	filter: grayscale(25%);
+	background: #94b8e8 !important;
+	background-color: #94b8e8 !important;
+}
+
+.login-link {
+	color: #528CD7 !important;
+	font-weight: 600 !important;
+	text-decoration: none !important;
+	transition: color 0.2s ease !important;
+}
+
+.login-link:hover {
+	color: #3d71b5 !important;
+	text-decoration: underline !important;
 }
 
 /* Responsive Media Queries */
@@ -312,11 +458,17 @@
 		padding: 8px 10px;
 		line-height: 1.3;
 	}
+	.agree-terms-container {
+		align-items: flex-start !important;
+	}
+	.agree-terms-container input[type="checkbox"] {
+		margin-top: 3px !important;
+	}
 	.g-recaptcha {
 		transform: scale(0.92);
 		-webkit-transform: scale(0.92);
-		transform-origin: center center;
-		-webkit-transform-origin: center center;
+		transform-origin: left center;
+		-webkit-transform-origin: left center;
 	}
 }
 
@@ -324,8 +476,8 @@
 	.g-recaptcha {
 		transform: scale(0.82);
 		-webkit-transform: scale(0.82);
-		transform-origin: center center;
-		-webkit-transform-origin: center center;
+		transform-origin: left center;
+		-webkit-transform-origin: left center;
 	}
 }
 </style>
