@@ -14,6 +14,14 @@
             : asset($storeBanner);
     }
 
+    // Resolve official club / store display name
+    $clubInfo = function_exists('tenant_club_info') ? tenant_club_info() : [];
+    $clubName = !empty($clubInfo['club_name']) ? trim($clubInfo['club_name']) : '';
+    if (empty($clubName)) {
+        $clubName = tenant('store_name') ?: config('app.name');
+    }
+    $displayName = (stripos($clubName, 'store') !== false) ? $clubName : ($clubName . ' Store');
+
     $isHome = $is_home ?? false;
 @endphp
 
@@ -24,18 +32,20 @@
                 <div class="w-100 text-center">
                     @if($enableBannerLink && !empty($storeBannerUrl))
                         <a href="{{ $storeBannerUrl }}" class="d-block w-100">
-                            <img src="{{ $finalBannerUrl }}" alt="{{ tenant('store_name') ?? 'Store Banner' }}" class="d-block w-100" style="width: 100%; height: auto; max-height: 420px; min-height: 180px; object-fit: cover; object-position: center;">
+                            <img src="{{ $finalBannerUrl }}" alt="{{ $displayName }}" class="d-block w-100" style="width: 100%; height: auto; max-height: 420px; min-height: 180px; object-fit: cover; object-position: center;">
                         </a>
                     @else
-                        <img src="{{ $finalBannerUrl }}" alt="{{ tenant('store_name') ?? 'Store Banner' }}" class="d-block w-100" style="width: 100%; height: auto; max-height: 420px; min-height: 180px; object-fit: cover; object-position: center;">
+                        <img src="{{ $finalBannerUrl }}" alt="{{ $displayName }}" class="d-block w-100" style="width: 100%; height: auto; max-height: 420px; min-height: 180px; object-fit: cover; object-position: center;">
                     @endif
                 </div>
             </div>
         </div>
     @else
-        <div class="store-banner-area w-100 overflow-hidden" style="background-color: #528CD7; min-height: 140px; display: flex; align-items: center; justify-content: center;">
-            <div class="container text-center py-4">
-                <h2 style="color: #ffffff; font-weight: 700; margin-bottom: 0;">{{ tenant('store_name') ?? config('app.name') }}</h2>
+        <!-- Fallback branded hero banner when no banner image is uploaded -->
+        <div class="store-banner-area w-100 overflow-hidden" style="background-color: #528CD7; padding: 65px 15px; min-height: 220px; display: flex; align-items: center; justify-content: center;">
+            <div class="container text-center">
+                <h1 style="color: #ffffff; font-size: 32px; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.5px; line-height: 1.2;">{{ $displayName }}</h1>
+                <p style="color: rgba(255, 255, 255, 0.9); font-size: 15px; font-weight: 400; margin-bottom: 0;">{{ __('Official Online Store & Merchandise') }}</p>
             </div>
         </div>
     @endif
