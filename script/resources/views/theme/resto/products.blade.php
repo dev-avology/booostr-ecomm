@@ -1,24 +1,13 @@
 @extends('theme.resto.layouts.app')
 @section('content')
-	<!-- Start Breadcrumbs Area -->
-		<div class="breadcrumbs" @if(!empty($products_page_banner)) style="background-image:url({{ asset($products_page_banner) }})" @endif>
-			<div class="container">
-				<div class="row">
-					<div class="col-lg-6 col-md-8 col-12">
-						<div class="breadcrumbs-content">
-							<h1 class="page-title">{{ $page_title }}</h1>
-							<p>{{ $products_page_description }}</p>
-						</div>
-						<ul class="breadcrumb-nav">
-							<li><a href="{{ url('/') }}"><i class="icofont-home"></i> {{ __('Home') }}</a></li>
-							<li><i class="icofont-fast-food"></i> {{ $page_title }}</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!--/ End Breadcrumbs Area -->
-		
+@include('theme.resto.components.page-banner', [
+    'title' => $page_title ?? __('Products'),
+    'description' => $products_page_description ?? '',
+    'breadcrumbs' => [
+        ['url' => url('/'), 'label' => __('Home'), 'icon' => 'icofont-home'],
+        ['url' => '', 'label' => $page_title ?? __('Products'), 'icon' => 'icofont-fast-food'],
+    ]
+])
 		
 		<!-- Start Items Listing Grid -->
 		<section class="category-page section">
