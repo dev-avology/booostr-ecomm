@@ -1,23 +1,13 @@
 @extends('theme.resto.layouts.app')
 @section('content')
-<!-- Start Breadcrumbs Area -->
-		<div class="breadcrumbs" style="background-image:url({{ asset($page_data->cart_page_banner ?? '') }})">
-			<div class="container">
-				<div class="row">
-					<div class="col-lg-6 col-md-8 col-12">
-						<div class="breadcrumbs-content">
-							<h1 class="page-title">{{ $page_data->cart_page_title ?? 'Cart' }}</h1>
-							<p>{{ $page_data->cart_page_description ?? 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text' }}</p>
-						</div>
-						<ul class="breadcrumb-nav">
-							<li><a href="{{ url('/') }}"><i class="icofont-home"></i> {{ __('Home') }}</a></li>
-							<li><i class="icofont-cart"></i> {{ $page_data->cart_page_title ?? 'Cart' }}</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!--/ End Breadcrumbs Area -->
+@include('theme.resto.components.page-banner', [
+    'title' => $page_data->cart_page_title ?? __('Cart'),
+    'description' => (!empty($page_data->cart_page_description) && !str_contains($page_data->cart_page_description, 'Lorem Ipsum')) ? $page_data->cart_page_description : '',
+    'breadcrumbs' => [
+        ['url' => url('/'), 'label' => __('Home'), 'icon' => 'icofont-home'],
+        ['url' => '', 'label' => $page_data->cart_page_title ?? __('Cart'), 'icon' => 'icofont-cart'],
+    ]
+])
 		
 		
 		<!-- Shopping Cart -->
