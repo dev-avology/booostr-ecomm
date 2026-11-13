@@ -69,46 +69,6 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
       </div>
       <!--/ End Shopping Item -->
       @endif
-      <!-- Topbar Area -->
-      @if(Auth::check())
-      <div class="topbar-area">
-         <div class="container">
-            <div class="row">
-               <div class="col-12">
-                  <!-- Topbar Right -->
-                  <div class="topbar-right">
-                      <div class="topbar-language-section">
-                        <li class="topbar-language">
-                           <form class="change_lang_form" action="{{ url('/locale/lang') }}">
-                              <select name="locale" class="trans_lang">
-                                 @php
-                                 $local=Session::get('locale');
-                                 @endphp
-                              @foreach($languages ?? [] as $key => $row)
-                              <option value="{{ $row->code }}" @if($local == $row->code) selected @endif>{{ $row->name }}</option>
-                              @endforeach
-                           </select>
-                          </form>
-                        </li>
-                      </div>
-                     <ul class="topbar-right-inner">
-                        <!-- Topbar Language -->
-                        @if(tenant('customer_modules') == 'on')
-                        @if(Auth::check() && Auth::user()->role_id == 3)
-                        <li class="accounts-top-btn"><a href="{{ url('/seller/dashboard') }}"><i class="icofont-dashboard-web"></i><span>{{ __('Admin Dashboard') }}</span></a></li>
-                        @elseif(Auth::check() && Auth::user()->role_id == 4)
-                        <li class="accounts-top-btn"><a href="{{ url('/customer/dashboard') }}"><i class="icofont-user-male"></i><span>{{ Auth::user()->name }}</span></a></li>
-                        @endif
-                        @endif
-                     </ul>
-                     
-                  </div>
-               </div>
-            </div>
-         </div>
-      </div>
-      @endif
-      <!-- End Topbar Area -->
       
       <!-- Header Area -->
       <header class="header navbar-area">
