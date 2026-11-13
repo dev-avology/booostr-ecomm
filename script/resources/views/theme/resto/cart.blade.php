@@ -1,11 +1,11 @@
 @extends('theme.resto.layouts.app')
 @section('content')
 @include('theme.resto.components.page-banner', [
-    'title' => $page_data->cart_page_title ?? __('Cart'),
-    'description' => (!empty($page_data->cart_page_description) && !str_contains($page_data->cart_page_description, 'Lorem Ipsum')) ? $page_data->cart_page_description : '',
+    'title' => __('Cart'),
+    'description' => __('Review your selected items and proceed to checkout.'),
     'breadcrumbs' => [
         ['url' => url('/'), 'label' => __('Home'), 'icon' => 'icofont-home'],
-        ['url' => '', 'label' => $page_data->cart_page_title ?? __('Cart'), 'icon' => 'icofont-cart'],
+        ['url' => '', 'label' => __('Cart'), 'icon' => 'icofont-cart'],
     ]
 ])
 		

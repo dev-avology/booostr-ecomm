@@ -1,19 +1,12 @@
 @php
-    $storeBanner = get_option('banner_logo') ?: '';
-    $pageBanner = $banner ?? ($page_data->cart_page_banner ?? '');
-
-    // Ignore placeholder dummy food banners from seeders
-    if (!empty($pageBanner) && (str_contains($pageBanner, 'dummy') || str_contains($pageBanner, '61cde8e0371023012211640884448'))) {
-        $pageBanner = '';
-    }
-
-    $finalBanner = !empty($storeBanner) ? $storeBanner : $pageBanner;
-    $hasBannerImage = !empty($finalBanner);
+    // Use store banner from Store Settings (banner_logo)
+    $storeBanner = $banner ?? (get_option('banner_logo') ?: '');
+    $hasBannerImage = !empty($storeBanner);
     $finalBannerUrl = '';
     if ($hasBannerImage) {
-        $finalBannerUrl = \Illuminate\Support\Str::startsWith($finalBanner, ['http://', 'https://', '//']) 
-            ? $finalBanner 
-            : asset($finalBanner);
+        $finalBannerUrl = \Illuminate\Support\Str::startsWith($storeBanner, ['http://', 'https://', '//']) 
+            ? $storeBanner 
+            : asset($storeBanner);
     }
 @endphp
 
