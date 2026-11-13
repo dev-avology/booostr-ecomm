@@ -18,6 +18,21 @@ use Artesaos\SEOTools\Facades\SEOTools;
 use Newsletter;
 class CustomerController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     * Prevents Club Owners (role_id == 3) from accessing customer portal pages,
+     * redirecting them directly to their Seller Dashboard safely without redirect loops.
+     */
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if (Auth::check() && Auth::user()->role_id == 3) {
+                return redirect('/seller/dashboard');
+            }
+            return $next($request);
+        })->except(['subscribe', 'loginCustomer']);
+    }
+
     public function subscribe(Request $request)
     {
         $request->validate([
@@ -216,7 +231,11 @@ class CustomerController extends Controller
             Auth::login($authenticatedUser, $remember);
 
             // Redirect user to intended checkout / dashboard destination
-            $redirectUrl = session()->pull('url.intended', url('/customer/dashboard'));
+            if ($authenticatedUser->role_id == 3) {
+                $redirectUrl = url('/seller/dashboard');
+            } else {
+                $redirectUrl = session()->pull('url.intended', url('/customer/dashboard'));
+            }
 
             if ($request->ajax()) {
                 return response()->json([
