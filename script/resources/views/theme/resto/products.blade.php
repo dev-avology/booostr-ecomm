@@ -1,11 +1,11 @@
 @extends('theme.resto.layouts.app')
 @section('content')
 @include('theme.resto.components.page-banner', [
-    'title' => $page_title ?? __('Products'),
-    'description' => $products_page_description ?? '',
+    'title' => __('Products'),
+    'description' => __('Explore our complete collection of products and merchandise.'),
     'breadcrumbs' => [
         ['url' => url('/'), 'label' => __('Home'), 'icon' => 'icofont-home'],
-        ['url' => '', 'label' => $page_title ?? __('Products'), 'icon' => 'icofont-fast-food'],
+        ['url' => '', 'label' => __('Products'), 'icon' => 'icofont-fast-food'],
     ]
 ])
 		
