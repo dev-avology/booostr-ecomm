@@ -136,6 +136,12 @@ class CustomerController extends Controller
                 $validationMessages['g-recaptcha-response.required'] = 'Please verify that you are not a robot.';
             }
 
+            if ($request->has('agree_terms') || $request->filled('fname')) {
+                $validationRules['agree_terms'] = ['accepted'];
+                $validationMessages['agree_terms.accepted'] = 'Please agree to the Terms and Conditions and Privacy Policy.';
+                $validationMessages['agree_terms.required'] = 'Please agree to the Terms and Conditions and Privacy Policy.';
+            }
+
             $request->validate($validationRules, $validationMessages);
 
             // Verify reCAPTCHA with Google

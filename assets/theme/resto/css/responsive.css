@@ -883,10 +883,8 @@ blockquote {
   padding: 20px;
 }
 .cart-single-list img {
-	width: auto;
 	width: 100px;
 	height: 100px;
-	border-radius: ;
 	border-radius: 5px;
 	margin-bottom: 10px;
 }
@@ -1102,13 +1100,11 @@ blockquote {
 }
 .dashboard .main-content .details-lists .single-list .list-icon {
   position: relative;
-  left: ;
   left: 0;
   transform: none;
   top: 0;
   display: inline-block;
-  border-radius: ;
-  display: inline-block;
+  border-radius: 5px;
   width: 45px;
   height: 45px;
   line-height: 45px;

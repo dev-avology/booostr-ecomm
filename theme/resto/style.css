@@ -169,7 +169,7 @@ Version:	1.0
 .accounts-signin-top-form {
 	background: #FFFFFF;
 	box-shadow: 0px 0px 0px 2px #06346224, 16px 16px 48px rgba(6, 52, 98, 0.3);
-	border-radius: ;
+	border-radius: 8px;
 	width: 320px;
 	padding: 30px;
 	position: absolute;
