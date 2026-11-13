@@ -146,7 +146,7 @@ class CustomerController extends Controller
             $firstName = $parts[0] ?? $name;
             $lastName = isset($parts[1]) ? implode(' ', array_slice($parts, 1)) : $firstName;
             $username = explode('@', $request->email)[0] ?? $name;
-            $age = 'Over 18';
+            $age = 'adult';
         }
 
         $clubSlug = (string) (tenant('id') ?? '');
@@ -223,6 +223,47 @@ class CustomerController extends Controller
         ];
         $user->meta = json_encode($metaData);
         $user->save();
+
+        // Send Welcome Email to newly registered customer
+        try {
+            $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+            $clubName = trim((string) ($clubInfo['club_name'] ?? ''));
+            if ($clubName === '') {
+                $clubName = trim((string) (tenant('store_name') ?? ''));
+            }
+            if ($clubName === '') {
+                $clubName = ucwords(str_replace('-', ' ', (string) tenant('id')));
+            }
+
+            $clubLogo = '';
+            $bannerLogo = get_option('banner_logo');
+            if (!empty($bannerLogo)) {
+                $clubLogo = asset($bannerLogo);
+            } elseif (!empty($clubInfo['club_logo'])) {
+                $clubLogo = $clubInfo['club_logo'];
+            }
+
+            $mailData = [
+                'subject' => $firstName . ', your ' . $clubName . ' account has been created',
+                'name' => $name,
+                'first_name' => $firstName,
+                'username' => $username,
+                'email' => $request->email,
+                'club_name' => $clubName,
+                'site_url' => url('/'),
+                'login_url' => url('/customer/login'),
+                'support_email' => $clubInfo['club_email'] ?? ($clubInfo['email'] ?? null),
+                'logo' => $clubLogo,
+                'site_url_text' => str_replace(['https://', 'http://'], '', url('/')),
+            ];
+
+            \Illuminate\Support\Facades\Mail::to($request->email)->send(new \App\Mail\CustomerAccountCreatedMail($mailData));
+        } catch (\Throwable $e) {
+            \Log::error('Customer welcome mail failed to send', [
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         Auth::loginUsingId($user->id);
 

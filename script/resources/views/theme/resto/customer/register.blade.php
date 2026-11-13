@@ -100,9 +100,9 @@
 						<div class="form-group">
 							<label>{{ __('Age') }}</label>
 							<select name="age" class="form-control margin-5px-bottom" required style="height: 48px; border: 1px solid #eee; border-radius: 6px; padding: 0 15px;">
-								<option value="" disabled {{ old('age') ? '' : 'selected' }}>{{ __('Select Age') }}</option>
-								<option value="Over 18" {{ old('age') == 'Over 18' ? 'selected' : '' }}>Over 18</option>
-								<option value="Under 18" {{ old('age') == 'Under 18' ? 'selected' : '' }}>Under 18</option>
+								<option value="" disabled {{ old('age') ? '' : 'selected' }}>{{ __('Choose Age') }}</option>
+								<option value="child" {{ old('age') == 'child' ? 'selected' : '' }}>{{ __('Above 13 - Under 19') }}</option>
+								<option value="adult" {{ old('age') == 'adult' ? 'selected' : '' }}>{{ __('Above 19') }}</option>
 							</select>
 							@error('age')
 							<span class="text-danger small" role="alert">
