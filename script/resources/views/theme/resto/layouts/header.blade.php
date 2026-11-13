@@ -73,16 +73,7 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
       <div class="topbar-area">
          <div class="container">
             <div class="row">
-               <div class="col-lg-6 col-md-7 col-12">
-                  <!-- Topbar Left -->
-                  <div class="topbar-left">
-                     <ul class="topbar-left-inner">
-                        <li><i class="icofont-delivery-time"></i><span class="info"><a href="javascript:void(0)"><b>{{ __('Delivery') }}:</b>{{ $average_times->delivery_time ?? '' }}</a></span></li>
-                        <li><i class="icofont-food-cart"></i><span class="info"><b>{{ __('Takeout') }}:</b>{{ $average_times->pickup_time ?? '' }}</span></li>
-                     </ul>
-                  </div>
-               </div>
-               <div class="col-lg-6 col-md-5 col-12">
+               <div class="col-12">
                   <!-- Topbar Right -->
                   <div class="topbar-right">
                       <div class="topbar-language-section">
