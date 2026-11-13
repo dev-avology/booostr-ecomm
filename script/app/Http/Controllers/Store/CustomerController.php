@@ -106,18 +106,122 @@ class CustomerController extends Controller
     public function registerCustomer(Request $request)
     {
         abort_if(tenant('customer_modules') != 'on',404);
-        $request->validate([
-            'name' => 'required|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|confirmed',
-        ]);
+
+        // Support both fname/lname and legacy single-name input for 100% backwards compatibility
+        if ($request->filled('fname') || $request->filled('lname')) {
+            $request->validate([
+                'fname' => ['required', 'string', 'max:191'],
+                'lname' => ['required', 'string', 'max:191'],
+                'email' => ['required', 'string', 'email', 'max:191', 'unique:users'],
+                'username' => ['required', 'string', 'max:191'],
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+                'age' => ['required', 'string'],
+            ], [
+                'fname.required' => 'First name is required.',
+                'lname.required' => 'Last name is required.',
+                'email.required' => 'Email address is required.',
+                'email.email' => 'Please enter a valid email address.',
+                'email.unique' => 'This email is already registered on this store. Please login.',
+                'username.required' => 'Username is required.',
+                'password.required' => 'Password is required.',
+                'password.min' => 'Password must be at least 8 characters.',
+                'password.confirmed' => 'Password confirmation does not match.',
+                'age.required' => 'Age is required.',
+            ]);
+
+            $firstName = trim($request->fname);
+            $lastName = trim($request->lname);
+            $name = $firstName . ' ' . $lastName;
+            $username = trim($request->username);
+            $age = (string) $request->age;
+        } else {
+            $request->validate([
+                'name' => 'required|max:255',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|confirmed',
+            ]);
+
+            $name = trim($request->name);
+            $parts = explode(' ', $name);
+            $firstName = $parts[0] ?? $name;
+            $lastName = isset($parts[1]) ? implode(' ', array_slice($parts, 1)) : $firstName;
+            $username = explode('@', $request->email)[0] ?? $name;
+            $age = 'Over 18';
+        }
+
+        $clubSlug = (string) (tenant('id') ?? '');
+        $wpUser = null;
+        $wpuid = 0;
+
+        // Register user in Booostr Core (app.booostr.co) and sync to Contact Manager
+        try {
+            $client = new \GuzzleHttp\Client();
+            $apiUrl = env('WP_WEBBUILDER_API_URL') ?: 'https://app.booostr.co/wp-json/webbuilder-api/v1/user-register';
+
+            $response = $client->post($apiUrl, [
+                'verify' => false,
+                'timeout' => 15,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+                'json' => [
+                    'username' => $username,
+                    'password' => $request->password,
+                    'fname' => $firstName,
+                    'lname' => $lastName,
+                    'email' => $request->email,
+                    'age' => $age,
+                    'club' => $clubSlug,
+                ],
+            ]);
+
+            $resBody = json_decode((string) $response->getBody());
+            if ($resBody && !empty($resBody->success) && !empty($resBody->data) && ($resBody->data->status ?? '') === 'success') {
+                $wpUser = $resBody->data->user ?? null;
+                if (!empty($wpUser->user_id)) {
+                    $wpuid = (int) $wpUser->user_id;
+                }
+            }
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $errorMessage = $e->getResponse()->getBody()->getContents();
+            $errorMessage = trim($errorMessage, '"');
+
+            if (str_contains($errorMessage, 'Email already exists') || str_contains($errorMessage, 'email already registered')) {
+                $errorMessage = 'This email is already registered on Booostr. Please login.';
+            }
+
+            return redirect()->back()->with([
+                'type' => 'danger',
+                'error' => $errorMessage,
+                'msg' => $errorMessage
+            ])->withInput();
+        } catch (\Throwable $e) {
+            \Log::error('Booostr Core user registration API failed', [
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         $user = new User();
         $user->role_id = 4;
-        $user->name = $request->name;
+        $user->name = $name;
         $user->email = $request->email;
         $user->password = \Hash::make($request->password);
+        $user->phone = $wpUser->user_phone ?? null;
         $user->status = 1;
+
+        $metaData = [
+            'wpuid' => $wpuid,
+            'username' => $username,
+            'fname' => $firstName,
+            'lname' => $lastName,
+            'age' => $age,
+            'country' => $wpUser->user_country ?? 'United States of America',
+            'city' => $wpUser->user_city ?? '',
+            'state' => $wpUser->user_state ?? '',
+            'address' => $wpUser->user_address ?? '',
+        ];
+        $user->meta = json_encode($metaData);
         $user->save();
 
         Auth::loginUsingId($user->id);
