@@ -1,6 +1,6 @@
 @php
     // Use store banner from Store Settings (banner_logo)
-    $storeBanner = $banner ?? (get_option('banner_logo') ?: '');
+    $storeBanner = get_option('banner_logo') ?: '';
     $hasBannerImage = !empty($storeBanner);
     $finalBannerUrl = '';
     if ($hasBannerImage) {
