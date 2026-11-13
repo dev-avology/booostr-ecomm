@@ -1,45 +1,6 @@
 @extends('theme.resto.layouts.app')
 @section('content')
-@if(!empty($store_banner_image))
-   <div class="store-banner-area w-100 overflow-hidden" style="background-color: #f8f9fa;">
-      <div class="container-fluid p-0">
-         <div class="w-100 text-center">
-            @if(!empty($store_banner_url))
-               <a href="{{ $store_banner_url }}" class="d-block w-100">
-                  <img src="{{ $store_banner_image }}" alt="{{ tenant('store_name') ?? 'Store Banner' }}" class="d-block w-100" style="width: 100%; height: auto; max-height: 420px; min-height: 180px; object-fit: cover; object-position: center;">
-               </a>
-            @else
-               <img src="{{ $store_banner_image }}" alt="{{ tenant('store_name') ?? 'Store Banner' }}" class="d-block w-100" style="width: 100%; height: auto; max-height: 420px; min-height: 180px; object-fit: cover; object-position: center;">
-            @endif
-         </div>
-      </div>
-   </div>
-@else
-<!-- Start Hero Area -->
-      <section class="hero-area">
-         <div class="container">
-            <div class="row">
-               <div class="col-lg-8 col-12">
-                  <div class="hero-slider-head">
-                     <div class="hero-slider">
-                      
-                        
-                       
-                        
-                     </div>
-                  </div>
-               </div>
-               <div class="col-lg-4 col-12">
-                  <div class="row short_banner">
-                     
-                     
-                  </div>
-               </div>
-            </div>
-         </div>
-      </section>
-      <!--/ End Hero Area -->
-@endif
+@include('theme.resto.components.page-banner', ['is_home' => true])
       
       <!--/ Start Popular Area -->
       @if($page_data->featured_products_status ?? 'yes' == 'yes')
