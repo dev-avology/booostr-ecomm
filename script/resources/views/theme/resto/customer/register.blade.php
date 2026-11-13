@@ -110,6 +110,15 @@
 							</span>
 							@enderror
 						</div>
+
+						<div class="form-group my-3">
+							<div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') ?: env('RECAPTCHA_SITE_KEY') }}"></div>
+							@error('g-recaptcha-response')
+							<span class="text-danger small" role="alert">
+								<strong>{{ $message }}</strong>
+							</span>
+							@enderror
+						</div>
 						
 						<div class="button mt-4">
 							<button type="submit" class="btn">{{ __('Register') }}</button>
@@ -122,4 +131,7 @@
 	</div>
 </section>
 <!-- End Registration section -->
+@push('js')
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+@endpush
 @endsection
