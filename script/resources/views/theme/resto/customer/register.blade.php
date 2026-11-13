@@ -630,7 +630,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 			// Activate processing state: spinner, text change, and disabled styling
 			submitBtn.classList.add('is-processing');
-			submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.15em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spinner-border .75s linear infinite; margin-right: 8px;"></span> ' + {{ json_encode(__('Processing...')) }};
+			submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.15em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spinner-border .75s linear infinite; margin-right: 8px;"></span> ' + {!! json_encode(__('Processing...')) !!};
 			submitBtn.style.pointerEvents = 'none';
 
 			// Disable button after submission has been dispatched so browser delivers the POST request

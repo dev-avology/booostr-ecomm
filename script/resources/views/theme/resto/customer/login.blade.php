@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			submitBtn.classList.add('is-processing');
 			submitBtn.disabled = true;
 			submitBtn.style.pointerEvents = 'none';
-			submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.15em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spinner-border .75s linear infinite; margin-right: 8px;"></span> ' + {{ json_encode(__('Processing...')) }};
+			submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.15em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spinner-border .75s linear infinite; margin-right: 8px;"></span> ' + {!! json_encode(__('Processing...')) !!};
 
 			const alertArea = document.getElementById('loginAlertArea');
 			if (alertArea) {
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				const data = await response.json().catch(() => ({}));
 				if (response.ok && data.status === 'success') {
 					if (alertArea) {
-						alertArea.innerHTML = '<div class="alert alert-success" role="alert" style="margin-bottom: 24px; border-radius: 8px;"><i class="icofont-check-circled me-1"></i> ' + (data.msg || {{ json_encode(__('Login successful! Redirecting...')) }}) + '</div>';
+						alertArea.innerHTML = '<div class="alert alert-success" role="alert" style="margin-bottom: 24px; border-radius: 8px;"><i class="icofont-check-circled me-1"></i> ' + (data.msg || {!! json_encode(__('Login successful! Redirecting...')) !!}) + '</div>';
 					}
 					// Redirect to destination URL
 					setTimeout(() => {
@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					}, 300);
 				} else {
 					// Handle failed login
-					const errorMsg = data.msg || (data.errors ? Object.values(data.errors)[0] : {{ json_encode(__('User name and password do not match.')) }});
+					const errorMsg = data.msg || (data.errors ? Object.values(data.errors)[0] : {!! json_encode(__('User name and password do not match.')) !!});
 					if (alertArea) {
 						alertArea.innerHTML = '<div class="alert alert-danger" role="alert" style="margin-bottom: 24px; border-radius: 8px;"><i class="icofont-warning-alt me-1"></i> ' + errorMsg + '</div>';
 					}
@@ -405,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					submitBtn.classList.remove('is-processing');
 					submitBtn.disabled = false;
 					submitBtn.style.pointerEvents = 'auto';
-					submitBtn.innerHTML = {{ json_encode(__('Login')) }};
+					submitBtn.innerHTML = {!! json_encode(__('Login')) !!};
 				}
 			})
 			.catch(err => {
@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				submitBtn.classList.remove('is-processing');
 				submitBtn.disabled = false;
 				submitBtn.style.pointerEvents = 'auto';
-				submitBtn.innerHTML = {{ json_encode(__('Login')) }};
+				submitBtn.innerHTML = {!! json_encode(__('Login')) !!};
 			});
 		});
 	}
