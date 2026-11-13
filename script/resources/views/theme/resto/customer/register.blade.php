@@ -46,7 +46,7 @@
 						<div class="row">
 							<div class="col-md-6 col-12">
 								<div class="form-group mb-3">
-									<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('First Name') }}</label>
+									<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('First Name') }} <span style="color: #ef4444; font-weight: 700;">*</span></label>
 									<input class="custom-input" value="{{ old('fname') }}" type="text" name="fname" required placeholder="First Name"/>
 									@error('fname')
 									<span class="text-danger small d-block mt-1"><strong>{{ $message }}</strong></span>
@@ -55,7 +55,7 @@
 							</div>
 							<div class="col-md-6 col-12">
 								<div class="form-group mb-3">
-									<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Last Name') }}</label>
+									<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Last Name') }} <span style="color: #ef4444; font-weight: 700;">*</span></label>
 									<input class="custom-input" value="{{ old('lname') }}" type="text" name="lname" required placeholder="Last Name"/>
 									@error('lname')
 									<span class="text-danger small d-block mt-1"><strong>{{ $message }}</strong></span>
@@ -65,7 +65,7 @@
 						</div>
 
 						<div class="form-group mb-3">
-							<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Username') }}</label>
+							<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Username') }} <span style="color: #ef4444; font-weight: 700;">*</span></label>
 							<input class="custom-input" value="{{ old('username') }}" type="text" name="username" required placeholder="Username"/>
 							@error('username')
 							<span class="text-danger small d-block mt-1"><strong>{{ $message }}</strong></span>
@@ -73,7 +73,7 @@
 						</div>
 
 						<div class="form-group mb-3">
-							<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Email') }}</label>
+							<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Email') }} <span style="color: #ef4444; font-weight: 700;">*</span></label>
 							<input class="custom-input" value="{{ old('email') }}" type="email" name="email" required placeholder="Email"/>
 							@error('email')
 							<span class="text-danger small d-block mt-1"><strong>{{ $message }}</strong></span>
@@ -81,7 +81,7 @@
 						</div>
 
 						<div class="form-group mb-3">
-							<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Create password') }}</label>
+							<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Create password') }} <span style="color: #ef4444; font-weight: 700;">*</span></label>
 							<div class="password-wrapper" style="position: relative;">
 								<input class="custom-input" name="password" type="password" id="registerPassword" required placeholder="Create password" style="padding-right: 44px;"/>
 								<span class="password-toggle-icon" onclick="togglePasswordVisibility('registerPassword', this)" title="Show / Hide Password" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 18px; z-index: 2;">
@@ -94,7 +94,7 @@
 						</div>
 
 						<div class="form-group mb-3">
-							<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Confirm Password') }}</label>
+							<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Confirm Password') }} <span style="color: #ef4444; font-weight: 700;">*</span></label>
 							<div class="password-wrapper" style="position: relative;">
 								<input class="custom-input" required name="password_confirmation" type="password" id="registerPasswordConfirm" placeholder="Confirm Password" style="padding-right: 44px;"/>
 								<span class="password-toggle-icon" onclick="togglePasswordVisibility('registerPasswordConfirm', this)" title="Show / Hide Password" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 18px; z-index: 2;">
@@ -107,7 +107,7 @@
 						</div>
 
 						<div class="form-group mb-3">
-							<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Age') }}</label>
+							<label class="form-label" style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; display: block;">{{ __('Age') }} <span style="color: #ef4444; font-weight: 700;">*</span></label>
 							<select name="age" class="custom-input" required style="width: 100%; height: 48px; border-radius: 8px; padding: 0 16px; font-size: 14px; color: #334155; background-color: #fff;">
 								<option value="" disabled {{ old('age') ? '' : 'selected' }}>{{ __('Choose Age') }}</option>
 								<option value="child" {{ old('age') == 'child' ? 'selected' : '' }}>{{ __('Above 13 - Under 19') }}</option>
@@ -126,6 +126,7 @@
 								<a href="{{ url('/page/terms-and-conditions') }}" target="_blank">{{ __('Terms and condition') }}</a> 
 								{{ __('and') }} 
 								<a href="{{ url('/page/privacy-policy') }}" target="_blank">{{ __('privacy policy') }}</a>
+								<span style="color: #ef4444; font-weight: 700;">*</span>
 							</label>
 						</div>
 						@error('agree_terms')
@@ -141,7 +142,7 @@
 						@enderror
 						
 						<!-- Register Submit Button (disabled until terms checked) -->
-						<div class="button mt-4">
+						<div class="register-button-wrapper mt-4">
 							<button type="submit" id="registerSubmitBtn" class="btn w-100">
 								{{ __('Register') }}
 							</button>
@@ -383,8 +384,17 @@
 	overflow-x: auto;
 }
 
-/* Register Button Styled with #528CD7 */
-#registerSubmitBtn {
+/* Register Button Styled with #528CD7 - Green hover completely removed */
+.register-button-wrapper,
+.login .form-head form .register-button-wrapper {
+	margin-top: 24px;
+	width: 100%;
+}
+
+#registerSubmitBtn,
+.register-button-wrapper #registerSubmitBtn,
+.login .form-head form .register-button-wrapper #registerSubmitBtn,
+.login .form-head form .button #registerSubmitBtn {
 	background: #528CD7 !important;
 	background-color: #528CD7 !important;
 	color: #ffffff !important;
@@ -394,14 +404,48 @@
 	font-weight: 600 !important;
 	font-size: 15px !important;
 	letter-spacing: 0.3px !important;
-	transition: all 0.25s ease !important;
+	transition: background-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease !important;
+	position: relative !important;
+	overflow: hidden !important;
+	box-shadow: none !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
 }
 
-#registerSubmitBtn:hover:not(:disabled) {
-	background: #3d71b5 !important;
-	background-color: #3d71b5 !important;
+/* Eliminate theme green ::before pseudo element hover */
+#registerSubmitBtn::before,
+#registerSubmitBtn::after,
+.register-button-wrapper #registerSubmitBtn::before,
+.register-button-wrapper #registerSubmitBtn::after,
+.login .form-head form .button #registerSubmitBtn::before,
+.login .form-head form .button #registerSubmitBtn::after,
+.button .btn#registerSubmitBtn::before,
+.button .btn#registerSubmitBtn:hover::before {
+	display: none !important;
+	content: none !important;
+	width: 0 !important;
+	height: 0 !important;
+	background: transparent !important;
+	background-color: transparent !important;
+	opacity: 0 !important;
+	visibility: hidden !important;
+}
+
+#registerSubmitBtn:hover:not(:disabled):not(.is-processing) {
+	background: #467fcb !important; /* Subtle theme blue - never green */
+	background-color: #467fcb !important;
 	color: #ffffff !important;
-	box-shadow: 0 4px 14px rgba(82, 140, 215, 0.35) !important;
+	box-shadow: 0 4px 12px rgba(82, 140, 215, 0.25) !important;
+}
+
+#registerSubmitBtn:focus,
+#registerSubmitBtn:active {
+	background: #467fcb !important;
+	background-color: #467fcb !important;
+	color: #ffffff !important;
+	outline: none !important;
+	box-shadow: none !important;
 }
 
 #registerSubmitBtn:disabled {
@@ -409,6 +453,20 @@
 	cursor: not-allowed !important;
 	background: #94b8e8 !important;
 	background-color: #94b8e8 !important;
+	box-shadow: none !important;
+}
+
+#registerSubmitBtn.is-processing {
+	opacity: 0.8 !important;
+	cursor: wait !important;
+	pointer-events: none !important;
+	background: #528CD7 !important;
+	background-color: #528CD7 !important;
+	box-shadow: none !important;
+}
+
+@keyframes spinner-border {
+	to { transform: rotate(360deg); }
 }
 
 .login-link {
@@ -513,18 +571,73 @@ function togglePasswordVisibility(fieldId, iconElem) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-	const agreeCheckbox = document.getElementById('agree_terms');
+	const form = document.getElementById('registrationForm');
 	const submitBtn = document.getElementById('registerSubmitBtn');
 
-	function updateSubmitButtonState() {
-		if (agreeCheckbox && submitBtn) {
-			submitBtn.disabled = !agreeCheckbox.checked;
-		}
+	function checkAllRequiredFields() {
+		if (!form || !submitBtn || submitBtn.classList.contains('is-processing')) return;
+
+		const fname = form.querySelector('input[name="fname"]');
+		const lname = form.querySelector('input[name="lname"]');
+		const username = form.querySelector('input[name="username"]');
+		const email = form.querySelector('input[name="email"]');
+		const password = document.getElementById('registerPassword');
+		const passwordConfirm = document.getElementById('registerPasswordConfirm');
+		const age = form.querySelector('select[name="age"]');
+		const agreeTerms = document.getElementById('agree_terms');
+
+		const allFilled = Boolean(
+			fname && fname.value.trim() !== '' &&
+			lname && lname.value.trim() !== '' &&
+			username && username.value.trim() !== '' &&
+			email && email.value.trim() !== '' &&
+			password && password.value.trim() !== '' &&
+			passwordConfirm && passwordConfirm.value.trim() !== '' &&
+			age && age.value && age.value.trim() !== '' &&
+			agreeTerms && agreeTerms.checked
+		);
+
+		submitBtn.disabled = !allFilled;
 	}
 
-	if (agreeCheckbox) {
-		agreeCheckbox.addEventListener('change', updateSubmitButtonState);
-		updateSubmitButtonState(); // initialize on page load
+	if (form) {
+		// Listen to all user input & selection events across all form fields
+		form.addEventListener('input', checkAllRequiredFields);
+		form.addEventListener('change', checkAllRequiredFields);
+		form.addEventListener('keyup', checkAllRequiredFields);
+		form.addEventListener('paste', () => setTimeout(checkAllRequiredFields, 50));
+
+		// Initial check on load (handles browser autofill and validation errors with old() values)
+		checkAllRequiredFields();
+		setTimeout(checkAllRequiredFields, 200);
+		setTimeout(checkAllRequiredFields, 600);
+	}
+
+	if (form && submitBtn) {
+		form.addEventListener('submit', function(e) {
+			// Prevent double submission if already processing
+			if (submitBtn.classList.contains('is-processing')) {
+				e.preventDefault();
+				return false;
+			}
+
+			const agreeCheckbox = document.getElementById('agree_terms');
+			if (agreeCheckbox && !agreeCheckbox.checked) {
+				e.preventDefault();
+				agreeCheckbox.focus();
+				return false;
+			}
+
+			// Activate processing state: spinner, text change, and disabled styling
+			submitBtn.classList.add('is-processing');
+			submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.15em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spinner-border .75s linear infinite; margin-right: 8px;"></span> ' + {{ json_encode(__('Processing...')) }};
+			submitBtn.style.pointerEvents = 'none';
+
+			// Disable button after submission has been dispatched so browser delivers the POST request
+			setTimeout(function() {
+				submitBtn.disabled = true;
+			}, 20);
+		});
 	}
 });
 </script>
