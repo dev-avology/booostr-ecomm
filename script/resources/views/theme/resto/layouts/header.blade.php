@@ -36,7 +36,7 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                <div class="single-cart-show"><a href="{{ url('/cart') }}"><i class="icofont-cart"></i><span>{{ __('Cart') }}</span></a></div>
             </li>
             <li>
-               <div class="single-cart-show"><a href="{{ url('/customer/dashboard') }}"><i class="icofont-ui-user"></i><span>{{ __('Account') }}</span></a></div>
+               <div class="single-cart-show"><a href="{{ Auth::check() && Auth::user()->role_id == 3 ? url('/seller/dashboard') : url('/customer/dashboard') }}"><i class="{{ Auth::check() && Auth::user()->role_id == 3 ? 'icofont-dashboard-web' : 'icofont-ui-user' }}"></i><span>{{ Auth::check() && Auth::user()->role_id == 3 ? __('Admin') : __('Account') }}</span></a></div>
             </li>
          </ul>
       </div>
@@ -93,8 +93,12 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                      <ul class="topbar-right-inner">
                         <!-- Topbar Language -->
                         @if(tenant('customer_modules') == 'on')
-                        <li class="accounts-top-btn"><a href="{{ !Auth::check() ? '#' : url('/customer/dashboard') }}"><i class="icofont-user-male"></i><span>{{ !Auth::check() ? __('My Account') : Auth::user()->name }}</span></a>
-                           @if(!Auth::check())
+                        @if(Auth::check() && Auth::user()->role_id == 3)
+                        <li class="accounts-top-btn"><a href="{{ url('/seller/dashboard') }}"><i class="icofont-dashboard-web"></i><span>{{ __('Admin Dashboard') }}</span></a></li>
+                        @elseif(Auth::check() && Auth::user()->role_id == 4)
+                        <li class="accounts-top-btn"><a href="{{ url('/customer/dashboard') }}"><i class="icofont-user-male"></i><span>{{ Auth::user()->name }}</span></a></li>
+                        @else
+                        <li class="accounts-top-btn"><a href="#"><i class="icofont-user-male"></i><span>{{ __('My Account') }}</span></a>
                            <!-- Topbar Accounts Form -->
                            <div class="accounts-signin-top-form">
                               <form action="{{ route('login') }}" method="post" class="accounts-signin-inner">
@@ -130,8 +134,8 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                               </form>  
                            </div>
                            <!-- End Topbar Accounts Form -->
-                           @endif
                         </li>
+                        @endif
                         @endif
                      </ul>
                      

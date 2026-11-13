@@ -1616,7 +1616,7 @@ class CheckoutController extends Controller
         Auth::loginUsingId($user->id);
         }
             $order = new Order;
-            if (Auth::check() == true) {
+            if (Auth::check() && Auth::user()->role_id == 4) {
                 $order->user_id = Auth::id();
             }
 
@@ -2627,7 +2627,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             }
             $order = new Order;
 
-            if (Auth::check() == true) {
+            if (Auth::check() && Auth::user()->role_id == 4) {
                 $order->user_id = Auth::id();
             }
 
