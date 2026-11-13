@@ -89,7 +89,7 @@ class Kernel extends HttpKernel
         'Avalogy' => \App\Http\Middleware\AvalogyMiddleware::class,
         'Storecheck' => \App\Http\Middleware\StoreSettingCheckMiddleware::class,
         'page.cache' => \App\Http\Middleware\PageCache::class,
-        
+        'standalone.store' => \App\Http\Middleware\CheckStandaloneStore::class,
     ];
 
 }

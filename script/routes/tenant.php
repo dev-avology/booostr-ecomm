@@ -32,102 +32,88 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
         return redirect('/'); 
     });
 
-    //ecommerce routes for public
-    
-    Route::get('/', function(){
-        if (get_option('standalone_store_status') === 'on') {
-            return app(\App\Http\Controllers\Store\PageController::class)->home();
-        }
+    // Ticket routes
+    Route::get('/ticket/scan/{uuid}', [TicketScanController::class, 'scan']);
+    Route::get('/tickets/qr_{uuid}.png', [TicketScanController::class, 'ticketQrPng']);
+    Route::get('/ticket/{uuid}/calendar', [TicketScanController::class, 'calendar'])->name('ticket.calendar');
+    Route::get('/ticket/google-wallet/{uuid}', [TicketScanController::class, 'googleWallet']);
+    Route::get('/create-google-wallet-class', [TicketScanController::class, 'createGoogleWalletClass']);
+    Route::get('/apple-wallet/{uuid}/ticket.pkpass', [TicketScanController::class, 'appleWallet']);
+    Route::get('/ticket/{uuid}/print', [TicketScanController::class, 'print'])->name('ticket.print');
 
-        $data = json_decode(tenant()->club_info, true);
-        $clubUrl = $data['club_url'] ?? '/';
-        return redirect($clubUrl);
+    // Standalone Storefront Routes (Gated by standalone_store_status setting)
+    Route::group(['middleware' => ['standalone.store']], function () {
+        Route::get('/', 'Store\PageController@home');
+        Route::get('/products', 'Store\PageController@products');
+        Route::get('/brand/{slug}', 'Store\PageController@brand');
+        Route::get('/category/{slug}', 'Store\PageController@category');
+        Route::get('/deals', 'Store\PageController@deals');
+        Route::get('/featured/{slug}', 'Store\PageController@featured');
+        Route::get('/tag/{slug}', 'Store\PageController@tag');
+        Route::get('/product/{slug}', 'Store\PageController@productView');
+        Route::get('/page/{slug}', 'Store\PageController@page')->name('store.page');
+        Route::get('/menu', 'Store\PageController@menu');
+        Route::get('/cart', 'Store\PageController@cart');
+        Route::get('/wishlist', 'Store\PageController@wishlist');
+        Route::get('/checkout', 'Store\CheckoutController@subdomainCheckout')->name('store.checkout');
+        Route::get('/thanks', 'Store\PageController@thanks');
+        Route::get('/checkout/payment/{order_id}', 'Store\CheckoutController@paymentPage')->name('checkout.payment');
+        Route::get('/contact', 'Store\PageController@contact');
+        Route::post('/contact/send', 'Store\PageController@contact_send')->middleware('throttle:2,1');
+        Route::get('locale/lang', 'LocalizationController@store')->name('language.set');
+        Route::get('category/product/show','Store\PageController@category_product')->name('category.product');
+        Route::get('blog', 'Store\BlogController@index');
+        Route::get('blog/{slug}', 'Store\BlogController@show');
+
+        // Cart routes for standalone storefront
+        Route::post('add-to-cart','Store\CartController@addtocart')->name('add.tocart');
+        Route::post('add-to-wishlist','Store\CartController@addtowishlist')->name('add.wishlist');
+        Route::post('makediscount','Store\CartController@makediscount')->name('makediscount');
+        Route::get('remove-wishlist/{id}','Store\CartController@removeWishlist');
+        Route::get('/express','Store\CartController@express');
+        Route::get('remove-cart/{id}','Store\CartController@removecart')->name('remove.cart');
+        Route::post('cart-qty','Store\CartController@CartQty')->name('cart.qty');
+
+        // Customer routes for standalone storefront
+        Route::group(['prefix'=>'customer'],function(){
+            Route::post('/make-subscribe','Store\CustomerController@subscribe')->name('customer.subscribe');
+            Route::get('/login', 'Store\CustomerController@login')->middleware('guest');
+            Route::post('/login-customer', 'Store\CustomerController@loginCustomer')->name('customer.login')->middleware('guest');
+            Route::get('/register', 'Store\CustomerController@register')->middleware('guest');
+            Route::post('/register-customer', 'Store\CustomerController@registerCustomer')->name('customer.register')->middleware('guest');
+            Route::get('/dashboard', 'Store\CustomerController@dashboard')->middleware(['auth','user']);
+            Route::get('/orders', 'Store\CustomerController@orders')->middleware(['auth','user']);
+            Route::get('/order/{id}', 'Store\CustomerController@orderview')->middleware(['auth','user']);
+            Route::get('/settings', 'Store\CustomerController@settings')->middleware(['auth','user']);
+            Route::get('/reviews', 'Store\CustomerController@reviews')->middleware(['auth','user']);
+            Route::post('profile/update','Store\CustomerController@profileUpdate')->name('customer.profile.update')->middleware(['auth','user']);
+            Route::post('profile/password-update','Store\CustomerController@profilePasswordUpdate')->name('customer.password.update')->middleware(['auth','user']);
+            Route::post('order-make-rating/{orderid}/{termid}/{optionid}','Store\CustomerController@makeReview')->middleware(['auth','user']);
+        });
     });
 
-    Route::get('/ticket/scan/{uuid}', [TicketScanController::class, 'scan']);
-
-    Route::get('/tickets/qr_{uuid}.png', [TicketScanController::class, 'ticketQrPng']);
-    
-    Route::get('/ticket/{uuid}/calendar', [TicketScanController::class, 'calendar']) ->name('ticket.calendar');
-
-    Route::get('/ticket/google-wallet/{uuid}', [TicketScanController::class, 'googleWallet']);
-    
-    Route::get('/create-google-wallet-class', [TicketScanController::class, 'createGoogleWalletClass']);
-
-    Route::get('/apple-wallet/{uuid}/ticket.pkpass', [TicketScanController::class, 'appleWallet']);
-    
-    Route::get('/ticket/{uuid}/print', [TicketScanController::class, 'print'])->name('ticket.print');
-    
-    
-    Route::get('/products', 'Store\PageController@products');
-    Route::get('/brand/{slug}', 'Store\PageController@brand');
-    Route::get('/category/{slug}', 'Store\PageController@category');
-    Route::get('/deals', 'Store\PageController@deals');
-    Route::get('/featured/{slug}', 'Store\PageController@featured');
-    Route::get('/tag/{slug}', 'Store\PageController@tag');
-    Route::get('/product/{slug}', 'Store\PageController@productView');
-    Route::get('/page/{slug}', 'Store\PageController@page')->name('store.page');
-    Route::get('/menu', 'Store\PageController@menu');
-    Route::get('/cart', 'Store\PageController@cart');
-    Route::get('/wishlist', 'Store\PageController@wishlist');
+    // Direct / Embed Checkout Routes (Bypasses standalone_store check so Website Builder and Club Profiles always work)
     Route::get('/direct_checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_checkout_to');
-
     Route::get('/direct_checkout_form/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_checkout_form');
-        
-    //Route::get('/direct/checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_checkout')->name('direct.checkout');
     Route::get('/direct/checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_new_checkout')->name('direct.checkout');
-    
     Route::get('/direct/checkout_form/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_checkout_form_to')->name('direct.checkout_form');
-
-   // Route::get('/direct/checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_new_checkout')->name('direct.checkout');
-
     Route::get('/direct/new-checkout/{cartid}/{redirect_url}', 'Store\CheckoutController@direct_new_checkout')->name('direct.new_checkout');
-
 
     Route::get('/get-stripe-paymentIntent', 'Store\CheckoutController@get_stripe_paymentIntent')->name('checkout.get_stripe_paymentIntent');
     Route::post('/applyTax', 'Store\CheckoutController@applyTax')->name('checkout.applyTax');
-
-    Route::get('/checkout', 'Store\CheckoutController@subdomainCheckout')->name('store.checkout');
     Route::post('/checkout/make-order', 'Store\CheckoutController@makeOrder')->name('checkout.makeorder');
     Route::post('/checkout/new-make-order', 'Store\CheckoutController@newMakeOrder')->name('checkout.newmakeorder');
     Route::post('/checkout/process-payment/{order_id}', 'Store\CheckoutController@processPayment')->name('checkout.processPayment');
     Route::get('/checkout/process-payment/{order_id}', 'Store\CheckoutController@processPayment')->name('checkout.processPayment');
-
-    // Route::get('/payment/success', 'Store\CheckoutController@paymentSuccess')->name('checkout.success');
-    
     Route::get('/payment/success', 'Store\CheckoutController@success')->name('checkout.success');
-
-
-    Route::get('/thanks', 'Store\PageController@thanks');
-
     Route::post('make-order', 'Store\OrderController@makeOrder')->name('make.order');
 
-    Route::get('/checkout/payment/{order_id}', 'Store\CheckoutController@paymentPage')->name('checkout.payment');
-
-    Route::get('/contact', 'Store\PageController@contact');
-    Route::post('/contact/send', 'Store\PageController@contact_send')->middleware('throttle:2,1');
-    Route::get('locale/lang', 'LocalizationController@store')->name('language.set');
-    Route::get('category/product/show','Store\PageController@category_product')->name('category.product');
-
-    Route::get('blog', 'Store\BlogController@index');
-    Route::get('blog/{slug}', 'Store\BlogController@show');
-
-    //cart routes
-    Route::post('add-to-cart','Store\CartController@addtocart')->name('add.tocart');
-    Route::post('add-to-wishlist','Store\CartController@addtowishlist')->name('add.wishlist');
-    Route::post('makediscount','Store\CartController@makediscount')->name('makediscount');
-    Route::get('remove-wishlist/{id}','Store\CartController@removeWishlist');
-    Route::get('/express','Store\CartController@express');
-    
-   
-    Route::get('remove-cart/{id}','Store\CartController@removecart')->name('remove.cart');
-    Route::post('cart-qty','Store\CartController@CartQty')->name('cart.qty');
     Route::post('product-search','Store\CartController@search')->name('pos.search');
     Route::get('product-varidation/{id}','Store\CartController@varidation')->name('pos.varidation');
     Route::resource('order', 'Store\OrderController');
     Route::post('orders/destroy','Store\OrderController@destroy')->name('order.multipledelete');
 
-    //routes for get response data
+    // Routes for response data & POS / APIs
     Route::get('/databack', 'Store\DataController@databack');
     Route::get('/get-databack', 'Store\DataController@getData')->name('callback.data');
     Route::get('/get-product','Store\DataController@getproducts');
@@ -137,32 +123,10 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
 
     Route::get('/order-success','Store\OrderController@success');
     Route::get('/order-fail','Store\OrderController@fail');
-    
 
     Route::post('apply-coupon-code','CouponController@applyCoupon');
-
     Route::get('get-coupon-type/{type}','CouponController@getCouponType');
     Route::get('generate-coupon-code','CouponController@generateCode');
-
-
-
-    //ecommerce store customers routes
-    Route::group(['prefix'=>'customer'],function(){
-        Route::post('/make-subscribe','Store\CustomerController@subscribe')->name('customer.subscribe');
-        Route::get('/login', 'Store\CustomerController@login')->middleware('guest');
-        Route::post('/login-customer', 'Store\CustomerController@loginCustomer')->name('customer.login')->middleware('guest');
-        Route::get('/register', 'Store\CustomerController@register')->middleware('guest');
-        Route::post('/register-customer', 'Store\CustomerController@registerCustomer')->name('customer.register')->middleware('guest');
-        Route::get('/dashboard', 'Store\CustomerController@dashboard')->middleware(['auth','user']);
-        Route::get('/orders', 'Store\CustomerController@orders')->middleware(['auth','user']);
-        Route::get('/order/{id}', 'Store\CustomerController@orderview')->middleware(['auth','user']);
-        Route::get('/settings', 'Store\CustomerController@settings')->middleware(['auth','user']);
-        Route::get('/reviews', 'Store\CustomerController@reviews')->middleware(['auth','user']);
-        Route::post('profile/update','Store\CustomerController@profileUpdate')->name('customer.profile.update')->middleware(['auth','user']);
-        Route::post('profile/password-update','Store\CustomerController@profilePasswordUpdate')->name('customer.password.update')->middleware(['auth','user']);
-        Route::post('order-make-rating/{orderid}/{termid}/{optionid}','Store\CustomerController@makeReview')->middleware(['auth','user']);
-        
-    });
     
 
 
