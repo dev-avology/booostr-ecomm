@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Auth;
 
 class CheckStandaloneStore
 {
@@ -16,7 +17,20 @@ class CheckStandaloneStore
      */
     public function handle(Request $request, Closure $next)
     {
-        // 1. If standalone store is explicitly ON, allow access
+        // 1. If a Club Owner / Seller (role_id == 3) is logged in, redirect them directly to Seller Dashboard
+        if (Auth::check() && Auth::user()->role_id == 3) {
+            if (!$request->is('seller*') && !$request->is('logout') && !$request->is('api*')) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'status' => 'redirect',
+                        'redirect' => url('/seller/dashboard'),
+                    ]);
+                }
+                return redirect('/seller/dashboard');
+            }
+        }
+
+        // 2. If standalone store is explicitly ON, allow access
         if (get_option('standalone_store_status') === 'on') {
             return $next($request);
         }
