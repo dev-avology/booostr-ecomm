@@ -150,6 +150,7 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
     Route::group(['prefix'=>'customer'],function(){
         Route::post('/make-subscribe','Store\CustomerController@subscribe')->name('customer.subscribe');
         Route::get('/login', 'Store\CustomerController@login')->middleware('guest');
+        Route::post('/login-customer', 'Store\CustomerController@loginCustomer')->name('customer.login')->middleware('guest');
         Route::get('/register', 'Store\CustomerController@register')->middleware('guest');
         Route::post('/register-customer', 'Store\CustomerController@registerCustomer')->name('customer.register')->middleware('guest');
         Route::get('/dashboard', 'Store\CustomerController@dashboard')->middleware(['auth','user']);

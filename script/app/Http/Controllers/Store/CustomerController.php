@@ -68,6 +68,182 @@ class CustomerController extends Controller
        return view(baseview('customer/login'));
     }
 
+    /**
+     * Customer Login Handler (Booostr Central API + Local Sync & Fallback)
+     *
+     * Workflow:
+     * 1. Validates username/email and password (minimum 6 characters).
+     * 2. Resolves username if the customer entered their registered email address.
+     * 3. Communicates with Booostr Core Central API (https://app.booostr.co/wp-json/webbuilder-api/v1/user-login).
+     * 4. If credentials match on Booostr Core, synchronizes/updates the customer in the local tenant database
+     *    with role_id = 4 (Store Customer), verifies email, stores metadata, and hashes password locally.
+     * 5. If central API is unreachable or returns false, falls back to local database authentication (Hash::check).
+     * 6. Authenticates session via Auth::login() and returns intended redirect destination (or AJAX JSON response).
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
+    public function loginCustomer(Request $request)
+    {
+        abort_if(tenant('customer_modules') != 'on', 404);
+
+        $rules = [
+            'email' => 'required|string',
+            'password' => 'required|string|min:6',
+        ];
+
+        $messages = [
+            'email.required' => __('Username or email is required.'),
+            'password.required' => __('Password is required.'),
+            'password.min' => __('Password must be at least 6 characters.'),
+        ];
+
+        // Handle AJAX validation errors gracefully
+        if ($request->ajax()) {
+            $validator = \Validator::make($request->all(), $rules, $messages);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'msg' => $validator->errors()->first(),
+                ], 422);
+            }
+        } else {
+            $request->validate($rules, $messages);
+        }
+
+        $inputIdentifier = trim($request->input('email'));
+        $password = (string) $request->input('password');
+        $remember = (bool) $request->filled('remember');
+
+        // Resolve username if an email address was provided
+        $username = $inputIdentifier;
+        if (filter_var($inputIdentifier, FILTER_VALIDATE_EMAIL)) {
+            $localUser = User::where('email', $inputIdentifier)->first();
+            if ($localUser && !empty($localUser->meta)) {
+                $meta = json_decode($localUser->meta, true);
+                if (!empty($meta['username'])) {
+                    $username = $meta['username'];
+                }
+            }
+        }
+
+        $clubSlug = (string) (tenant('club_id') ?: tenant('id') ?? '');
+        $apiUrl = env('WP_WEBBUILDER_LOGIN_API_URL') ?: 'https://app.booostr.co/wp-json/webbuilder-api/v1/user-login';
+        $authenticatedUser = null;
+
+        // Step 1: Attempt authentication with Booostr Central API
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->post($apiUrl, [
+                'verify' => false,
+                'timeout' => 15,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+                'json' => [
+                    'username' => $username,
+                    'password' => $password,
+                    'club'     => $clubSlug,
+                ],
+            ]);
+
+            $resBody = json_decode((string) $response->getBody());
+            if ($resBody && !empty($resBody->success) && !empty($resBody->data) && ($resBody->data->status ?? '') === 'success') {
+                $wpUser = $resBody->data->user ?? null;
+                if ($wpUser && !empty($wpUser->user_email)) {
+                    // Find or create local customer user record
+                    $localUser = User::where('email', $wpUser->user_email)->first();
+                    if (!$localUser) {
+                        $localUser = new User();
+                        $localUser->email = $wpUser->user_email;
+                        $localUser->role_id = 4; // Role 4 = Store Customer in Booostr eCommerce
+                        $localUser->status = 1;
+                    }
+
+                    $localUser->name = $wpUser->user_nicename ?? ($wpUser->display_name ?? $wpUser->user_login ?? $localUser->name);
+                    $localUser->password = \Hash::make($password);
+                    if (!empty($wpUser->user_phone)) {
+                        $localUser->phone = $wpUser->user_phone;
+                    }
+
+                    $existingMeta = !empty($localUser->meta) ? json_decode($localUser->meta, true) : [];
+                    $mergedMeta = array_merge($existingMeta, [
+                        'wpuid' => (int) ($wpUser->user_id ?? ($existingMeta['wpuid'] ?? 0)),
+                        'username' => $wpUser->user_login ?? ($existingMeta['username'] ?? $username),
+                        'age' => $wpUser->age ?? ($existingMeta['age'] ?? 'adult'),
+                        'country' => $wpUser->user_country ?? ($existingMeta['country'] ?? 'United States of America'),
+                        'city' => $wpUser->user_city ?? ($existingMeta['city'] ?? ''),
+                        'state' => $wpUser->user_state ?? ($existingMeta['state'] ?? ''),
+                        'address' => $wpUser->user_address ?? ($existingMeta['address'] ?? ''),
+                    ]);
+                    $localUser->meta = json_encode($mergedMeta);
+                    $localUser->save();
+
+                    $authenticatedUser = $localUser;
+                }
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Booostr Core login API attempt failed or returned error', [
+                'identifier' => $inputIdentifier,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // Step 2: Fallback to local authentication (if API check failed or user is a local customer)
+        if (!$authenticatedUser) {
+            $field = filter_var($inputIdentifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
+            $candidateUser = User::where($field, $inputIdentifier)->where('role_id', 4)->first();
+
+            // Check meta username if search by name did not locate record
+            if (!$candidateUser && $field === 'name') {
+                $allCustomers = User::where('role_id', 4)->whereNotNull('meta')->get();
+                foreach ($allCustomers as $c) {
+                    $m = json_decode($c->meta, true);
+                    if (!empty($m['username']) && strtolower($m['username']) === strtolower($inputIdentifier)) {
+                        $candidateUser = $c;
+                        break;
+                    }
+                }
+            }
+
+            if ($candidateUser && \Hash::check($password, $candidateUser->password)) {
+                $authenticatedUser = $candidateUser;
+            }
+        }
+
+        // Step 3: Handle Successful Login
+        if ($authenticatedUser) {
+            Auth::login($authenticatedUser, $remember);
+
+            // Redirect user to intended checkout / dashboard destination
+            $redirectUrl = session()->pull('url.intended', url('/customer/dashboard'));
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 'success',
+                    'msg' => __('Login successful! Redirecting...'),
+                    'redirect' => $redirectUrl,
+                ]);
+            }
+
+            return redirect()->to($redirectUrl);
+        }
+
+        // Step 4: Authentication Failed
+        $errorMsg = __('User name and password do not match.');
+        if ($request->ajax()) {
+            return response()->json([
+                'status' => 'error',
+                'msg' => $errorMsg,
+            ], 422);
+        }
+
+        return redirect()->back()->withInput($request->only('email'))->with([
+            'error' => $errorMsg,
+            'msg' => $errorMsg,
+        ]);
+    }
+
     public function register()
     {
         abort_if(tenant('customer_modules') != 'on',404);
@@ -103,6 +279,22 @@ class CustomerController extends Controller
         return view(baseview('customer/register'));
     }
 
+    /**
+     * Customer Registration Handler
+     *
+     * Workflow & Features:
+     * 1. Validates First Name, Last Name, Username, Email (unique), Password (min 8, confirmed),
+     *    Age category, Terms and Conditions acceptance, and Google reCAPTCHA.
+     * 2. Verifies reCAPTCHA token against Google's siteverify API.
+     * 3. Syncs registration with Booostr Central API (https://app.booostr.co/wp-json/webbuilder-api/v1/user-register)
+     *    so the customer account is immediately recognized across the Booostr ecosystem and Contact Manager.
+     * 4. Stores the customer in the local tenant database with role_id = 4 (Store Customer) and rich metadata (wpuid, age, location).
+     * 5. Dispatches a branded HTML welcome email (CustomerAccountCreatedMail) with club name and login link.
+     * 6. Automatically authenticates the session and redirects to the intended checkout or customer dashboard.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function registerCustomer(Request $request)
     {
         abort_if(tenant('customer_modules') != 'on',404);

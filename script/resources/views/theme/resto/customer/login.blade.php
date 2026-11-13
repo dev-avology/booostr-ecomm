@@ -8,18 +8,21 @@
 				<div class="form-head bg-white" style="border: 1px solid #edf2f7; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); padding: 48px 45px;">
 					<h3 class="title text-center" style="font-size: 26px; font-weight: 700; color: #1e293b; letter-spacing: -0.5px; margin-bottom: 32px;">{{ __('Login to your account') }}</h3>
 
-					@if(Session::has('error') || Session::has('msg'))
-						<div class="alert alert-danger" role="alert" style="margin-bottom: 24px; border-radius: 8px;">
-							{{ Session::get('error') ?: Session::get('msg') }}
-						</div>
-					@endif
-					@if(Session::has('success'))
-						<div class="alert alert-success" role="alert" style="margin-bottom: 24px; border-radius: 8px;">
-							{{ Session::get('success') }}
-						</div>
-					@endif
+					<!-- Alert Notifications Container for Server and AJAX responses -->
+					<div id="loginAlertArea">
+						@if(Session::has('error') || Session::has('msg'))
+							<div class="alert alert-danger" role="alert" style="margin-bottom: 24px; border-radius: 8px;">
+								{{ Session::get('error') ?: Session::get('msg') }}
+							</div>
+						@endif
+						@if(Session::has('success'))
+							<div class="alert alert-success" role="alert" style="margin-bottom: 24px; border-radius: 8px;">
+								{{ Session::get('success') }}
+							</div>
+						@endif
+					</div>
 
-					<form action="{{ route('login') }}" method="post" id="loginForm">
+					<form action="{{ route('customer.login') }}" method="post" id="loginForm">
 						@csrf
 
 						<!-- Username or Email Address -->
@@ -347,27 +350,75 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	if (form && submitBtn) {
 		form.addEventListener('submit', function(e) {
-			// Prevent double submission if already processing
+			e.preventDefault();
+
+			// Prevent duplicate submission if already processing
 			if (submitBtn.classList.contains('is-processing')) {
-				e.preventDefault();
 				return false;
 			}
 
 			// Validate inputs
 			if (!emailInput.value.trim() || !passwordInput.value.trim()) {
-				e.preventDefault();
+				checkRequiredFields();
 				return false;
 			}
 
 			// Activate processing state: spinner, text change, and disabled styling
 			submitBtn.classList.add('is-processing');
-			submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.15em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spinner-border .75s linear infinite; margin-right: 8px;"></span> ' + {{ json_encode(__('Processing...')) }};
+			submitBtn.disabled = true;
 			submitBtn.style.pointerEvents = 'none';
+			submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.15em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spinner-border .75s linear infinite; margin-right: 8px;"></span> ' + {{ json_encode(__('Processing...')) }};
 
-			// Disable button after submission has been dispatched so browser delivers the POST request
-			setTimeout(function() {
-				submitBtn.disabled = true;
-			}, 20);
+			const alertArea = document.getElementById('loginAlertArea');
+			if (alertArea) {
+				alertArea.innerHTML = '';
+			}
+
+			const formData = new FormData(form);
+
+			// AJAX Submission to customer login endpoint
+			fetch(form.action, {
+				method: 'POST',
+				body: formData,
+				headers: {
+					'X-Requested-With': 'XMLHttpRequest',
+					'Accept': 'application/json'
+				}
+			})
+			.then(async response => {
+				const data = await response.json().catch(() => ({}));
+				if (response.ok && data.status === 'success') {
+					if (alertArea) {
+						alertArea.innerHTML = '<div class="alert alert-success" role="alert" style="margin-bottom: 24px; border-radius: 8px;"><i class="icofont-check-circled me-1"></i> ' + (data.msg || {{ json_encode(__('Login successful! Redirecting...')) }}) + '</div>';
+					}
+					// Redirect to destination URL
+					setTimeout(() => {
+						window.location.href = data.redirect || '{{ url("/customer/dashboard") }}';
+					}, 300);
+				} else {
+					// Handle failed login
+					const errorMsg = data.msg || (data.errors ? Object.values(data.errors)[0] : {{ json_encode(__('User name and password do not match.')) }});
+					if (alertArea) {
+						alertArea.innerHTML = '<div class="alert alert-danger" role="alert" style="margin-bottom: 24px; border-radius: 8px;"><i class="icofont-warning-alt me-1"></i> ' + errorMsg + '</div>';
+					}
+					// Reset button state
+					submitBtn.classList.remove('is-processing');
+					submitBtn.disabled = false;
+					submitBtn.style.pointerEvents = 'auto';
+					submitBtn.innerHTML = {{ json_encode(__('Login')) }};
+				}
+			})
+			.catch(err => {
+				console.error('Login error:', err);
+				if (alertArea) {
+					alertArea.innerHTML = '<div class="alert alert-danger" role="alert" style="margin-bottom: 24px; border-radius: 8px;">An unexpected error occurred. Please try again.</div>';
+				}
+				// Reset button state
+				submitBtn.classList.remove('is-processing');
+				submitBtn.disabled = false;
+				submitBtn.style.pointerEvents = 'auto';
+				submitBtn.innerHTML = {{ json_encode(__('Login')) }};
+			});
 		});
 	}
 });
