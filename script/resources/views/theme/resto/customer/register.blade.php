@@ -22,15 +22,15 @@
 					<!-- Booostr SSO Split Button matching reference -->
 					<div class="mb-4">
 						<div class="sso-btn-wrapper">
-							<a href="javascript:void(0)" class="booostr-sso-btn" onclick="return false;">
+							<a href="javascript:void(0)" class="booostr-sso-btn" onclick="return false;" title="In progress • Working on it">
 								<div class="sso-logo-box">
-									<img src="https://app.booostr.co/wp-content/themes/booostr-app/assets/images/Header-logo.png" alt="Booostr">
+									<img src="{{ asset('uploads/booostr-logo.png') }}" onerror="this.onerror=null; this.src='https://app.booostr.co/wp-content/themes/booostr-app/assets/images/Header-logo.png';" alt="Booostr">
 								</div>
 								<div class="sso-text-box">
 									<span>{{ __('Sign up with your Booostr User Account') }}</span>
 								</div>
 							</a>
-							<div class="sso-tooltip-badge">
+							<div class="sso-hover-tooltip">
 								<i class="icofont-info-circle"></i> {{ __('In progress • Working on it') }}
 							</div>
 						</div>
@@ -226,51 +226,101 @@
 	appearance: menulist !important;
 }
 
-/* Booostr SSO Split Button */
+/* Booostr SSO Split Button matching reference */
+.sso-btn-wrapper {
+	position: relative;
+	width: 100%;
+}
+
 .booostr-sso-btn {
-	display: flex;
-	align-items: stretch;
-	border: 1.5px solid #528CD7;
-	border-radius: 8px;
-	overflow: hidden;
-	min-height: 50px;
-	text-decoration: none;
-	transition: all 0.2s ease;
+	display: flex !important;
+	align-items: stretch !important;
+	border: 1.5px solid #528CD7 !important;
+	border-radius: 8px !important;
+	overflow: hidden !important;
+	height: 54px !important;
+	min-height: 54px !important;
+	width: 100% !important;
+	text-decoration: none !important;
+	cursor: pointer !important;
+	transition: all 0.25s ease !important;
+	box-shadow: 0 2px 8px rgba(82, 140, 215, 0.15) !important;
 }
 
 .booostr-sso-btn:hover {
-	opacity: 0.95;
-	box-shadow: 0 4px 14px rgba(82, 140, 215, 0.25);
+	opacity: 0.98 !important;
+	box-shadow: 0 4px 16px rgba(82, 140, 215, 0.3) !important;
 }
 
 .booostr-sso-btn .sso-logo-box {
-	background: #ffffff;
-	width: 110px;
-	min-width: 110px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 4px 12px;
-	border-right: 1.5px solid #528CD7;
+	background: #ffffff !important;
+	width: 125px !important;
+	min-width: 125px !important;
+	max-width: 125px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	padding: 4px 8px !important;
+	border-right: 1.5px solid #528CD7 !important;
 }
 
 .booostr-sso-btn .sso-logo-box img {
-	max-height: 28px;
-	max-width: 100%;
-	object-fit: contain;
+	height: 32px !important;
+	max-height: 34px !important;
+	width: auto !important;
+	max-width: 100% !important;
+	object-fit: contain !important;
+	display: block !important;
 }
 
 .booostr-sso-btn .sso-text-box {
-	background: #528CD7;
-	flex: 1;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	background: #528CD7 !important;
+	flex: 1 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	color: #ffffff !important;
+	font-weight: 600 !important;
+	font-size: 15px !important;
+	padding: 0 16px !important;
+	text-align: center !important;
+	letter-spacing: 0.2px !important;
+}
+
+/* Tooltip ONLY on Hover */
+.sso-hover-tooltip {
+	display: none !important;
+	position: absolute;
+	bottom: calc(100% + 10px);
+	left: 50%;
+	transform: translateX(-50%);
+	background-color: #1e293b;
 	color: #ffffff;
-	font-weight: 600;
-	font-size: 14px;
-	padding: 0 12px;
-	text-align: center;
+	font-size: 13px;
+	font-weight: 500;
+	padding: 7px 16px;
+	border-radius: 6px;
+	white-space: nowrap;
+	box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+	z-index: 1000;
+	pointer-events: none;
+}
+
+.sso-hover-tooltip::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 6px;
+	border-style: solid;
+	border-color: #1e293b transparent transparent transparent;
+}
+
+.sso-btn-wrapper:hover .sso-hover-tooltip {
+	display: flex !important;
+	align-items: center;
+	gap: 6px;
 }
 
 .password-toggle-icon:hover {
@@ -398,18 +448,23 @@
 	.login .form-head .title {
 		font-size: 21px;
 	}
+	.booostr-sso-btn {
+		height: 48px !important;
+		min-height: 48px !important;
+	}
 	.booostr-sso-btn .sso-logo-box {
-		width: 85px;
-		min-width: 85px;
-		padding: 4px 8px;
+		width: 95px !important;
+		min-width: 95px !important;
+		padding: 4px 6px !important;
 	}
 	.booostr-sso-btn .sso-logo-box img {
-		max-height: 22px !important;
+		height: 24px !important;
+		max-height: 26px !important;
 	}
 	.booostr-sso-btn .sso-text-box {
-		font-size: 12.5px;
-		padding: 8px 10px;
-		line-height: 1.3;
+		font-size: 13px !important;
+		padding: 6px 10px !important;
+		line-height: 1.3 !important;
 	}
 	.agree-terms-container {
 		align-items: flex-start !important;
