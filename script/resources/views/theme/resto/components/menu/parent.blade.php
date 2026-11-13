@@ -1,9 +1,16 @@
 @if(!empty($menus))
 	@php
 	$mainMenus=$menus['data'] ?? [];
-	
+	$hiddenMenus = ['menu', 'blogs', 'customer', 'rider'];
 	@endphp
 	@foreach ($mainMenus ?? [] as $row) 
+		@php
+		$menuText = strtolower(trim($row->text ?? ''));
+		$menuHref = strtolower(trim($row->href ?? ''));
+		if (in_array($menuText, $hiddenMenus, true) || $menuHref === '/menu' || $menuHref === '/blog' || $menuHref === '/blogs') {
+			continue;
+		}
+		@endphp
 	<li class="nav-item">
 		@if (isset($row->children))
 		
