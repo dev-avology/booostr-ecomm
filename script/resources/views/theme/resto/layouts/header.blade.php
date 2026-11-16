@@ -69,38 +69,6 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
       </div>
       <!--/ End Shopping Item -->
       @endif
-      <!-- Topbar Area -->
-      @if(Auth::check())
-      <div class="topbar-area">
-         <div class="container">
-            <div class="row">
-               <div class="col-12">
-                  <!-- Topbar Right -->
-                  <div class="topbar-right">
-                      <div class="topbar-language-section">
-                        <li class="topbar-language">
-                           <form class="change_lang_form" action="{{ url('/locale/lang') }}">
-                              <select name="locale" class="trans_lang">
-                                 @php
-                                 $local=Session::get('locale');
-                                 @endphp
-                              @foreach($languages ?? [] as $key => $row)
-                              <option value="{{ $row->code }}" @if($local == $row->code) selected @endif>{{ $row->name }}</option>
-                              @endforeach
-                           </select>
-                          </form>
-                        </li>
-                      </div>
-                     <ul class="topbar-right-inner">
-                     </ul>
-                     
-                  </div>
-               </div>
-            </div>
-         </div>
-      </div>
-      @endif
-      <!-- End Topbar Area -->
       
       <!-- Header Area -->
       <header class="header navbar-area">
@@ -132,51 +100,52 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                            <li class="single-bar"><a href="{{ url('/cart') }}" class="icon" title="{{ __('Cart') }}"><i class="icofont-cart-alt"></i><span class="count cart_count">{{ $cart_count }}</span></a></li>
 
                            <li class="single-bar"><a href="{{ url('/wishlist') }}" class="icon" title="{{ __('Wishlist') }}"><i class="icofont-heart-alt"></i><span class="count wishlist_count">{{ $wishlist_count }}</span></a></li>
+                        </ul>
 
-                           @if(Auth::check())
-                           <li class="single-bar user-custom-dropdown" style="position: relative;">
-                              <a href="javascript:void(0)" class="icon user-circle-btn d-flex align-items-center justify-content-center" id="userMenuToggleBtn" title="{{ Auth::user()->name }}" style="cursor: pointer; text-decoration: none;">
-                                 <i class="icofont-ui-user"></i>
-                              </a>
-                              <div class="user-custom-menu shadow" id="userCustomDropdownMenu" style="display: none; position: absolute; right: 0; top: calc(100% + 12px); background: #ffffff; border-radius: 8px; border: 1px solid #edf2f7; box-shadow: 0 10px 25px rgba(0,0,0,0.12); padding: 8px 0; min-width: 200px; z-index: 1050; text-align: left;">
-                                 <div class="px-3 py-2 border-bottom" style="background: #f8fafc; border-radius: 8px 8px 0 0;">
-                                    <div style="font-size: 13px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ Auth::user()->name }}</div>
-                                    <div style="font-size: 11.5px; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ Auth::user()->email }}</div>
-                                 </div>
+                        @if(Auth::check())
+                        <!-- User Profile Dropdown (Separate from cart-list-top to prevent CSS conflicts) -->
+                        <div class="user-custom-dropdown ms-3" style="position: relative;">
+                           <a href="javascript:void(0)" class="user-avatar-circle-btn d-flex align-items-center justify-content-center" id="userMenuToggleBtn" title="{{ Auth::user()->name }}">
+                              <i class="icofont-ui-user"></i>
+                           </a>
+                           <div class="user-custom-menu shadow" id="userCustomDropdownMenu">
+                              <div class="user-dropdown-header">
+                                 <div class="user-dropdown-name">{{ Auth::user()->name }}</div>
+                                 <div class="user-dropdown-email">{{ Auth::user()->email }}</div>
+                              </div>
+                              <div class="user-dropdown-body">
                                  @if(Auth::user()->role_id == 3)
-                                    <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/seller/dashboard') }}" style="color: #334155; font-size: 13.5px; text-decoration: none; transition: background 0.15s ease;">
-                                       <i class="icofont-dashboard-web me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('Admin Dashboard') }}
+                                    <a class="custom-dropdown-item" href="{{ url('/seller/dashboard') }}">
+                                       <i class="icofont-dashboard-web"></i> <span>{{ __('Admin Dashboard') }}</span>
                                     </a>
                                  @else
-                                    <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/dashboard') }}" style="color: #334155; font-size: 13.5px; text-decoration: none; transition: background 0.15s ease;">
-                                       <i class="icofont-dashboard-web me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('My Dashboard') }}
+                                    <a class="custom-dropdown-item" href="{{ url('/customer/dashboard') }}">
+                                       <i class="icofont-dashboard-web"></i> <span>{{ __('My Dashboard') }}</span>
                                     </a>
-                                    <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/orders') }}" style="color: #334155; font-size: 13.5px; text-decoration: none; transition: background 0.15s ease;">
-                                       <i class="icofont-box me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('My Orders') }}
+                                    <a class="custom-dropdown-item" href="{{ url('/customer/orders') }}">
+                                       <i class="icofont-box"></i> <span>{{ __('My Orders') }}</span>
                                     </a>
-                                    <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/settings') }}" style="color: #334155; font-size: 13.5px; text-decoration: none; transition: background 0.15s ease;">
-                                       <i class="icofont-ui-settings me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('Settings') }}
+                                    <a class="custom-dropdown-item" href="{{ url('/customer/settings') }}">
+                                       <i class="icofont-ui-settings"></i> <span>{{ __('Settings') }}</span>
                                     </a>
                                  @endif
-                                 <div style="height: 1px; background: #e2e8f0; margin: 4px 0;"></div>
-                                 <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('navbar-logout-form').submit();" style="font-size: 13.5px; text-decoration: none; transition: background 0.15s ease;">
-                                    <i class="icofont-logout me-2" style="font-size: 16px;"></i> {{ __('Logout') }}
+                                 <div class="user-dropdown-divider"></div>
+                                 <a class="custom-dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('navbar-logout-form').submit();">
+                                    <i class="icofont-logout"></i> <span>{{ __('Logout') }}</span>
                                  </a>
                                  <form id="navbar-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                                     @csrf
                                  </form>
                               </div>
-                           </li>
-                           @endif
-                        </ul>
-
-                        @if(!Auth::check())
+                           </div>
+                        </div>
+                        @else
                         <!-- Guest Auth Buttons -->
                         <div class="user-auth-links ms-3 d-flex align-items-center">
-                           <a href="{{ url('/customer/login') }}" class="nav-auth-btn-login" style="color: #ffffff; font-size: 13px; font-weight: 600; text-decoration: none; padding: 5px 14px; border: 1px solid rgba(255,255,255,0.5); border-radius: 20px; transition: all 0.2s ease;">
+                           <a href="{{ url('/customer/login') }}" class="nav-auth-btn-login">
                               {{ __('Login') }}
                            </a>
-                           <a href="{{ url('/customer/register') }}" class="nav-auth-btn-register ms-2" style="background: #528CD7; color: #ffffff; font-size: 13px; font-weight: 600; text-decoration: none; padding: 5px 14px; border-radius: 20px; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                           <a href="{{ url('/customer/register') }}" class="nav-auth-btn-register ms-2">
                               {{ __('Register') }}
                            </a>
                         </div>
@@ -280,12 +249,119 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
       </script>
 
       <style>
+      .user-avatar-circle-btn {
+         width: 30px !important;
+         height: 30px !important;
+         border: 1px solid rgba(255, 255, 255, 0.65) !important;
+         border-radius: 50% !important;
+         color: #ffffff !important;
+         background: transparent !important;
+         text-decoration: none !important;
+         cursor: pointer !important;
+         display: inline-flex !important;
+         align-items: center !important;
+         justify-content: center !important;
+         transition: all 0.2s ease !important;
+      }
+      .user-avatar-circle-btn i {
+         font-size: 15px !important;
+         line-height: 1 !important;
+      }
+      .user-avatar-circle-btn:hover {
+         border-color: #ffffff !important;
+         background: rgba(255, 255, 255, 0.2) !important;
+         color: #ffffff !important;
+      }
+      .user-custom-menu {
+         display: none;
+         position: absolute;
+         right: 0;
+         top: calc(100% + 12px);
+         background: #ffffff;
+         border-radius: 10px;
+         border: 1px solid #e2e8f0;
+         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+         padding: 0;
+         width: 220px;
+         z-index: 1050;
+         overflow: hidden;
+         text-align: left;
+      }
+      .user-dropdown-header {
+         padding: 12px 16px;
+         background: #f8fafc;
+         border-bottom: 1px solid #e2e8f0;
+      }
+      .user-dropdown-name {
+         font-size: 13.5px;
+         font-weight: 700;
+         color: #1e293b;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         white-space: nowrap;
+      }
+      .user-dropdown-email {
+         font-size: 11.5px;
+         color: #64748b;
+         margin-top: 2px;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         white-space: nowrap;
+      }
+      .user-dropdown-body {
+         padding: 6px 0;
+      }
+      .user-dropdown-divider {
+         height: 1px;
+         background: #e2e8f0;
+         margin: 6px 0;
+      }
+      .custom-dropdown-item {
+         display: flex !important;
+         align-items: center !important;
+         width: 100% !important;
+         height: auto !important;
+         min-height: 38px !important;
+         line-height: 1.5 !important;
+         border: none !important;
+         border-radius: 0 !important;
+         background: transparent !important;
+         padding: 8px 16px !important;
+         color: #334155 !important;
+         font-size: 13.5px !important;
+         font-weight: 500 !important;
+         text-align: left !important;
+         text-decoration: none !important;
+         box-sizing: border-box !important;
+         transition: background-color 0.15s ease, color 0.15s ease !important;
+      }
+      .custom-dropdown-item i {
+         font-size: 16px !important;
+         color: #64748b !important;
+         margin-right: 12px !important;
+         width: 18px !important;
+         text-align: center !important;
+         display: inline-block !important;
+         line-height: 1 !important;
+      }
+      .custom-dropdown-item span {
+         display: inline-block !important;
+         white-space: nowrap !important;
+         overflow: hidden !important;
+         text-overflow: ellipsis !important;
+      }
       .custom-dropdown-item:hover {
-         background-color: #f8fafc !important;
+         background-color: #f1f5f9 !important;
          color: #528CD7 !important;
       }
       .custom-dropdown-item:hover i {
          color: #528CD7 !important;
+      }
+      .custom-dropdown-item.text-danger {
+         color: #dc2626 !important;
+      }
+      .custom-dropdown-item.text-danger i {
+         color: #dc2626 !important;
       }
       .custom-dropdown-item.text-danger:hover {
          background-color: #fef2f2 !important;
@@ -293,6 +369,42 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
       }
       .custom-dropdown-item.text-danger:hover i {
          color: #ef4444 !important;
+      }
+      .nav-auth-btn-login {
+         color: #ffffff !important;
+         font-size: 13px !important;
+         font-weight: 600 !important;
+         text-decoration: none !important;
+         padding: 5px 14px !important;
+         border: 1px solid rgba(255, 255, 255, 0.5) !important;
+         border-radius: 20px !important;
+         transition: all 0.2s ease !important;
+         line-height: 1.4 !important;
+         display: inline-block !important;
+      }
+      .nav-auth-btn-login:hover {
+         background: rgba(255, 255, 255, 0.15) !important;
+         color: #ffffff !important;
+         border-color: #ffffff !important;
+      }
+      .nav-auth-btn-register {
+         background: #528CD7 !important;
+         color: #ffffff !important;
+         font-size: 13px !important;
+         font-weight: 600 !important;
+         text-decoration: none !important;
+         padding: 5px 14px !important;
+         border-radius: 20px !important;
+         transition: all 0.2s ease !important;
+         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+         line-height: 1.4 !important;
+         display: inline-block !important;
+         border: 1px solid #528CD7 !important;
+      }
+      .nav-auth-btn-register:hover {
+         background: #467fcb !important;
+         color: #ffffff !important;
+         border-color: #467fcb !important;
       }
       </style>
 
