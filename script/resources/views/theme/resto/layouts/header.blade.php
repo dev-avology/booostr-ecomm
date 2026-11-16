@@ -92,14 +92,6 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                         </li>
                       </div>
                      <ul class="topbar-right-inner">
-                        <!-- Topbar Language -->
-                        @if(tenant('customer_modules') == 'on')
-                        @if(Auth::check() && Auth::user()->role_id == 3)
-                        <li class="accounts-top-btn"><a href="{{ url('/seller/dashboard') }}"><i class="icofont-dashboard-web"></i><span>{{ __('Admin Dashboard') }}</span></a></li>
-                        @elseif(Auth::check() && Auth::user()->role_id == 4)
-                        <li class="accounts-top-btn"><a href="{{ url('/customer/dashboard') }}"><i class="icofont-user-male"></i><span>{{ Auth::user()->name }}</span></a></li>
-                        @endif
-                        @endif
                      </ul>
                      
                   </div>
@@ -136,62 +128,60 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                      </nav>
                      <!-- End navbar -->
                      <div class="right-bar d-flex align-items-center">
-                        <ul class="cart-list-top mb-0">
+                        <ul class="cart-list-top mb-0 d-flex align-items-center">
                            <li class="single-bar"><a href="{{ url('/cart') }}" class="icon" title="{{ __('Cart') }}"><i class="icofont-cart-alt"></i><span class="count cart_count">{{ $cart_count }}</span></a></li>
 
                            <li class="single-bar"><a href="{{ url('/wishlist') }}" class="icon" title="{{ __('Wishlist') }}"><i class="icofont-heart-alt"></i><span class="count wishlist_count">{{ $wishlist_count }}</span></a></li>
+
+                           @if(Auth::check())
+                           <li class="single-bar user-custom-dropdown" style="position: relative;">
+                              <a href="javascript:void(0)" class="icon user-circle-btn d-flex align-items-center justify-content-center" id="userMenuToggleBtn" title="{{ Auth::user()->name }}" style="cursor: pointer; text-decoration: none;">
+                                 <i class="icofont-ui-user"></i>
+                              </a>
+                              <div class="user-custom-menu shadow" id="userCustomDropdownMenu" style="display: none; position: absolute; right: 0; top: calc(100% + 12px); background: #ffffff; border-radius: 8px; border: 1px solid #edf2f7; box-shadow: 0 10px 25px rgba(0,0,0,0.12); padding: 8px 0; min-width: 200px; z-index: 1050; text-align: left;">
+                                 <div class="px-3 py-2 border-bottom" style="background: #f8fafc; border-radius: 8px 8px 0 0;">
+                                    <div style="font-size: 13px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ Auth::user()->name }}</div>
+                                    <div style="font-size: 11.5px; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ Auth::user()->email }}</div>
+                                 </div>
+                                 @if(Auth::user()->role_id == 3)
+                                    <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/seller/dashboard') }}" style="color: #334155; font-size: 13.5px; text-decoration: none; transition: background 0.15s ease;">
+                                       <i class="icofont-dashboard-web me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('Admin Dashboard') }}
+                                    </a>
+                                 @else
+                                    <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/dashboard') }}" style="color: #334155; font-size: 13.5px; text-decoration: none; transition: background 0.15s ease;">
+                                       <i class="icofont-dashboard-web me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('My Dashboard') }}
+                                    </a>
+                                    <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/orders') }}" style="color: #334155; font-size: 13.5px; text-decoration: none; transition: background 0.15s ease;">
+                                       <i class="icofont-box me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('My Orders') }}
+                                    </a>
+                                    <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/settings') }}" style="color: #334155; font-size: 13.5px; text-decoration: none; transition: background 0.15s ease;">
+                                       <i class="icofont-ui-settings me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('Settings') }}
+                                    </a>
+                                 @endif
+                                 <div style="height: 1px; background: #e2e8f0; margin: 4px 0;"></div>
+                                 <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('navbar-logout-form').submit();" style="font-size: 13.5px; text-decoration: none; transition: background 0.15s ease;">
+                                    <i class="icofont-logout me-2" style="font-size: 16px;"></i> {{ __('Logout') }}
+                                 </a>
+                                 <form id="navbar-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                    @csrf
+                                 </form>
+                              </div>
+                           </li>
+                           @endif
                         </ul>
 
-                        <!-- User Auth Section -->
-                        <div class="nav-auth-section ms-3">
-                           @if(Auth::check())
-                              <div class="user-custom-dropdown" style="position: relative;">
-                                 <button type="button" class="user-auth-toggle d-flex align-items-center text-white" id="userMenuToggleBtn" style="background: none; border: none; padding: 0; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: 500;">
-                                    <span class="user-avatar-circle" style="width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px;">
-                                       <i class="icofont-ui-user" style="font-size: 16px; color: #ffffff;"></i>
-                                    </span>
-                                    <span class="user-display-name d-none d-md-inline" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                       {{ Auth::user()->name }}
-                                    </span>
-                                    <i class="icofont-rounded-down ms-1" style="font-size: 13px; color: rgba(255,255,255,0.7); transition: transform 0.2s ease;" id="userMenuDropdownArrow"></i>
-                                 </button>
-                                 <div class="user-custom-menu shadow" id="userCustomDropdownMenu" style="display: none; position: absolute; right: 0; top: calc(100% + 12px); background: #ffffff; border-radius: 8px; border: 1px solid #edf2f7; box-shadow: 0 10px 25px rgba(0,0,0,0.12); padding: 8px 0; min-width: 190px; z-index: 1050;">
-                                    @if(Auth::user()->role_id == 3)
-                                       <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/seller/dashboard') }}" style="color: #334155; font-size: 14px; text-decoration: none; transition: background 0.15s ease;">
-                                          <i class="icofont-dashboard-web me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('Admin Dashboard') }}
-                                       </a>
-                                    @else
-                                       <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/dashboard') }}" style="color: #334155; font-size: 14px; text-decoration: none; transition: background 0.15s ease;">
-                                          <i class="icofont-dashboard-web me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('My Dashboard') }}
-                                       </a>
-                                       <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/orders') }}" style="color: #334155; font-size: 14px; text-decoration: none; transition: background 0.15s ease;">
-                                          <i class="icofont-box me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('My Orders') }}
-                                       </a>
-                                       <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/settings') }}" style="color: #334155; font-size: 14px; text-decoration: none; transition: background 0.15s ease;">
-                                          <i class="icofont-ui-settings me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('Settings') }}
-                                       </a>
-                                    @endif
-                                    <div style="height: 1px; background: #e2e8f0; margin: 6px 0;"></div>
-                                    <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('navbar-logout-form').submit();" style="font-size: 14px; text-decoration: none; transition: background 0.15s ease;">
-                                       <i class="icofont-logout me-2" style="font-size: 16px;"></i> {{ __('Logout') }}
-                                    </a>
-                                    <form id="navbar-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                                       @csrf
-                                    </form>
-                                 </div>
-                              </div>
-                           @else
-                              <div class="user-auth-links d-flex align-items-center">
-                                 <a href="{{ url('/customer/login') }}" class="nav-auth-link" style="color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 4px 8px; transition: opacity 0.2s ease;">
-                                    {{ __('Login') }}
-                                 </a>
-                                 <span style="color: rgba(255,255,255,0.4); margin: 0 2px;">/</span>
-                                 <a href="{{ url('/customer/register') }}" class="nav-auth-link" style="color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 4px 8px; transition: opacity 0.2s ease;">
-                                    {{ __('Register') }}
-                                 </a>
-                              </div>
-                           @endif
+                        @if(!Auth::check())
+                        <!-- Guest Auth Buttons -->
+                        <div class="user-auth-links ms-3 d-flex align-items-center">
+                           <a href="{{ url('/customer/login') }}" class="nav-auth-btn-login" style="color: #ffffff; font-size: 13px; font-weight: 600; text-decoration: none; padding: 5px 14px; border: 1px solid rgba(255,255,255,0.5); border-radius: 20px; transition: all 0.2s ease;">
+                              {{ __('Login') }}
+                           </a>
+                           <a href="{{ url('/customer/register') }}" class="nav-auth-btn-register ms-2" style="background: #528CD7; color: #ffffff; font-size: 13px; font-weight: 600; text-decoration: none; padding: 5px 14px; border-radius: 20px; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                              {{ __('Register') }}
+                           </a>
                         </div>
+                        @endif
+                     </div>
                         <!--/ End Shopping Cart -->
                      </div>
                   </div>
