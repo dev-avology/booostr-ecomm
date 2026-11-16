@@ -27,6 +27,16 @@
 								{{ Session::get('success') }}
 							</div>
 						@endif
+						@if(Session::has('status'))
+							<div class="alert alert-success" role="alert" style="margin-bottom: 24px; border-radius: 8px; font-size: 14px; line-height: 1.55;">
+								{{ Session::get('status') }}
+							</div>
+						@endif
+						@if(Session::has('message'))
+							<div class="alert alert-info" role="alert" style="margin-bottom: 24px; border-radius: 8px; font-size: 14px; line-height: 1.55;">
+								{{ Session::get('message') }}
+							</div>
+						@endif
 					</div>
 
 					@if(Session::has('booostr_register_action'))
@@ -53,7 +63,8 @@
 						</p>
 
 						<!-- Form: Enter Username or Email -->
-						<form action="{{ route('customer.forget.password.post') }}" method="post" id="forgetPasswordForm">
+						{{-- Force HTTPS action URL to prevent HTTP→HTTPS redirect losing session flash data --}}
+						<form action="{{ str_replace('http://', 'https://', route('customer.forget.password.post')) }}" method="post" id="forgetPasswordForm">
 							@csrf
 
 							<div class="form-group mb-4">

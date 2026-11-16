@@ -40,7 +40,8 @@
 							{{ __('Create a new password for user account:') }} <strong style="color: #1e293b;">{{ $username }}</strong>
 						</p>
 
-						<form action="{{ route('customer.reset.password.post') }}" method="post" id="resetPasswordForm">
+						{{-- Force HTTPS action URL to prevent HTTP→HTTPS redirect losing session flash data --}}
+						<form action="{{ str_replace('http://', 'https://', route('customer.reset.password.post')) }}" method="post" id="resetPasswordForm">
 							@csrf
 
 							<input type="hidden" name="token" value="{{ $token }}">

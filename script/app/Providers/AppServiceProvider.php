@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,6 +16,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+            URL::forceScheme('https');
+        }
+
         if (app()->environment('production') && config('app.debug') === true) {
             Log::critical('SECURITY WARNING: APP_DEBUG is TRUE in production environment.');
         }
