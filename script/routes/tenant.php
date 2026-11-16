@@ -90,6 +90,19 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
             Route::post('profile/password-update','Store\CustomerController@profilePasswordUpdate')->name('customer.password.update')->middleware(['auth','user']);
             Route::post('order-make-rating/{orderid}/{termid}/{optionid}','Store\CustomerController@makeReview')->middleware(['auth','user']);
         });
+
+        // Forgot & Reset Password Routes
+        Route::get('/login/forget-password', 'Store\CustomerController@showForgetPasswordForm')->name('customer.forget.password')->middleware('guest');
+        Route::post('/login/forget-password', 'Store\CustomerController@sendUserForgetPasswordMail')->name('customer.forget.password.post')->middleware('guest');
+        Route::get('/customer/forget-password', 'Store\CustomerController@showForgetPasswordForm')->middleware('guest');
+        Route::post('/customer/forget-password', 'Store\CustomerController@sendUserForgetPasswordMail')->middleware('guest');
+
+        Route::get('/login/reset-password/{username}/{token}', 'Store\CustomerController@showResetPasswordForm')->name('customer.reset.password')->middleware('guest');
+        Route::post('/login/reset-password', 'Store\CustomerController@UserResetPassword')->name('customer.reset.password.post')->middleware('guest');
+        Route::get('/customer/reset-password/{username}/{token}', 'Store\CustomerController@showResetPasswordForm')->middleware('guest');
+        Route::post('/customer/reset-password', 'Store\CustomerController@UserResetPassword')->middleware('guest');
+
+        Route::get('/reset-password/{user}/{token}', 'Store\CustomerController@showResetPasswordForm')->name('tenant.user.reset.password')->middleware('guest');
     });
 
     // Direct / Embed Checkout Routes (Bypasses standalone_store check so Website Builder and Club Profiles always work)

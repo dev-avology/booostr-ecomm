@@ -16,6 +16,13 @@ use Artesaos\SEOTools\Facades\JsonLd;
 use Artesaos\SEOTools\Facades\JsonLdMulti;
 use Artesaos\SEOTools\Facades\SEOTools;
 use Newsletter;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UserResetEmail;
+use App\Mail\BooostrAccountCreatedMail;
+use GuzzleHttp\Client;
 class CustomerController extends Controller
 {
     public function subscribe(Request $request)
@@ -293,7 +300,7 @@ class CustomerController extends Controller
      * 3. Syncs registration with Booostr Central API (https://app.booostr.co/wp-json/webbuilder-api/v1/user-register)
      *    so the customer account is immediately recognized across the Booostr ecosystem and Contact Manager.
      * 4. Stores the customer in the local tenant database with role_id = 4 (Store Customer) and rich metadata (wpuid, age, location).
-     * 5. Dispatches a branded HTML welcome email (CustomerAccountCreatedMail) with club name and login link.
+     * 5. Dispatches a branded HTML welcome email (BooostrAccountCreatedMail) with club name and login link.
      * 6. Automatically authenticates the session and redirects to the intended checkout or customer dashboard.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -476,29 +483,29 @@ class CustomerController extends Controller
                 ]);
             }
 
-            // Fallback values if API was unreachable or returned empty fields
-            if ($clubName === '') {
-                $clubName = trim((string) (tenant('store_name') ?? ''));
-            }
-            if ($clubName === '') {
-                $clubName = ucwords(str_replace('-', ' ', (string) tenant('id')));
+
+            if (empty($clubLogo)) {
+                $clubLogo = 'https://booostr.site/assets/landlord/uploads/media-uploader/thumb/logobostrsitee.png';
             }
 
+            $tenantId = function_exists('tenant') && tenant() ? (tenant('id') ?: (tenant()->id ?? '')) : '';
+            $subjectTenant = !empty($tenantId) ? ($tenantId . '.booostr.site') : ($clubName . ' website');
+
             $mailData = [
-                'subject' => $firstName . ', your ' . $clubName . ' account has been created',
-                'name' => $name,
-                'first_name' => $firstName,
-                'username' => $username,
-                'email' => $request->email,
-                'club_name' => $clubName,
-                'site_url' => url('/'),
-                'login_url' => url('/customer/login'),
+                'subject'       => $firstName . ', your ' . $subjectTenant . ' account is created',
+                'name'          => $name,
+                'first_name'    => $firstName,
+                'username'      => $username,
+                'email'         => $request->email,
+                'club_name'     => $clubName,
+                'site_url'      => url('/'),
+                'login_url'     => url('/customer/login'),
                 'support_email' => !empty($supportEmail) ? $supportEmail : null,
-                'logo' => $clubLogo,
+                'logo'          => $clubLogo,
                 'site_url_text' => str_replace(['https://', 'http://'], '', url('/')),
             ];
 
-            \Illuminate\Support\Facades\Mail::to($request->email)->send(new \App\Mail\CustomerAccountCreatedMail($mailData));
+            Mail::to($request->email)->send(new BooostrAccountCreatedMail($mailData));
         } catch (\Throwable $e) {
             \Log::error('Customer welcome mail failed to send', [
                 'email' => $request->email,
@@ -644,7 +651,304 @@ class CustomerController extends Controller
        $term->save();
 
        return response()->json('Review Added Successfully');
+    }
 
+    /**
+     * Show Forgot Password Form for Store Customers.
+     */
+    public function showForgetPasswordForm()
+    {
+        abort_if(tenant('customer_modules') != 'on', 404);
+        SEOMeta::setTitle(__('Forgot Password'));
+        return view('theme.resto.customer.forget-password');
+    }
 
+    /**
+     * Send Password Reset Link to Store Customer.
+     */
+    public function sendUserForgetPasswordMail(Request $request)
+    {
+        $this->validate($request, [
+            'username' => 'required|string|max:191'
+        ], [
+            'username.required' => __('Username or email is required.'),
+        ]);
+
+        $searchQuery = trim($request->username);
+
+        // 1. Check Store Customer accounts first (by email or username)
+        $user_info = User::where('email', $searchQuery)->first();
+
+        // Also search in meta username if not found by primary columns
+        if (!$user_info && !filter_var($searchQuery, FILTER_VALIDATE_EMAIL)) {
+            $allUsers = User::whereNotNull('meta')->get();
+            if (!empty($allUsers)) {
+                foreach ($allUsers as $u) {
+                    $m = json_decode($u->meta, true);
+                    if (!empty($m['username']) && strcasecmp($m['username'], $searchQuery) === 0) {
+                        $user_info = $u;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!empty($user_info)) {
+            $token_id = Str::random(30);
+            DB::table('password_resets')->where('email', $user_info->email)->delete();
+            DB::table('password_resets')->insert([
+                'email' => $user_info->email,
+                'token' => $token_id,
+                'created_at' => now(),
+            ]);
+
+            // Club details via booostr.site API with local fallbacks
+            $clubIdOrSlug = (string) (tenant('id') ?? '');
+            $clubName = '';
+            $clubLogo = '';
+            $supportEmail = null;
+
+            try {
+                $client = new Client();
+                $clubApiRes = $client->get('https://booostr.site/api/club-info/' . $clubIdOrSlug, [
+                    'verify' => false,
+                    'timeout' => 5,
+                    'headers' => ['Accept' => 'application/json'],
+                ]);
+                $clubApiData = json_decode((string) $clubApiRes->getBody(), true);
+                if (!empty($clubApiData['success']) && !empty($clubApiData['data'])) {
+                    $clubName = trim((string) ($clubApiData['data']['name'] ?? ''));
+                    $clubLogo = trim((string) ($clubApiData['data']['logo'] ?? ''));
+                    $supportEmail = trim((string) ($clubApiData['data']['email'] ?? ''));
+                }
+            } catch (\Throwable $e) {
+                // Fallback will populate details
+            }
+
+            $siteHost = parse_url(url('/'), PHP_URL_HOST) ?: url('/');
+            $usernameParam = !empty($user_info->username) ? $user_info->username : explode('@', $user_info->email)[0];
+            $resetLink = url('/login/reset-password/' . urlencode($usernameParam) . '/' . $token_id);
+            $resetUrlLink = '<a href="' . $resetLink . '" style="color:#1a73e8; text-decoration:underline;">' . __("Click Here") . '</a>';
+
+            $message_body = "<p>Hello!</p>"
+                . "<p>We received a request for a password reset for your user account: @username on @site_url. If you made this request @reset_url to reset your password.</p>"
+                . "<p>If this was a mistake or you did not request to reset your password, just ignore this email and nothing will happen.</p>"
+                . "<p>Best,<br>Your Friends at @club_name</p>";
+
+            $message = str_replace(
+                [
+                    '@username',
+                    '@name',
+                    '@reset_url',
+                    '@site_url',
+                    '@club_name',
+                ],
+                [
+                    $user_info->username ?? $user_info->email,
+                    $user_info->name ?? ($user_info->username ?? $user_info->email),
+                    $resetUrlLink,
+                    $siteHost,
+                    $clubName,
+                ], 
+                $message_body
+            );
+
+            $data = [
+                'username' => $user_info->username ?? $user_info->email,
+                'subject' => 'Password Reset Request for ' . $siteHost,
+                'message' => $message,
+                'club_name' => $clubName,
+                'logo' => $clubLogo,
+                'support_email' => $supportEmail,
+                'site_url' => url('/'),
+            ];
+
+            try {
+                Mail::to($user_info->email)->send(new UserResetEmail($data));
+            } catch (\Exception $e) {
+                \Log::error('Password reset email failed to send', ['error' => $e->getMessage()]);
+                return redirect()->back()->with([
+                    'type' => 'danger',
+                    'msg' => $e->getMessage()
+                ]);
+            }
+
+            return redirect()->back()->with([
+                'msg' => __('Check Your Mail For Reset Password Link'),
+                'type' => 'success'
+            ]);
+        }
+
+        // 2. If NOT found in local store, check Booostr User Accounts via API
+        $hasBooostrAccount = false;
+        try {
+            $client = new Client();
+            $response = $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-user-exists', [
+                'verify' => false,
+                'timeout' => 8,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+                'json' => [
+                    'email' => $searchQuery,
+                ],
+            ]);
+
+            $result = json_decode((string) $response->getBody(), true);
+            if (!empty($result['status']) && $result['status'] === 'success' && !empty($result['exists'])) {
+                $hasBooostrAccount = true;
+            }
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $body = $e->getResponse()->getBody()->getContents();
+            $decoded = json_decode($body, true);
+            if (!empty($decoded['status']) && $decoded['status'] === 'success' && !empty($decoded['exists'])) {
+                $hasBooostrAccount = true;
+            }
+        } catch (\Exception $e) {
+            \Log::warning("Booostr user account check failed: " . $e->getMessage());
+        }
+
+        $registerUrl = url('/customer/register');
+        if ($hasBooostrAccount) {
+            return redirect()->back()->with([
+                'msg' => __('We did not find a user account for our site with this email. However, because you have a Booostr User Account using this email, <a href="' . $registerUrl . '" class="text-dark" style="text-decoration: underline; font-weight: 600;">you can register with this site using your Booostr login credentials.</a>'),
+                'type' => 'success',
+                'booostr_register_action' => $registerUrl
+            ]);
+        }
+
+        // 3. If neither Site Builder nor Booostr Account found
+        return redirect()->back()->with([
+            'msg' => __('There is no existing account with that username/email address found for this site. <a href="' . $registerUrl . '" class="text-dark" style="text-decoration: underline; font-weight: 600;">Please first set up an account for this site here.</a>'),
+            'type' => 'danger',
+            'email_not_found' => true,
+        ]);
+    }
+
+    /**
+     * Show Reset Password Form with token and username.
+     */
+    public function showResetPasswordForm($username, $token)
+    {
+        abort_if(tenant('customer_modules') != 'on', 404);
+
+        $tokenRecord = DB::table('password_resets')
+            ->where('token', $token)
+            ->first();
+
+        $tokenValid = !empty($tokenRecord);
+
+        SEOMeta::setTitle(__('Reset Password'));
+
+        return view('theme.resto.customer.reset-password', [
+            'username' => $username,
+            'token' => $token,
+            'tokenValid' => $tokenValid,
+        ]);
+    }
+
+    /**
+     * Process User Password Reset.
+     */
+    public function UserResetPassword(Request $request)
+    {
+        $this->validate($request, [
+            'token' => 'required',
+            'username' => 'required',
+            'password' => 'required|string|min:8|confirmed'
+        ], [
+            'password.required' => __('Password is required.'),
+            'password.min' => __('Password must be at least 8 characters.'),
+            'password.confirmed' => __('Password confirmation does not match.'),
+        ]);
+
+        $usernameInput = trim($request->username);
+        $user_info = User::where('email', $usernameInput)->first();
+
+        // Also search in meta username if not found directly
+        if (!$user_info) {
+            $allUsers = User::whereNotNull('meta')->get();
+            if (!empty($allUsers)) {
+                foreach ($allUsers as $u) {
+                    $m = json_decode($u->meta, true);
+                    if (!empty($m['username']) && strcasecmp($m['username'], $usernameInput) === 0) {
+                        $user_info = $u;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (empty($user_info)) {
+            return redirect()->back()->with([
+                'msg' => __('User account not found'),
+                'type' => 'danger'
+            ]);
+        }
+
+        $user = User::findOrFail($user_info->id);
+        $token_iinfo = DB::table('password_resets')->where(['email' => $user_info->email, 'token' => $request->token])->first();
+
+        if (empty($token_iinfo)) {
+            return redirect()->back()->with([
+                'msg' => __('Invalid or expired reset token! Please request a new reset link.'),
+                'type' => 'danger'
+            ]);
+        }
+
+        // Call Booostr API to update password in Booostr Main & Frontend databases
+        try {
+            $client = new Client();
+            $response = $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-user-reset-password', [
+                'verify' => false,
+                'timeout' => 15,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+                'json' => [
+                    'username' => $user_info->username ?: $user_info->email,
+                    'password' => $request->password,
+                    'club'     => tenant()->id,
+                ],
+            ]);
+
+            $result = json_decode((string) $response->getBody(), true);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $errorBody = json_decode($e->getResponse()->getBody()->getContents(), true);
+            $errorMsg = $errorBody['message'] ?? __('Unable to update password. Please try again or request a new reset link.');
+            return redirect()->back()->with([
+                'msg' => $errorMsg,
+                'type' => 'danger'
+            ]);
+        } catch (\Exception $e) {
+            \Log::warning("Booostr password reset API call failed: " . $e->getMessage());
+        }
+
+        // Check if API response was successful (or if Booostr call completed)
+        $isApiSuccess = (!empty($result['success']) && !empty($result['data']['status']) && $result['data']['status'] === 'success')
+            || (!empty($result['status']) && $result['status'] === 'success');
+
+        if (isset($result) && !$isApiSuccess) {
+            $msg = $result['data']['msg'] ?? ($result['message'] ?? __('Unable to update password. Please try again.'));
+            return redirect()->back()->with([
+                'msg' => $msg,
+                'type' => 'danger'
+            ]);
+        }
+
+        // Update local Site Builder tenant database
+        $user->password = Hash::make($request->password);
+        if (!empty($result['data']['user']['user_id']) && empty($user->wpuid)) {
+            $user->wpuid = $result['data']['user']['user_id'];
+        }
+        $user->save();
+
+        // Delete used token from password_resets
+        DB::table('password_resets')->where('email', $user_info->email)->delete();
+
+        return redirect('/customer/login')->with([
+            'msg' => __('Password Changed Successfully'),
+            'type' => 'success'
+        ]);
     }
 }

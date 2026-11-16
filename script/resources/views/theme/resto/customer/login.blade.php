@@ -53,7 +53,7 @@
 								<label for="rememberMe" style="font-size: 14px; color: #475569; cursor: pointer; margin: 0; user-select: none;">{{ __('Remember me') }}</label>
 							</div>
 							<div>
-								<a href="{{ url('/password/reset') }}" class="forgot-link" style="font-size: 14px; color: #528CD7; text-decoration: none; font-weight: 500; transition: color 0.2s ease;">{{ __('Forgot password?') }}</a>
+								<a href="{{ route('customer.forget.password') }}" class="forgot-link" style="font-size: 14px; color: #528CD7; text-decoration: none; font-weight: 500; transition: color 0.2s ease;">{{ __('Forgot password?') }}</a>
 							</div>
 						</div>
 
