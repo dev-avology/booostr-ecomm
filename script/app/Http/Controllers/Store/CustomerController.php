@@ -572,43 +572,73 @@ class CustomerController extends Controller
             'long' => 'max:300',
         ]);
 
-        $data['address']=$request->address;
-        $data['post_code']=$request->post_code;
-        $data['lat']=$request->lat;
-        $data['long']=$request->long;
+        $user = User::findOrFail(Auth::user()->id);
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->phone = $request->phone;
 
-        $user= User::findOrFail(Auth::user()->id);
-        $user->name=$request->name;
-        $user->email=$request->email;
-        $user->phone=$request->phone;
-        $user->meta=json_encode($data);
+        // Preserve existing meta fields (like username, wpuid, age) while updating location details
+        $existingMeta = !empty($user->meta) ? json_decode($user->meta, true) : [];
+        $existingMeta['address'] = $request->address;
+        $existingMeta['post_code'] = $request->post_code;
+        $existingMeta['lat'] = $request->lat;
+        $existingMeta['long'] = $request->long;
+        $user->meta = json_encode($existingMeta);
         $user->save();
 
         return response()->json('Successfully your information updated...!!');
     }
 
+    /**
+     * Show Change Password View for Customer Dashboard (Site Builder standard).
+     */
+    public function changePassword()
+    {
+        abort_if(tenant('customer_modules') != 'on', 404);
+        SEOMeta::setTitle(__('Change Password'));
+        return view(baseview('customer/change-password'));
+    }
+
     public function profilePasswordUpdate(Request $request)
     {
         $validatedData = $request->validate([
+            'current' => ['required', 'string'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-
         ]);
-        $info=User::where('id',Auth::id())->first();
 
-        $check=\Hash::check($request->current, auth()->user()->password);
+        $check = \Hash::check($request->current, auth()->user()->password);
         
-        if ($check==true) {
-            User::where('id',Auth::id())->update(['password'=>\Hash::make($request->password)]);
+        if ($check == true) {
+            User::where('id', Auth::id())->update(['password' => \Hash::make($request->password)]);
 
-            return response()->json(['Password Changed']); 
+            // Synchronize password change with Booostr Central API
+            try {
+                $user = Auth::user();
+                $uMeta = !empty($user->meta) ? json_decode($user->meta, true) : [];
+                $apiUsername = !empty($uMeta['username']) ? $uMeta['username'] : ($user->username ?: $user->email);
+                
+                $client = new Client();
+                $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-user-reset-password', [
+                    'verify' => false,
+                    'timeout' => 10,
+                    'headers' => ['Accept' => 'application/json'],
+                    'json' => [
+                        'username' => $apiUsername,
+                        'password' => $request->password,
+                        'club'     => tenant()->id,
+                    ],
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Booostr profile password sync failed: ' . $e->getMessage());
+            }
 
+            return response()->json(['Password Changed Successfully']); 
         }
-        else{
-            $error['errors']['domain']='Enter Valid Password';
-            return response()->json($error,422);
-         
+        else {
+            $error['errors']['current'] = __('Current Password does not match our records.');
+            return response()->json($error, 422);
         }
-   }
+    }
 
     public function reviews()
     {

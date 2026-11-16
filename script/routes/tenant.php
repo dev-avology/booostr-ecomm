@@ -85,14 +85,19 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
             Route::post('/login-customer', 'Store\CustomerController@loginCustomer')->name('customer.login')->middleware('guest');
             Route::get('/register', 'Store\CustomerController@register')->middleware('guest');
             Route::post('/register-customer', 'Store\CustomerController@registerCustomer')->name('customer.register')->middleware('guest');
-            Route::get('/dashboard', 'Store\CustomerController@dashboard')->middleware(['auth','user']);
-            Route::get('/orders', 'Store\CustomerController@orders')->middleware(['auth','user']);
-            Route::get('/order/{id}', 'Store\CustomerController@orderview')->middleware(['auth','user']);
-            Route::get('/settings', 'Store\CustomerController@settings')->middleware(['auth','user']);
-            Route::get('/reviews', 'Store\CustomerController@reviews')->middleware(['auth','user']);
+            Route::get('/dashboard', 'Store\CustomerController@dashboard')->name('customer.dashboard')->middleware(['auth','user']);
+            Route::get('/orders', 'Store\CustomerController@orders')->name('customer.orders')->middleware(['auth','user']);
+            Route::get('/order/{id}', 'Store\CustomerController@orderview')->name('customer.order.view')->middleware(['auth','user']);
+            Route::get('/settings', 'Store\CustomerController@settings')->name('customer.settings')->middleware(['auth','user']);
+            Route::get('/reviews', 'Store\CustomerController@reviews')->name('customer.reviews')->middleware(['auth','user']);
             Route::post('profile/update','Store\CustomerController@profileUpdate')->name('customer.profile.update')->middleware(['auth','user']);
             Route::post('profile/password-update','Store\CustomerController@profilePasswordUpdate')->name('customer.password.update')->middleware(['auth','user']);
             Route::post('order-make-rating/{orderid}/{termid}/{optionid}','Store\CustomerController@makeReview')->middleware(['auth','user']);
+
+            // Site Builder Standard Dashboard Aliases
+            Route::get('/edit-profile', 'Store\CustomerController@settings')->name('customer.edit.profile')->middleware(['auth','user']);
+            Route::get('/change-password', 'Store\CustomerController@changePassword')->name('customer.change.password')->middleware(['auth','user']);
+            Route::get('/purchase-history', 'Store\CustomerController@orders')->name('customer.purchase.history')->middleware(['auth','user']);
         });
 
         // Customer Forgot & Reset Password Routes (Official URLs)
