@@ -742,7 +742,7 @@ class CustomerController extends Controller
                 $actualUsername = trim($user_info->name ?? '');
             }
 
-            $resetLink = url('/login/reset-password/' . urlencode($actualUsername) . '/' . $token_id);
+            $resetLink = url('/customer/reset-password/' . urlencode($actualUsername) . '/' . $token_id);
             $resetUrlLink = '<a href="' . $resetLink . '" style="color:#1a73e8; text-decoration:underline;">' . __("Click Here") . '</a>';
 
             $message_body = "<p>Hello!</p>"

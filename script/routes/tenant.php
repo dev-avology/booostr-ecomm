@@ -95,24 +95,31 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
             Route::post('order-make-rating/{orderid}/{termid}/{optionid}','Store\CustomerController@makeReview')->middleware(['auth','user']);
         });
 
-        // Root Customer Login & Register Routes
-        Route::get('/login', 'Store\CustomerController@login')->name('login')->middleware('guest');
-        Route::post('/login', 'Store\CustomerController@loginCustomer')->middleware('guest');
-        Route::get('/register', 'Store\CustomerController@register')->name('register')->middleware('guest');
-        Route::post('/register', 'Store\CustomerController@registerCustomer')->middleware('guest');
+        // Customer Forgot & Reset Password Routes (Official URLs)
+        Route::get('/customer/forget-password', 'Store\CustomerController@showForgetPasswordForm')->name('customer.forget.password')->middleware('guest');
+        Route::post('/customer/forget-password', 'Store\CustomerController@sendUserForgetPasswordMail')->name('customer.forget.password.post')->middleware('guest');
+        Route::get('/customer/reset-password/{username}/{token}', 'Store\CustomerController@showResetPasswordForm')->name('customer.reset.password')->middleware('guest');
+        Route::post('/customer/reset-password', 'Store\CustomerController@UserResetPassword')->name('customer.reset.password.post')->middleware('guest');
 
-        // Forgot & Reset Password Routes
-        Route::get('/login/forget-password', 'Store\CustomerController@showForgetPasswordForm')->name('customer.forget.password')->middleware('guest');
-        Route::post('/login/forget-password', 'Store\CustomerController@sendUserForgetPasswordMail')->name('customer.forget.password.post')->middleware('guest');
-        Route::get('/customer/forget-password', 'Store\CustomerController@showForgetPasswordForm')->middleware('guest');
-        Route::post('/customer/forget-password', 'Store\CustomerController@sendUserForgetPasswordMail')->middleware('guest');
+        // Clean Redirects for root /login and /register to customer storefront
+        Route::get('/login', function () {
+            return redirect('/customer/login');
+        })->name('login');
 
-        Route::get('/login/reset-password/{username}/{token}', 'Store\CustomerController@showResetPasswordForm')->name('customer.reset.password')->middleware('guest');
-        Route::post('/login/reset-password', 'Store\CustomerController@UserResetPassword')->name('customer.reset.password.post')->middleware('guest');
-        Route::get('/customer/reset-password/{username}/{token}', 'Store\CustomerController@showResetPasswordForm')->middleware('guest');
-        Route::post('/customer/reset-password', 'Store\CustomerController@UserResetPassword')->middleware('guest');
+        Route::get('/register', function () {
+            return redirect('/customer/register');
+        })->name('register');
 
-        Route::get('/reset-password/{user}/{token}', 'Store\CustomerController@showResetPasswordForm')->name('tenant.user.reset.password')->middleware('guest');
+        // Backward-compatible aliases for legacy / email reset links
+        Route::get('/login/forget-password', function () {
+            return redirect()->route('customer.forget.password');
+        })->middleware('guest');
+        Route::get('/login/reset-password/{username}/{token}', function ($username, $token) {
+            return redirect()->route('customer.reset.password', ['username' => $username, 'token' => $token]);
+        })->middleware('guest');
+        Route::get('/reset-password/{user}/{token}', function ($user, $token) {
+            return redirect()->route('customer.reset.password', ['username' => $user, 'token' => $token]);
+        })->name('tenant.user.reset.password')->middleware('guest');
     });
 
     // Direct / Embed Checkout Routes (Bypasses standalone_store check so Website Builder and Club Profiles always work)
