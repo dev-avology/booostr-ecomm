@@ -34,8 +34,8 @@ return [
     ],
 
     'recaptcha' => [
-        'site_key' => env('RECAPTCHA_SITE_KEY', '6LdYVR4uAAAAAN1riM4dqvPEne4yLQ3ugmx4Os71'),
-        'secret_key' => env('RECAPTCHA_SECRET_KEY', '6LdYVR4uAAAAAIPj9m5j_0BGHCeCay4W9Gbhc5uX'),
+        'site_key' => env('RECAPTCHA_SITE_KEY'),
+        'secret_key' => env('RECAPTCHA_SECRET_KEY'),
     ],
 
 ];

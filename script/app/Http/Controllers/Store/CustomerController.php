@@ -311,6 +311,7 @@ class CustomerController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'age' => ['required', 'string'],
             'agree_terms' => ['accepted'],
+            'g-recaptcha-response' => ['required'],
         ];
         $validationMessages = [
             'fname.required' => 'First name is required.',
@@ -325,38 +326,42 @@ class CustomerController extends Controller
             'age.required' => 'Age is required.',
             'agree_terms.accepted' => 'Please agree to the Terms and Conditions and Privacy Policy.',
             'agree_terms.required' => 'Please agree to the Terms and Conditions and Privacy Policy.',
+            'g-recaptcha-response.required' => 'Please verify that you are not a robot.',
         ];
-
-        $recaptchaSecret = config('services.recaptcha.secret_key') ?: env('RECAPTCHA_SECRET_KEY');
-        if (!empty($recaptchaSecret)) {
-            $validationRules['g-recaptcha-response'] = ['required'];
-            $validationMessages['g-recaptcha-response.required'] = 'Please verify that you are not a robot.';
-        }
 
         $request->validate($validationRules, $validationMessages);
 
-        // Verify reCAPTCHA with Google
-        if (!empty($recaptchaSecret) && $request->filled('g-recaptcha-response')) {
-            try {
-                $verifyClient = new \GuzzleHttp\Client();
-                $verifyRes = $verifyClient->post('https://www.google.com/recaptcha/api/siteverify', [
-                    'verify' => false,
-                    'timeout' => 10,
-                    'form_params' => [
-                        'secret' => $recaptchaSecret,
-                        'response' => $request->input('g-recaptcha-response'),
-                        'remoteip' => $request->ip(),
-                    ],
-                ]);
-                $verifyBody = json_decode((string) $verifyRes->getBody(), true);
-                if (empty($verifyBody['success'])) {
-                    return redirect()->back()->withErrors([
-                        'g-recaptcha-response' => 'reCAPTCHA verification failed. Please try again.',
-                    ])->withInput();
-                }
-            } catch (\Throwable $e) {
-                \Log::error('reCAPTCHA verification error', ['error' => $e->getMessage()]);
+        // Verify reCAPTCHA with Google siteverify API
+        $recaptchaSecret = env('RECAPTCHA_SECRET_KEY') ?: config('services.recaptcha.secret_key');
+        if (empty($recaptchaSecret)) {
+            \Log::error('reCAPTCHA secret key is missing from environment (.env).');
+            return redirect()->back()->withErrors([
+                'g-recaptcha-response' => __('reCAPTCHA configuration error. Please contact site administrator.'),
+            ])->withInput();
+        }
+
+        try {
+            $verifyClient = new \GuzzleHttp\Client();
+            $verifyRes = $verifyClient->post('https://www.google.com/recaptcha/api/siteverify', [
+                'verify' => false,
+                'timeout' => 10,
+                'form_params' => [
+                    'secret' => $recaptchaSecret,
+                    'response' => $request->input('g-recaptcha-response'),
+                    'remoteip' => $request->ip(),
+                ],
+            ]);
+            $verifyBody = json_decode((string) $verifyRes->getBody(), true);
+            if (empty($verifyBody['success'])) {
+                return redirect()->back()->withErrors([
+                    'g-recaptcha-response' => __('reCAPTCHA verification failed. Please try again.'),
+                ])->withInput();
             }
+        } catch (\Throwable $e) {
+            \Log::error('reCAPTCHA verification error', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors([
+                'g-recaptcha-response' => __('Unable to verify reCAPTCHA at this time. Please try again.'),
+            ])->withInput();
         }
 
         $firstName = trim($request->fname);

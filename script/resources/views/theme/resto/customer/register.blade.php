@@ -133,13 +133,18 @@
 						<span class="text-danger small d-block mb-3"><strong>{{ $message }}</strong></span>
 						@enderror
 
-						<!-- reCAPTCHA Widget Left-Aligned -->
-						<div class="recaptcha-wrapper">
-							<div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') ?: env('RECAPTCHA_SITE_KEY') }}"></div>
+						<!-- reCAPTCHA Widget Left-Aligned with inline error -->
+						<div class="form-group mb-3">
+							<div class="recaptcha-wrapper">
+								<div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') ?: env('RECAPTCHA_SITE_KEY') }}" data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaExpired"></div>
+							</div>
+							<div id="recaptchaInlineError" class="text-danger small mt-1 mb-2 font-weight-bold" style="display: none;">
+								<strong>{{ __('Please verify that you are not a robot.') }}</strong>
+							</div>
+							@error('g-recaptcha-response')
+							<span class="text-danger small d-block mt-1 mb-2"><strong>{{ $message }}</strong></span>
+							@enderror
 						</div>
-						@error('g-recaptcha-response')
-						<span class="text-danger small d-block mt-1 mb-2"><strong>{{ $message }}</strong></span>
-						@enderror
 						
 						<!-- Register Submit Button (disabled until terms checked) -->
 						<div class="register-button-wrapper mt-4">
@@ -570,6 +575,21 @@ function togglePasswordVisibility(fieldId, iconElem) {
 	}
 }
 
+// Google reCAPTCHA callbacks for instant client-side validation
+window.onRecaptchaSuccess = function(token) {
+	const errDiv = document.getElementById('recaptchaInlineError');
+	if (errDiv) errDiv.style.display = 'none';
+	if (typeof window.checkAllRequiredRegistrationFields === 'function') {
+		window.checkAllRequiredRegistrationFields();
+	}
+};
+
+window.onRecaptchaExpired = function() {
+	if (typeof window.checkAllRequiredRegistrationFields === 'function') {
+		window.checkAllRequiredRegistrationFields();
+	}
+};
+
 document.addEventListener('DOMContentLoaded', function() {
 	const form = document.getElementById('registrationForm');
 	const submitBtn = document.getElementById('registerSubmitBtn');
@@ -586,6 +606,18 @@ document.addEventListener('DOMContentLoaded', function() {
 		const age = form.querySelector('select[name="age"]');
 		const agreeTerms = document.getElementById('agree_terms');
 
+		// Check if Google reCAPTCHA has been completed
+		const hasRecaptcha = Boolean(
+			typeof grecaptcha !== 'undefined' &&
+			grecaptcha.getResponse &&
+			grecaptcha.getResponse().length > 0
+		);
+
+		// Check if age is selected (not empty or default placeholder)
+		const isAgeSelected = Boolean(
+			age && age.value && age.value.trim() !== '' && age.value !== 'null'
+		);
+
 		const allFilled = Boolean(
 			fname && fname.value.trim() !== '' &&
 			lname && lname.value.trim() !== '' &&
@@ -593,12 +625,15 @@ document.addEventListener('DOMContentLoaded', function() {
 			email && email.value.trim() !== '' &&
 			password && password.value.trim() !== '' &&
 			passwordConfirm && passwordConfirm.value.trim() !== '' &&
-			age && age.value && age.value.trim() !== '' &&
-			agreeTerms && agreeTerms.checked
+			isAgeSelected &&
+			agreeTerms && agreeTerms.checked &&
+			hasRecaptcha
 		);
 
 		submitBtn.disabled = !allFilled;
 	}
+
+	window.checkAllRequiredRegistrationFields = checkAllRequiredFields;
 
 	if (form) {
 		// Listen to all user input & selection events across all form fields
@@ -606,6 +641,13 @@ document.addEventListener('DOMContentLoaded', function() {
 		form.addEventListener('change', checkAllRequiredFields);
 		form.addEventListener('keyup', checkAllRequiredFields);
 		form.addEventListener('paste', () => setTimeout(checkAllRequiredFields, 50));
+
+		// Hook into jQuery NiceSelect for age dropdown if active in theme
+		if (window.jQuery) {
+			window.jQuery(form).find('select[name="age"]').on('change', function() {
+				checkAllRequiredFields();
+			});
+		}
 
 		// Initial check on load (handles browser autofill and validation errors with old() values)
 		checkAllRequiredFields();
@@ -618,6 +660,24 @@ document.addEventListener('DOMContentLoaded', function() {
 			// Prevent double submission if already processing
 			if (submitBtn.classList.contains('is-processing')) {
 				e.preventDefault();
+				return false;
+			}
+
+			// Validate reCAPTCHA client-side before dispatching submission
+			const hasRecaptcha = Boolean(
+				typeof grecaptcha !== 'undefined' &&
+				grecaptcha.getResponse &&
+				grecaptcha.getResponse().length > 0
+			);
+
+			if (!hasRecaptcha) {
+				e.preventDefault();
+				const errDiv = document.getElementById('recaptchaInlineError');
+				if (errDiv) {
+					errDiv.style.display = 'block';
+					errDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				}
+				submitBtn.disabled = true;
 				return false;
 			}
 
