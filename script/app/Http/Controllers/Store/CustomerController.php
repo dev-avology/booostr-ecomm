@@ -726,8 +726,23 @@ class CustomerController extends Controller
             }
 
             $siteHost = parse_url(url('/'), PHP_URL_HOST) ?: url('/');
-            $usernameParam = !empty($user_info->username) ? $user_info->username : explode('@', $user_info->email)[0];
-            $resetLink = url('/login/reset-password/' . urlencode($usernameParam) . '/' . $token_id);
+
+            // Extract actual username from meta JSON
+            $actualUsername = '';
+            if (!empty($user_info->meta)) {
+                $userMeta = json_decode($user_info->meta, true);
+                if (!empty($userMeta['username'])) {
+                    $actualUsername = trim($userMeta['username']);
+                }
+            }
+            if ($actualUsername === '' && !empty($user_info->username)) {
+                $actualUsername = trim($user_info->username);
+            }
+            if ($actualUsername === '') {
+                $actualUsername = trim($user_info->name ?? '');
+            }
+
+            $resetLink = url('/login/reset-password/' . urlencode($actualUsername) . '/' . $token_id);
             $resetUrlLink = '<a href="' . $resetLink . '" style="color:#1a73e8; text-decoration:underline;">' . __("Click Here") . '</a>';
 
             $message_body = "<p>Hello!</p>"
@@ -744,8 +759,8 @@ class CustomerController extends Controller
                     '@club_name',
                 ],
                 [
-                    $user_info->username ?? $user_info->email,
-                    $user_info->name ?? ($user_info->username ?? $user_info->email),
+                    $actualUsername,
+                    $user_info->name ?? $actualUsername,
                     $resetUrlLink,
                     $siteHost,
                     $clubName,
@@ -754,7 +769,7 @@ class CustomerController extends Controller
             );
 
             $data = [
-                'username' => $user_info->username ?? $user_info->email,
+                'username' => $actualUsername,
                 'subject' => 'Password Reset Request for ' . $siteHost,
                 'message' => $message,
                 'club_name' => $clubName,
@@ -898,6 +913,20 @@ class CustomerController extends Controller
 
         // Call Booostr API to update password in Booostr Main & Frontend databases
         try {
+            $actualMetaUsername = '';
+            if (!empty($user_info->meta)) {
+                $uMeta = json_decode($user_info->meta, true);
+                if (!empty($uMeta['username'])) {
+                    $actualMetaUsername = trim($uMeta['username']);
+                }
+            }
+            if ($actualMetaUsername === '' && !empty($user_info->username)) {
+                $actualMetaUsername = trim($user_info->username);
+            }
+            if ($actualMetaUsername === '') {
+                $actualMetaUsername = $user_info->email;
+            }
+
             $client = new Client();
             $response = $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-user-reset-password', [
                 'verify' => false,
@@ -906,7 +935,7 @@ class CustomerController extends Controller
                     'Accept' => 'application/json',
                 ],
                 'json' => [
-                    'username' => $user_info->username ?: $user_info->email,
+                    'username' => $actualMetaUsername,
                     'password' => $request->password,
                     'club'     => tenant()->id,
                 ],
