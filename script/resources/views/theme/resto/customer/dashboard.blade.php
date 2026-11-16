@@ -22,32 +22,44 @@
 	<div class="row g-3">
 		<div class="col-lg-6 col-md-6 col-12">
 			<!-- Total Orders / Purchases Card -->
-			<div class="single-list primary p-3 rounded shadow-sm d-flex align-items-center justify-content-between">
-				<div class="d-flex align-items-center">
-					<div class="list-icon me-3"><i class="icofont-shopping-cart fs-2"></i></div>
-					<div>
-						<h3 class="mb-0 fs-3">{{ $total_orders }}</h3>
-						<span class="text-muted">{{ __('Purchases / Total Orders') }}</span>
-					</div>
+			<div class="single-list primary" style="position: relative; padding: 35px 25px 35px 115px !important; border-radius: 8px; margin-bottom: 20px;">
+				<div class="list-icon">
+					<i class="icofont-shopping-cart"></i>
 				</div>
-				<a href="{{ url('/customer/orders') }}" class="btn btn-sm btn-outline-primary">
-					{{ __('View All') }} &rarr;
-				</a>
+				<div class="d-flex align-items-center justify-content-between flex-wrap" style="gap: 10px;">
+					<div>
+						<h3 style="color: #ffffff !important; font-size: 32px; font-weight: 700; margin: 0; line-height: 1.1;">
+							{{ $total_orders }}
+						</h3>
+						<span style="color: rgba(255, 255, 255, 0.9) !important; font-size: 14px; font-weight: 500; display: block; margin-top: 4px;">
+							{{ __('Purchases / Total Orders') }}
+						</span>
+					</div>
+					<a href="{{ url('/customer/orders') }}" class="btn btn-sm bg-white text-success fw-bold shadow-sm" style="border-radius: 20px; padding: 6px 16px; font-size: 12px; white-space: nowrap; text-decoration: none;">
+						{{ __('View All') }} &rarr;
+					</a>
+				</div>
 			</div>
 		</div>
 		<div class="col-lg-6 col-md-6 col-12">
 			<!-- Pending Orders Card -->
-			<div class="single-list dark p-3 rounded shadow-sm d-flex align-items-center justify-content-between">
-				<div class="d-flex align-items-center">
-					<div class="list-icon me-3"><i class="icofont-sand-clock fs-2"></i></div>
-					<div>
-						<h3 class="mb-0 fs-3">{{ $total_pending_orders }}</h3>
-						<span class="text-muted">{{ __('Pending Orders') }}</span>
-					</div>
+			<div class="single-list dark" style="position: relative; padding: 35px 25px 35px 115px !important; border-radius: 8px; margin-bottom: 20px;">
+				<div class="list-icon">
+					<i class="icofont-sand-clock"></i>
 				</div>
-				<a href="{{ url('/customer/orders') }}" class="btn btn-sm btn-outline-secondary">
-					{{ __('Check Status') }} &rarr;
-				</a>
+				<div class="d-flex align-items-center justify-content-between flex-wrap" style="gap: 10px;">
+					<div>
+						<h3 style="color: #ffffff !important; font-size: 32px; font-weight: 700; margin: 0; line-height: 1.1;">
+							{{ $total_pending_orders }}
+						</h3>
+						<span style="color: rgba(255, 255, 255, 0.9) !important; font-size: 14px; font-weight: 500; display: block; margin-top: 4px;">
+							{{ __('Pending Orders') }}
+						</span>
+					</div>
+					<a href="{{ url('/customer/orders') }}" class="btn btn-sm bg-white text-dark fw-bold shadow-sm" style="border-radius: 20px; padding: 6px 16px; font-size: 12px; white-space: nowrap; text-decoration: none;">
+						{{ __('Check Status') }} &rarr;
+					</a>
+				</div>
 			</div>
 		</div>
 	</div>

@@ -27,21 +27,47 @@ $ordermeta=json_decode($info->ordermeta->value ?? '');
 				<!-- Start Dashboard Sidebar -->
 				<div class="dashboard-sidebar">
 					<div class="user-image">
-						
-						<h3>{{ Auth::user()->name }}</h3>
+						@php
+							$userMeta = !empty(Auth::user()->meta) ? json_decode(Auth::user()->meta, true) : [];
+							$displayName = !empty($userMeta['username']) ? $userMeta['username'] : Auth::user()->name;
+						@endphp
+						<h3>{{ $displayName }}</h3>
 					</div>
 					<div class="dashboard-menu">
 						<ul>
-							<li><a class="{{ url()->current() == url('/customer/dashboard') ? 'active' : '' }}" href="{{ url('/customer/dashboard') }}"><i class="lni lni-dashboard"></i> {{ __('Dashboard') }}</a></li>
-							<li><a href="{{ url('/customer/orders') }}" href="{{ url()->current() == url('/customer/orders') ? 'active' : '' }}"><i class="lni lni-bolt-alt"></i> {{ __('My Orders') }}</a></li>
-							<li><a href="{{ url('/customer/reviews') }}"><i class="lni lni-pencil-alt"></i>{{ __('Reviews') }}</a></li>
-							<li><a href="{{ url('/customer/settings') }}"><i class="lni lni-pencil-alt"></i> Edit Profile</a></li>
-							
+							{{-- 1. Dashboard Home --}}
+							<li>
+								<a class="{{ request()->is('customer/dashboard*') ? 'active' : '' }}" href="{{ url('/customer/dashboard') }}">
+									<i class="icofont-dashboard-web me-2"></i> {{ __('Dashboard') }}
+								</a>
+							</li>
+
+							{{-- 2. Edit Profile --}}
+							<li>
+								<a class="{{ (request()->is('customer/edit-profile*') || request()->is('customer/settings*')) && !request()->is('customer/change-password*') ? 'active' : '' }}" href="{{ url('/customer/edit-profile') }}">
+									<i class="icofont-ui-user me-2"></i> {{ __('Edit Profile') }}
+								</a>
+							</li>
+
+							{{-- 3. Change Password --}}
+							<li>
+								<a class="{{ request()->is('customer/change-password*') ? 'active' : '' }}" href="{{ url('/customer/change-password') }}">
+									<i class="icofont-key me-2"></i> {{ __('Change Password') }}
+								</a>
+							</li>
+
+							{{-- 4. Purchase History --}}
+							<li>
+								<a class="{{ request()->is('customer/orders*') || request()->is('customer/purchase-history*') || request()->is('customer/order/*') ? 'active' : '' }}" href="{{ url('/customer/orders') }}">
+									<i class="icofont-shopping-cart me-2"></i> {{ __('Purchase History') }}
+								</a>
+							</li>
 						</ul>
-						<div class="button">
-							<a class="btn alt-btn" href="javascript:void(0)" onclick="event.preventDefault();
-							document.getElementById('logout-form').submit();">Logout</a>
-							<form id="logout-form" action="{{ url('/logout') }}" method="POST" class="d-none">
+						<div class="button mt-3">
+							<a class="btn alt-btn w-100" href="javascript:void(0)" onclick="event.preventDefault(); document.getElementById('customer-sidebar-logout-form').submit();">
+								<i class="icofont-logout me-1"></i> {{ __('Logout') }}
+							</a>
+							<form id="customer-sidebar-logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
 								@csrf
 							</form>
 						</div>

@@ -86,15 +86,6 @@
 									<i class="icofont-shopping-cart me-2"></i> {{ __('Purchase History') }}
 								</a>
 							</li>
-
-							{{-- 5. Reviews (Preserved for store items rating) --}}
-							@if(tenant('review_status') == 'on' || tenant('customer_modules') == 'on')
-							<li>
-								<a class="{{ request()->is('customer/reviews*') ? 'active' : '' }}" href="{{ url('/customer/reviews') }}">
-									<i class="icofont-star me-2"></i> {{ __('Reviews') }}
-								</a>
-							</li>
-							@endif
 						</ul>
 						<div class="button mt-3">
 							<a class="btn alt-btn w-100" href="javascript:void(0)" onclick="event.preventDefault(); document.getElementById('customer-sidebar-logout-form').submit();">
