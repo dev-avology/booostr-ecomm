@@ -127,7 +127,7 @@ class CustomerController extends Controller
             }
         }
 
-        $clubSlug = (string) (tenant('club_id') ?: tenant('id') ?? '');
+        $clubSlug = (string) (tenant('id') ?? '');
         $apiUrl = env('WP_WEBBUILDER_LOGIN_API_URL') ?: 'https://app.booostr.co/wp-json/webbuilder-api/v1/user-login';
         $authenticatedUser = null;
 
@@ -446,21 +446,42 @@ class CustomerController extends Controller
 
         // Send Welcome Email to newly registered customer
         try {
-            $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
-            $clubName = trim((string) ($clubInfo['club_name'] ?? ''));
+            $clubIdOrSlug = (string) (tenant('id') ?? '');
+            $clubName = '';
+            $clubLogo = '';
+            $supportEmail = null;
+
+            // Fetch live club details from Booostr Site API
+            try {
+                $client = new \GuzzleHttp\Client();
+                $clubApiRes = $client->get('https://booostr.site/api/club-info/' . $clubIdOrSlug, [
+                    'verify'  => false,
+                    'timeout' => 8,
+                    'headers' => [
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+
+                $clubApiData = json_decode((string) $clubApiRes->getBody(), true);
+                if (!empty($clubApiData['success']) && !empty($clubApiData['data'])) {
+                    $clubDetails = $clubApiData['data'];
+                    $clubName = trim((string) ($clubDetails['name'] ?? ''));
+                    $clubLogo = trim((string) ($clubDetails['logo'] ?? ''));
+                    $supportEmail = trim((string) ($clubDetails['email'] ?? ''));
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Failed to fetch club-info from booostr.site API', [
+                    'club_id' => $clubIdOrSlug,
+                    'error'   => $e->getMessage(),
+                ]);
+            }
+
+            // Fallback values if API was unreachable or returned empty fields
             if ($clubName === '') {
                 $clubName = trim((string) (tenant('store_name') ?? ''));
             }
             if ($clubName === '') {
                 $clubName = ucwords(str_replace('-', ' ', (string) tenant('id')));
-            }
-
-            $clubLogo = '';
-            $bannerLogo = get_option('banner_logo');
-            if (!empty($bannerLogo)) {
-                $clubLogo = asset($bannerLogo);
-            } elseif (!empty($clubInfo['club_logo'])) {
-                $clubLogo = $clubInfo['club_logo'];
             }
 
             $mailData = [
@@ -472,7 +493,7 @@ class CustomerController extends Controller
                 'club_name' => $clubName,
                 'site_url' => url('/'),
                 'login_url' => url('/customer/login'),
-                'support_email' => $clubInfo['club_email'] ?? ($clubInfo['email'] ?? null),
+                'support_email' => !empty($supportEmail) ? $supportEmail : null,
                 'logo' => $clubLogo,
                 'site_url_text' => str_replace(['https://', 'http://'], '', url('/')),
             ];
