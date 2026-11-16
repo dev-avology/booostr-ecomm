@@ -1,23 +1,20 @@
 @extends('theme.resto.layouts.app')
 @section('content')
-<!-- Start Breadcrumbs Area -->
-<div class="breadcrumbs" >
-	<div class="container">
-		<div class="row">
-			<div class="col-lg-6 col-md-8 col-12">
-				<div class="breadcrumbs-content">
-					<h1 class="page-title">{{ __('Order') }} : {{ $info->invoice_no }}</h1>
-
-				</div>
-				<ul class="breadcrumb-nav">
-					<li><a href="{{ url('/customer/dashboard') }}"><i class="icofont-home"></i> {{ __('Dashboard') }}</a></li>
-					<li><i class="icofont-fast-food"></i> {{ $info->invoice_no }}</li>
-				</ul>
-			</div>
-		</div>
-	</div>
-</div>
-<!--/ End Breadcrumbs Area -->
+{{-- 
+    =================================================================================
+    Page Banner (Site Builder standard component matching product & cart page)
+    Static title & description passed directly without table queries
+    =================================================================================
+--}}
+@include('theme.resto.components.page-banner', [
+    'title' => __('Order') . ' #' . $info->invoice_no,
+    'description' => __('View order details, delivery address, items, and download your invoice.'),
+    'breadcrumbs' => [
+        ['url' => url('/'), 'label' => __('Home'), 'icon' => 'icofont-home'],
+        ['url' => url('/customer/dashboard'), 'label' => __('Dashboard'), 'icon' => 'icofont-dashboard-web'],
+        ['url' => '', 'label' => '#' . $info->invoice_no, 'icon' => 'icofont-file-document'],
+    ]
+])
 @php
 $address=json_decode($info->shippingwithinfo->info ?? '');
 $ordermeta=json_decode($info->ordermeta->value ?? '');

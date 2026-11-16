@@ -1,23 +1,47 @@
 @extends('theme.resto.layouts.app')
 @section('content')
-<!-- Start Breadcrumbs Area -->
-<div class="breadcrumbs" style="background-image:url('images/bread-bg.jpg')">
-	<div class="container">
-		<div class="row">
-			<div class="col-lg-6 col-md-8 col-12">
-				<div class="breadcrumbs-content">
-					<h1 class="page-title">{{ ucwords(Request::segment(2)) }}</h1>
-					
-				</div>
-				<ul class="breadcrumb-nav">
-					<li><a href="{{ url('/') }}"><i class="icofont-home"></i> {{ __('Home') }}</a></li>
-					<li><i class="icofont-fast-food"></i> {{ Request::segment(2) }}</li>
-				</ul>
-			</div>
-		</div>
-	</div>
-</div>
-<!--/ End Breadcrumbs Area -->
+{{-- 
+    =================================================================================
+    Page Banner (Site Builder standard component matching product & cart page)
+    Static title & description mapped per dashboard section without table queries
+    =================================================================================
+--}}
+@php
+    $segment = Request::segment(2);
+    $dashboardTitle = __('Dashboard');
+    $dashboardDesc = __('Manage your orders, profile details, and account settings.');
+
+    if ($segment == 'orders' || $segment == 'purchase-history') {
+        $dashboardTitle = __('Purchase History');
+        $dashboardDesc = __('Track, review, and view invoices for all your past purchases.');
+    } elseif ($segment == 'edit-profile' || $segment == 'settings') {
+        $dashboardTitle = __('Edit Profile');
+        $dashboardDesc = __('Update your personal information, contact info, and delivery address.');
+    } elseif ($segment == 'change-password') {
+        $dashboardTitle = __('Change Password');
+        $dashboardDesc = __('Keep your account secure with a strong and updated password.');
+    } elseif ($segment == 'reviews') {
+        $dashboardTitle = __('Reviews');
+        $dashboardDesc = __('View and manage your product reviews and ratings.');
+    }
+
+    $dashboardCrumbs = [
+        ['url' => url('/'), 'label' => __('Home'), 'icon' => 'icofont-home']
+    ];
+
+    if ($segment == 'dashboard' || empty($segment)) {
+        $dashboardCrumbs[] = ['url' => '', 'label' => __('Dashboard'), 'icon' => 'icofont-dashboard-web'];
+    } else {
+        $dashboardCrumbs[] = ['url' => url('/customer/dashboard'), 'label' => __('Dashboard'), 'icon' => 'icofont-dashboard-web'];
+        $dashboardCrumbs[] = ['url' => '', 'label' => $dashboardTitle, 'icon' => 'icofont-navigation-menu'];
+    }
+@endphp
+
+@include('theme.resto.components.page-banner', [
+    'title' => $dashboardTitle,
+    'description' => $dashboardDesc,
+    'breadcrumbs' => $dashboardCrumbs,
+])
 
 <!-- Start Dashboard Section -->
 <section class="dashboard section">
