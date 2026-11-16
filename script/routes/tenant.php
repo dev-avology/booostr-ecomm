@@ -25,7 +25,11 @@ use App\Http\Controllers\Store\TicketScanController;
 
 Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','PreventAccessFromCentralDomains','web','tenantenvironment']], function () {
 
-    Auth::routes();
+    Auth::routes(['register' => false, 'reset' => false]);
+
+    // Dedicated Seller/Admin login routes (preserves staff login without overriding storefront customer login)
+    Route::get('/seller/login', 'Auth\LoginController@showLoginForm')->name('seller.login')->middleware('guest');
+    Route::post('/seller/login', 'Auth\LoginController@login')->middleware('guest');
 
     
     Route::get('/pwa',function(){
@@ -90,6 +94,12 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
             Route::post('profile/password-update','Store\CustomerController@profilePasswordUpdate')->name('customer.password.update')->middleware(['auth','user']);
             Route::post('order-make-rating/{orderid}/{termid}/{optionid}','Store\CustomerController@makeReview')->middleware(['auth','user']);
         });
+
+        // Root Customer Login & Register Routes
+        Route::get('/login', 'Store\CustomerController@login')->name('login')->middleware('guest');
+        Route::post('/login', 'Store\CustomerController@loginCustomer')->middleware('guest');
+        Route::get('/register', 'Store\CustomerController@register')->name('register')->middleware('guest');
+        Route::post('/register', 'Store\CustomerController@registerCustomer')->middleware('guest');
 
         // Forgot & Reset Password Routes
         Route::get('/login/forget-password', 'Store\CustomerController@showForgetPasswordForm')->name('customer.forget.password')->middleware('guest');
