@@ -303,87 +303,67 @@ class CustomerController extends Controller
     {
         abort_if(tenant('customer_modules') != 'on',404);
 
-        // Support both fname/lname and legacy single-name input for 100% backwards compatibility
-        if ($request->filled('fname') || $request->filled('lname') || $request->has('g-recaptcha-response')) {
-            $validationRules = [
-                'fname' => ['required', 'string', 'max:191'],
-                'lname' => ['required', 'string', 'max:191'],
-                'email' => ['required', 'string', 'email', 'max:191', 'unique:users'],
-                'username' => ['required', 'string', 'max:191'],
-                'password' => ['required', 'string', 'min:8', 'confirmed'],
-                'age' => ['required', 'string'],
-            ];
-            $validationMessages = [
-                'fname.required' => 'First name is required.',
-                'lname.required' => 'Last name is required.',
-                'email.required' => 'Email address is required.',
-                'email.email' => 'Please enter a valid email address.',
-                'email.unique' => 'This email is already registered on this store. Please login.',
-                'username.required' => 'Username is required.',
-                'password.required' => 'Password is required.',
-                'password.min' => 'Password must be at least 8 characters.',
-                'password.confirmed' => 'Password confirmation does not match.',
-                'age.required' => 'Age is required.',
-            ];
+        $validationRules = [
+            'fname' => ['required', 'string', 'max:191'],
+            'lname' => ['required', 'string', 'max:191'],
+            'email' => ['required', 'string', 'email', 'max:191', 'unique:users'],
+            'username' => ['required', 'string', 'max:191'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'age' => ['required', 'string'],
+            'agree_terms' => ['accepted'],
+        ];
+        $validationMessages = [
+            'fname.required' => 'First name is required.',
+            'lname.required' => 'Last name is required.',
+            'email.required' => 'Email address is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already registered on this store. Please login.',
+            'username.required' => 'Username is required.',
+            'password.required' => 'Password is required.',
+            'password.min' => 'Password must be at least 8 characters.',
+            'password.confirmed' => 'Password confirmation does not match.',
+            'age.required' => 'Age is required.',
+            'agree_terms.accepted' => 'Please agree to the Terms and Conditions and Privacy Policy.',
+            'agree_terms.required' => 'Please agree to the Terms and Conditions and Privacy Policy.',
+        ];
 
-            $recaptchaSecret = config('services.recaptcha.secret_key') ?: env('RECAPTCHA_SECRET_KEY');
-            if (!empty($recaptchaSecret)) {
-                $validationRules['g-recaptcha-response'] = ['required'];
-                $validationMessages['g-recaptcha-response.required'] = 'Please verify that you are not a robot.';
-            }
-
-            if ($request->has('agree_terms') || $request->filled('fname')) {
-                $validationRules['agree_terms'] = ['accepted'];
-                $validationMessages['agree_terms.accepted'] = 'Please agree to the Terms and Conditions and Privacy Policy.';
-                $validationMessages['agree_terms.required'] = 'Please agree to the Terms and Conditions and Privacy Policy.';
-            }
-
-            $request->validate($validationRules, $validationMessages);
-
-            // Verify reCAPTCHA with Google
-            if (!empty($recaptchaSecret) && $request->filled('g-recaptcha-response')) {
-                try {
-                    $verifyClient = new \GuzzleHttp\Client();
-                    $verifyRes = $verifyClient->post('https://www.google.com/recaptcha/api/siteverify', [
-                        'verify' => false,
-                        'timeout' => 10,
-                        'form_params' => [
-                            'secret' => $recaptchaSecret,
-                            'response' => $request->input('g-recaptcha-response'),
-                            'remoteip' => $request->ip(),
-                        ],
-                    ]);
-                    $verifyBody = json_decode((string) $verifyRes->getBody(), true);
-                    if (empty($verifyBody['success'])) {
-                        return redirect()->back()->withErrors([
-                            'g-recaptcha-response' => 'reCAPTCHA verification failed. Please try again.',
-                        ])->withInput();
-                    }
-                } catch (\Throwable $e) {
-                    \Log::error('reCAPTCHA verification error', ['error' => $e->getMessage()]);
-                }
-            }
-
-            $firstName = trim($request->fname);
-            $lastName = trim($request->lname);
-            $name = $firstName . ' ' . $lastName;
-            $username = trim($request->username);
-            $age = (string) $request->age;
-        } else {
-            $request->validate([
-                'name' => 'required|max:255',
-                'email' => 'required|email|unique:users',
-                'password' => 'required|confirmed',
-            ]);
-
-            $name = trim($request->name);
-            $parts = explode(' ', $name);
-            $firstName = $parts[0] ?? $name;
-            $lastName = isset($parts[1]) ? implode(' ', array_slice($parts, 1)) : $firstName;
-            $username = explode('@', $request->email)[0] ?? $name;
-            $age = 'adult';
+        $recaptchaSecret = config('services.recaptcha.secret_key') ?: env('RECAPTCHA_SECRET_KEY');
+        if (!empty($recaptchaSecret)) {
+            $validationRules['g-recaptcha-response'] = ['required'];
+            $validationMessages['g-recaptcha-response.required'] = 'Please verify that you are not a robot.';
         }
 
+        $request->validate($validationRules, $validationMessages);
+
+        // Verify reCAPTCHA with Google
+        if (!empty($recaptchaSecret) && $request->filled('g-recaptcha-response')) {
+            try {
+                $verifyClient = new \GuzzleHttp\Client();
+                $verifyRes = $verifyClient->post('https://www.google.com/recaptcha/api/siteverify', [
+                    'verify' => false,
+                    'timeout' => 10,
+                    'form_params' => [
+                        'secret' => $recaptchaSecret,
+                        'response' => $request->input('g-recaptcha-response'),
+                        'remoteip' => $request->ip(),
+                    ],
+                ]);
+                $verifyBody = json_decode((string) $verifyRes->getBody(), true);
+                if (empty($verifyBody['success'])) {
+                    return redirect()->back()->withErrors([
+                        'g-recaptcha-response' => 'reCAPTCHA verification failed. Please try again.',
+                    ])->withInput();
+                }
+            } catch (\Throwable $e) {
+                \Log::error('reCAPTCHA verification error', ['error' => $e->getMessage()]);
+            }
+        }
+
+        $firstName = trim($request->fname);
+        $lastName = trim($request->lname);
+        $name = $firstName . ' ' . $lastName;
+        $username = trim($request->username);
+        $age = (string) $request->age;
         $clubSlug = (string) (tenant('id') ?? '');
         $wpUser = null;
         $wpuid = 0;
