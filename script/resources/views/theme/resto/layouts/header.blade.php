@@ -145,33 +145,40 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                         <!-- User Auth Section -->
                         <div class="nav-auth-section ms-3">
                            @if(Auth::check())
-                              <div class="dropdown">
-                                 <a href="#" class="user-auth-toggle d-flex align-items-center text-white dropdown-toggle" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; font-size: 14px; font-weight: 500;">
+                              <div class="user-custom-dropdown" style="position: relative;">
+                                 <button type="button" class="user-auth-toggle d-flex align-items-center text-white" id="userMenuToggleBtn" style="background: none; border: none; padding: 0; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: 500;">
                                     <span class="user-avatar-circle" style="width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px;">
                                        <i class="icofont-ui-user" style="font-size: 16px; color: #ffffff;"></i>
                                     </span>
                                     <span class="user-display-name d-none d-md-inline" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                        {{ Auth::user()->name }}
                                     </span>
-                                 </a>
-                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userMenuDropdown" style="border-radius: 8px; border: 1px solid #edf2f7; padding: 8px 0; min-width: 180px; margin-top: 10px;">
+                                    <i class="icofont-rounded-down ms-1" style="font-size: 13px; color: rgba(255,255,255,0.7); transition: transform 0.2s ease;" id="userMenuDropdownArrow"></i>
+                                 </button>
+                                 <div class="user-custom-menu shadow" id="userCustomDropdownMenu" style="display: none; position: absolute; right: 0; top: calc(100% + 12px); background: #ffffff; border-radius: 8px; border: 1px solid #edf2f7; box-shadow: 0 10px 25px rgba(0,0,0,0.12); padding: 8px 0; min-width: 190px; z-index: 1050;">
                                     @if(Auth::user()->role_id == 3)
-                                       <li><a class="dropdown-item py-2 px-3" href="{{ url('/seller/dashboard') }}"><i class="icofont-dashboard-web me-2"></i> {{ __('Admin Dashboard') }}</a></li>
-                                    @else
-                                       <li><a class="dropdown-item py-2 px-3" href="{{ url('/customer/dashboard') }}"><i class="icofont-dashboard-web me-2"></i> {{ __('My Dashboard') }}</a></li>
-                                       <li><a class="dropdown-item py-2 px-3" href="{{ url('/customer/orders') }}"><i class="icofont-box me-2"></i> {{ __('My Orders') }}</a></li>
-                                       <li><a class="dropdown-item py-2 px-3" href="{{ url('/customer/settings') }}"><i class="icofont-ui-settings me-2"></i> {{ __('Settings') }}</a></li>
-                                    @endif
-                                    <li><hr class="dropdown-divider my-1"></li>
-                                    <li>
-                                       <a class="dropdown-item py-2 px-3 text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('navbar-logout-form').submit();">
-                                          <i class="icofont-logout me-2"></i> {{ __('Logout') }}
+                                       <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/seller/dashboard') }}" style="color: #334155; font-size: 14px; text-decoration: none; transition: background 0.15s ease;">
+                                          <i class="icofont-dashboard-web me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('Admin Dashboard') }}
                                        </a>
-                                       <form id="navbar-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                                          @csrf
-                                       </form>
-                                    </li>
-                                 </ul>
+                                    @else
+                                       <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/dashboard') }}" style="color: #334155; font-size: 14px; text-decoration: none; transition: background 0.15s ease;">
+                                          <i class="icofont-dashboard-web me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('My Dashboard') }}
+                                       </a>
+                                       <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/orders') }}" style="color: #334155; font-size: 14px; text-decoration: none; transition: background 0.15s ease;">
+                                          <i class="icofont-box me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('My Orders') }}
+                                       </a>
+                                       <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center" href="{{ url('/customer/settings') }}" style="color: #334155; font-size: 14px; text-decoration: none; transition: background 0.15s ease;">
+                                          <i class="icofont-ui-settings me-2" style="font-size: 16px; color: #64748b;"></i> {{ __('Settings') }}
+                                       </a>
+                                    @endif
+                                    <div style="height: 1px; background: #e2e8f0; margin: 6px 0;"></div>
+                                    <a class="custom-dropdown-item py-2 px-3 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('navbar-logout-form').submit();" style="font-size: 14px; text-decoration: none; transition: background 0.15s ease;">
+                                       <i class="icofont-logout me-2" style="font-size: 16px;"></i> {{ __('Logout') }}
+                                    </a>
+                                    <form id="navbar-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                       @csrf
+                                    </form>
+                                 </div>
                               </div>
                            @else
                               <div class="user-auth-links d-flex align-items-center">
@@ -247,6 +254,56 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
          })
          .catch(function() {});
       })();
+
+      // User Profile Dropdown Toggle (Popper-independent, error-free)
+      document.addEventListener('DOMContentLoaded', function() {
+         const toggleBtn = document.getElementById('userMenuToggleBtn');
+         const menu = document.getElementById('userCustomDropdownMenu');
+         const arrow = document.getElementById('userMenuDropdownArrow');
+
+         if (!toggleBtn || !menu) return;
+
+         toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = menu.style.display === 'block';
+            menu.style.display = isOpen ? 'none' : 'block';
+            if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+         });
+
+         // Close on outside click
+         document.addEventListener('click', function(e) {
+            if (!toggleBtn.contains(e.target) && !menu.contains(e.target)) {
+               menu.style.display = 'none';
+               if (arrow) arrow.style.transform = 'rotate(0deg)';
+            }
+         });
+
+         // Close on Escape key
+         document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+               menu.style.display = 'none';
+               if (arrow) arrow.style.transform = 'rotate(0deg)';
+            }
+         });
+      });
       </script>
+
+      <style>
+      .custom-dropdown-item:hover {
+         background-color: #f8fafc !important;
+         color: #528CD7 !important;
+      }
+      .custom-dropdown-item:hover i {
+         color: #528CD7 !important;
+      }
+      .custom-dropdown-item.text-danger:hover {
+         background-color: #fef2f2 !important;
+         color: #ef4444 !important;
+      }
+      .custom-dropdown-item.text-danger:hover i {
+         color: #ef4444 !important;
+      }
+      </style>
 
       
