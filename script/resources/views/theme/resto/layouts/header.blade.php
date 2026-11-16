@@ -118,8 +118,9 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                   <div class="nav-inner">
                      <!-- navbar -->
                      <nav class="navbar navbar-expand-lg">
-                        <a class="navbar-brand" href="{{ url('/') }}">
-                           <img src="{{ asset('uploads/'.tenant('uid').'/logo.png?v='.tenant('cache_version')) }}" alt="">
+                        <a class="navbar-brand" href="{{ url('/') }}" id="clubBrandContainer" style="display: inline-flex; align-items: center; text-decoration: none; margin-right: 30px;">
+                           <img id="clubNavbarLogo" src="" alt="" style="max-height: 48px; width: auto; object-fit: contain; display: none;" />
+                           <span id="clubNavbarName" style="font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.3px; display: none;"></span>
                         </a>
                         <!-- Responsive Nav Button -->
                         <button class="navbar-toggler mobile-menu-btn" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" >
@@ -134,13 +135,56 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                         </div>
                      </nav>
                      <!-- End navbar -->
-                     <div class="right-bar">
-                        <ul class="cart-list-top">
-                           <li class="single-bar"><a href="{{ url('/cart') }}" class="icon"><i class="icofont-cart-alt"></i><span class="count cart_count">{{ $cart_count }}</span></a></li>
+                     <div class="right-bar d-flex align-items-center">
+                        <ul class="cart-list-top mb-0">
+                           <li class="single-bar"><a href="{{ url('/cart') }}" class="icon" title="{{ __('Cart') }}"><i class="icofont-cart-alt"></i><span class="count cart_count">{{ $cart_count }}</span></a></li>
 
-                           <li class="single-bar"><a href="{{ url('/wishlist') }}" class="icon"><i class="icofont-heart-alt"></i><span class="count wishlist_count">{{ $wishlist_count }}</span></a></li>
-                           
+                           <li class="single-bar"><a href="{{ url('/wishlist') }}" class="icon" title="{{ __('Wishlist') }}"><i class="icofont-heart-alt"></i><span class="count wishlist_count">{{ $wishlist_count }}</span></a></li>
                         </ul>
+
+                        <!-- User Auth Section -->
+                        <div class="nav-auth-section ms-3">
+                           @if(Auth::check())
+                              <div class="dropdown">
+                                 <a href="#" class="user-auth-toggle d-flex align-items-center text-white dropdown-toggle" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; font-size: 14px; font-weight: 500;">
+                                    <span class="user-avatar-circle" style="width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px;">
+                                       <i class="icofont-ui-user" style="font-size: 16px; color: #ffffff;"></i>
+                                    </span>
+                                    <span class="user-display-name d-none d-md-inline" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                       {{ Auth::user()->name }}
+                                    </span>
+                                 </a>
+                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userMenuDropdown" style="border-radius: 8px; border: 1px solid #edf2f7; padding: 8px 0; min-width: 180px; margin-top: 10px;">
+                                    @if(Auth::user()->role_id == 3)
+                                       <li><a class="dropdown-item py-2 px-3" href="{{ url('/seller/dashboard') }}"><i class="icofont-dashboard-web me-2"></i> {{ __('Admin Dashboard') }}</a></li>
+                                    @else
+                                       <li><a class="dropdown-item py-2 px-3" href="{{ url('/customer/dashboard') }}"><i class="icofont-dashboard-web me-2"></i> {{ __('My Dashboard') }}</a></li>
+                                       <li><a class="dropdown-item py-2 px-3" href="{{ url('/customer/orders') }}"><i class="icofont-box me-2"></i> {{ __('My Orders') }}</a></li>
+                                       <li><a class="dropdown-item py-2 px-3" href="{{ url('/customer/settings') }}"><i class="icofont-ui-settings me-2"></i> {{ __('Settings') }}</a></li>
+                                    @endif
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li>
+                                       <a class="dropdown-item py-2 px-3 text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('navbar-logout-form').submit();">
+                                          <i class="icofont-logout me-2"></i> {{ __('Logout') }}
+                                       </a>
+                                       <form id="navbar-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                          @csrf
+                                       </form>
+                                    </li>
+                                 </ul>
+                              </div>
+                           @else
+                              <div class="user-auth-links d-flex align-items-center">
+                                 <a href="{{ url('/customer/login') }}" class="nav-auth-link" style="color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 4px 8px; transition: opacity 0.2s ease;">
+                                    {{ __('Login') }}
+                                 </a>
+                                 <span style="color: rgba(255,255,255,0.4); margin: 0 2px;">/</span>
+                                 <a href="{{ url('/customer/register') }}" class="nav-auth-link" style="color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 4px 8px; transition: opacity 0.2s ease;">
+                                    {{ __('Register') }}
+                                 </a>
+                              </div>
+                           @endif
+                        </div>
                         <!--/ End Shopping Cart -->
                      </div>
                   </div>
@@ -149,5 +193,60 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
          </div>
       </header>
       <!-- End Header Area -->
+
+      <!-- Lazy-load Club Logo directly from booostr.site API without blocking page load -->
+      <script>
+      (function() {
+         const clubId = {!! json_encode((string) (tenant('id') ?? '')) !!};
+         if (!clubId) return;
+
+         function renderClubData(data) {
+            if (!data) return;
+            const logoImg = document.getElementById('clubNavbarLogo');
+            const nameSpan = document.getElementById('clubNavbarName');
+
+            // Strictly display only if actual logo returned (never show dummy default)
+            if (data.logo && typeof data.logo === 'string' && data.logo.trim() !== '') {
+               if (logoImg) {
+                  logoImg.src = data.logo;
+                  logoImg.alt = data.name || 'Club Logo';
+                  logoImg.style.display = 'inline-block';
+               }
+               if (nameSpan) nameSpan.style.display = 'none';
+            } else if (data.name && typeof data.name === 'string' && data.name.trim() !== '') {
+               if (nameSpan) {
+                  nameSpan.textContent = data.name;
+                  nameSpan.style.display = 'inline-block';
+               }
+               if (logoImg) logoImg.style.display = 'none';
+            }
+         }
+
+         // 1. Instant display from sessionStorage if already available
+         try {
+            const cached = sessionStorage.getItem('booostr_club_info_' + clubId);
+            if (cached) {
+               renderClubData(JSON.parse(cached));
+            }
+         } catch (e) {}
+
+         // 2. Direct live fetch (Non-blocking async request directly to booostr.site API)
+         fetch('https://booostr.site/api/club-info/' + encodeURIComponent(clubId), {
+            headers: { 'Accept': 'application/json' }
+         })
+         .then(function(res) {
+            return res.json();
+         })
+         .then(function(res) {
+            if (res && res.success && res.data) {
+               renderClubData(res.data);
+               try {
+                  sessionStorage.setItem('booostr_club_info_' + clubId, JSON.stringify(res.data));
+               } catch (e) {}
+            }
+         })
+         .catch(function() {});
+      })();
+      </script>
 
       
