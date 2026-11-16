@@ -967,8 +967,12 @@ class CustomerController extends Controller
 
         // Update local Site Builder tenant database
         $user->password = Hash::make($request->password);
-        if (!empty($result['data']['user']['user_id']) && empty($user->wpuid)) {
-            $user->wpuid = $result['data']['user']['user_id'];
+        if (!empty($result['data']['user']['user_id'])) {
+            $userMeta = !empty($user->meta) ? json_decode($user->meta, true) : [];
+            if (empty($userMeta['wpuid'])) {
+                $userMeta['wpuid'] = (int) $result['data']['user']['user_id'];
+                $user->meta = json_encode($userMeta);
+            }
         }
         $user->save();
 
