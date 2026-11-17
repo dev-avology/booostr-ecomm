@@ -10,35 +10,10 @@
 						{{ __('Reset Your Password') }}
 					</h3>
 
-					<!-- Alert Notifications Area -->
-					<div id="forgetAlertArea">
-						@if(Session::has('msg'))
-							<div class="alert alert-{{ Session::get('type', 'danger') === 'danger' ? 'danger' : (Session::get('type') === 'success' ? 'success' : 'info') }}" role="alert" style="margin-bottom: 24px; border-radius: 8px; font-size: 14px; line-height: 1.55;">
-								{!! Session::get('msg') !!}
-							</div>
-						@endif
-						@if(Session::has('error'))
-							<div class="alert alert-danger" role="alert" style="margin-bottom: 24px; border-radius: 8px; font-size: 14px; line-height: 1.55;">
-								{{ Session::get('error') }}
-							</div>
-						@endif
-						@if(Session::has('success'))
-							<div class="alert alert-success" role="alert" style="margin-bottom: 24px; border-radius: 8px; font-size: 14px; line-height: 1.55;">
-								{{ Session::get('success') }}
-							</div>
-						@endif
-						@if(Session::has('status'))
-							<div class="alert alert-success" role="alert" style="margin-bottom: 24px; border-radius: 8px; font-size: 14px; line-height: 1.55;">
-								{{ Session::get('status') }}
-							</div>
-						@endif
-						@if(Session::has('message'))
-							<div class="alert alert-info" role="alert" style="margin-bottom: 24px; border-radius: 8px; font-size: 14px; line-height: 1.55;">
-								{{ Session::get('message') }}
-							</div>
-						@endif
-					</div>
+					<!-- Alert Notifications Area (Dynamically rendered via AJAX) -->
+					<div id="forgetAlertArea"></div>
 
+					<div id="forgetDynamicContent">
 					@if(Session::has('booostr_register_action'))
 						<!-- State 3: User exists in Booostr Central API - Direct to Registration -->
 						<div class="booostr-action-container text-center mt-3 mb-2">
@@ -82,6 +57,7 @@
 							</div>
 						</form>
 					@endif
+					</div>
 
 					<!-- Navigation Back Links -->
 					<div class="text-center mt-4 pt-2">
@@ -249,29 +225,105 @@ document.addEventListener('DOMContentLoaded', function() {
 	evaluateInput();
 	setTimeout(evaluateInput, 200);
 
-	// Form submission processing state
+	// AJAX Form submission processing
 	form.addEventListener('submit', function(e) {
+		e.preventDefault();
+
 		if (submitBtn.classList.contains('is-processing') || submitBtn.disabled) {
-			e.preventDefault();
 			return false;
 		}
 
 		const val = input.value ? input.value.trim() : '';
 		if (val.length === 0) {
-			e.preventDefault();
 			input.focus();
 			return false;
 		}
 
 		// Activate processing state: spinner + text + disable
 		submitBtn.classList.add('is-processing');
-		submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.15em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spinner-border .75s linear infinite; margin-right: 8px;"></span> ' + {!! json_encode(__('Sending Link...')) !!};
+		submitBtn.disabled = true;
 		submitBtn.style.pointerEvents = 'none';
+		submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.15em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spinner-border .75s linear infinite; margin-right: 8px;"></span> ' + {!! json_encode(__('Sending Link...')) !!};
 
-		// Slight delay to ensure form submission event dispatches cleanly
-		setTimeout(function() {
-			submitBtn.disabled = true;
-		}, 20);
+		const alertArea = document.getElementById('forgetAlertArea');
+		const helperText = document.getElementById('forgetHelperText');
+		const dynamicContent = document.getElementById('forgetDynamicContent');
+
+		if (alertArea) {
+			alertArea.innerHTML = '';
+		}
+
+		const formData = new FormData(form);
+
+		fetch(form.action, {
+			method: 'POST',
+			body: formData,
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest',
+				'Accept': 'application/json'
+			}
+		})
+		.then(async response => {
+			const data = await response.json().catch(() => ({}));
+
+			if (response.ok && data.status === 'success') {
+				// Display success message
+				if (alertArea) {
+					alertArea.innerHTML = '<div class="alert alert-success" role="alert" style="margin-bottom: 24px; border-radius: 8px; font-size: 14px; line-height: 1.55;"><i class="icofont-check-circled me-1"></i> ' + (data.msg || {!! json_encode(__('Check Your Mail For Reset Password Link')) !!}) + '</div>';
+				}
+
+				// If user exists in Booostr Central API (Switch to direct registration button)
+				if (data.booostr_register_action && dynamicContent) {
+					dynamicContent.innerHTML = `
+						<div class="booostr-action-container text-center mt-3 mb-2">
+							<a href="${data.booostr_register_action}" class="btn w-100 mb-3" style="height: 52px; background: #528CD7; color: #ffffff; font-size: 15.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 14px rgba(82, 140, 215, 0.3); transition: all 0.25s ease;">
+								${{!! json_encode(__('Create Your Account')) !!}}
+							</a>
+							<p style="font-size: 13.5px; color: #64748b; margin-top: 15px;">
+								${{!! json_encode(__('Need to use a different email?')) !!}} 
+								<a href="${window.location.href}" style="color: #528CD7; font-weight: 600; text-decoration: none;">
+									${{!! json_encode(__('Try another email')) !!}}
+								</a>
+							</p>
+						</div>
+					`;
+				} else {
+					// Password reset link sent
+					submitBtn.classList.remove('is-processing');
+					submitBtn.disabled = true;
+					submitBtn.style.pointerEvents = 'none';
+					submitBtn.innerHTML = '<i class="icofont-check me-1"></i> ' + {!! json_encode(__('Link Sent!')) !!};
+				}
+			} else {
+				// Error / validation or account not found
+				const errorMsg = data.msg || (data.errors ? Object.values(data.errors)[0] : {!! json_encode(__('An error occurred. Please try again.')) !!});
+				if (alertArea) {
+					const alertClass = (data.type === 'info') ? 'alert-info' : 'alert-danger';
+					alertArea.innerHTML = `<div class="alert ${alertClass}" role="alert" style="margin-bottom: 24px; border-radius: 8px; font-size: 14px; line-height: 1.55;"><i class="icofont-warning-alt me-1"></i> ${errorMsg}</div>`;
+				}
+
+				// If email not found, update helper text dynamically
+				if (data.helper_text && helperText) {
+					helperText.textContent = data.helper_text;
+				}
+
+				// Reset button so user can retry
+				submitBtn.classList.remove('is-processing');
+				submitBtn.disabled = false;
+				submitBtn.style.pointerEvents = 'auto';
+				submitBtn.innerHTML = {!! json_encode(__('Send Reset Link')) !!};
+			}
+		})
+		.catch(err => {
+			console.error('Forget password AJAX error:', err);
+			if (alertArea) {
+				alertArea.innerHTML = '<div class="alert alert-danger" role="alert" style="margin-bottom: 24px; border-radius: 8px; font-size: 14px; line-height: 1.55;"><i class="icofont-warning-alt me-1"></i> ' + {!! json_encode(__('An unexpected error occurred. Please try again.')) !!} + '</div>';
+			}
+			submitBtn.classList.remove('is-processing');
+			submitBtn.disabled = false;
+			submitBtn.style.pointerEvents = 'auto';
+			submitBtn.innerHTML = {!! json_encode(__('Send Reset Link')) !!};
+		});
 	});
 });
 </script>

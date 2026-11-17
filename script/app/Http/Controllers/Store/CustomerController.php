@@ -698,11 +698,27 @@ class CustomerController extends Controller
      */
     public function sendUserForgetPasswordMail(Request $request)
     {
-        $this->validate($request, [
-            'username' => 'required|string|max:191'
-        ], [
-            'username.required' => __('Username or email is required.'),
-        ]);
+        // Support both AJAX and traditional HTTP post seamlessly
+        if ($request->ajax()) {
+            $validator = \Validator::make($request->all(), [
+                'username' => 'required|string|max:191'
+            ], [
+                'username.required' => __('Username or email is required.'),
+            ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'type' => 'danger',
+                    'msg' => $validator->errors()->first(),
+                ], 422);
+            }
+        } else {
+            $this->validate($request, [
+                'username' => 'required|string|max:191'
+            ], [
+                'username.required' => __('Username or email is required.'),
+            ]);
+        }
 
         $searchQuery = trim($request->username);
 
@@ -812,9 +828,24 @@ class CustomerController extends Controller
                 Mail::to($user_info->email)->send(new UserResetEmail($data));
             } catch (\Exception $e) {
                 \Log::error('Password reset email failed to send', ['error' => $e->getMessage()]);
+                if ($request->ajax()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'type' => 'danger',
+                        'msg' => $e->getMessage()
+                    ], 500);
+                }
                 return redirect()->back()->with([
                     'type' => 'danger',
                     'msg' => $e->getMessage()
+                ]);
+            }
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 'success',
+                    'type' => 'success',
+                    'msg' => __('Check Your Mail For Reset Password Link')
                 ]);
             }
 
@@ -855,16 +886,36 @@ class CustomerController extends Controller
 
         $registerUrl = url('/customer/register');
         if ($hasBooostrAccount) {
+            $booostrSuccessMsg = __('We did not find a user account for our site with this email. However, because you have a Booostr User Account using this email, <a href="' . $registerUrl . '" class="text-dark" style="text-decoration: underline; font-weight: 600;">you can register with this site using your Booostr login credentials.</a>');
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 'success',
+                    'type' => 'success',
+                    'msg' => $booostrSuccessMsg,
+                    'booostr_register_action' => $registerUrl
+                ]);
+            }
             return redirect()->back()->with([
-                'msg' => __('We did not find a user account for our site with this email. However, because you have a Booostr User Account using this email, <a href="' . $registerUrl . '" class="text-dark" style="text-decoration: underline; font-weight: 600;">you can register with this site using your Booostr login credentials.</a>'),
+                'msg' => $booostrSuccessMsg,
                 'type' => 'success',
                 'booostr_register_action' => $registerUrl
             ]);
         }
 
         // 3. If neither Site Builder nor Booostr Account found
+        $notFoundMsg = __('There is no existing account with that username/email address found for this site. <a href="' . $registerUrl . '" class="text-dark" style="text-decoration: underline; font-weight: 600;">Please first set up an account for this site here.</a>');
+        $helperNotFoundText = __('It is possible you used a separate email to create an account for our site. If so, please try submitting a different email that may have been used to create your account. If that email exists in the system, you will receive a password reset link at that email address. Click that link to reset your password.');
+        if ($request->ajax()) {
+            return response()->json([
+                'status' => 'error',
+                'type' => 'danger',
+                'msg' => $notFoundMsg,
+                'email_not_found' => true,
+                'helper_text' => $helperNotFoundText
+            ]);
+        }
         return redirect()->back()->with([
-            'msg' => __('There is no existing account with that username/email address found for this site. <a href="' . $registerUrl . '" class="text-dark" style="text-decoration: underline; font-weight: 600;">Please first set up an account for this site here.</a>'),
+            'msg' => $notFoundMsg,
             'type' => 'danger',
             'email_not_found' => true,
         ]);
