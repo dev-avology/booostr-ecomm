@@ -3,6 +3,11 @@ $invoice_data=json_decode($autoload_data['invoice_data'] ?? '');
 $languages=json_decode($autoload_data['languages']);
 $default_language=$autoload_data['default_language'] ?? '';
 $current_url=url()->current();
+
+// Club / Store details matching Admin Panel
+$clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+$clubName = trim((string) ($clubInfo['club_name'] ?? (tenant('id') ?? '')));
+$clubLogo = function_exists('tenant_club_logo') ? tenant_club_logo() : null;
 @endphp
 
  @if(url('/checkout') !=  $current_url &&  Request::is('customer/*') !=  $current_url)
@@ -79,8 +84,11 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                      <!-- navbar -->
                      <nav class="navbar navbar-expand-lg">
                         <a class="navbar-brand" href="{{ url('/') }}" id="clubBrandContainer" style="display: inline-flex; align-items: center; text-decoration: none; margin-right: 30px;">
-                           <img id="clubNavbarLogo" src="" alt="" style="max-height: 48px; width: auto; object-fit: contain; display: none;" />
-                           <span id="clubNavbarName" style="font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.3px; display: none;"></span>
+                           @if(!empty($clubLogo))
+                              <img id="clubNavbarLogo" src="{{ $clubLogo }}" alt="{{ $clubName }}" style="max-height: 48px; width: auto; object-fit: contain; display: inline-block;" />
+                           @elseif(!empty($clubName))
+                              <span id="clubNavbarName" style="font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.3px; display: inline-block;">{{ $clubName }}</span>
+                           @endif
                         </a>
                         <!-- Responsive Nav Button -->
                         <button class="navbar-toggler mobile-menu-btn" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" >
@@ -160,60 +168,7 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
       </header>
       <!-- End Header Area -->
 
-      <!-- Lazy-load Club Logo directly from booostr.site API without blocking page load -->
       <script>
-      (function() {
-         const clubId = {!! json_encode((string) (tenant('id') ?? '')) !!};
-         if (!clubId) return;
-
-         function renderClubData(data) {
-            if (!data) return;
-            const logoImg = document.getElementById('clubNavbarLogo');
-            const nameSpan = document.getElementById('clubNavbarName');
-
-            // Strictly display only if actual logo returned (never show dummy default)
-            if (data.logo && typeof data.logo === 'string' && data.logo.trim() !== '') {
-               if (logoImg) {
-                  logoImg.src = data.logo;
-                  logoImg.alt = data.name || 'Club Logo';
-                  logoImg.style.display = 'inline-block';
-               }
-               if (nameSpan) nameSpan.style.display = 'none';
-            } else if (data.name && typeof data.name === 'string' && data.name.trim() !== '') {
-               if (nameSpan) {
-                  nameSpan.textContent = data.name;
-                  nameSpan.style.display = 'inline-block';
-               }
-               if (logoImg) logoImg.style.display = 'none';
-            }
-         }
-
-         // 1. Instant display from sessionStorage if already available
-         try {
-            const cached = sessionStorage.getItem('booostr_club_info_' + clubId);
-            if (cached) {
-               renderClubData(JSON.parse(cached));
-            }
-         } catch (e) {}
-
-         // 2. Direct live fetch (Non-blocking async request directly to booostr.site API)
-         fetch('https://booostr.site/api/club-info/' + encodeURIComponent(clubId), {
-            headers: { 'Accept': 'application/json' }
-         })
-         .then(function(res) {
-            return res.json();
-         })
-         .then(function(res) {
-            if (res && res.success && res.data) {
-               renderClubData(res.data);
-               try {
-                  sessionStorage.setItem('booostr_club_info_' + clubId, JSON.stringify(res.data));
-               } catch (e) {}
-            }
-         })
-         .catch(function() {});
-      })();
-
       // User Profile Dropdown Toggle (Popper-independent, error-free)
       document.addEventListener('DOMContentLoaded', function() {
          const toggleBtn = document.getElementById('userMenuToggleBtn');

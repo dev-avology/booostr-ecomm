@@ -453,40 +453,12 @@ class CustomerController extends Controller
 
         // Send Welcome Email to newly registered customer
         try {
-            $clubIdOrSlug = (string) (tenant('id') ?? '');
-            $clubName = '';
-            $clubLogo = '';
-            $supportEmail = null;
+            // Club details directly from native tenant functions (matches Admin Panel)
+            $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+            $clubName = trim((string) ($clubInfo['club_name'] ?? (tenant('id') ?? '')));
+            $clubLogo = function_exists('tenant_club_logo') ? tenant_club_logo() : '';
 
-            // Fetch live club details from Booostr Site API
-            try {
-                $client = new \GuzzleHttp\Client();
-                $clubApiRes = $client->get('https://booostr.site/api/club-info/' . $clubIdOrSlug, [
-                    'verify'  => false,
-                    'timeout' => 8,
-                    'headers' => [
-                        'Accept' => 'application/json',
-                    ],
-                ]);
-
-                $clubApiData = json_decode((string) $clubApiRes->getBody(), true);
-                if (!empty($clubApiData['success']) && !empty($clubApiData['data'])) {
-                    $clubDetails = $clubApiData['data'];
-                    $clubName = trim((string) ($clubDetails['name'] ?? ''));
-                    $clubLogo = trim((string) ($clubDetails['logo'] ?? ''));
-                    $supportEmail = trim((string) ($clubDetails['email'] ?? ''));
-                }
-            } catch (\Throwable $e) {
-                \Log::warning('Failed to fetch club-info from booostr.site API', [
-                    'club_id' => $clubIdOrSlug,
-                    'error'   => $e->getMessage(),
-                ]);
-            }
-
-
-            if (empty($clubLogo)) {
-                $clubLogo = 'https://booostr.site/assets/landlord/uploads/media-uploader/thumb/logobostrsitee.png';
-            }
+            $supportEmail = trim((string) ($clubInfo['club_email'] ?? ($clubInfo['email'] ?? '')));
 
             $tenantId = function_exists('tenant') && tenant() ? (tenant('id') ?: (tenant()->id ?? '')) : '';
             $subjectTenant = !empty($tenantId) ? ($tenantId . '.booostr.site') : ($clubName . ' website');
@@ -748,28 +720,11 @@ class CustomerController extends Controller
                 'created_at' => now(),
             ]);
 
-            // Club details via booostr.site API with local fallbacks
-            $clubIdOrSlug = (string) (tenant('id') ?? '');
-            $clubName = '';
-            $clubLogo = '';
-            $supportEmail = null;
-
-            try {
-                $client = new Client();
-                $clubApiRes = $client->get('https://booostr.site/api/club-info/' . $clubIdOrSlug, [
-                    'verify' => false,
-                    'timeout' => 5,
-                    'headers' => ['Accept' => 'application/json'],
-                ]);
-                $clubApiData = json_decode((string) $clubApiRes->getBody(), true);
-                if (!empty($clubApiData['success']) && !empty($clubApiData['data'])) {
-                    $clubName = trim((string) ($clubApiData['data']['name'] ?? ''));
-                    $clubLogo = trim((string) ($clubApiData['data']['logo'] ?? ''));
-                    $supportEmail = trim((string) ($clubApiData['data']['email'] ?? ''));
-                }
-            } catch (\Throwable $e) {
-                // Fallback will populate details
-            }
+            // Club details directly from native tenant functions (matches Admin Panel)
+            $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+            $clubName = trim((string) ($clubInfo['club_name'] ?? (tenant('id') ?? '')));
+            $clubLogo = function_exists('tenant_club_logo') ? tenant_club_logo() : '';
+            $supportEmail = trim((string) ($clubInfo['club_email'] ?? ($clubInfo['email'] ?? '')));
 
             $siteHost = parse_url(url('/'), PHP_URL_HOST) ?: url('/');
 
