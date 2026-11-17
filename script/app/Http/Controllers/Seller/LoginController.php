@@ -15,39 +15,38 @@ class LoginController extends Controller
 {
     public function login(Request $request)
     {
+        $email = trim($request->input('email', ''));
+        $password = trim($request->input('password', ''));
 
-        $user = User::where([
-            ['email',$request->email]
-        ])->first();
+        $user = User::where('email', $email)->first();
 
-        if ($user && Hash::check($request->password, $user->password)) {
-            Auth::login($user,true);
+        if ($user && Hash::check($password, $user->password)) {
+            Auth::login($user, true);
 
-            return redirect()->route('login');
-        }else{
-            return redirect()->route('login');
+            return redirect('/seller/dashboard');
+        } else {
+            return redirect('/seller/login');
         }
-        
     }
 
     public function tokenBasedLogin($token)
     {
-        $token=request()->route()->parameter('token');
+        $token = request()->route()->parameter('token');
         if (tenant('auth_token') == null) {
             abort(404);
         }
         try {
             $token = Crypt::decryptString($token);
             if (tenant('auth_token') == $token) {
-                $tenant=Tenant::where('status',1)->where('will_expire','>',now())->findorfail(tenant('id'));
-                $tenant->auth_token=null;
+                $tenant = Tenant::where('status', 1)->where('will_expire', '>', now())->findorfail(tenant('id'));
+                $tenant->auth_token = null;
                 $tenant->save();
-                $user=User::first();
+                $user = User::first();
                 Auth::loginUsingId($user->id);
-                return redirect('/login');
+                return redirect('/seller/dashboard');
             }
         } catch (DecryptException $e) {
-          abort(404);
+            abort(404);
         }
         abort(404);
     }
