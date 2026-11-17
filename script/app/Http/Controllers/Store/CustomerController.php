@@ -705,38 +705,67 @@ class CustomerController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $check = \Hash::check($request->current, auth()->user()->password);
-        
-        if ($check == true) {
-            User::where('id', Auth::id())->update(['password' => \Hash::make($request->password)]);
+        $user = Auth::user();
 
-            // Synchronize password change with Booostr Central API
-            try {
-                $user = Auth::user();
-                $uMeta = !empty($user->meta) ? json_decode($user->meta, true) : [];
-                $apiUsername = !empty($uMeta['username']) ? $uMeta['username'] : ($user->username ?: $user->email);
-                
-                $client = new Client();
-                $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-user-reset-password', [
-                    'verify' => false,
-                    'timeout' => 10,
-                    'headers' => ['Accept' => 'application/json'],
-                    'json' => [
-                        'username' => $apiUsername,
-                        'password' => $request->password,
-                        'club'     => tenant()->id,
-                    ],
-                ]);
-            } catch (\Throwable $e) {
-                \Log::warning('Booostr profile password sync failed: ' . $e->getMessage());
+        // 1. Check if current password matches
+        if (!\Hash::check($request->current, $user->password)) {
+            return response()->json([
+                'errors' => [
+                    'current' => [__('The current password you entered is incorrect.')]
+                ]
+            ], 422);
+        }
+
+        // 2. Ensure new password is not the same as current password
+        if (\Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'errors' => [
+                    'password' => [__('The new password must be different from your current password.')]
+                ]
+            ], 422);
+        }
+
+        // 3. Update password in tenant database
+        User::where('id', $user->id)->update([
+            'password' => \Hash::make($request->password)
+        ]);
+
+        // 4. Synchronize password change with Booostr Central API
+        try {
+            $actualMetaUsername = '';
+            if (!empty($user->meta)) {
+                $uMeta = is_array($user->meta) ? $user->meta : json_decode($user->meta, true);
+                if (!empty($uMeta['username'])) {
+                    $actualMetaUsername = trim($uMeta['username']);
+                }
+            }
+            if ($actualMetaUsername === '' && !empty($user->username)) {
+                $actualMetaUsername = trim($user->username);
+            }
+            if ($actualMetaUsername === '') {
+                $actualMetaUsername = $user->email;
             }
 
-            return response()->json(['Password Changed Successfully']); 
+            $client = new Client();
+            $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-user-reset-password', [
+                'verify' => false,
+                'timeout' => 15,
+                'headers' => ['Accept' => 'application/json'],
+                'json' => [
+                    'username' => $actualMetaUsername,
+                    'password' => $request->password,
+                    'club'     => tenant()->id,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \Log::warning('Booostr profile password sync failed: ' . $e->getMessage());
         }
-        else {
-            $error['errors']['current'] = __('Current Password does not match our records.');
-            return response()->json($error, 422);
-        }
+
+        return response()->json([
+            0 => __('Password updated successfully and synchronized with your Booostr account!'),
+            'message' => __('Password updated successfully and synchronized with your Booostr account!'),
+            'status' => 'success'
+        ]);
     }
 
     public function reviews()
