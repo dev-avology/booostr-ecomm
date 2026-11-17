@@ -2,37 +2,56 @@
 @push('css')
 <style>
 	/* Clean Order View Styles */
-	.block-title.order-view-title b span {
+	.order-card-header {
+		padding: 24px 30px 20px !important;
+		border-bottom: 1px solid #eee !important;
+		margin-bottom: 24px !important;
+	}
+
+	.order-view-title-clean {
+		font-size: 18px !important;
+		font-weight: 500 !important;
+		color: #081828 !important;
+		margin: 0 !important;
+		line-height: 1.3 !important;
+	}
+
+	.order-view-title-clean b {
+		font-weight: 500 !important;
+	}
+
+	.order-view-title-clean span {
 		background-image: none !important;
 		background: none !important;
 		color: #528CD7 !important;
-		display: inline-block;
-	}
-	
-	.rating-main {
-		display: none !important;
+		font-weight: 700 !important;
+		display: inline-block !important;
 	}
 
 	.btn-back-history {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		padding: 6px 14px;
-		border-radius: 6px;
-		font-size: 13px;
-		font-weight: 500;
+		display: inline-flex !important;
+		align-items: center !important;
+		gap: 6px !important;
+		padding: 6px 14px !important;
+		border-radius: 6px !important;
+		font-size: 13px !important;
+		font-weight: 500 !important;
 		color: #528CD7 !important;
-		background: #F0F5FD;
-		border: 1px solid #D6E4F8;
+		background: #F0F5FD !important;
+		border: 1px solid #D6E4F8 !important;
 		text-decoration: none !important;
-		transition: all 0.2s ease;
-		margin-bottom: 10px;
+		transition: all 0.2s ease !important;
+		margin-bottom: 0 !important;
 	}
 
 	.btn-back-history:hover {
 		background: #528CD7 !important;
 		color: #ffffff !important;
 		border-color: #528CD7 !important;
+	}
+
+	.rating-main {
+		display: none !important;
 	}
 
 	/* Order Status Badges */
@@ -124,6 +143,39 @@
 
 	.total-am-top .total-amount span {
 		color: #ffffff !important;
+	}
+
+	/* Order Summary key-value rows: flex layout matching Your Order Details */
+	.customer-order-details.order-sum .order-d-list li {
+		display: flex !important;
+		justify-content: space-between !important;
+		align-items: center !important;
+		padding: 10px 0 !important;
+		margin-bottom: 0 !important;
+		border-bottom: 1px solid #f1f5f9 !important;
+		line-height: 1.5 !important;
+	}
+
+	.customer-order-details.order-sum .order-d-list li:last-child {
+		border-bottom: none !important;
+		padding-bottom: 0 !important;
+	}
+
+	.customer-order-details.order-sum .order-d-list b {
+		display: inline-block !important;
+		color: #081828 !important;
+		font-size: 14px !important;
+		font-weight: 500 !important;
+		margin: 0 !important;
+	}
+
+	.customer-order-details.order-sum .order-d-list span {
+		display: inline-block !important;
+		color: #475569 !important;
+		font-size: 14px !important;
+		font-weight: 500 !important;
+		text-align: right !important;
+		margin: 0 !important;
 	}
 </style>
 @endpush
@@ -251,17 +303,17 @@ if ($info->payment_status == 1) {
 			<div class="col-lg-6 col-md-9 col-12">
 				<div class="main-content">
 					<div class="dashboard-block mt-0">
-						<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-3 border-bottom">
-							<div>
+						<div class="order-card-header">
+							<div class="mb-3">
 								<a href="{{ url('/customer/orders') }}" class="btn-back-history">
-									<i class="icofont-arrow-left"></i> {{ __('Back to Purchase History') }}
+									<i class="icofont-arrow-left me-1"></i> {{ __('Back to Purchase History') }}
 								</a>
-								<h3 class="block-title order-view-title mb-0">
+							</div>
+							<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+								<h3 class="order-view-title-clean mb-0">
 									<b>{{ __('Order Number') }} <span>#{{ $info->invoice_no }}</span></b>
 								</h3>
-							</div>
-							<div>
-								<span class="badge order-status-badge {{ $orderStatusClass }} fs-6">
+								<span class="badge order-status-badge {{ $orderStatusClass }}">
 									{{ $statusName }}
 								</span>
 							</div>
