@@ -77,44 +77,4 @@ class LoginController extends Controller
       
        $this->middleware('guest')->except('logout');
     }
-
-    /**
-     * Log the user out of the application and redirect based on role.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
-     */
-    public function logout(Request $request)
-    {
-        $roleId = Auth::check() ? Auth::user()->role_id : null;
-
-        $this->guard()->logout();
-
-        $request->session()->invalidate();
-
-        $request->session()->regenerateToken();
-
-        if ($response = $this->loggedOut($request)) {
-            return $response;
-        }
-
-        if ($request->wantsJson()) {
-            return new \Illuminate\Http\JsonResponse([], 204);
-        }
-
-        // Role-based post-logout redirection
-        if ($roleId == 3) {
-            // Seller / Store Admin redirects to seller login
-            return redirect('/seller/login');
-        } elseif ($roleId == 5) {
-            // Rider redirects to rider login
-            return redirect('/rider/login');
-        } elseif ($roleId == 1) {
-            // Landlord / Super admin
-            return redirect('/login');
-        }
-
-        // Storefront Customer default redirect
-        return redirect('/customer/login');
-    }
 }
