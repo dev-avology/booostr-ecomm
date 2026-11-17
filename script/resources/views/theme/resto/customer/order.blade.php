@@ -1,4 +1,132 @@
 @extends('theme.resto.layouts.app')
+@push('css')
+<style>
+	/* Clean Order View Styles */
+	.block-title.order-view-title b span {
+		background-image: none !important;
+		background: none !important;
+		color: #528CD7 !important;
+		display: inline-block;
+	}
+	
+	.rating-main {
+		display: none !important;
+	}
+
+	.btn-back-history {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 14px;
+		border-radius: 6px;
+		font-size: 13px;
+		font-weight: 500;
+		color: #528CD7 !important;
+		background: #F0F5FD;
+		border: 1px solid #D6E4F8;
+		text-decoration: none !important;
+		transition: all 0.2s ease;
+		margin-bottom: 10px;
+	}
+
+	.btn-back-history:hover {
+		background: #528CD7 !important;
+		color: #ffffff !important;
+		border-color: #528CD7 !important;
+	}
+
+	/* Order Status Badges */
+	.order-status-badge {
+		font-size: 12.5px !important;
+		font-weight: 600 !important;
+		padding: 6px 12px !important;
+		border-radius: 20px !important;
+		display: inline-block !important;
+	}
+
+	.order-badge-pending {
+		background-color: #fffbeb !important;
+		color: #b45309 !important;
+		border: 1px solid #fde68a !important;
+	}
+
+	.order-badge-processing {
+		background-color: #eff6ff !important;
+		color: #1d4ed8 !important;
+		border: 1px solid #bfdbfe !important;
+	}
+
+	.order-badge-completed {
+		background-color: #ecfdf5 !important;
+		color: #047857 !important;
+		border: 1px solid #a7f3d0 !important;
+	}
+
+	.order-badge-cancelled {
+		background-color: #fef2f2 !important;
+		color: #b91c1c !important;
+		border: 1px solid #fecaca !important;
+	}
+
+	/* Payment Status Badges */
+	.payment-status-badge {
+		font-size: 12.5px !important;
+		font-weight: 600 !important;
+		padding: 6px 12px !important;
+		border-radius: 20px !important;
+		display: inline-flex !important;
+		align-items: center !important;
+	}
+
+	.payment-badge-paid {
+		background-color: #ecfdf5 !important;
+		color: #047857 !important;
+		border: 1px solid #a7f3d0 !important;
+	}
+
+	.payment-badge-refunded {
+		background-color: #fef2f2 !important;
+		color: #dc2626 !important;
+		border: 1px solid #fecaca !important;
+	}
+
+	.payment-badge-processing {
+		background-color: #eff6ff !important;
+		color: #1d4ed8 !important;
+		border: 1px solid #bfdbfe !important;
+	}
+
+	.payment-badge-pending {
+		background-color: #fffbeb !important;
+		color: #b45309 !important;
+		border: 1px solid #fde68a !important;
+	}
+
+	.payment-badge-cancelled {
+		background-color: #f1f5f9 !important;
+		color: #64748b !important;
+		border: 1px solid #cbd5e1 !important;
+	}
+
+	.payment-badge-incomplete {
+		background-color: #fff7ed !important;
+		color: #c2410c !important;
+		border: 1px solid #ffedd5 !important;
+	}
+
+	/* Total Amount Block */
+	.total-am-top .total-amount {
+		background: #528CD7 !important;
+		border-radius: 8px !important;
+		color: #ffffff !important;
+		box-shadow: 0 4px 12px rgba(82, 140, 215, 0.25) !important;
+	}
+
+	.total-am-top .total-amount span {
+		color: #ffffff !important;
+	}
+</style>
+@endpush
 @section('content')
 {{-- 
     =================================================================================
@@ -16,8 +144,53 @@
     ]
 ])
 @php
-$address=json_decode($info->shippingwithinfo->info ?? '');
-$ordermeta=json_decode($info->ordermeta->value ?? '');
+$address = json_decode($info->shippingwithinfo->info ?? '');
+$ordermeta = json_decode($info->ordermeta->value ?? '');
+
+// Order Status styling
+$statusName = $info->orderstatus->name ?? __('Pending');
+$statusSlug = $info->orderstatus->slug ?? '';
+$statusLower = strtolower($statusName);
+$orderStatusClass = 'order-badge-pending';
+
+if (strpos($statusLower, 'complete') !== false || strpos($statusLower, 'deliver') !== false) {
+    $orderStatusClass = 'order-badge-completed';
+} elseif (strpos($statusLower, 'cancel') !== false || strpos($statusLower, 'fail') !== false) {
+    $orderStatusClass = 'order-badge-cancelled';
+} elseif (strpos($statusLower, 'process') !== false) {
+    $orderStatusClass = 'order-badge-processing';
+}
+
+// Payment Status styling
+if ($info->payment_status == 1) {
+    $paymentText = __('Paid');
+    $paymentClass = 'payment-badge-paid';
+    $paymentIcon = 'icofont-check-circled';
+} elseif ($info->payment_status == 5) {
+    $paymentText = __('Refunded');
+    $paymentClass = 'payment-badge-refunded';
+    $paymentIcon = 'icofont-reply';
+} elseif ($info->payment_status == 4) {
+    $paymentText = __('Processing');
+    $paymentClass = 'payment-badge-processing';
+    $paymentIcon = 'icofont-refresh';
+} elseif ($info->payment_status == 2) {
+    $paymentText = __('Pending');
+    $paymentClass = 'payment-badge-pending';
+    $paymentIcon = 'icofont-clock-time';
+} elseif ($info->payment_status == 3) {
+    $paymentText = __('Incomplete');
+    $paymentClass = 'payment-badge-incomplete';
+    $paymentIcon = 'icofont-exclamation-circle';
+} elseif ($info->payment_status == 0) {
+    $paymentText = __('Cancelled');
+    $paymentClass = 'payment-badge-cancelled';
+    $paymentIcon = 'icofont-close-circled';
+} else {
+    $paymentText = __('Pending');
+    $paymentClass = 'payment-badge-pending';
+    $paymentIcon = 'icofont-clock-time';
+}
 @endphp
 <!-- Start Dashboard Section -->
 <section class="dashboard order-detail section">
@@ -78,7 +251,21 @@ $ordermeta=json_decode($info->ordermeta->value ?? '');
 			<div class="col-lg-6 col-md-9 col-12">
 				<div class="main-content">
 					<div class="dashboard-block mt-0">
-						<h3 class="block-title order-view-title"> <b>{{ __('Order Number') }} <span>{{ $info->invoice_no }}</span></b> <span class="messages-auth"><span class="badge" style="background-color: {{ $info->orderstatus->slug ?? ''  }}">{{ $info->orderstatus->name ?? '' }}</span></span></a></h3>
+						<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-3 border-bottom">
+							<div>
+								<a href="{{ url('/customer/orders') }}" class="btn-back-history">
+									<i class="icofont-arrow-left"></i> {{ __('Back to Purchase History') }}
+								</a>
+								<h3 class="block-title order-view-title mb-0">
+									<b>{{ __('Order Number') }} <span>#{{ $info->invoice_no }}</span></b>
+								</h3>
+							</div>
+							<div>
+								<span class="badge order-status-badge {{ $orderStatusClass }} fs-6">
+									{{ $statusName }}
+								</span>
+							</div>
+						</div>
 						<!-- Start Items Area -->
 						<div class="my-items">
 							<!-- Start Item List Title -->
@@ -126,7 +313,7 @@ $ordermeta=json_decode($info->ordermeta->value ?? '');
 												@endforeach
 												<hr>
 												@endforeach
-												<div class="rating-main">
+												<div class="rating-main" style="display: none !important;">
 													@php
 													$stars=0;
 													$comment ='';
@@ -172,28 +359,8 @@ $ordermeta=json_decode($info->ordermeta->value ?? '');
 							<li><b>{{ __('Customer Name') }}</b> <span>{{ $ordermeta->name ?? '' }}</span></li>
 							<li><b>{{ __('Phone Number') }}</b> <span>{{ $ordermeta->phone ?? '' }}</span></li>
 
-							<li><b>{{ __('Order Status') }}</b> <span class="badge" style="background-color: {{ $info->orderstatus->slug ?? ''  }}">{{ $info->orderstatus->name ?? '' }}</span></li>
-							@php
-							if($info->payment_status == 1){
-								$payment_status='Paid';
-								$payment_badge='badge-success';
-							} 
-
-							elseif($info->payment_status == 2){
-								$payment_status='Pending';
-								$payment_badge='badge-warning';
-							} 
-
-							else{
-								$payment_status='Payment Fail';
-								$payment_badge='badge-warning';
-							} 
-
-
-							@endphp 
-							<li><b>{{ __('Payment Status') }}</b> <span class="badge {{ $payment_badge }}"> 
-								{{ $payment_status }}
-							</span></li>
+							<li><b>{{ __('Order Status') }}</b> <span class="badge order-status-badge {{ $orderStatusClass }}">{{ $statusName }}</span></li>
+							<li><b>{{ __('Payment Status') }}</b> <span class="badge payment-status-badge {{ $paymentClass }}"><i class="{{ $paymentIcon }} me-1"></i>{{ $paymentText }}</span></li>
 							<li><b>{{ __('Total') }}</b> <span class="render_currency">{{ number_format($info->total ?? 0,2) }}</span></li>
 							<li><b>{{ __('Note') }} :</b> <span>{{ $ordermeta->note ?? '' }}</span></li>
 						</ul>
@@ -218,7 +385,7 @@ $ordermeta=json_decode($info->ordermeta->value ?? '');
 				<div class="customer-order-details order-sum dashboard-block">
 					<h3 class="orderd-title">{{ __('Order') }} <span>{{ __('summary') }}</span></h3>
 					<ul class="order-d-list">
-						<li><b>{{ __('Order Created') }}</b> <span>{{ $info->created_at->format('D, F Y') }}</span></li>
+						<li><b>{{ __('Order Created') }}</b> <span>{{ $info->created_at->format('M d, Y') }}</span></li>
 						@if(!empty($info->shippingwithinfo))
 						@if(!empty($info->shippingwithinfo->rider))
 						<li><b>{{ __('Order Security Code') }} </b> <span><b>({{ $info->shippingwithinfo->tracking_no ?? '' }})</b></span></li>
@@ -236,7 +403,7 @@ $ordermeta=json_decode($info->ordermeta->value ?? '');
 				<!-- Total Amount -->
 				<div class="customer-order-details order-sum total-am-top dashboard-block">
 
-					<h4 class="total-amount">{{ __('Total Amount') }} <span>{{ number_format($info->total,2) }}</span></h4>
+					<h4 class="total-amount">{{ __('Total Amount') }} <span class="render_currency">{{ number_format($info->total,2) }}</span></h4>
 
 				</div>
 				<!-- End Total Amount -->
