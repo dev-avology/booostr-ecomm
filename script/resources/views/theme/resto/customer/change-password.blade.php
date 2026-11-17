@@ -428,18 +428,8 @@
                         // Reset form fields
                         form.reset();
 
-                        // Fire toast notification if available
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: successMessage,
-                                toast: true,
-                                position: 'top-end',
-                                showConfirmButton: false,
-                                timer: 3500,
-                                timerProgressBar: true
-                            });
-                        }
+                        // Scroll smoothly to the inline banner so user sees the confirmation
+                        alertArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     } else if (response.status === 422 && data.errors) {
                         let errorHtml = '<ul class="mb-0 ps-3">';
                         Object.keys(data.errors).forEach(key => {

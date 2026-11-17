@@ -725,10 +725,11 @@ class CustomerController extends Controller
             ], 422);
         }
 
-        // 3. Update password in tenant database
+        // 3. Update password in tenant database and keep active session logged in
         User::where('id', $user->id)->update([
             'password' => \Hash::make($request->password)
         ]);
+        Auth::loginUsingId($user->id);
 
         // 4. Synchronize password change with Booostr Central API
         try {
