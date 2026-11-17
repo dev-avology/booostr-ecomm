@@ -43,7 +43,7 @@
 				<div class="col-lg-6 col-12">
 					<div class="form-group mb-3">
 						<label class="form-label font-weight-bold">{{ __('Email') }}</label>
-						<input type="email" name="email" class="form-control" value="{{ Auth::user()->email }}" readonly style="background-color: #f1f3f5; cursor: not-allowed;" />
+						<input type="email" name="email" class="form-control" value="{{ Auth::user()->email }}" readonly />
 					</div>
 				</div>
 
@@ -99,7 +99,7 @@
 				<div class="col-lg-6 col-12">
 					<div class="form-group mb-3">
 						<label class="form-label font-weight-bold">{{ __('Country') }}</label>
-						<input type="text" class="form-control" value="United States of America" readonly style="background-color: #f1f3f5; cursor: not-allowed;" />
+						<input type="text" class="form-control" value="United States of America" readonly />
 						<input type="hidden" name="country" value="USA" />
 					</div>
 				</div>
@@ -114,7 +114,7 @@
 							<img src="" id="avatar_preview" class="rounded-circle me-3 border d-none" style="width: 44px; height: 44px; object-fit: cover;" alt="Avatar" />
 							@endif
 							<input type="file" name="image" id="profile_image_input" class="d-none" accept="image/*">
-							<button type="button" class="btn btn-info text-white px-4 py-2" style="background-color: #0dcaf0; border-color: #0dcaf0; border-radius: 4px; font-size: 14px; font-weight: 500;" onclick="document.getElementById('profile_image_input').click();">
+							<button type="button" class="btn profile-upload-btn" onclick="document.getElementById('profile_image_input').click();">
 								{{ __('Upload') }}
 							</button>
 							<span id="selected_image_name" class="ms-3 text-muted small"></span>
@@ -125,7 +125,7 @@
 				{{-- Row 6: Submit Button --}}
 				<div class="col-12 mt-3">
 					<div class="form-group button mb-0">
-						<button type="submit" id="saveProfileBtn" class="btn btn-primary px-4 py-2" style="background-color: #0d6efd; border-color: #0d6efd; border-radius: 4px; font-weight: 500;">
+						<button type="submit" id="saveProfileBtn" class="btn btn-primary px-4 py-2">
 							<span id="saveProfileBtnText">{{ __('Save changes') }}</span>
 						</button>
 					</div>
@@ -134,11 +134,138 @@
 		</form>
 	</div>
 </div>
+
+<style>
+	/* 1. Eliminate nice-select wrapper that shrinks dropdowns */
+	.profile-settings-block .nice-select {
+		display: none !important;
+	}
+
+	/* 2. Uniform, High-Contrast Inputs & Dropdowns */
+	.profile-settings-block .form-control,
+	.profile-settings-block .form-select,
+	.profile-settings-block select,
+	.profile-settings-block input[type="text"],
+	.profile-settings-block input[type="email"] {
+		display: block !important;
+		width: 100% !important;
+		height: 48px !important;
+		min-height: 48px !important;
+		border: 1.5px solid #cbd5e1 !important; /* Clearly defined high-contrast border */
+		border-radius: 8px !important;
+		padding: 0 16px !important;
+		font-size: 14.5px !important;
+		color: #1e293b !important;
+		background-color: #ffffff !important;
+		box-sizing: border-box !important;
+		outline: none !important;
+		box-shadow: none !important;
+		transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+	}
+
+	/* 3. Native dropdown arrow and behavior */
+	.profile-settings-block select,
+	.profile-settings-block select.form-control,
+	.profile-settings-block select.form-select {
+		-webkit-appearance: menulist !important;
+		-moz-appearance: menulist !important;
+		appearance: menulist !important;
+		cursor: pointer !important;
+		background-color: #ffffff !important;
+	}
+
+	/* 4. Hover & Focus States */
+	.profile-settings-block .form-control:hover:not(:disabled):not([readonly]),
+	.profile-settings-block select:hover {
+		border-color: #94a3b8 !important;
+	}
+
+	.profile-settings-block .form-control:focus,
+	.profile-settings-block select:focus {
+		border-color: #528CD7 !important;
+		box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.2) !important;
+		background-color: #ffffff !important;
+	}
+
+	/* 5. Readonly fields (Email, Country) */
+	.profile-settings-block .form-control[readonly],
+	.profile-settings-block .form-control:disabled {
+		background-color: #f1f5f9 !important;
+		border-color: #cbd5e1 !important;
+		color: #64748b !important;
+		cursor: not-allowed !important;
+	}
+
+	/* 6. Form Labels */
+	.profile-settings-block .form-label {
+		font-size: 13.5px !important;
+		font-weight: 600 !important;
+		color: #334155 !important;
+		margin-bottom: 7px !important;
+		display: block !important;
+	}
+
+	/* 7. Buttons */
+	.profile-upload-btn {
+		background-color: #0ea5e9 !important;
+		border-color: #0ea5e9 !important;
+		color: #ffffff !important;
+		height: 42px !important;
+		padding: 0 20px !important;
+		border-radius: 6px !important;
+		font-size: 14px !important;
+		font-weight: 600 !important;
+		display: inline-flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		transition: background-color 0.2s ease !important;
+	}
+	.profile-upload-btn:hover {
+		background-color: #0284c7 !important;
+		color: #ffffff !important;
+	}
+
+	#saveProfileBtn {
+		background: #528CD7 !important;
+		background-color: #528CD7 !important;
+		border-color: #528CD7 !important;
+		color: #ffffff !important;
+		height: 48px !important;
+		padding: 0 32px !important;
+		border-radius: 8px !important;
+		font-weight: 600 !important;
+		font-size: 15px !important;
+		letter-spacing: 0.2px !important;
+		transition: background-color 0.2s ease, box-shadow 0.2s ease !important;
+	}
+	#saveProfileBtn:hover:not(:disabled) {
+		background: #467fcb !important;
+		background-color: #467fcb !important;
+		border-color: #467fcb !important;
+		box-shadow: 0 4px 12px rgba(82, 140, 215, 0.25) !important;
+	}
+	#saveProfileBtn:disabled {
+		opacity: 0.6 !important;
+		cursor: not-allowed !important;
+	}
+</style>
 @endsection
 
 @push('js')
 <script>
 	document.addEventListener('DOMContentLoaded', function () {
+		// Destroy niceSelect if initialized so selects stay 100% full-width and native
+		function removeNiceSelect() {
+			if (window.jQuery && typeof jQuery.fn.niceSelect === 'function') {
+				try {
+					jQuery('.profile-settings-block select').niceSelect('destroy');
+				} catch (e) {}
+			}
+		}
+		removeNiceSelect();
+		setTimeout(removeNiceSelect, 100);
+		setTimeout(removeNiceSelect, 500);
+
 		// Show selected image file name and live preview
 		const fileInput = document.getElementById('profile_image_input');
 		const fileNameDisplay = document.getElementById('selected_image_name');
