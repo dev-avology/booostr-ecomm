@@ -504,12 +504,54 @@ class CustomerController extends Controller
     public function dashboard()
     {
         abort_if(tenant('customer_modules') != 'on',404);
-        $total_orders=Order::where('user_id',Auth::id())->count();
-        $total_pending_orders=Order::where('user_id',Auth::id())->where('status_id','!=',2)->where('status_id','!=',1)->count();
-        $orders=Order::where('user_id',Auth::id())->with('orderstatus')->latest()->take(5)->get();
-        
-        SEOMeta::setTitle('Dashboard');
-        return view(baseview('customer/dashboard'),compact('total_orders','total_pending_orders','orders'));
+
+        try {
+            $total_orders = Order::where('user_id', Auth::id())->count();
+            $total_pending_orders = Order::where('user_id', Auth::id())
+                ->where('status_id', '!=', 2)
+                ->where('status_id', '!=', 1)
+                ->count();
+            $orders = Order::where('user_id', Auth::id())
+                ->with(['orderstatus', 'orderitems:id,order_id,qty'])
+                ->latest()
+                ->take(5)
+                ->get();
+
+            // Resolve pending status IDs for the "Check Status" link filter
+            $pendingStatusIds = Order::where('user_id', Auth::id())
+                ->where('status_id', '!=', 2)
+                ->where('status_id', '!=', 1)
+                ->distinct()
+                ->pluck('status_id')
+                ->toArray();
+
+            SEOMeta::setTitle('Dashboard');
+            return view(baseview('customer/dashboard'), compact(
+                'total_orders',
+                'total_pending_orders',
+                'orders',
+                'pendingStatusIds'
+            ));
+        } catch (\Throwable $e) {
+            \Log::error('Customer dashboard error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            $total_orders = 0;
+            $total_pending_orders = 0;
+            $orders = collect();
+            $pendingStatusIds = [];
+
+            SEOMeta::setTitle('Dashboard');
+            return view(baseview('customer/dashboard'), compact(
+                'total_orders',
+                'total_pending_orders',
+                'orders',
+                'pendingStatusIds'
+            ));
+        }
     }
 
     public function orders(Request $request)
