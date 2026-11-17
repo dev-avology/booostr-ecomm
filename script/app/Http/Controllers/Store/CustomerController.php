@@ -577,7 +577,7 @@ class CustomerController extends Controller
         $validationRules = [
             'fname'   => ['required', 'string', 'max:191'],
             'lname'   => ['required', 'string', 'max:191'],
-            'phone'   => ['required', 'string', 'max:20'],
+            'phone'   => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s().]+$/'],
             'age'     => ['required', 'string'],
             'state'   => ['nullable', 'string', 'max:50'],
             'city'    => ['nullable', 'string', 'max:100'],
@@ -589,7 +589,7 @@ class CustomerController extends Controller
         $validationMessages = [
             'fname.required' => 'First name is required.',
             'lname.required' => 'Last name is required.',
-            'phone.required' => 'Mobile number is required.',
+            'phone.regex'    => 'Please enter a valid mobile number.',
             'age.required'   => 'Age is required.',
         ];
 

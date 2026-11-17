@@ -49,8 +49,8 @@
 
 				<div class="col-lg-6 col-12">
 					<div class="form-group mb-3">
-						<label class="form-label font-weight-bold">{{ __('Mobile') }} <span style="color: #ef4444; font-weight: 700;">*</span></label>
-						<input type="text" name="phone" class="form-control" maxlength="20" value="{{ Auth::user()->phone }}" required placeholder="{{ __('Mobile') }}" />
+						<label class="form-label font-weight-bold">{{ __('Mobile') }}</label>
+						<input type="text" name="phone" class="form-control" maxlength="20" value="{{ Auth::user()->phone }}" placeholder="{{ __('Mobile') }}" />
 					</div>
 				</div>
 
@@ -58,7 +58,7 @@
 				<div class="col-lg-6 col-12">
 					<div class="form-group mb-3">
 						<label class="form-label font-weight-bold">{{ __('Age') }} <span style="color: #ef4444; font-weight: 700;">*</span></label>
-						<select name="age" class="form-control form-select" required>
+						<select name="age" class="form-control" required>
 							<option value="" disabled>{{ __('Choose Age') }}</option>
 							<option value="child" {{ (($meta->age ?? '') == 'child' || ($meta->age ?? '') == 'Above 13 - Under 19') ? 'selected' : '' }}>{{ __('Above 13 - Under 19') }}</option>
 							<option value="adult" {{ (($meta->age ?? '') == 'adult' || ($meta->age ?? '') == 'Above 19' || empty($meta->age)) ? 'selected' : '' }}>{{ __('Above 19') }}</option>
@@ -84,7 +84,7 @@
 				<div class="col-lg-6 col-12">
 					<div class="form-group mb-3">
 						<label class="form-label font-weight-bold">{{ __('State') }}</label>
-						<select name="state" class="form-control form-select">
+						<select name="state" class="form-control">
 							<option value="">{{ __('Select State') }}</option>
 							@foreach(($usStates ?? []) as $code => $stateName)
 								<option value="{{ $code }}" {{ (strtoupper($meta->state ?? '') === $code || strcasecmp($meta->state ?? '', $stateName) === 0) ? 'selected' : '' }}>
@@ -163,15 +163,20 @@
 		transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 	}
 
-	/* 3. Native dropdown arrow and behavior */
+	/* 3. Single clean dropdown chevron arrow (Eliminates duplicate arrows) */
 	.profile-settings-block select,
 	.profile-settings-block select.form-control,
 	.profile-settings-block select.form-select {
-		-webkit-appearance: menulist !important;
-		-moz-appearance: menulist !important;
-		appearance: menulist !important;
-		cursor: pointer !important;
+		-webkit-appearance: none !important;
+		-moz-appearance: none !important;
+		appearance: none !important;
 		background-color: #ffffff !important;
+		background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+		background-repeat: no-repeat !important;
+		background-position: right 16px center !important;
+		background-size: 14px 10px !important;
+		padding-right: 42px !important;
+		cursor: pointer !important;
 	}
 
 	/* 4. Hover & Focus States */
