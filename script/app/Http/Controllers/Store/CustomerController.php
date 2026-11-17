@@ -533,9 +533,9 @@ class CustomerController extends Controller
                 $query->where('status_id', $request->status);
             }
 
-            // Payment Status Filter (1 = Paid, 2 = Pending, 0 = Failed)
+            // Payment Status Filter (Strict 1-to-1 matching with database value)
             if ($request->has('payment_status') && $request->payment_status !== '' && $request->payment_status !== 'all') {
-                $query->where('payment_status', $request->payment_status);
+                $query->where('payment_status', (int) $request->payment_status);
             }
 
             $orders = $query->latest()->paginate(10);

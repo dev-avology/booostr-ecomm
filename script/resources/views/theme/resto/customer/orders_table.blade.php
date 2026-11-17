@@ -20,19 +20,35 @@
                     $totalQty = $row->orderitems_count ?? 1;
                 }
 
-                // Payment Status
+                // Payment Status (Customer-friendly & aligned with Seller Admin)
                 if ($row->payment_status == 1) {
                     $paymentText = __('Paid');
                     $paymentClass = 'payment-badge-paid';
                     $paymentIcon = 'icofont-check-circled';
+                } elseif ($row->payment_status == 5) {
+                    $paymentText = __('Refunded');
+                    $paymentClass = 'payment-badge-refunded';
+                    $paymentIcon = 'icofont-reply';
+                } elseif ($row->payment_status == 4) {
+                    $paymentText = __('Processing');
+                    $paymentClass = 'payment-badge-processing';
+                    $paymentIcon = 'icofont-refresh';
                 } elseif ($row->payment_status == 2) {
                     $paymentText = __('Pending');
                     $paymentClass = 'payment-badge-pending';
                     $paymentIcon = 'icofont-clock-time';
-                } else {
-                    $paymentText = __('Payment Failed');
-                    $paymentClass = 'payment-badge-failed';
+                } elseif ($row->payment_status == 3) {
+                    $paymentText = __('Incomplete');
+                    $paymentClass = 'payment-badge-incomplete';
+                    $paymentIcon = 'icofont-exclamation-circle';
+                } elseif ($row->payment_status == 0) {
+                    $paymentText = __('Cancelled');
+                    $paymentClass = 'payment-badge-cancelled';
                     $paymentIcon = 'icofont-close-circled';
+                } else {
+                    $paymentText = __('Pending');
+                    $paymentClass = 'payment-badge-pending';
+                    $paymentIcon = 'icofont-clock-time';
                 }
 
                 // Order Status styling

@@ -67,7 +67,10 @@
                     <option value="all">{{ __('All Payment Statuses') }}</option>
                     <option value="1" {{ request('payment_status') === '1' ? 'selected' : '' }}>{{ __('Paid') }}</option>
                     <option value="2" {{ request('payment_status') === '2' ? 'selected' : '' }}>{{ __('Pending') }}</option>
-                    <option value="0" {{ request('payment_status') === '0' ? 'selected' : '' }}>{{ __('Payment Failed') }}</option>
+                    <option value="5" {{ request('payment_status') === '5' ? 'selected' : '' }}>{{ __('Refunded') }}</option>
+                    <option value="4" {{ request('payment_status') === '4' ? 'selected' : '' }}>{{ __('Processing') }}</option>
+                    <option value="0" {{ request('payment_status') === '0' ? 'selected' : '' }}>{{ __('Cancelled') }}</option>
+                    <option value="3" {{ request('payment_status') === '3' ? 'selected' : '' }}>{{ __('Incomplete') }}</option>
                 </select>
             </div>
 
@@ -273,7 +276,7 @@
         font-weight: 600 !important;
         padding: 6px 12px !important;
         border-radius: 20px !important;
-        display: inline-inline-flex !important;
+        display: inline-flex !important;
         align-items: center !important;
     }
 
@@ -283,10 +286,34 @@
         border: 1px solid #a7f3d0 !important;
     }
 
+    .payment-badge-refunded {
+        background-color: #fef2f2 !important;
+        color: #dc2626 !important;
+        border: 1px solid #fecaca !important;
+    }
+
+    .payment-badge-processing {
+        background-color: #eff6ff !important;
+        color: #1d4ed8 !important;
+        border: 1px solid #bfdbfe !important;
+    }
+
     .payment-badge-pending {
         background-color: #fffbeb !important;
         color: #b45309 !important;
         border: 1px solid #fde68a !important;
+    }
+
+    .payment-badge-cancelled {
+        background-color: #f1f5f9 !important;
+        color: #64748b !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    .payment-badge-incomplete {
+        background-color: #fff7ed !important;
+        color: #c2410c !important;
+        border: 1px solid #ffedd5 !important;
     }
 
     .payment-badge-failed {
