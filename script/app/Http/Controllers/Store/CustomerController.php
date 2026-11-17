@@ -173,12 +173,17 @@ class CustomerController extends Controller
                         $localUser->phone = $wpUser->user_phone;
                     }
 
+                    $incomingCountry = $wpUser->user_country ?? ($existingMeta['country'] ?? 'USA');
+                    if (empty($incomingCountry) || in_array(trim($incomingCountry), ['United States of America', 'United States', 'US'], true)) {
+                        $incomingCountry = 'USA';
+                    }
+
                     $existingMeta = !empty($localUser->meta) ? json_decode($localUser->meta, true) : [];
                     $mergedMeta = array_merge($existingMeta, [
                         'wpuid' => (int) ($wpUser->user_id ?? ($existingMeta['wpuid'] ?? 0)),
                         'username' => $wpUser->user_login ?? ($existingMeta['username'] ?? $username),
                         'age' => $wpUser->age ?? ($existingMeta['age'] ?? 'adult'),
-                        'country' => $wpUser->user_country ?? ($existingMeta['country'] ?? 'United States of America'),
+                        'country' => $incomingCountry,
                         'city' => $wpUser->user_city ?? ($existingMeta['city'] ?? ''),
                         'state' => $wpUser->user_state ?? ($existingMeta['state'] ?? ''),
                         'address' => $wpUser->user_address ?? ($existingMeta['address'] ?? ''),
@@ -437,13 +442,18 @@ class CustomerController extends Controller
         $user->phone = $wpUser->user_phone ?? null;
         $user->status = 1;
 
+        $regCountry = $wpUser->user_country ?? 'USA';
+        if (empty($regCountry) || in_array(trim($regCountry), ['United States of America', 'United States', 'US'], true)) {
+            $regCountry = 'USA';
+        }
+
         $metaData = [
             'wpuid' => $wpuid,
             'username' => $username,
             'fname' => $firstName,
             'lname' => $lastName,
             'age' => $age,
-            'country' => $wpUser->user_country ?? 'United States of America',
+            'country' => $regCountry,
             'city' => $wpUser->user_city ?? '',
             'state' => $wpUser->user_state ?? '',
             'address' => $wpUser->user_address ?? '',
@@ -525,38 +535,155 @@ class CustomerController extends Controller
 
     public function settings()
     {
-        abort_if(tenant('customer_modules') != 'on',404);
-        $meta=json_decode(Auth::user()->meta ?? '');
-        $order_settings=get_option('order_settings',true);
+        abort_if(tenant('customer_modules') != 'on', 404);
+        $user = Auth::user();
+        $meta = json_decode($user->meta ?? '');
+        $order_settings = get_option('order_settings', true);
+
+        // Extract fname and lname with fallback to splitting user name
+        $fname = $meta->fname ?? '';
+        $lname = $meta->lname ?? '';
+        if (empty($fname) && empty($lname) && !empty($user->name)) {
+            $nameParts = explode(' ', trim($user->name), 2);
+            $fname = $nameParts[0] ?? '';
+            $lname = $nameParts[1] ?? '';
+        }
+
+        // Country normalization: default USA, convert 'United States of America' / 'Belarus' to USA
+        $country = $meta->country ?? 'USA';
+        if (empty($country) || in_array(trim($country), ['United States of America', 'United States', 'US', 'Belarus'], true)) {
+            $country = 'USA';
+        }
+
+        $usStates = [
+            'AL' => 'Alabama', 'AK' => 'Alaska', 'AZ' => 'Arizona', 'AR' => 'Arkansas', 'CA' => 'California',
+            'CO' => 'Colorado', 'CT' => 'Connecticut', 'DE' => 'Delaware', 'FL' => 'Florida', 'GA' => 'Georgia',
+            'HI' => 'Hawaii', 'ID' => 'Idaho', 'IL' => 'Illinois', 'IN' => 'Indiana', 'IA' => 'Iowa',
+            'KS' => 'Kansas', 'KY' => 'Kentucky', 'LA' => 'Louisiana', 'ME' => 'Maine', 'MD' => 'Maryland',
+            'MA' => 'Massachusetts', 'MI' => 'Michigan', 'MN' => 'Minnesota', 'MS' => 'Mississippi', 'MO' => 'Missouri',
+            'MT' => 'Montana', 'NE' => 'Nebraska', 'NV' => 'Nevada', 'NH' => 'New Hampshire', 'NJ' => 'New Jersey',
+            'NM' => 'New Mexico', 'NY' => 'New York', 'NC' => 'North Carolina', 'ND' => 'North Dakota', 'OH' => 'Ohio',
+            'OK' => 'Oklahoma', 'OR' => 'Oregon', 'PA' => 'Pennsylvania', 'RI' => 'Rhode Island', 'SC' => 'South Carolina',
+            'SD' => 'South Dakota', 'TN' => 'Tennessee', 'TX' => 'Texas', 'UT' => 'Utah', 'VT' => 'Vermont',
+            'VA' => 'Virginia', 'WA' => 'Washington', 'WV' => 'West Virginia', 'WI' => 'Wisconsin', 'WY' => 'Wyoming',
+        ];
+
         SEOMeta::setTitle('Settings');
-        return view(baseview('customer/settings'),compact('meta','order_settings'));
+        return view(baseview('customer/settings'), compact('meta', 'order_settings', 'fname', 'lname', 'country', 'usStates'));
     }
 
     public function profileUpdate(Request $request)
     {
-        $request->validate([
-            'name' => 'required|max:100',
-            'email' => 'required|max:50|email|unique:users,email,' . Auth::user()->id,
-            'phone' => 'required|max:20',
-            'address' => 'max:300',
-            'post_code' => 'max:10',
-            'lat' => 'max:300',
-            'long' => 'max:300',
-        ]);
+        $validationRules = [
+            'fname'   => ['required', 'string', 'max:191'],
+            'lname'   => ['required', 'string', 'max:191'],
+            'phone'   => ['required', 'string', 'max:20'],
+            'age'     => ['required', 'string'],
+            'state'   => ['nullable', 'string', 'max:50'],
+            'city'    => ['nullable', 'string', 'max:100'],
+            'address' => ['nullable', 'string', 'max:300'],
+            'country' => ['nullable', 'string', 'max:100'],
+            'image'   => ['nullable', 'image', 'max:2048'],
+        ];
 
-        $user = User::findOrFail(Auth::user()->id);
-        $user->name = $request->name;
-        $user->email = $request->email;
+        $validationMessages = [
+            'fname.required' => 'First name is required.',
+            'lname.required' => 'Last name is required.',
+            'phone.required' => 'Mobile number is required.',
+            'age.required'   => 'Age is required.',
+        ];
+
+        $request->validate($validationRules, $validationMessages);
+
+        // Normalize Country
+        $rawCountry = trim($request->country ?? '');
+        if (empty($rawCountry) || in_array($rawCountry, ['United States of America', 'United States', 'US', 'Belarus'], true)) {
+            $country = 'USA';
+        } else {
+            $country = $rawCountry;
+        }
+
+        $user = User::findOrFail(Auth::id());
+        $firstName = trim($request->fname);
+        $lastName = trim($request->lname);
+        $user->name = trim($firstName . ' ' . $lastName);
+        // Note: Email is readonly and not updated here per security/account standards
         $user->phone = $request->phone;
 
-        // Preserve existing meta fields (like username, wpuid, age) while updating location details
+        // Preserve existing meta structure with exact key names matching registration & login
         $existingMeta = !empty($user->meta) ? json_decode($user->meta, true) : [];
-        $existingMeta['address'] = $request->address;
-        $existingMeta['post_code'] = $request->post_code;
-        $existingMeta['lat'] = $request->lat;
-        $existingMeta['long'] = $request->long;
+        $existingMeta['fname']   = $firstName;
+        $existingMeta['lname']   = $lastName;
+        $existingMeta['age']     = $request->age;
+        $existingMeta['address'] = $request->address ?? ($existingMeta['address'] ?? '');
+        $existingMeta['city']    = $request->city ?? ($existingMeta['city'] ?? '');
+        $existingMeta['state']   = $request->state ?? ($existingMeta['state'] ?? '');
+        $existingMeta['country'] = $country;
+
+        // Handle Avatar image upload with compression
+        if ($request->hasFile('image')) {
+            try {
+                $file = $request->file('image');
+                $uploadDir = public_path('uploads/' . tenant('id') . '/');
+                if (!file_exists($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+
+                // Delete old avatar file if exists to prevent disk clutter
+                if (!empty($existingMeta['avatar']) && file_exists(public_path($existingMeta['avatar']))) {
+                    @unlink(public_path($existingMeta['avatar']));
+                }
+
+                $imageName = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $targetPath = $uploadDir . $imageName;
+
+                // Compress and fit image to 400x400 with 80% quality
+                $img = \Image::make($file->getRealPath());
+                $img->fit(400, 400, function ($constraint) {
+                    $constraint->upsize();
+                });
+                $img->save($targetPath, 80);
+
+                $existingMeta['avatar'] = 'uploads/' . tenant('id') . '/' . $imageName;
+            } catch (\Throwable $e) {
+                \Log::warning('Avatar image upload or compression failed: ' . $e->getMessage());
+            }
+        }
+
         $user->meta = json_encode($existingMeta);
         $user->save();
+
+        // Background synchronization to Booostr Central API (Disabled for now until Central endpoint is created/live)
+        if (false) {
+            try {
+                $apiUsername = !empty($existingMeta['username']) ? $existingMeta['username'] : ($user->username ?: $user->email);
+                $client = new \GuzzleHttp\Client();
+                $apiUrl = env('WP_WEBBUILDER_PROFILE_UPDATE_API_URL') ?: 'https://app.booostr.co/wp-json/webbuilder-api/v1/user-update';
+
+                $client->post($apiUrl, [
+                    'verify' => false,
+                    'timeout' => 10,
+                    'headers' => ['Accept' => 'application/json'],
+                    'json' => [
+                        'wpuid'     => (int) ($existingMeta['wpuid'] ?? 0),
+                        'username'  => $apiUsername,
+                        'fname'     => $firstName,
+                        'lname'     => $lastName,
+                        'name'      => $user->name,
+                        'email'     => $user->email,
+                        'phone'     => $user->phone,
+                        'age'       => $request->age,
+                        'address'   => $request->address ?? '',
+                        'city'      => $request->city ?? '',
+                        'state'     => $request->state ?? '',
+                        'country'   => $country,
+                        'club'      => (string) (tenant('id') ?? ''),
+                    ],
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Booostr Central profile sync background call: ' . $e->getMessage());
+            }
+        }
 
         return response()->json('Successfully your information updated...!!');
     }
