@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UserResetEmail;
 use App\Mail\BooostrAccountCreatedMail;
+use App\Models\Category;
 use GuzzleHttp\Client;
 class CustomerController extends Controller
 {
@@ -511,12 +512,66 @@ class CustomerController extends Controller
         return view(baseview('customer/dashboard'),compact('total_orders','total_pending_orders','orders'));
     }
 
-    public function orders()
+    public function orders(Request $request)
     {
-        abort_if(tenant('customer_modules') != 'on',404);
-        $orders=Order::where('user_id',Auth::id())->with('orderstatus')->withCount('orderitems')->latest()->paginate(10);
-        SEOMeta::setTitle('Orders');
-        return view(baseview('customer/orders'),compact('orders'));
+        abort_if(tenant('customer_modules') != 'on', 404);
+
+        try {
+            $query = Order::where('user_id', Auth::id())
+                ->with(['orderstatus', 'orderitems:id,order_id,qty'])
+                ->withCount('orderitems');
+
+            // Search by Invoice / Order Number
+            if ($request->filled('search')) {
+                $search = trim($request->search);
+                $cleanSearch = ltrim($search, '#');
+                $query->where('invoice_no', 'like', "%{$cleanSearch}%");
+            }
+
+            // Order Status Filter
+            if ($request->filled('status') && $request->status !== 'all') {
+                $query->where('status_id', $request->status);
+            }
+
+            // Payment Status Filter (1 = Paid, 2 = Pending, 0 = Failed)
+            if ($request->has('payment_status') && $request->payment_status !== '' && $request->payment_status !== 'all') {
+                $query->where('payment_status', $request->payment_status);
+            }
+
+            $orders = $query->latest()->paginate(10);
+            $orderStatuses = Category::where('type', 'status')->orderBy('featured', 'ASC')->get();
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'html' => view(baseview('customer/orders_table'), compact('orders'))->render(),
+                    'total' => $orders->total(),
+                ]);
+            }
+
+            SEOMeta::setTitle(__('Purchase History'));
+            return view(baseview('customer/orders'), compact('orders', 'orderStatuses'));
+        } catch (\Throwable $e) {
+            \Log::error('Customer orders error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Unable to load orders at this time. Please try again.'),
+                    'error' => config('app.debug') ? $e->getMessage() : null,
+                ], 500);
+            }
+
+            // Graceful fallback to avoid breaking the user interface
+            $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
+            $orderStatuses = collect();
+            SEOMeta::setTitle(__('Purchase History'));
+            return view(baseview('customer/orders'), compact('orders', 'orderStatuses'))->with('error', __('Unable to load orders at this time. Please try again.'));
+        }
     }
 
     public function orderview($id)
@@ -705,68 +760,79 @@ class CustomerController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user = Auth::user();
-
-        // 1. Check if current password matches
-        if (!\Hash::check($request->current, $user->password)) {
-            return response()->json([
-                'errors' => [
-                    'current' => [__('The current password you entered is incorrect.')]
-                ]
-            ], 422);
-        }
-
-        // 2. Ensure new password is not the same as current password
-        if (\Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'errors' => [
-                    'password' => [__('The new password must be different from your current password.')]
-                ]
-            ], 422);
-        }
-
-        // 3. Update password in tenant database and keep active session logged in
-        User::where('id', $user->id)->update([
-            'password' => \Hash::make($request->password)
-        ]);
-        Auth::loginUsingId($user->id);
-
-        // 4. Synchronize password change with Booostr Central API
         try {
-            $actualMetaUsername = '';
-            if (!empty($user->meta)) {
-                $uMeta = is_array($user->meta) ? $user->meta : json_decode($user->meta, true);
-                if (!empty($uMeta['username'])) {
-                    $actualMetaUsername = trim($uMeta['username']);
-                }
-            }
-            if ($actualMetaUsername === '' && !empty($user->username)) {
-                $actualMetaUsername = trim($user->username);
-            }
-            if ($actualMetaUsername === '') {
-                $actualMetaUsername = $user->email;
+            $user = Auth::user();
+
+            // 1. Check if current password matches
+            if (!\Hash::check($request->current, $user->password)) {
+                return response()->json([
+                    'errors' => [
+                        'current' => [__('The current password you entered is incorrect.')]
+                    ]
+                ], 422);
             }
 
-            $client = new Client();
-            $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-user-reset-password', [
-                'verify' => false,
-                'timeout' => 15,
-                'headers' => ['Accept' => 'application/json'],
-                'json' => [
-                    'username' => $actualMetaUsername,
-                    'password' => $request->password,
-                    'club'     => tenant()->id,
-                ],
+            // 2. Ensure new password is not the same as current password
+            if (\Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'errors' => [
+                        'password' => [__('The new password must be different from your current password.')]
+                    ]
+                ], 422);
+            }
+
+            // 3. Update password in tenant database and keep active session logged in
+            User::where('id', $user->id)->update([
+                'password' => \Hash::make($request->password)
+            ]);
+            Auth::loginUsingId($user->id);
+
+            // 4. Synchronize password change with Booostr Central API
+            try {
+                $actualMetaUsername = '';
+                if (!empty($user->meta)) {
+                    $uMeta = is_array($user->meta) ? $user->meta : json_decode($user->meta, true);
+                    if (!empty($uMeta['username'])) {
+                        $actualMetaUsername = trim($uMeta['username']);
+                    }
+                }
+                if ($actualMetaUsername === '' && !empty($user->username)) {
+                    $actualMetaUsername = trim($user->username);
+                }
+                if ($actualMetaUsername === '') {
+                    $actualMetaUsername = $user->email;
+                }
+
+                $client = new Client();
+                $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-user-reset-password', [
+                    'verify' => false,
+                    'timeout' => 15,
+                    'headers' => ['Accept' => 'application/json'],
+                    'json' => [
+                        'username' => $actualMetaUsername,
+                        'password' => $request->password,
+                        'club'     => tenant()->id,
+                    ],
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Booostr profile password sync failed: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                0 => __('Password updated successfully and synchronized with your Booostr account!'),
+                'message' => __('Password updated successfully and synchronized with your Booostr account!'),
+                'status' => 'success'
             ]);
         } catch (\Throwable $e) {
-            \Log::warning('Booostr profile password sync failed: ' . $e->getMessage());
-        }
+            \Log::error('Customer password update error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
-        return response()->json([
-            0 => __('Password updated successfully and synchronized with your Booostr account!'),
-            'message' => __('Password updated successfully and synchronized with your Booostr account!'),
-            'status' => 'success'
-        ]);
+            return response()->json([
+                'message' => __('Unable to update password at this time. Please try again.')
+            ], 500);
+        }
     }
 
     public function reviews()
