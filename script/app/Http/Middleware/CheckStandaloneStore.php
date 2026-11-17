@@ -17,21 +17,8 @@ class CheckStandaloneStore
      */
     public function handle(Request $request, Closure $next)
     {
-        // 1. If a Club Owner / Seller (role_id == 3) is logged in, redirect them directly to Seller Dashboard
-        if (Auth::check() && Auth::user()->role_id == 3) {
-            if (!$request->is('seller*') && !$request->is('logout') && !$request->is('api*')) {
-                if ($request->ajax() || $request->expectsJson()) {
-                    return response()->json([
-                        'status' => 'redirect',
-                        'redirect' => url('/seller/dashboard'),
-                    ]);
-                }
-                return redirect('/seller/dashboard');
-            }
-        }
-
-        // 2. If standalone store is explicitly ON, allow access
-        if (get_option('standalone_store_status') === 'on') {
+        // 1. If standalone store is explicitly ON, or logged in as Seller / Admin, allow storefront access (WordPress Admin model)
+        if (get_option('standalone_store_status') === 'on' || (Auth::check() && in_array(Auth::user()->role_id, [1, 3]))) {
             return $next($request);
         }
 
