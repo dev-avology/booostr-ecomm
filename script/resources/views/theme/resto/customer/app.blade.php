@@ -87,7 +87,7 @@
 								</a>
 							</li>
 						</ul>
-						<div class="button mt-3">
+						<div class="dashboard-logout-wrapper mt-3">
 							<a class="btn alt-btn w-100" href="javascript:void(0)" onclick="event.preventDefault(); document.getElementById('customer-sidebar-logout-form').submit();">
 								<i class="icofont-logout me-1"></i> {{ __('Logout') }}
 							</a>
@@ -134,6 +134,49 @@
 </div>
 @endif
 @endsection
+
+@push('css')
+<style>
+/* Eliminate theme green ::before pseudo element hover across customer dashboard buttons */
+.dashboard .button .btn::before,
+.dashboard .button .btn::after,
+.dashboard .button .btn:hover::before,
+.dashboard-sidebar .btn::before,
+.dashboard-sidebar .btn::after,
+.dashboard-sidebar .btn:hover::before,
+.dashboard-logout-wrapper .btn::before,
+.dashboard-logout-wrapper .btn::after,
+.dashboard-logout-wrapper .btn:hover::before {
+	display: none !important;
+	content: none !important;
+	width: 0 !important;
+	height: 0 !important;
+	background: transparent !important;
+	background-color: transparent !important;
+	opacity: 0 !important;
+	visibility: hidden !important;
+}
+
+/* Sidebar Logout Button - Clean Navy styling, never green */
+.dashboard-sidebar .dashboard-menu .dashboard-logout-wrapper .btn {
+	background-color: #1f2d5a !important;
+	color: #ffffff !important;
+	border: 1px solid #1f2d5a !important;
+	border-radius: 8px !important;
+	padding: 11px 20px !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.dashboard-sidebar .dashboard-menu .dashboard-logout-wrapper .btn:hover {
+	background-color: #162142 !important;
+	border-color: #162142 !important;
+	color: #ffffff !important;
+	box-shadow: 0 4px 12px rgba(31, 45, 90, 0.25) !important;
+}
+</style>
+@endpush
+
 @push('js')
 <script src="{{ asset('admin/js/sweetalert2.all.min.js') }}"></script>
 <script src="{{ asset('admin/js/form.js') }}"></script>

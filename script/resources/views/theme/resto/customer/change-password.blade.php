@@ -112,8 +112,8 @@
             {{-- Action Buttons --}}
             <div class="row">
                 <div class="col-12">
-                    <div class="form-group button mb-0">
-                        <button type="submit" class="btn basicbtn">
+                    <div class="form-group profile-button-group mb-0">
+                        <button type="submit" class="btn basicbtn update-password-btn">
                             <i class="icofont-check-circled me-1"></i> {{ __('Update Password') }}
                         </button>
                         <a href="{{ url('/customer/dashboard') }}" class="btn btn-link text-muted ms-2">
@@ -125,6 +125,50 @@
         </form>
     </div>
 </div>
+
+<style>
+.update-password-btn::before,
+.update-password-btn::after,
+.password-change-block .btn::before,
+.password-change-block .btn::after {
+    display: none !important;
+    content: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+.update-password-btn {
+    background: #528CD7 !important;
+    background-color: #528CD7 !important;
+    border: 1.5px solid #528CD7 !important;
+    color: #ffffff !important;
+    height: 48px !important;
+    padding: 0 28px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+    cursor: pointer !important;
+}
+.update-password-btn:hover:not(:disabled) {
+    background: #467fcb !important;
+    background-color: #467fcb !important;
+    border-color: #467fcb !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(82, 140, 215, 0.25) !important;
+}
+.update-password-btn:focus,
+.update-password-btn:active {
+    background: #467fcb !important;
+    background-color: #467fcb !important;
+    border-color: #467fcb !important;
+    color: #ffffff !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.25) !important;
+}
+</style>
 @endsection
 
 @push('js')

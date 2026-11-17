@@ -124,7 +124,7 @@
 
 				{{-- Row 6: Submit Button --}}
 				<div class="col-12 mt-3">
-					<div class="form-group button mb-0">
+					<div class="form-group profile-button-group mb-0">
 						<button type="submit" id="saveProfileBtn" class="btn btn-primary px-4 py-2">
 							<span id="saveProfileBtnText">{{ __('Save changes') }}</span>
 						</button>
@@ -210,30 +210,60 @@
 		display: block !important;
 	}
 
-	/* 7. Buttons */
+	/* 7. Buttons - Consistent Brand Blue, Green Hover Completely Neutralized */
+	#saveProfileBtn::before,
+	#saveProfileBtn::after,
+	.profile-upload-btn::before,
+	.profile-upload-btn::after,
+	.profile-settings-block .btn::before,
+	.profile-settings-block .btn::after,
+	.profile-button-group .btn::before,
+	.profile-button-group .btn::after,
+	.button .btn#saveProfileBtn::before,
+	.button .btn#saveProfileBtn::after,
+	.button .btn#saveProfileBtn:hover::before,
+	.button .btn.profile-upload-btn::before,
+	.button .btn.profile-upload-btn:hover::before {
+		display: none !important;
+		content: none !important;
+		width: 0 !important;
+		height: 0 !important;
+		background: transparent !important;
+		background-color: transparent !important;
+		opacity: 0 !important;
+		visibility: hidden !important;
+	}
+
 	.profile-upload-btn {
-		background-color: #0ea5e9 !important;
-		border-color: #0ea5e9 !important;
+		background: #528CD7 !important;
+		background-color: #528CD7 !important;
+		border: 1.5px solid #528CD7 !important;
 		color: #ffffff !important;
 		height: 42px !important;
-		padding: 0 20px !important;
+		padding: 0 22px !important;
 		border-radius: 6px !important;
 		font-size: 14px !important;
 		font-weight: 600 !important;
 		display: inline-flex !important;
 		align-items: center !important;
 		justify-content: center !important;
-		transition: background-color 0.2s ease !important;
+		box-shadow: none !important;
+		transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+		cursor: pointer !important;
 	}
-	.profile-upload-btn:hover {
-		background-color: #0284c7 !important;
+	.profile-upload-btn:hover,
+	.profile-upload-btn:focus {
+		background: #467fcb !important;
+		background-color: #467fcb !important;
+		border-color: #467fcb !important;
 		color: #ffffff !important;
+		box-shadow: 0 2px 8px rgba(82, 140, 215, 0.25) !important;
 	}
 
 	#saveProfileBtn {
 		background: #528CD7 !important;
 		background-color: #528CD7 !important;
-		border-color: #528CD7 !important;
+		border: 1.5px solid #528CD7 !important;
 		color: #ffffff !important;
 		height: 48px !important;
 		padding: 0 32px !important;
@@ -241,17 +271,45 @@
 		font-weight: 600 !important;
 		font-size: 15px !important;
 		letter-spacing: 0.2px !important;
-		transition: background-color 0.2s ease, box-shadow 0.2s ease !important;
+		display: inline-flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		box-shadow: none !important;
+		transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+		cursor: pointer !important;
 	}
-	#saveProfileBtn:hover:not(:disabled) {
+	#saveProfileBtn:hover:not(:disabled):not(.is-processing) {
+		background: #467fcb !important; /* Consistent Brand Blue Hover - Never Green */
+		background-color: #467fcb !important;
+		border-color: #467fcb !important;
+		color: #ffffff !important;
+		box-shadow: 0 4px 12px rgba(82, 140, 215, 0.25) !important;
+	}
+	#saveProfileBtn:focus,
+	#saveProfileBtn:active {
 		background: #467fcb !important;
 		background-color: #467fcb !important;
 		border-color: #467fcb !important;
-		box-shadow: 0 4px 12px rgba(82, 140, 215, 0.25) !important;
+		color: #ffffff !important;
+		outline: none !important;
+		box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.25) !important;
 	}
 	#saveProfileBtn:disabled {
-		opacity: 0.6 !important;
+		opacity: 0.55 !important;
 		cursor: not-allowed !important;
+		background: #94b8e8 !important;
+		background-color: #94b8e8 !important;
+		border-color: #94b8e8 !important;
+		box-shadow: none !important;
+	}
+	#saveProfileBtn.is-processing {
+		opacity: 0.8 !important;
+		cursor: wait !important;
+		pointer-events: none !important;
+		background: #528CD7 !important;
+		background-color: #528CD7 !important;
+		border-color: #528CD7 !important;
+		box-shadow: none !important;
 	}
 </style>
 @endsection
