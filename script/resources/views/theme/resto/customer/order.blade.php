@@ -198,6 +198,10 @@
 @php
 $address = json_decode($info->shippingwithinfo->info ?? '');
 $ordermeta = json_decode($info->ordermeta->value ?? '');
+$currency = get_option('currency_data', true);
+$currencyIcon = $currency->currency_icon ?? '$';
+$currencyPosition = $currency->currency_position ?? 'left';
+$cover_fee = isset($ordermeta->cover_fee) ? (float) $ordermeta->cover_fee : 0;
 
 // Order Status styling
 $statusName = $info->orderstatus->name ?? __('Pending');
@@ -391,10 +395,10 @@ if ($info->payment_status == 1) {
 										<p class="it-quantity">x {{ $row->qty }}</p>
 									</div>
 									<div class="col-lg-2 col-md-2 col-4">
-										<p class="it-price render_currency">{{ number_format($row->amount,2) }}</p>
+										<p class="it-price">{{ $currencyIcon }}{{ number_format($row->amount, 2) }}</p>
 									</div>
 									<div class="col-lg-3 col-md-3 col-4 align-right">
-										<p class="total-price render_currency">{{ number_format($row->amount*$row->qty,2) }}</p>
+										<p class="total-price">{{ $currencyIcon }}{{ number_format($row->amount * $row->qty, 2) }}</p>
 									</div>
 								</div>
 							</div>
@@ -409,12 +413,17 @@ if ($info->payment_status == 1) {
 						<h3 class="orderd-title">{{ __('Your') }} <span>{{ __('Order details') }}</span></h3>
 						<ul class="order-d-list">
 							<li><b>{{ __('Customer Name') }}</b> <span>{{ $ordermeta->name ?? '' }}</span></li>
+							@if(!empty($ordermeta->email))
+							<li><b>{{ __('Customer Email') }}</b> <span>{{ $ordermeta->email }}</span></li>
+							@endif
 							<li><b>{{ __('Phone Number') }}</b> <span>{{ $ordermeta->phone ?? '' }}</span></li>
 
 							<li><b>{{ __('Order Status') }}</b> <span class="badge order-status-badge {{ $orderStatusClass }}">{{ $statusName }}</span></li>
 							<li><b>{{ __('Payment Status') }}</b> <span class="badge payment-status-badge {{ $paymentClass }}"><i class="{{ $paymentIcon }} me-1"></i>{{ $paymentText }}</span></li>
-							<li><b>{{ __('Total') }}</b> <span class="render_currency">{{ number_format($info->total ?? 0,2) }}</span></li>
-							<li><b>{{ __('Note') }} :</b> <span>{{ $ordermeta->note ?? '' }}</span></li>
+							<li><b>{{ __('Total') }}</b> <span>{{ $currencyIcon }}{{ number_format($info->total ?? 0, 2) }}</span></li>
+							@if(!empty($ordermeta->note))
+							<li><b>{{ __('Note') }} :</b> <span>{{ $ordermeta->note }}</span></li>
+							@endif
 						</ul>
 					</div>
 					<!-- End Customer details -->
@@ -433,7 +442,7 @@ if ($info->payment_status == 1) {
 				</div>
 			</div>
 			<div class="col-lg-3 col-12">
-				<!-- Customer details -->
+				<!-- Order Summary -->
 				<div class="customer-order-details order-sum dashboard-block">
 					<h3 class="orderd-title">{{ __('Order') }} <span>{{ __('summary') }}</span></h3>
 					<ul class="order-d-list">
@@ -445,17 +454,38 @@ if ($info->payment_status == 1) {
 						@endif
 						<li><b>{{ __('Type') }} </b> <span>{{ ucwords(str_replace('_',' ',$info->order_method ?? '')) }}</span></li>
 
-						<li><b>{{ __('Discount') }}</b> <span class="render_currency">{{ number_format($info->discount,2)  }}</span></li>
-						<li><b>{{ __('Tax') }}</b> <span class="render_currency">{{ number_format($info->tax,2)  }}</span></li>
+						@php
+							$orderSubtotal = 0;
+							foreach($info->orderitemswithpreview ?? [] as $itemRow) {
+								$orderSubtotal += ($itemRow->amount * $itemRow->qty);
+							}
+							$shippingFee = !empty($info->shippingwithinfo->shipping_price) ? (float) $info->shippingwithinfo->shipping_price : 0;
+						@endphp
+
+						<li><b>{{ __('Subtotal') }}</b> <span>{{ $currencyIcon }}{{ number_format($orderSubtotal, 2) }}</span></li>
+
+						@if($info->discount > 0)
+						<li><b>{{ __('Discount') }}</b> <span>-{{ $currencyIcon }}{{ number_format($info->discount, 2) }}</span></li>
+						@endif
+
+						<li><b>{{ __('Tax') }}</b> <span>{{ $currencyIcon }}{{ number_format($info->tax, 2) }}</span></li>
+
+						@if($shippingFee > 0)
+						<li><b>{{ __('Shipping Fee') }}</b> <span>{{ $currencyIcon }}{{ number_format($shippingFee, 2) }}</span></li>
+						@endif
+
+						@if($cover_fee > 0)
+						<li><b>{{ __('Supporter Covered Fees') }}</b> <span>{{ $currencyIcon }}{{ number_format($cover_fee, 2) }}</span></li>
+						@endif
 
 					</ul>
 				</div>
-				<!-- End Customer details -->
+				<!-- End Order Summary -->
 
 				<!-- Total Amount -->
 				<div class="customer-order-details order-sum total-am-top dashboard-block">
 
-					<h4 class="total-amount">{{ __('Total Amount') }} <span class="render_currency">{{ number_format($info->total,2) }}</span></h4>
+					<h4 class="total-amount">{{ __('Total Amount') }} <span>{{ $currencyIcon }}{{ number_format($info->total, 2) }}</span></h4>
 
 				</div>
 				<!-- End Total Amount -->
@@ -463,20 +493,43 @@ if ($info->payment_status == 1) {
 				@if($info->order_method == 'delivery')
 				<!-- Delivery details -->
 				<div class="customer-order-details order-sum dashboard-block">
-					<h3 class="orderd-title">{{ __('Delivery') }} <span>{{ __('Address') }}</span></h3>
+					<h3 class="orderd-title">{{ __('Shipping') }} <span>{{ __('Details') }}</span></h3>
 					<ul class="order-d-list">
-						<li><b>{{ __('Address Line') }}</b> <span>{{ $address->address ?? '' }}</span></li>
-						@if(!empty($info->shippingwithinfo->shipping->location ?? ''))
-						<li><b>{{ __('Shipping Area') }}</b> <span>{{ $info->shippingwithinfo->location->name ?? '' }}</span></li>
+						@php
+							$shipping_info = json_decode($info->shippingwithinfo->info ?? '');
+							$shippingAddress = $shipping_info->address ?? ($address->address ?? '');
+							$shippingZip = $shipping_info->post_code ?? ($address->post_code ?? '');
+							$shippingMethodName = $shipping_info->shipping_label ?? ($info->shippingwithinfo->shipping->name ?? '');
+						@endphp
+						@if(!empty($shippingAddress))
+						<li><b>{{ __('Address') }}</b> <span>{{ $shippingAddress }}</span></li>
 						@endif
-						@if(!empty($info->shippingwithinfo->shipping ?? ''))
-						<li><b>{{ __('Shipping Method') }}</b> <span>{{ $info->shippingwithinfo->shipping->name ?? '' }}</span></li>
+						@if(!empty($shippingZip))
+						<li><b>{{ __('Zip Code') }}</b> <span>{{ $shippingZip }}</span></li>
 						@endif
-						@if(!empty($address->post_code ?? ''))
-						<li><b>{{ __('Post Code') }} </b> <span>{{ $address->post_code ?? '' }}</span></li>
+						@if(!empty($info->shippingwithinfo->location->name ?? ''))
+						<li><b>{{ __('Shipping Area') }}</b> <span>{{ $info->shippingwithinfo->location->name }}</span></li>
 						@endif
-						@if(!empty($info->shippingwithinfo))
-						<li><b>{{ __('Delivery Fee') }}</b> <span class="render_currency">{{ number_format($info->shippingwithinfo->shipping_price,2)  }}</span></li>
+						@if(!empty($shippingMethodName))
+						<li><b>{{ __('Shipping Method') }}</b> <span>{{ $shippingMethodName }}</span></li>
+						@endif
+						@if(!empty($info->shippingwithinfo->shipping_price))
+						<li><b>{{ __('Delivery Fee') }}</b> <span>{{ $currencyIcon }}{{ number_format($info->shippingwithinfo->shipping_price, 2) }}</span></li>
+						@endif
+					</ul>
+				</div>
+				@elseif($info->order_method == 'pickup')
+				<!-- Pickup details -->
+				<div class="customer-order-details order-sum dashboard-block">
+					<h3 class="orderd-title">{{ __('Pickup') }} <span>{{ __('Details') }}</span></h3>
+					<ul class="order-d-list">
+						<li><b>{{ __('Shipping Method') }}</b> <span>{{ __('In-Person Pick Up') }}</span></li>
+						@php
+							$pickupMeta = json_decode($info->ordermeta->value ?? '');
+							$pickupInfo = $pickupMeta->pickup_details ?? null;
+						@endphp
+						@if(!empty($pickupInfo) && !empty($pickupInfo->location))
+						<li><b>{{ __('Pickup Location') }}</b> <span>{{ $pickupInfo->location }}</span></li>
 						@endif
 					</ul>
 				</div>
