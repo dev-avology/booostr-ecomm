@@ -196,11 +196,9 @@
     ]
 ])
 @php
-$address = json_decode($info->shippingwithinfo->info ?? '');
 $ordermeta = json_decode($info->ordermeta->value ?? '');
-$currency = get_option('currency_data', true);
-$currencyIcon = $currency->currency_icon ?? '$';
-$currencyPosition = $currency->currency_position ?? 'left';
+$currencyIcon = '$';
+$currencyPosition = 'left';
 $cover_fee = isset($ordermeta->cover_fee) ? (float) $ordermeta->cover_fee : 0;
 
 // Order Status styling
@@ -427,18 +425,6 @@ if ($info->payment_status == 1) {
 						</ul>
 					</div>
 					<!-- End Customer details -->
-					<!-- Location -->
-					@if(!empty($info->shippingwithinfo))
-					@if(!empty($info->shippingwithinfo->lat) && !empty($info->shippingwithinfo->long))
-					<div class="customer-order-details order-map mt-30">
-						<h3 class="orderd-title">{{ __('Your') }} <span>{{ __('Delivery Location') }}</span></h3>
-						<div class="order-map-inner">
-							<div class="mapouter"><div class="gmap_canvas h-100" id="map"></div></div>
-						</div>
-					</div>
-					@endif
-					@endif
-					<!-- End Customer details -->
 				</div>
 			</div>
 			<div class="col-lg-3 col-12">
@@ -489,76 +475,6 @@ if ($info->payment_status == 1) {
 
 				</div>
 				<!-- End Total Amount -->
-
-				@if($info->order_method == 'delivery')
-				<!-- Delivery details -->
-				<div class="customer-order-details order-sum dashboard-block">
-					<h3 class="orderd-title">{{ __('Shipping') }} <span>{{ __('Details') }}</span></h3>
-					<ul class="order-d-list">
-						@php
-							$shipping_info = json_decode($info->shippingwithinfo->info ?? '');
-							$shippingAddress = $shipping_info->address ?? ($address->address ?? '');
-							$shippingZip = $shipping_info->post_code ?? ($address->post_code ?? '');
-							$shippingMethodName = $shipping_info->shipping_label ?? ($info->shippingwithinfo->shipping->name ?? '');
-						@endphp
-						@if(!empty($shippingAddress))
-						<li><b>{{ __('Address') }}</b> <span>{{ $shippingAddress }}</span></li>
-						@endif
-						@if(!empty($shippingZip))
-						<li><b>{{ __('Zip Code') }}</b> <span>{{ $shippingZip }}</span></li>
-						@endif
-						@if(!empty($info->shippingwithinfo->location->name ?? ''))
-						<li><b>{{ __('Shipping Area') }}</b> <span>{{ $info->shippingwithinfo->location->name }}</span></li>
-						@endif
-						@if(!empty($shippingMethodName))
-						<li><b>{{ __('Shipping Method') }}</b> <span>{{ $shippingMethodName }}</span></li>
-						@endif
-						@if(!empty($info->shippingwithinfo->shipping_price))
-						<li><b>{{ __('Delivery Fee') }}</b> <span>{{ $currencyIcon }}{{ number_format($info->shippingwithinfo->shipping_price, 2) }}</span></li>
-						@endif
-					</ul>
-				</div>
-				@elseif($info->order_method == 'pickup')
-				<!-- Pickup details -->
-				<div class="customer-order-details order-sum dashboard-block">
-					<h3 class="orderd-title">{{ __('Pickup') }} <span>{{ __('Details') }}</span></h3>
-					<ul class="order-d-list">
-						<li><b>{{ __('Shipping Method') }}</b> <span>{{ __('In-Person Pick Up') }}</span></li>
-						@php
-							$pickupMeta = json_decode($info->ordermeta->value ?? '');
-							$pickupInfo = $pickupMeta->pickup_details ?? null;
-						@endphp
-						@if(!empty($pickupInfo) && !empty($pickupInfo->location))
-						<li><b>{{ __('Pickup Location') }}</b> <span>{{ $pickupInfo->location }}</span></li>
-						@endif
-					</ul>
-				</div>
-				@endif
-				@if(!empty($info->shippingwithinfo))
-				@if(!empty($info->shippingwithinfo->rider))
-				<div class="customer-order-details order-sum dashboard-block">
-					<h3 class="orderd-title">{{ __('Rider') }} <span>{{ __('Details') }}</span></h3>
-					<ul class="order-d-list">
-						<li><b>{{ __('Rider Name') }}</b> <span>{{ $info->shippingwithinfo->rider->name ?? '' }} (#{{ $info->shippingwithinfo->user_id }})</span></li>
-						<li><b>{{ __('Rider Phone') }}</b> <span>{{ $info->shippingwithinfo->rider->phone ?? '' }}</span></li>
-						<li><b>{{ __('Order Security Code') }} </b> <span><b>({{ $info->shippingwithinfo->tracking_no ?? '' }})</b></span></li>
-
-					</ul>
-				</div>
-				@endif
-				@endif
-				@if(!empty($info->schedule))
-				<div class="customer-order-details order-sum dashboard-block">
-					<h3 class="orderd-title">{{ __('Schedule') }} <span>{{ __('Details') }}</span></h3>
-					<ul class="order-d-list">
-						<li><b>{{ __('Date :') }}</b> <span>{{ $info->schedule->date ?? '' }}</span></li>
-						<li><b>{{ __('Time :') }}</b> <span>{{ $info->schedule->time ?? '' }}</span></li>
-
-
-					</ul>
-				</div>
-				@endif
-				<!-- End Delivery details -->
 			</div>
 		</div>
 	</div>

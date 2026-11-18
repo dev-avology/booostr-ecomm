@@ -1,8 +1,7 @@
 @if($orders->count() > 0)
 @php
-    $currency = get_option('currency_data', true);
-    $currencyIcon = $currency->currency_icon ?? '$';
-    $currencyPosition = $currency->currency_position ?? 'left';
+    $currencyIcon = '$';
+    $currencyPosition = 'left';
 @endphp
 <div class="table-responsive orders-table-wrapper">
     <table class="table align-middle mb-0 orders-table">

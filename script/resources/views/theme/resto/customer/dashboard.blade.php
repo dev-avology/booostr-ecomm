@@ -24,9 +24,8 @@
         $pendingLink = url('/customer/orders') . '?status=' . $pendingStatusIds[0];
     }
 
-    $currency = get_option('currency_data', true);
-    $currencyIcon = $currency->currency_icon ?? '$';
-    $currencyPosition = $currency->currency_position ?? 'left';
+    $currencyIcon = '$';
+    $currencyPosition = 'left';
 @endphp
 
 <!-- 1. Welcome Greeting Banner -->
