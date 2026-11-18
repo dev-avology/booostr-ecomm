@@ -51,7 +51,10 @@ class LoginController extends Controller
     protected function authenticated(Request $request, $user)
     {
         if (Session::has('url.intended')) {
-            return redirect(Session::pull('url.intended'));
+            $intended = (string) Session::pull('url.intended');
+            if (str_contains($intended, '/checkout') || str_contains($intended, 'checkout')) {
+                return redirect($intended);
+            }
         }
     }
 
@@ -70,7 +73,7 @@ class LoginController extends Controller
        }elseif(Auth::user()->role_id==4)
        {
             return $this->redirectTo=url('/customer/dashboard');
-       }elseif(Auth::user()->role_id==4)
+       }elseif(Auth::user()->role_id==5)
        {
             return $this->redirectTo=url('/rider/dashboard');
        }

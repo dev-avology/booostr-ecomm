@@ -43,6 +43,14 @@ class CustomerController extends Controller
     public function login()
     {
         abort_if(tenant('customer_modules') != 'on',404);
+
+        // Ensure any lingering non-checkout redirect target is cleared
+        if (session()->has('url.intended')) {
+            $intended = (string) session()->get('url.intended');
+            if (!str_contains($intended, '/checkout') && !str_contains($intended, 'checkout')) {
+                session()->forget('url.intended');
+            }
+        }
         
         $home_data=optionfromcache('login_page');
 
@@ -232,7 +240,12 @@ class CustomerController extends Controller
             if ($authenticatedUser->role_id == 3) {
                 $redirectUrl = url('/seller/dashboard');
             } else {
-                $redirectUrl = session()->pull('url.intended', url('/customer/dashboard'));
+                $intended = session()->pull('url.intended');
+                if ($intended && (str_contains($intended, '/checkout') || str_contains($intended, 'checkout'))) {
+                    $redirectUrl = $intended;
+                } else {
+                    $redirectUrl = url('/customer/dashboard');
+                }
             }
 
             if ($request->ajax()) {
@@ -498,7 +511,12 @@ class CustomerController extends Controller
 
         Auth::loginUsingId($user->id);
 
-        return redirect()->intended('/customer/dashboard');
+        $intended = session()->pull('url.intended');
+        if ($intended && (str_contains($intended, '/checkout') || str_contains($intended, 'checkout'))) {
+            return redirect()->to($intended);
+        }
+
+        return redirect()->to(url('/customer/dashboard'));
     }
 
     public function dashboard()
