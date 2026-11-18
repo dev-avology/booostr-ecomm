@@ -7,9 +7,9 @@
     Features:
       - Industry-standard, clean card design (No redundant sidebar links)
       - Welcome Header with quick account status
-      - 3 Sleek Metric Stat Cards (Total Orders, Pending Orders, Shipping Region)
+      - 2 Balanced Metric Stat Cards (Total Purchases, Pending Orders)
       - Full-Width Recent Purchases Table with accurate status & payment badges
-      - Account Overview & Shipping Address Cards with direct update links
+      - Full-Width Account Overview with direct profile and security actions
       - Fully responsive across desktop, tablet, and mobile
     =================================================================================
 --}}
@@ -17,9 +17,6 @@
     $user = Auth::user();
     $userMeta = !empty($user->meta) ? json_decode($user->meta, true) : [];
     $displayName = !empty($userMeta['username']) ? $userMeta['username'] : $user->name;
-    $country = !empty($userMeta['country']) ? $userMeta['country'] : '';
-    $cityState = trim((!empty($userMeta['city']) ? $userMeta['city'] : '') . (!empty($userMeta['state']) ? ', ' . $userMeta['state'] : ''), ', ');
-    $address = !empty($userMeta['address']) ? $userMeta['address'] : '';
     $phone = !empty($user->phone) ? $user->phone : (!empty($userMeta['phone']) ? $userMeta['phone'] : '');
 
     $pendingLink = url('/customer/orders');
@@ -36,7 +33,7 @@
         </div>
         <div>
             <h3 class="fs-5 fw-bold mb-1 text-dark">{{ __('Welcome back') }}, {{ $displayName }}!</h3>
-            <p class="text-muted small mb-0">{{ __('Here is a summary of your recent purchases, shipping details, and account status.') }}</p>
+            <p class="text-muted small mb-0">{{ __('Here is a summary of your recent purchases and account status.') }}</p>
         </div>
     </div>
     <div class="d-flex align-items-center gap-2">
@@ -46,11 +43,11 @@
     </div>
 </div>
 
-<!-- 2. Metric Stat Cards Row -->
+<!-- 2. Metric Stat Cards Row (2 Balanced Cards) -->
 <div class="dash-stats-row mb-4">
     <div class="row g-3">
         {{-- Card 1: Total Orders --}}
-        <div class="col-lg-4 col-md-6 col-12">
+        <div class="col-md-6 col-12">
             <div class="dash-stat-box bg-white p-4 rounded border shadow-sm h-100 d-flex flex-column justify-content-between">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <span class="dash-stat-label text-muted small fw-semibold text-uppercase">{{ __('Total Purchases') }}</span>
@@ -71,7 +68,7 @@
         </div>
 
         {{-- Card 2: Pending Orders --}}
-        <div class="col-lg-4 col-md-6 col-12">
+        <div class="col-md-6 col-12">
             <div class="dash-stat-box bg-white p-4 rounded border shadow-sm h-100 d-flex flex-column justify-content-between">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <span class="dash-stat-label text-muted small fw-semibold text-uppercase">{{ __('Pending Orders') }}</span>
@@ -86,27 +83,6 @@
                 <div class="pt-2 border-top">
                     <a href="{{ $pendingLink }}" class="dash-card-action text-amber">
                         {{ __('Review pending status') }} <i class="icofont-arrow-right ms-1"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card 3: Default Region / Profile Summary --}}
-        <div class="col-lg-4 col-md-12 col-12">
-            <div class="dash-stat-box bg-white p-4 rounded border shadow-sm h-100 d-flex flex-column justify-content-between">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <span class="dash-stat-label text-muted small fw-semibold text-uppercase">{{ __('Shipping Region') }}</span>
-                    <div class="dash-icon-pill dash-icon-green">
-                        <i class="icofont-globe"></i>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="dash-stat-val mb-1 text-dark fs-4 text-truncate" title="{{ $country }}">{{ $country }}</h3>
-                    <p class="text-muted small mb-3 text-truncate">{{ !empty($cityState) ? $cityState : __('Default shipping destination') }}</p>
-                </div>
-                <div class="pt-2 border-top">
-                    <a href="{{ url('/customer/edit-profile') }}" class="dash-card-action text-green">
-                        {{ __('Manage address & profile') }} <i class="icofont-arrow-right ms-1"></i>
                     </a>
                 </div>
             </div>
@@ -243,82 +219,48 @@
     @endif
 </div>
 
-<!-- 4. Account Overview Cards (Non-Redundant Information) -->
-<div class="row g-3">
-    {{-- Personal Information Card --}}
-    <div class="col-lg-6 col-12">
-        <div class="bg-white p-4 rounded border shadow-sm h-100 d-flex flex-column justify-content-between">
-            <div>
-                <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
-                    <h4 class="fs-6 fw-bold mb-0 text-dark">
-                        <i class="icofont-id-card text-primary me-2"></i>{{ __('Account Information') }}
-                    </h4>
-                    <a href="{{ url('/customer/edit-profile') }}" class="small text-primary fw-semibold text-decoration-none">
-                        <i class="icofont-edit me-1"></i>{{ __('Edit') }}
-                    </a>
-                </div>
-                <div class="dash-info-list">
-                    <div class="dash-info-row d-flex justify-content-between py-2 border-bottom">
-                        <span class="text-muted small">{{ __('Full Name') }}</span>
-                        <span class="fw-semibold text-dark small">{{ $user->name }}</span>
-                    </div>
-                    <div class="dash-info-row d-flex justify-content-between py-2 border-bottom">
-                        <span class="text-muted small">{{ __('Username') }}</span>
-                        <span class="fw-semibold text-dark small">{{ $userMeta['username'] ?? $user->name }}</span>
-                    </div>
-                    <div class="dash-info-row d-flex justify-content-between py-2 border-bottom">
-                        <span class="text-muted small">{{ __('Email Address') }}</span>
-                        <span class="fw-semibold text-dark small text-truncate ms-2" style="max-width: 200px;" title="{{ $user->email }}">{{ $user->email }}</span>
-                    </div>
-                    <div class="dash-info-row d-flex justify-content-between py-2">
-                        <span class="text-muted small">{{ __('Phone Number') }}</span>
-                        <span class="fw-semibold text-dark small">{{ !empty($phone) ? $phone : __('Not provided') }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="pt-3 mt-2 border-top">
-                <a href="{{ url('/customer/change-password') }}" class="small text-muted text-decoration-none">
-                    <i class="icofont-key me-1 text-primary"></i>{{ __('Update account security & password') }} &rarr;
-                </a>
-            </div>
+<!-- 4. Account Overview (Full Width Standard Card) -->
+<div class="dash-section-card bg-white p-4 rounded border shadow-sm">
+    <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom flex-wrap gap-2">
+        <div>
+            <h4 class="fs-6 fw-bold mb-1 text-dark">
+                <i class="icofont-id-card text-primary me-2"></i>{{ __('Account Information') }}
+            </h4>
+            <p class="text-muted small mb-0">{{ __('Your profile details and primary contact credentials.') }}</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url('/customer/edit-profile') }}" class="btn btn-sm btn-outline-primary fw-semibold px-3 py-1">
+                <i class="icofont-edit me-1"></i>{{ __('Edit Profile') }}
+            </a>
+            <a href="{{ url('/customer/change-password') }}" class="btn btn-sm btn-outline-secondary fw-semibold px-3 py-1">
+                <i class="icofont-key me-1"></i>{{ __('Change Password') }}
+            </a>
         </div>
     </div>
 
-    {{-- Shipping & Delivery Details Card --}}
-    <div class="col-lg-6 col-12">
-        <div class="bg-white p-4 rounded border shadow-sm h-100 d-flex flex-column justify-content-between">
-            <div>
-                <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
-                    <h4 class="fs-6 fw-bold mb-0 text-dark">
-                        <i class="icofont-location-pin text-primary me-2"></i>{{ __('Default Delivery Address') }}
-                    </h4>
-                    <a href="{{ url('/customer/edit-profile') }}" class="small text-primary fw-semibold text-decoration-none">
-                        <i class="icofont-edit me-1"></i>{{ __('Update') }}
-                    </a>
-                </div>
-                <div class="dash-info-list">
-                    <div class="dash-info-row d-flex justify-content-between py-2 border-bottom">
-                        <span class="text-muted small">{{ __('Street Address') }}</span>
-                        <span class="fw-semibold text-dark small text-end ms-2" style="max-width: 220px;">
-                            {{ !empty($address) ? $address : __('No street address saved') }}
-                        </span>
-                    </div>
-                    <div class="dash-info-row d-flex justify-content-between py-2 border-bottom">
-                        <span class="text-muted small">{{ __('City / State') }}</span>
-                        <span class="fw-semibold text-dark small">
-                            {{ !empty($cityState) ? $cityState : __('Not specified') }}
-                        </span>
-                    </div>
-                    <div class="dash-info-row d-flex justify-content-between py-2">
-                        <span class="text-muted small">{{ __('Country') }}</span>
-                        <span class="fw-semibold text-dark small">{{ $country }}</span>
-                    </div>
-                </div>
+    <div class="row g-3">
+        <div class="col-lg-3 col-md-6 col-12">
+            <div class="dash-info-card">
+                <span class="dash-info-label">{{ __('Full Name') }}</span>
+                <span class="dash-info-value">{{ $user->name }}</span>
             </div>
-            <div class="pt-3 mt-2 border-top">
-                <a href="{{ url('/customer/edit-profile') }}" class="small text-muted text-decoration-none">
-                    <i class="icofont-delivery-time me-1 text-primary"></i>{{ __('Change delivery contact & shipping address') }} &rarr;
-                </a>
+        </div>
+        <div class="col-lg-3 col-md-6 col-12">
+            <div class="dash-info-card">
+                <span class="dash-info-label">{{ __('Username') }}</span>
+                <span class="dash-info-value">{{ $displayName }}</span>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-12">
+            <div class="dash-info-card">
+                <span class="dash-info-label">{{ __('Email Address') }}</span>
+                <span class="dash-info-value text-truncate d-block" title="{{ $user->email }}">{{ $user->email }}</span>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-12">
+            <div class="dash-info-card">
+                <span class="dash-info-label">{{ __('Phone Number') }}</span>
+                <span class="dash-info-value">{{ !empty($phone) ? $phone : __('Not provided') }}</span>
             </div>
         </div>
     </div>
@@ -555,7 +497,42 @@
     border: 1px solid #FFEDD5 !important;
 }
 
-/* 5. Empty State */
+/* 5. Account Overview Card */
+.dash-info-card {
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.dash-info-card:hover {
+    background-color: #F1F5F9;
+    border-color: #CBD5E1;
+}
+
+.dash-info-label {
+    color: #64748B;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.dash-info-value {
+    color: #0F172A;
+    font-size: 15px;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+/* 6. Empty State */
 .dash-empty-icon {
     font-size: 48px;
     opacity: 0.4;
