@@ -131,9 +131,11 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                                  <a class="custom-dropdown-item" href="{{ url('/customer/edit-profile') }}">
                                     <i class="icofont-ui-user"></i> <span>{{ __('Edit Profile') }}</span>
                                  </a>
+                                 @if(Auth::user()->role_id != 3)
                                  <a class="custom-dropdown-item" href="{{ url('/customer/change-password') }}">
                                     <i class="icofont-key"></i> <span>{{ __('Change Password') }}</span>
                                  </a>
+                                 @endif
                                  <div class="user-dropdown-divider"></div>
                                  <a class="custom-dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('navbar-logout-form').submit();">
                                     <i class="icofont-logout"></i> <span>{{ __('Logout') }}</span>

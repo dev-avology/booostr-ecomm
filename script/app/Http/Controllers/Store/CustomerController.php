@@ -810,12 +810,22 @@ class CustomerController extends Controller
     public function changePassword()
     {
         abort_if(tenant('customer_modules') != 'on', 404);
+        // Organization/Store owner passwords are managed through Booostr Main App
+        if (Auth::user()->role_id == 3) {
+            return redirect('/customer/dashboard');
+        }
         SEOMeta::setTitle(__('Change Password'));
         return view(baseview('customer/change-password'));
     }
 
     public function profilePasswordUpdate(Request $request)
     {
+        if (Auth::user()->role_id == 3) {
+            return response()->json([
+                'status' => 'error',
+                'msg' => __('Password for organization manager account is managed through Booostr Main App.')
+            ], 403);
+        }
         $validatedData = $request->validate([
             'current' => ['required', 'string'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],

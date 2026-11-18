@@ -73,12 +73,14 @@
 								</a>
 							</li>
 
-							{{-- 3. Change Password --}}
+							{{-- 3. Change Password (Customers only) --}}
+							@if(Auth::user()->role_id != 3)
 							<li>
 								<a class="{{ request()->is('customer/change-password*') ? 'active' : '' }}" href="{{ url('/customer/change-password') }}">
 									<i class="icofont-key me-2"></i> {{ __('Change Password') }}
 								</a>
 							</li>
+							@endif
 
 							{{-- 4. Purchase History --}}
 							<li>
@@ -101,24 +103,6 @@
 			</div>
 			<div class="col-lg-9 col-md-8 col-12">
 				<div class="main-content">
-					@if (Auth::user()->role_id == 3)
-					<div class="row">
-						<div class="col-lg-12">
-						<div class="customer-button-area">
-							<a href="{{ url('/seller/dashboard') }}">Go To Your Panel</a>
-						</div>
-						</div>
-					</div>
-
-					@elseif(Auth::user()->role_id == 5)
-					<div class="row">
-						<div class="col-lg-12">
-						<div class="customer-button-area">
-							<a href="{{ url('/rider/dashboard') }}">Go To Your Panel</a>
-						</div>
-						</div>
-					</div>
-					@endif
 					@yield('customer_content')
 					
 				</div>

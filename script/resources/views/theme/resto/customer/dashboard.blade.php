@@ -232,9 +232,11 @@
             <a href="{{ url('/customer/edit-profile') }}" class="btn btn-sm btn-outline-primary fw-semibold px-3 py-1">
                 <i class="icofont-edit me-1"></i>{{ __('Edit Profile') }}
             </a>
+            @if(Auth::user()->role_id != 3)
             <a href="{{ url('/customer/change-password') }}" class="btn btn-sm btn-outline-secondary fw-semibold px-3 py-1">
                 <i class="icofont-key me-1"></i>{{ __('Change Password') }}
             </a>
+            @endif
         </div>
     </div>
 
