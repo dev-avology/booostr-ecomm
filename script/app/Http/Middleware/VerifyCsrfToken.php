@@ -17,10 +17,11 @@ class VerifyCsrfToken extends Middleware
         'install/seed',
         'direct/checkout_form/*',
         '/checkout/make-order',
-        // Booostr: Exempt forgot & reset password POST routes from CSRF
-        // Root cause: HTTP→HTTPS redirect (Cloudflare/Nginx SSL termination)
-        // drops POST data & session cookies, causing CSRF token mismatch.
-        // Login works because it uses AJAX fetch(); these forms use standard POST.
+        // Booostr: Exempt customer authentication POST routes from CSRF
+        // Root cause: HTTP→HTTPS redirect (Cloudflare/Nginx SSL termination) & multi-tenant cookies
+        // drop session state or cause CSRF mismatch. Credentials protect authentication.
+        'customer/login-customer',
+        'customer/register-customer',
         'customer/forget-password',
         'customer/reset-password',
     ];

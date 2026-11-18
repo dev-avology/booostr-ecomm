@@ -380,12 +380,18 @@ document.addEventListener('DOMContentLoaded', function() {
 			fetch(form.action, {
 				method: 'POST',
 				body: formData,
+				credentials: 'same-origin',
 				headers: {
 					'X-Requested-With': 'XMLHttpRequest',
 					'Accept': 'application/json'
 				}
 			})
 			.then(async response => {
+				if (response.status === 419) {
+					// Fallback for session/CSRF token mismatch - reload page with fresh session
+					window.location.reload();
+					return;
+				}
 				const data = await response.json().catch(() => ({}));
 				if (response.ok && data.status === 'success') {
 					if (alertArea) {
