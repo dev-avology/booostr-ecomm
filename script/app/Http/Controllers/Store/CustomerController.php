@@ -796,36 +796,32 @@ class CustomerController extends Controller
         $user->meta = json_encode($existingMeta);
         $user->save();
 
-        // Background synchronization to Booostr Central API (Disabled for now until Central endpoint is created/live)
-        if (false) {
-            try {
-                $apiUsername = !empty($existingMeta['username']) ? $existingMeta['username'] : ($user->username ?: $user->email);
-                $client = new \GuzzleHttp\Client();
-                $apiUrl = env('WP_WEBBUILDER_PROFILE_UPDATE_API_URL') ?: 'https://app.booostr.co/wp-json/webbuilder-api/v1/user-update';
+        // Synchronize updated profile to Booostr Central API
+        try {
+            $client = new Client();
+            $apiUrl = env('WP_WEBBUILDER_PROFILE_UPDATE_API_URL') ?: 'https://app.booostr.co/wp-json/webbuilder-api/v1/user-update';
 
-                $client->post($apiUrl, [
-                    'verify' => false,
-                    'timeout' => 10,
-                    'headers' => ['Accept' => 'application/json'],
-                    'json' => [
-                        'wpuid'     => (int) ($existingMeta['wpuid'] ?? 0),
-                        'username'  => $apiUsername,
-                        'fname'     => $firstName,
-                        'lname'     => $lastName,
-                        'name'      => $user->name,
-                        'email'     => $user->email,
-                        'phone'     => $user->phone,
-                        'age'       => $request->age,
-                        'address'   => $request->address ?? '',
-                        'city'      => $request->city ?? '',
-                        'state'     => $request->state ?? '',
-                        'country'   => $country,
-                        'club'      => (string) (tenant('id') ?? ''),
-                    ],
-                ]);
-            } catch (\Throwable $e) {
-                \Log::warning('Booostr Central profile sync background call: ' . $e->getMessage());
-            }
+            $clubId = function_exists('tenant') && tenant() ? (tenant('id') ?: (tenant()->id ?? '')) : '';
+
+            $client->post($apiUrl, [
+                'verify'  => false,
+                'timeout' => 15,
+                'headers' => ['Accept' => 'application/json'],
+                'json'    => [
+                    'email'        => $user->email, // Required (Lookup identifier)
+                    'first_name'   => $firstName,
+                    'last_name'    => $lastName,
+                    'age'          => $request->age,
+                    'user_phone'   => $request->phone ?? ($user->phone ?? ''),
+                    'user_address' => $request->address ?? '',
+                    'user_city'    => $request->city ?? '',
+                    'user_state'   => $request->state ?? '',
+                    'user_country' => $country,
+                    'club'         => (string) $clubId,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \Log::warning('Booostr Central profile update API sync error: ' . $e->getMessage());
         }
 
         return response()->json('Successfully your information updated...!!');
