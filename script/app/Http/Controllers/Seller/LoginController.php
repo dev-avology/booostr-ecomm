@@ -24,7 +24,7 @@ class LoginController extends Controller
 
             return redirect('/seller/dashboard');
         } else {
-            return redirect('/');
+            return redirect()->away('https://app.booostr.co');
         }
     }
 

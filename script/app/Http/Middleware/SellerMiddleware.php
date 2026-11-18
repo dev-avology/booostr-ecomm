@@ -20,12 +20,12 @@ class SellerMiddleware
             if (Auth::user()->status != 1) {
                 \Session::flash('error','Oops your account is disabled please contact with support');
                 Auth::logout();
-                return redirect('/');
+                return redirect()->away('https://app.booostr.co');
             }
             return $next($request);
            
         } else {
-            return redirect('/');
+            return redirect()->away('https://app.booostr.co');
         } 
     }
 }
