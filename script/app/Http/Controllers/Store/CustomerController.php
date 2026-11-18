@@ -176,7 +176,29 @@ class CustomerController extends Controller
                         $localUser->status = 1;
                     }
 
-                    $localUser->name = $wpUser->user_nicename ?? ($wpUser->display_name ?? $wpUser->user_login ?? $localUser->name);
+                    $existingMeta = !empty($localUser->meta) ? json_decode($localUser->meta, true) : [];
+
+                    // Extract or preserve first and last names
+                    $incomingFname = $wpUser->first_name ?? ($wpUser->fname ?? ($existingMeta['fname'] ?? ''));
+                    $incomingLname = $wpUser->last_name ?? ($wpUser->lname ?? ($existingMeta['lname'] ?? ''));
+
+                    if (empty($incomingFname) && empty($incomingLname)) {
+                        $nameToSplit = $wpUser->display_name ?? ($wpUser->name ?? ($wpUser->user_nicename ?? ($localUser->name ?? '')));
+                        if (!empty($nameToSplit)) {
+                            $nameParts = explode(' ', trim($nameToSplit), 2);
+                            $incomingFname = $nameParts[0] ?? '';
+                            $incomingLname = $nameParts[1] ?? '';
+                        }
+                    }
+
+                    $computedName = trim($incomingFname . ' ' . $incomingLname);
+                    if (empty($computedName)) {
+                        $computedName = $wpUser->display_name ?? ($wpUser->user_nicename ?? ($wpUser->user_login ?? ($localUser->name ?? '')));
+                    }
+                    if (!empty($computedName)) {
+                        $localUser->name = $computedName;
+                    }
+
                     // Only update password for normal customers, never overwrite store owner/seller fixed password
                     if ($localUser->role_id != 3) {
                         $localUser->password = \Hash::make($password);
@@ -190,10 +212,11 @@ class CustomerController extends Controller
                         $incomingCountry = 'USA';
                     }
 
-                    $existingMeta = !empty($localUser->meta) ? json_decode($localUser->meta, true) : [];
                     $mergedMeta = array_merge($existingMeta, [
                         'wpuid' => (int) ($wpUser->user_id ?? ($existingMeta['wpuid'] ?? 0)),
                         'username' => $wpUser->user_login ?? ($existingMeta['username'] ?? $username),
+                        'fname' => $incomingFname,
+                        'lname' => $incomingLname,
                         'age' => $wpUser->age ?? ($existingMeta['age'] ?? 'adult'),
                         'country' => $incomingCountry,
                         'city' => $wpUser->user_city ?? ($existingMeta['city'] ?? ''),
@@ -659,10 +682,14 @@ class CustomerController extends Controller
         // Extract fname and lname with fallback to splitting user name
         $fname = $meta->fname ?? '';
         $lname = $meta->lname ?? '';
-        if (empty($fname) && empty($lname) && !empty($user->name)) {
+        if ((empty($fname) || empty($lname)) && !empty($user->name)) {
             $nameParts = explode(' ', trim($user->name), 2);
-            $fname = $nameParts[0] ?? '';
-            $lname = $nameParts[1] ?? '';
+            if (empty($fname)) {
+                $fname = $nameParts[0] ?? '';
+            }
+            if (empty($lname)) {
+                $lname = $nameParts[1] ?? '';
+            }
         }
 
         // Country normalization: default USA, convert 'United States of America' / 'Belarus' to USA
