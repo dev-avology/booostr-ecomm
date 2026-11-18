@@ -1,4 +1,9 @@
 @if($orders->count() > 0)
+@php
+    $currency = get_option('currency_data', true);
+    $currencyIcon = $currency->currency_icon ?? '$';
+    $currencyPosition = $currency->currency_position ?? 'left';
+@endphp
 <div class="table-responsive orders-table-wrapper">
     <table class="table align-middle mb-0 orders-table">
         <thead class="orders-table-head">
@@ -71,7 +76,7 @@
                         #{{ $row->invoice_no }}
                     </a>
                     <div class="order-price-sub mt-1">
-                        <span class="render_currency fw-bold text-dark">{{ number_format($row->total, 2) }}</span>
+                        <span class="fw-bold text-dark">{{ $currencyPosition === 'right' ? number_format($row->total, 2) . ' ' . $currencyIcon : $currencyIcon . number_format($row->total, 2) }}</span>
                     </div>
                 </td>
                 <td>

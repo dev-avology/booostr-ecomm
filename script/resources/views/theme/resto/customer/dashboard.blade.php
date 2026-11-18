@@ -23,6 +23,10 @@
     if (!empty($pendingStatusIds) && count($pendingStatusIds) === 1) {
         $pendingLink = url('/customer/orders') . '?status=' . $pendingStatusIds[0];
     }
+
+    $currency = get_option('currency_data', true);
+    $currencyIcon = $currency->currency_icon ?? '$';
+    $currencyPosition = $currency->currency_position ?? 'left';
 @endphp
 
 <!-- 1. Welcome Greeting Banner -->
@@ -177,7 +181,7 @@
                             #{{ $row->invoice_no }}
                         </a>
                         <div class="dash-order-meta mt-1">
-                            <span class="render_currency fw-bold text-dark">{{ number_format($row->total, 2) }}</span>
+                            <span class="fw-bold text-dark">{{ $currencyPosition === 'right' ? number_format($row->total, 2) . ' ' . $currencyIcon : $currencyIcon . number_format($row->total, 2) }}</span>
                             <span class="text-muted small ms-1">· {{ $totalQty }} {{ $totalQty == 1 ? __('item') : __('items') }}</span>
                         </div>
                     </td>
