@@ -906,7 +906,7 @@ class CustomerController extends Controller
                         'username' => $actualMetaUsername,
                         'password' => $request->password,
                         'club'     => tenant()->id,
-                        "booostr_co_synced" => true
+                        'sync_booostr_co' => true
                     ],
                 ]);
             } catch (\Throwable $e) {
@@ -1292,7 +1292,7 @@ class CustomerController extends Controller
                     'username' => $actualMetaUsername,
                     'password' => $request->password,
                     'club'     => tenant()->id,
-                    "booostr_co_synced" => true
+                    'sync_booostr_co' => true
                 ],
             ]);
 
