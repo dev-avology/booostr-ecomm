@@ -41,7 +41,7 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                <div class="single-cart-show"><a href="{{ url('/cart') }}"><i class="icofont-cart"></i><span>{{ __('Cart') }}</span></a></div>
             </li>
             <li>
-               <div class="single-cart-show"><a href="{{ Auth::check() && Auth::user()->role_id == 3 ? url('/seller/dashboard') : url('/customer/dashboard') }}"><i class="{{ Auth::check() && Auth::user()->role_id == 3 ? 'icofont-dashboard-web' : 'icofont-ui-user' }}"></i><span>{{ Auth::check() && Auth::user()->role_id == 3 ? __('Admin') : __('Account') }}</span></a></div>
+               <div class="single-cart-show"><a href="{{ url('/customer/dashboard') }}"><i class="icofont-ui-user"></i><span>{{ __('Account') }}</span></a></div>
             </li>
          </ul>
       </div>
@@ -122,21 +122,18 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                                  <div class="user-dropdown-email">{{ Auth::user()->email }}</div>
                               </div>
                               <div class="user-dropdown-body">
-                                 @if(Auth::user()->role_id == 3)
-                                    <a class="custom-dropdown-item" href="{{ url('/seller/dashboard') }}">
-                                       <i class="icofont-dashboard-web"></i> <span>{{ __('Admin Dashboard') }}</span>
-                                    </a>
-                                 @else
-                                    <a class="custom-dropdown-item" href="{{ url('/customer/dashboard') }}">
-                                       <i class="icofont-dashboard-web"></i> <span>{{ __('My Dashboard') }}</span>
-                                    </a>
-                                    <a class="custom-dropdown-item" href="{{ url('/customer/orders') }}">
-                                       <i class="icofont-box"></i> <span>{{ __('My Orders') }}</span>
-                                    </a>
-                                    <a class="custom-dropdown-item" href="{{ url('/customer/settings') }}">
-                                       <i class="icofont-ui-settings"></i> <span>{{ __('Settings') }}</span>
-                                    </a>
-                                 @endif
+                                 <a class="custom-dropdown-item" href="{{ url('/customer/dashboard') }}">
+                                    <i class="icofont-dashboard-web"></i> <span>{{ __('My Dashboard') }}</span>
+                                 </a>
+                                 <a class="custom-dropdown-item" href="{{ url('/customer/orders') }}">
+                                    <i class="icofont-box"></i> <span>{{ __('Purchase History') }}</span>
+                                 </a>
+                                 <a class="custom-dropdown-item" href="{{ url('/customer/edit-profile') }}">
+                                    <i class="icofont-ui-user"></i> <span>{{ __('Edit Profile') }}</span>
+                                 </a>
+                                 <a class="custom-dropdown-item" href="{{ url('/customer/change-password') }}">
+                                    <i class="icofont-key"></i> <span>{{ __('Change Password') }}</span>
+                                 </a>
                                  <div class="user-dropdown-divider"></div>
                                  <a class="custom-dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('navbar-logout-form').submit();">
                                     <i class="icofont-logout"></i> <span>{{ __('Logout') }}</span>

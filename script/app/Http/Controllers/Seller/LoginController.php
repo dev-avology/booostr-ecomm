@@ -15,17 +15,16 @@ class LoginController extends Controller
 {
     public function login(Request $request)
     {
-        $email = trim($request->input('email', ''));
-        $password = trim($request->input('password', ''));
+        $user = User::where([
+            ['email', $request->email]
+        ])->first();
 
-        $user = User::where('email', $email)->first();
-
-        if ($user && Hash::check($password, $user->password)) {
+        if ($user && Hash::check($request->password, $user->password)) {
             Auth::login($user, true);
 
             return redirect('/seller/dashboard');
         } else {
-            return redirect('/seller/login');
+            return redirect('/');
         }
     }
 

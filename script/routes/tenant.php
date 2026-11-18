@@ -27,11 +27,6 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
 
     Auth::routes(['register' => false, 'reset' => false]);
 
-    // Dedicated Seller/Admin login routes (preserves staff login without overriding storefront customer login)
-    Route::get('/seller/login', 'Auth\LoginController@showLoginForm')->name('seller.login')->middleware('guest');
-    Route::post('/seller/login', 'Auth\LoginController@login')->middleware('guest');
-
-    
     Route::get('/pwa',function(){
         return redirect('/'); 
     });

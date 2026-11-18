@@ -236,16 +236,13 @@ class CustomerController extends Controller
         if ($authenticatedUser) {
             Auth::login($authenticatedUser, $remember);
 
-            // Redirect user to intended checkout / dashboard destination
-            if ($authenticatedUser->role_id == 3) {
-                $redirectUrl = url('/seller/dashboard');
+            // Redirect user to intended checkout / customer dashboard destination
+            // (Storefront login ALWAYS directs users to the customer portal, never seller/admin)
+            $intended = session()->pull('url.intended');
+            if ($intended && (str_contains($intended, '/checkout') || str_contains($intended, 'checkout'))) {
+                $redirectUrl = $intended;
             } else {
-                $intended = session()->pull('url.intended');
-                if ($intended && (str_contains($intended, '/checkout') || str_contains($intended, 'checkout'))) {
-                    $redirectUrl = $intended;
-                } else {
-                    $redirectUrl = url('/customer/dashboard');
-                }
+                $redirectUrl = url('/customer/dashboard');
             }
 
             if ($request->ajax()) {

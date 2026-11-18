@@ -20,12 +20,12 @@ class SellerMiddleware
             if (Auth::user()->status != 1) {
                 \Session::flash('error','Oops your account is disabled please contact with support');
                 Auth::logout();
-                return redirect()->route('login');
+                return redirect('/');
             }
             return $next($request);
            
-        }else{
-            return redirect()->route('login');
+        } else {
+            return redirect('/');
         } 
     }
 }
