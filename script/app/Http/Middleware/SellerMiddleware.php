@@ -16,7 +16,7 @@ class SellerMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-         if (Auth::check() && Auth::User()->role_id == 3) {
+         if (Auth::check() && Auth::User()->role_id == 3 && session('seller_session_active') === true) {
             if (Auth::user()->status != 1) {
                 \Session::flash('error','Oops your account is disabled please contact with support');
                 Auth::logout();

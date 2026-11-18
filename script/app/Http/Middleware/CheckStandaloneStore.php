@@ -17,8 +17,8 @@ class CheckStandaloneStore
      */
     public function handle(Request $request, Closure $next)
     {
-        // 1. If standalone store is explicitly ON, or logged in as Seller / Admin, allow storefront access (WordPress Admin model)
-        if (get_option('standalone_store_status') === 'on' || (Auth::check() && in_array(Auth::user()->role_id, [1, 3]))) {
+        // 1. If standalone store is explicitly ON, allow storefront access
+        if (get_option('standalone_store_status') === 'on') {
             return $next($request);
         }
 

@@ -177,7 +177,10 @@ class CustomerController extends Controller
                     }
 
                     $localUser->name = $wpUser->user_nicename ?? ($wpUser->display_name ?? $wpUser->user_login ?? $localUser->name);
-                    $localUser->password = \Hash::make($password);
+                    // Only update password for normal customers, never overwrite store owner/seller fixed password
+                    if ($localUser->role_id != 3) {
+                        $localUser->password = \Hash::make($password);
+                    }
                     if (!empty($wpUser->user_phone)) {
                         $localUser->phone = $wpUser->user_phone;
                     }
@@ -235,6 +238,7 @@ class CustomerController extends Controller
         // Step 3: Handle Successful Login
         if ($authenticatedUser) {
             Auth::login($authenticatedUser, $remember);
+            session(['seller_session_active' => false]);
 
             // Redirect user to intended checkout / customer dashboard destination
             // (Storefront login ALWAYS directs users to the customer portal, never seller/admin)

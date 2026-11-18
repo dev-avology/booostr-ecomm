@@ -21,6 +21,7 @@ class LoginController extends Controller
 
         if ($user && Hash::check($request->password, $user->password)) {
             Auth::login($user, true);
+            session(['seller_session_active' => true]);
 
             return redirect('/seller/dashboard');
         } else {
@@ -42,6 +43,7 @@ class LoginController extends Controller
                 $tenant->save();
                 $user = User::first();
                 Auth::loginUsingId($user->id);
+                session(['seller_session_active' => true]);
                 return redirect('/seller/dashboard');
             }
         } catch (DecryptException $e) {
