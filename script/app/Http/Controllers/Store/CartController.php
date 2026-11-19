@@ -439,6 +439,7 @@ class CartController extends Controller
         $productcartdata['cart_tax']= Cart::tax();
         $productcartdata['cart_total']= Cart::total();
         $productcartdata['cart_count']= Cart::count();
+        $productcartdata['cart_content']= Cart::content();
         return response()->json($productcartdata);
     }
 
@@ -458,6 +459,7 @@ class CartController extends Controller
         $productcartdata['cart_tax']= Cart::tax();
         $productcartdata['cart_total']= Cart::total();
         $productcartdata['cart_count']= Cart::count();
+        $productcartdata['cart_content']= Cart::content();
         return response()->json($productcartdata);
     }
 

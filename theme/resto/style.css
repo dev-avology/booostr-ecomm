@@ -5799,3 +5799,15 @@ Version:	1.0
 .single-popular-product .single-item-bottom .cart-button a.btn-out-of-stock i {
     color: #0A8CDE !important;
 }
+.single-popular-product .single-item-bottom .cart-button a.btn-max-in-cart {
+    background: #f0f9ff !important;
+    color: #0A8CDE !important;
+    border-color: #bae6fd !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    box-shadow: none !important;
+    font-weight: 600 !important;
+}
+.single-popular-product .single-item-bottom .cart-button a.btn-max-in-cart i {
+    color: #0A8CDE !important;
+}

@@ -114,7 +114,7 @@
 											<div class="sp-quantity single-page @if($isOutOfStock) disabled-quantity @endif">
 											  <button type="button" class="inline arrow sp-minus fff" @if($isOutOfStock) disabled @endif><a class="ddd minus" data-multi="-1">-</a></button>
 											  <div class="inline sp-input">
-												<input type="text" class="quntity-input input_qty" name="qty" value="1" @if($isOutOfStock) disabled @endif>
+												<input type="text" class="quntity-input input_qty" name="qty" value="1" @if($info->price && $info->price->stock_manage == 1) data-max="{{ $info->price->qty }}" @endif @if($isOutOfStock) disabled @endif>
 											  </div>
 											  <button type="button" class="inline arrow sp-plus fff" @if($isOutOfStock) disabled @endif><a class="ddd cart_increase plus" data-multi="1">+</a></button>
 											</div>

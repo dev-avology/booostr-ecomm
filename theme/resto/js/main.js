@@ -74,21 +74,49 @@
 		$(document).on("click",".plus",function() {
 		  var $button = $(this);
 		  var $input = $button.closest('.sp-quantity').find("input.quntity-input");
-		  if ($input.val() < $input.data('max')) {
-		  	$input.val((i, v) => Math.max(0, +v + 1 * $button.data('multi')));
+		  if ($input.is(':disabled')) return false;
+
+		  var currentVal = parseInt($input.val() || 0);
+		  var maxVal = parseInt($input.attr('data-max') || $input.data('max'));
+		  if (isNaN(maxVal) || maxVal <= 0) maxVal = 9999;
+
+		  if (currentVal < maxVal) {
+		  	$input.val(currentVal + 1);
+		  } else {
+		    if (typeof Sweet === 'function' && maxVal < 9999) {
+		        Sweet('warning', 'Only ' + maxVal + ' pieces available in stock');
+		    }
 		  }
-		 
-		  
 		});
 
 		$(document).on("click",".minus",function() {
 		  var $button = $(this);
 		  var $input = $button.closest('.sp-quantity').find("input.quntity-input");
-		 
-		  	$input.val((i, v) => Math.max(0, +v + 1 * $button.data('multi')));
-		  
-		 
-		  
+		  if ($input.is(':disabled')) return false;
+
+		  var currentVal = parseInt($input.val() || 1);
+		  var minVal = parseInt($input.attr('min') || 1);
+		  if (currentVal > minVal) {
+		  	$input.val(currentVal - 1);
+		  }
+		});
+
+		$(document).on("change input", "input.quntity-input", function() {
+		    var $input = $(this);
+		    if ($input.is(':disabled')) return;
+		    var val = parseInt($input.val());
+		    var maxVal = parseInt($input.attr('data-max') || $input.data('max'));
+		    if (isNaN(maxVal) || maxVal <= 0) maxVal = 9999;
+		    var minVal = parseInt($input.attr('min') || 1);
+
+		    if (isNaN(val) || val < minVal) {
+		        $input.val(minVal);
+		    } else if (val > maxVal) {
+		        $input.val(maxVal);
+		        if (typeof Sweet === 'function' && maxVal < 9999) {
+		            Sweet('warning', 'Maximum available quantity is ' + maxVal);
+		        }
+		    }
 		});
 		
 
