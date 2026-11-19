@@ -11,9 +11,9 @@ $page_data = $page_data ?? null;
             <div class="row">
                <div class="col-lg-6 offset-lg-3 col-md-8 offset-md-2 col-12">
                   <div class="section__title text-center">
-                     <span class="sub__title wow fadeInUp" data-wow-delay=".2s">{{ $page_data->products_area_short_title ?? 'For you' }}</span>
-                     <h2 class="main__title wow fadeInUp" data-wow-delay=".4s"><span></span>{{ $page_data->products_area_title ?? 'Latest Products' }}</h2>
-                     <p class="section__text">{{ $page_data->products_area_description ?? '' }}</p>
+                     <span class="sub__title wow fadeInUp" data-wow-delay=".2s">{{ 'For you' }}</span>
+                     <h2 class="main__title wow fadeInUp" data-wow-delay=".4s"><span></span>{{ 'Latest Products' }}</h2>
+                     <!-- <p class="section__text">{{ $page_data->products_area_description ?? '' }}</p> -->
                   </div>
                </div>
             </div>
