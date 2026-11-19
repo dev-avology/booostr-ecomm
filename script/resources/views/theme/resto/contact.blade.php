@@ -9,11 +9,11 @@
     =================================================================================
 --}}
 @include('theme.resto.components.page-banner', [
-    'title' => !empty($booostrForm->title) ? $booostrForm->title : __('Contact Us'),
+    'title' => __('Contact Us'),
     'description' => __('Have questions, inquiries, or feedback? Get in touch with our team.'),
     'breadcrumbs' => [
         ['url' => url('/'), 'label' => __('Home'), 'icon' => 'icofont-home'],
-        ['url' => '', 'label' => !empty($booostrForm->title) ? $booostrForm->title : __('Contact Us'), 'icon' => 'icofont-envelope'],
+        ['url' => '', 'label' => __('Contact Us'), 'icon' => 'icofont-envelope'],
     ]
 ])
 
@@ -30,7 +30,7 @@
                     <div class="checkout-form">
                         <div class="checkout-form-inner">
                             <div class="checkout-heading" style="margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
-                                <h3 style="font-size: 22px; font-weight: 700; color: #1e293b; margin: 0;">{{ !empty($booostrForm->title) ? $booostrForm->title : __('Contact Us') }}</h3>
+                                <h3 style="font-size: 22px; font-weight: 700; color: #1e293b; margin: 0;">{{ __('Send Us a Message') }}</h3>
                                 <p style="color: #64748b; font-size: 14px; margin-top: 6px; margin-bottom: 0;">{{ __('Please fill out the form below and our team will get back to you shortly.') }}</p>
                             </div>
 
