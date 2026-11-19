@@ -25,39 +25,30 @@ class PageController extends Controller
 {
     public function home()
     {
-      
-        $home_data=optionfromcache('home_page');
+        $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+        $clubName = !empty($clubInfo['club_name']) 
+            ? trim($clubInfo['club_name']) 
+            : (tenant('store_name') ?: 'Booostr');
 
-        $seo=$home_data->seo ?? '';
-        SEOMeta::setTitle($seo->site_title ?? '');
-        SEOMeta::setDescription($seo->description ?? '');
-       
+        $pageTitle = $clubName . ' - Online Store';
+        $pageDescription = 'Shop products, event tickets, and support ' . $clubName . ' on Booostr.';
 
-        OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($seo->site_title ?? '');
+        SEOMeta::setTitle($pageTitle);
+        SEOMeta::setDescription($pageDescription);
 
-        OpenGraph::addProperty('keywords', $seo->tags ?? '');
+        OpenGraph::setTitle($pageTitle);
+        OpenGraph::setDescription($pageDescription);
+        OpenGraph::setUrl(url('/'));
 
-        TwitterCard::setTitle($seo->site_title ?? '');
-        TwitterCard::setSite($seo->twitter_title ?? '');
+        TwitterCard::setTitle($pageTitle);
+        TwitterCard::setDescription($pageDescription);
 
-        JsonLd::setTitle($seo->site_title ?? '');
-        JsonLd::setDescription($seo->description ?? '');
-        JsonLd::addImage($seo->meta_image ?? '');
+        $home_data = optionfromcache('home_page');
+        $page_data = $home_data->meta ?? '';
+        $store_banner_image = optionfromcache('banner_logo') ?: (get_option('banner_logo') ?: '');
+        $store_banner_url = optionfromcache('banner_url') ?: (get_option('banner_url') ?: '');
 
-        SEOTools::setTitle($seo->site_title ?? '');
-        SEOTools::setDescription($seo->description ?? '');
-        SEOTools::opengraph()->setUrl(url('/'));
-      
-        
-        SEOTools::twitter()->setSite($seo->twitter_title ?? '');
-        SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
-        SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
-
-        $page_data=$home_data->meta ?? '';
-        $store_banner_image = get_option('banner_logo') ?: '';
-        $store_banner_url = get_option('banner_url') ?: '';
-        return view(baseview('index'),compact('page_data','store_banner_image','store_banner_url'));
+        return view(baseview('index'), compact('page_data', 'store_banner_image', 'store_banner_url'));
     }
 
     public function category_product(Request $request)
