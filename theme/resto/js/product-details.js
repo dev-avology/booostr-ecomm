@@ -1,17 +1,7 @@
 "use strict";
 
-getreviews(base_url+'/get-product-reviews/'+$('#term_id').val());	
-
 var totalprice=0;
 var totaloldprice=0;
-
-$(document).on('click','.page-link',function(){
-	var link=$(this).data('url');
-	if (link == '') {
-		return false;
-	}
-	getreviews(link);
-});
 
 $('.pricesvariations').on('change',function(){
 	var stockstatus=$(this).data('stockstatus');
@@ -26,10 +16,18 @@ $('.pricesvariations').on('change',function(){
 	if ($(this).is(':checked')){
 		var isOut = (stockstatus == 0) || (stockmanage == 1 && parseInt(qty) <= 0);
 		var stockstatus_html = !isOut ? 
-			`<span class="badge bg-success" style="font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">In Stock</span>` : 
-			`<span class="badge" style="background-color: #0A8CDE !important; color: #ffffff !important; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">Out of Stock</span>`;
+			'<span class="badge bg-success" style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">In Stock</span>' : 
+			'<span class="badge" style="background-color: #94a3b8 !important; color: #ffffff !important; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">Out of Stock</span>';
 		$('.stock_status_display').html(stockstatus_html);
 		$('.stock_status').show();
+
+		// Update SKU display
+		if (sku && sku !== '') {
+			$('.sku_value').text(sku);
+			$('.sku_display').show();
+		} else {
+			$('.sku_display').hide();
+		}
 
 		if(stockmanage == 1 && !isOut){
 			$('.qty_display').show();
@@ -135,110 +133,16 @@ function variations() {
 
 	
 
-
-
 	
     var formattedTotalPrice = '$' + (parseFloat(totalprice) || 0).toFixed(2);
-    var newtotaloldprice = totaloldprice != 0 ? ('<s>$' + (parseFloat(totaloldprice) || 0).toFixed(2) + '</s>') : '';
-    var price_html=`<span class="discount">${formattedTotalPrice}</span>${newtotaloldprice}`;
+    var newtotaloldprice = totaloldprice != 0 ? ('<s style="font-size: 16px; color: #94a3b8; font-weight: 400; margin-left: 8px;">$' + (parseFloat(totaloldprice) || 0).toFixed(2) + '</s>') : '';
+    var price_html='<span class="discount">' + formattedTotalPrice + '</span>' + newtotaloldprice;
 	$('.price_area').html(price_html);
 
 
 }
 
 
-
-
-
-var categories=[];
-
-$('.categories').each(function() {
-	categories.push($(this).data('id'));
-});
-
-
-var callbackdata = {
-	"with_paginate": false,
-	"limit":6,
-	"categories": categories,
-	"with": ["preview", "excerpt"]
-}
-
-$.ajax({
-	type: 'get',
-	url: base_url + '/get-product',
-	data: callbackdata,
-	dataType: 'json',
-	beforeSend: function() {
-
-		render_product_preloaded(6, '.filtered_product_tab');
-		runpreloader();
-	},
-	success: function(response) {
-		$('.content-preloader').remove();
-		render_primary_product(response.data, '.product-single-slider','col-lg-6 col-md-6 col-6');
-		
-
-
-	},
-
-});
-
-function getreviews(url){
-	 $.ajax({
-		    type: 'get',
-		    url: url,
-		    dataType: 'json',
-		    beforeSend: function() {
-		       // render_product_preloaded(6, '.food_list');
-		        runpreloader();
-		    },
-		    success: function(response) {
-		    	$('.single-rating').remove();
-		    	$.each(response.data,function(key ,row){
-		    		var ratings='';
-
-		    		for (var i = 1; i <= 5; i++) {
-		    			var review_full=`<li><i class="icofont-star star"></i></li>`;
-		    			var review_half=`<li><i class="icofont-star"></i></li>`;
-
-		    			i > row.rating ? ratings += review_half: ratings += review_full;
-		    		}
-
-			    		var html=`<div class="single-rating">
-							<div class="rating-author">
-								<img src="${'https://ui-avatars.com/api/?rounded=true&background=random&'+row.username}" alt="#"/>
-							</div>
-							<div class="rating-des">
-								<h6>${escapeHtml(row.username)}</h6>
-								<div class="ratings">
-									<ul class="rating">
-										${ratings}
-									</ul>
-									<div class="rate-count">(<span>${row.rating}</span>)</div>
-								</div>
-								<p>${escapeHtml(row.comment)}</p>
-							</div>
-						</div>`;
-
-			    	   $('.ratting-main').append(html);
-		         });		
-		    	if(response.links.length > 3) {
-		    	render_pagination('.pagination',response.links);
-		        }
-		        else{
-                  $('.page-item').remove();
-                }
-		       
-		    },
-		    error: function(xhr, status, error) {
-
-
-		    }
-     });
-	}
-
- 
  
   $(document).on('submit','.product_option_form', function(e) {
         e.preventDefault();
@@ -342,4 +246,3 @@ function getreviews(url){
 
         }
 }); 
- 	
