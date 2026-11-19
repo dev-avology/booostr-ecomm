@@ -80,8 +80,6 @@ try {
                      <ul>
                         <li><a href="{{ url('/contact') }}">{{ __('Need Help? Contact Us') }}</a></li>
                         <li><a href="{{ url('/page/terms-and-conditions') }}">{{ __('Terms and Conditions') }}</a></li>
-                        <li><a href="{{ url('/customer/orders') }}">{{ __('Order History') }}</a></li>
-                        <li><a href="{{ url('/customer/dashboard') }}">{{ __('My Account') }}</a></li>
                      </ul>
                   </div>
                </div>
