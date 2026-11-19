@@ -29,6 +29,21 @@ function render_product_preloaded(preload_count = 6, target) {
 function render_primary_product(products, target,additional_class='') {
     var base_url = $('#base_url').val();
     additional_class != '' ? $('.'+additional_class).remove() : '';
+    $(target).find('.no-products-found').remove();
+
+    if (!products || products.length === 0) {
+        var empty_html = `<div class="col-12 text-center py-4 no-products-found ${additional_class}">
+            <div class="no-products-found-card">
+                <div class="no-products-found-icon">
+                    <i class="icofont-box"></i>
+                </div>
+                <h4 class="no-products-found-title">No Products Found</h4>
+                <p class="no-products-found-desc">There are currently no products available in this section. Please check back later!</p>
+            </div>
+        </div>`;
+        $(target).append(empty_html);
+        return;
+    }
 
     var listview= $('.listviewproducts').length != 0 ? true : false;
 

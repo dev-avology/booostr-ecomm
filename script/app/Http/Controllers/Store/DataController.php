@@ -57,8 +57,19 @@ class DataController extends Controller
         $orderby=$types['orderby'] ?? 'DESC';
         $type=$types['type'] ?? 'category';
         $with=$types['with'] ?? '';
+        $is_home = $types['is_home'] ?? false;
         
-        $categories=Category::query()->where('type',$type)->whereHas('termcategories')->where('status',1)->where('menu_status',1);
+        $categories=Category::query()->where('type',$type)->whereHas('termcategories')->where('status',1);
+        
+        // Homepage only requires active categories with products; other contexts still filter by menu_status
+        if ($is_home == true || $is_home === 'true') {
+            // Homepage: only active categories with products (status=1)
+        } elseif (isset($types['menu_status'])) {
+            $categories = $categories->where('menu_status', $types['menu_status']);
+        } else {
+            $categories = $categories->where('menu_status', 1);
+        }
+
         $categories= $limit == '-1' ? $categories : $categories->take($limit);
         $categories= $with_child == false ? $categories : $categories->where('category_id',null)->with('childrenCategories');
 

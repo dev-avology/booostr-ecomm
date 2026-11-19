@@ -5,8 +5,8 @@
 ======================================= */
 
 function testimonial_slider() {
- 
-tns({
+
+    tns({
         container: ".testimonial-slider",
         items: 3,
         slideBy: "page",
@@ -36,31 +36,31 @@ tns({
                 items: 3,
             },
         },
-});
+    });
 }
 
 /*=====================================
 Popular Food Slider
 ======================================= */
 function popular_productslider(topratedproducts) {
-  
+
 
     if (topratedproducts.length == 0) {
         $('.popular__food').remove()
         return false
     }
 
-    
 
-    $.each(topratedproducts,function(key ,product){
-            var preview = product.preview != null ? product.preview.value : base_url + '/uploads/default.png';
-            var price= product.firstprice.price;
-            price = amount_format(price,'icon');
 
-            var html = `<div class="p-slide-active">
+    $.each(topratedproducts, function (key, product) {
+        var preview = product.preview != null ? product.preview.value : base_url + '/uploads/default.png';
+        var price = product.firstprice.price;
+        price = amount_format(price, 'icon');
+
+        var html = `<div class="p-slide-active">
                      <div class="single-p-food align-items-center">
                         <div class="food-text">
-                           <h4 class="s-food-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,18)}</a></h4>
+                           <h4 class="s-food-title"><a href="${base_url + '/product/' + product.slug}">${str_limit(product.title, 18)}</a></h4>
                            <p class="s-food-price"><span>Starting from</span>${price}</p>
                         </div>
                         <div class="s-food-image">
@@ -69,10 +69,10 @@ function popular_productslider(topratedproducts) {
                      </div>
                   </div>`;
 
-            $('.popular-food-slider').append(html);      
-        });
+        $('.popular-food-slider').append(html);
+    });
     run_lazy();
-    
+
     tns({
         container: ".popular-food-slider",
         slideBy: "page",
@@ -103,7 +103,7 @@ function popular_productslider(topratedproducts) {
                 items: 4,
             },
         },
-});
+    });
 }
 
 function render_specialmenudays(data) {
@@ -114,11 +114,11 @@ function render_specialmenudays(data) {
 
 
 
-    $.each(data,function(key ,row){
-            var preview = row.preview != null ? row.preview : base_url + '/uploads/default.png';
-            
+    $.each(data, function (key, row) {
+        var preview = row.preview != null ? row.preview : base_url + '/uploads/default.png';
 
-            var html = key == 0 ? `
+
+        var html = key == 0 ? `
                         <div class="single-recommendation">
                            <div class="image">
                               <a href="${row.link}"><img class="lazy" src="${preloader}" data-src="${preview}" alt="${row.title}"></a>
@@ -156,8 +156,8 @@ function render_specialmenudays(data) {
                            </div>
                            `;
 
-            $(key == 0 ? '.day1' : '.day2').append(html);      
-        });
+        $(key == 0 ? '.day1' : '.day2').append(html);
+    });
     run_lazy();
 }
 
@@ -173,45 +173,46 @@ var categories = [];
 render_cart(cart_content);
 
 var callbackdata = {
-    "productmenu":{
-        "limit":5,
-        "with":['icon']
+    "productmenu": {
+        "limit": 5,
+        "with": ['icon'],
+        "is_home": true
     },
-    "heroslider":{
-        "with":['preview','description']
+    "heroslider": {
+        "with": ['preview', 'description']
     },
-    "shortbanner":{
-        "with":['preview']
+    "shortbanner": {
+        "with": ['preview']
     },
-    "largebanner":{
-        "limit":1,
-        "with":['preview','description']
+    "largebanner": {
+        "limit": 1,
+        "with": ['preview', 'description']
     },
-    "menudays":{
-        "limit":5,
-        "with":["preview"]
+    "menudays": {
+        "limit": 5,
+        "with": ["preview"]
     },
     "topratedproducts": {
-        "limit":12,
+        "limit": 12,
         "with": ["preview", "excerpt"]
     },
     "products": {
         "with_paginate": false,
-        "limit":12,
+        "limit": 12,
         "with": ["preview", "excerpt"]
     },
     "getdiscountbleproducts": {
         "with_paginate": false,
-        "limit":6,
-        "with": ["preview", "excerpt","discount"]
+        "limit": 6,
+        "with": ["preview", "excerpt", "discount"]
     },
     "getreviews": {
         "with_paginate": false,
-        "limit":6,
+        "limit": 6,
         "with": ["user"]
     },
     "latestblogs": {
-        "limit":4,
+        "limit": 4,
         "with": ["preview", "excerpt"]
     },
 }
@@ -225,49 +226,58 @@ $.ajax({
         body: callbackdata
     },
     dataType: 'json',
-    beforeSend: function() {
+    beforeSend: function () {
         render_product_preloaded(6, '.food_list');
         runpreloader();
     },
-    success: function(response) {
+    success: function (response) {
 
 
-       
+
 
         $('.content-preloader').remove();
 
-        $.each(response.productmenu, function(key, category) {
+        $.each(response.productmenu, function (key, category) {
             var li = `<li class="nav-item" role="presentation">
                         <button class="nav-link filteredtab filter_products filter_product${category.id}" data-id="${category.id}" data-items="[]"  data-bs-toggle="tab" data-bs-target="#filteredtab" type="button" role="tab" aria-controls="2ndtab" aria-selected="true"><img src="${category.icon != null ? category.icon.content : ''}" alt=""> ${category.name}</button>
                      </li>`;
             $('.menutab').append(li);
         });
-        
-        $('.all_products').attr('data-items',response.products.data);
+
+        $('.all_products').attr('data-items', response.products.data);
+
+        var initialProductsCount = (response.products && response.products.data) ? response.products.data.length : 0;
+        var initialTotalCount = response.products ? (response.products.total || initialProductsCount) : 0;
 
         render_primary_product(response.products.data, '.latest_products');
+
+        if (initialTotalCount > 12 || initialProductsCount >= 12) {
+            $('.view-all-products-wrap').show();
+        } else {
+            $('.view-all-products-wrap').hide();
+        }
         if (response.getdiscountbleproducts == '') {
             $('.count-down').remove();
         }
-        else{
+        else {
             render_discountable_product(response.getdiscountbleproducts.data, '.getdiscountbleproducts');
         }
 
         if (response.getreviews == '') {
-            
+
             $('.testimonials').remove();
-            
+
         }
-        else{
-            render_reviews(response.getreviews.data,'.testimonial-slider')
+        else {
+            render_reviews(response.getreviews.data, '.testimonial-slider')
         }
-        
+
         heroSlider(response.heroslider);
-        $.each(response.shortbanner, function(key, row) {
-            var button=row.button_text != '' ? `<div class="button">
+        $.each(response.shortbanner, function (key, row) {
+            var button = row.button_text != '' ? `<div class="button">
                                  <a href="${row.link}" class="btn">${row.button_text}</a>
                               </div>` : '';
-            var html=`<div class="col-lg-12 col-md-6 col-12">
+            var html = `<div class="col-lg-12 col-md-6 col-12">
                         <div class="small-content ${key == 1 ? 'secound dark' : 'first'} " style=" background-image: url('${row.preview}');">
                            <div class="inner">
                               <h4 class="title">${row.title}</h4>
@@ -277,21 +287,21 @@ $.ajax({
                         </div>
                      </div>`;
 
-            $('.short_banner').append(html);       
+            $('.short_banner').append(html);
         });
 
         popular_productslider(response.topratedproducts);
-        
 
-       
-        $.each(response.largebanner,function(key, row) {
-            
-            var button=row.button_text != '' ? `<div class="button call-action-button">
+
+
+        $.each(response.largebanner, function (key, row) {
+
+            var button = row.button_text != '' ? `<div class="button call-action-button">
                              <a href="${row.link}" class="btn second-btn">${row.button_text}</a>
                           </div>` : '';
-            
 
-            var html=`<div class="container">
+
+            var html = `<div class="container">
                         <div class="row">
                            <div class="col-lg-6 col-md-8 col-12">
                               <h2 class="call-action-title"> ${row.title}</h2>
@@ -299,22 +309,22 @@ $.ajax({
                                ${button}
                            </div>
                         </div>
-                     </div>`;         
+                     </div>`;
 
-         
-            $('.large_banner').css('background-image','url('+row.preview+')');
-            $('.large_banner').append(html);               
+
+            $('.large_banner').css('background-image', 'url(' + row.preview + ')');
+            $('.large_banner').append(html);
         });
         response.largebanner.length == 0 ? $('.large_banner').remove() : run_lazy();
-        
+
 
         render_specialmenudays(response.menudays);
 
-        var blog_read_more=$('.blog_read_more').val();
+        var blog_read_more = $('.blog_read_more').val();
 
-        $.each(response.latestblogs,function(key, row) {
+        $.each(response.latestblogs, function (key, row) {
 
-            var html=`<div class="col-lg-3 col-md-6 col-12">
+            var html = `<div class="col-lg-3 col-md-6 col-12">
                   <div class="shop-single-blog">
                      <div class="image"><a href="${row.url}"><img src="${preloader}" class="lazy" data-src="${row.preview}" alt="${row.title}"></a></div>
                      <div class="content">
@@ -343,7 +353,7 @@ $.ajax({
         }
 
     },
-    error: function(xhr, status, error) {
+    error: function (xhr, status, error) {
 
 
     }
@@ -351,7 +361,7 @@ $.ajax({
 
 
 
-$('.load_more_product').on('click', function() {
+$('.load_more_product').on('click', function () {
     var url = $(this).data('nextpage');
     getproducts(url);
 });
@@ -361,28 +371,37 @@ $('.load_more_product').on('click', function() {
 
 
 
-$(document).on('click','.filter_products',function(){
-    
-    var productid=$(this).data('id');
-    var products=$(this).data('items');
-    
-       console.log(products) 
-    
-    
+$(document).on('click', '#meat-tab', function () {
+    var latestCount = $('.latest_products .single-popular-product').length;
+    if (latestCount >= 12) {
+        $('.view-all-products-wrap').show();
+    } else {
+        $('.view-all-products-wrap').hide();
+    }
+});
+
+$(document).on('click', '.filter_products', function () {
+
+    var productid = $(this).data('id');
+    var products = $(this).data('items');
+
+    console.log(products)
+
+
     if (products == null || products == '') {
-      
+
 
         var arr = [];
         arr.push(productid)
-       
+
         var base_url = $('#base_url').val();
         $('.product_item').remove();
-       
-         var callbackdata = {
-        "with_paginate": false,
-        "limit":30,
-        "categories": arr,
-        "with": ["preview", "excerpt"]
+
+        var callbackdata = {
+            "with_paginate": false,
+            "limit": 30,
+            "categories": arr,
+            "with": ["preview", "excerpt"]
         }
 
         $.ajax({
@@ -390,27 +409,41 @@ $(document).on('click','.filter_products',function(){
             url: base_url + '/get-product',
             data: callbackdata,
             dataType: 'json',
-            beforeSend: function() {
+            beforeSend: function () {
                 $('.filteredproduct').remove();
                 render_product_preloaded(6, '.filtered_product_tab');
                 runpreloader();
             },
-            success: function(response) {
+            success: function (response) {
                 $('.content-preloader').remove();
-                render_primary_product(response.data, '.filtered_product_tab','filteredproduct');
-                $('.filter_product'+productid).attr('data-items',JSON.stringify(response.data));
+                render_primary_product(response.data, '.filtered_product_tab', 'filteredproduct');
+                $('.filter_product' + productid).attr('data-items', JSON.stringify(response.data));
+
+                var catCount = response.data ? response.data.length : 0;
+                if (catCount >= 12) {
+                    $('.view-all-products-wrap').show();
+                } else {
+                    $('.view-all-products-wrap').hide();
+                }
 
                 console.log(productid);
-                
+
 
             },
 
         });
     }
-    else{
+    else {
         $('.filteredproduct').remove();
-        var products=JSON.parse(products);
-        render_primary_product(products, '.filtered_product_tab','filteredproduct');
+        var parsedProds = typeof products === 'string' ? JSON.parse(products) : products;
+        render_primary_product(parsedProds, '.filtered_product_tab', 'filteredproduct');
+
+        var catCount = Array.isArray(parsedProds) ? parsedProds.length : 0;
+        if (catCount >= 12) {
+            $('.view-all-products-wrap').show();
+        } else {
+            $('.view-all-products-wrap').hide();
+        }
     }
 
 
@@ -430,11 +463,11 @@ function getproducts(url) {
         url: url,
         data: callbackdata,
         dataType: 'json',
-        beforeSend: function() {
+        beforeSend: function () {
             render_product_preloaded(6, '.food_list');
             runpreloader();
         },
-        success: function(response) {
+        success: function (response) {
             $('.content-preloader').remove();
 
             render_product(response.data, '.food_list');
@@ -453,8 +486,8 @@ function getproducts(url) {
     });
 }
 
- /*=====================================
-       Hero Slider
+/*=====================================
+      Hero Slider
 ======================================= */
 
 function heroSlider(data) {
@@ -462,8 +495,8 @@ function heroSlider(data) {
     if (data.length == 0) {
         return false;
     }
-    $.each(data, function(key, row) {
-        var html=`<div class="big-content" style="background-image: url(${row.preview});">
+    $.each(data, function (key, row) {
+        var html = `<div class="big-content" style="background-image: url(${row.preview});">
                            <div class="inner">
                               <h4 class="title">${row.title}</h4>
                               <p class="des">${row.description}</p>
@@ -472,7 +505,7 @@ function heroSlider(data) {
                               </div>
                            </div>
                         </div>`;
-        $('.hero-slider').append(html);                
+        $('.hero-slider').append(html);
     });
 
 
@@ -487,8 +520,8 @@ function heroSlider(data) {
         nav: false,
         controls: true,
         controlsText: [
-        '<i class="icofont-rounded-left"></i>',
-        '<i class="icofont-rounded-right"></i>',
+            '<i class="icofont-rounded-left"></i>',
+            '<i class="icofont-rounded-right"></i>',
         ],
     });
 }

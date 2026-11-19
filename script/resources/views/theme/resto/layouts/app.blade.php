@@ -144,8 +144,8 @@
 <script src="{{ asset('theme/resto/js/glightbox.min.js') }}"></script>
 <script src="{{ asset('theme/resto/js/perfect-scrollbar.min.js') }}"></script>
 <script src="{{ asset('theme/resto/js/main.js') }}"></script>
-<script src="{{ asset('theme/helper.js?v=1.0') }}"></script>
-<script src="{{ asset('theme/resto/js/theme-helper.js') }}"></script>
+<script src="{{ asset('theme/helper.js?v='.tenant('cache_version')) }}"></script>
+<script src="{{ asset('theme/resto/js/theme-helper.js?v='.tenant('cache_version')) }}"></script>
 
 @stack('js')
 {{ load_footer() }}

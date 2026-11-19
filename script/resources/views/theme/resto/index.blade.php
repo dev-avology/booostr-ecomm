@@ -86,6 +86,12 @@ $page_data = $page_data ?? null;
                         </div>
                      </div>
                   </div>
+                  <div class="text-center view-all-products-wrap" style="display: none;">
+                     <a href="{{ url('/products') }}" class="view-all-products-btn">
+                        <span>{{ __('View All Products') }}</span>
+                        <i class="icofont-long-arrow-right"></i>
+                     </a>
+                  </div>
                </div>
             </div>
          </div>
