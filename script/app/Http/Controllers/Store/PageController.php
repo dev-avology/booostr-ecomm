@@ -593,41 +593,144 @@ class PageController extends Controller
 
     public function contact()
     {
-        $home_data=optionfromcache('contact_page');
+        SEOMeta::setTitle(__('Contact Us'));
 
-        $seo=$home_data->seo ?? '';
-        SEOMeta::setTitle($seo->site_title ?? '');
-        SEOMeta::setDescription($seo->description ?? '');
-       
+        $booostrForm = $this->getBooostrClubContactForm();
 
-        OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($seo->site_title ?? '');
+        return view(baseview('contact'), compact('booostrForm'));
+    }
 
-        OpenGraph::addProperty('keywords', $seo->tags ?? '');
+    protected function getBooostrClubContactForm()
+    {
+        $club_id = (int) tenant('club_id');
+        if (!$club_id) {
+            return null;
+        }
 
-        TwitterCard::setTitle($seo->site_title ?? '');
-        TwitterCard::setSite($seo->twitter_title ?? '');
+        $url = env("WP_CLUB_URL");
+        $baseUrl = !empty($url) ? rtrim($url, '/') . '/' : 'https://staging3.booostr.co/';
+        $apiUrl = $baseUrl . 'wp-json/store-api/v1/get-store-form/?club_id=' . $club_id;
 
-        JsonLd::setTitle($seo->site_title ?? '');
-        JsonLd::setDescription($seo->description ?? '');
-        JsonLd::addImage($seo->meta_image ?? '');
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $apiUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            $response = curl_exec($ch);
+            $hasError = curl_errno($ch);
+            curl_close($ch);
 
-        SEOTools::setTitle($seo->site_title ?? '');
-        SEOTools::setDescription($seo->description ?? '');
-        SEOTools::opengraph()->setUrl(url('/'));
-       
-        
-        SEOTools::twitter()->setSite($seo->twitter_title ?? '');
-        SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
-        SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
+            if (!$hasError && !empty($response)) {
+                $responseData = json_decode($response, true);
+                if (json_last_error() === JSON_ERROR_NONE && !empty($responseData['forms'])) {
+                    $rawForms = $responseData['forms'];
+                    $forms = is_string($rawForms) ? json_decode($rawForms, true) : $rawForms;
 
-        $page_data=$home_data->meta ?? '';
-        return view(baseview('contact'),compact('page_data'));
+                    if (is_array($forms) && count($forms) > 0) {
+                        $contactForm = null;
+                        foreach ($forms as $form) {
+                            $formItem = is_array($form) ? (object) $form : $form;
+                            $title = strtolower($formItem->title ?? '');
+                            if (strpos($title, 'contact') !== false) {
+                                $contactForm = $formItem;
+                                break;
+                            }
+                        }
+
+                        if (!$contactForm && count($forms) > 0) {
+                            $first = $forms[0];
+                            $contactForm = is_array($first) ? (object) $first : $first;
+                        }
+
+                        if ($contactForm && !empty($contactForm->fields)) {
+                            $fields = is_string($contactForm->fields) ? json_decode($contactForm->fields, true) : $contactForm->fields;
+                            $contactForm->parsed_fields = is_array($fields) ? $fields : [];
+                            return $contactForm;
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Booostr Form Builder fetch error: ' . $e->getMessage());
+        }
+
+        return null;
     }
 
     public function contact_send(Request $request)
     {
-        
+        $club_id = (int) tenant('club_id');
+        $form_id = $request->input('form_id');
+
+        // Handle Booostr Form Builder submission
+        if (!empty($form_id) && !empty($club_id)) {
+            $submittedFields = $request->except(['_token', 'form_id']);
+
+            if (empty($submittedFields)) {
+                return response()->json(['errors' => ['error' => __('Please fill out the form.')]], 422);
+            }
+
+            // Sync with Booostr Central via sync-store-form-data
+            try {
+                $wpUrl = env("WP_CLUB_URL");
+                $syncUrl = !empty($wpUrl) 
+                    ? rtrim($wpUrl, '/') . '/wp-json/store-api/v1/sync-store-form-data/' 
+                    : 'https://app4.booostr.co/wp-json/store-api/v1/sync-store-form-data/';
+
+                $syncPayload = [
+                    'form_id' => $form_id,
+                    'data' => serialize($submittedFields),
+                    'booostr_id' => $club_id,
+                    'product_id' => 0,
+                    'order_id' => 0,
+                    'product_title' => 'Contact Us Form'
+                ];
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $syncUrl);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($syncPayload));
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Content-Type: application/json',
+                    'Content-Length: ' . strlen(json_encode($syncPayload))
+                ]);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+                curl_exec($ch);
+                curl_close($ch);
+            } catch (\Throwable $e) {
+                \Log::error('Booostr contact sync error: ' . $e->getMessage());
+            }
+
+            // Notification email to store legal email
+            $senderEmail = $request->input('email') ?: ($request->input('email_address') ?: null);
+            $senderName = $request->input('name') ?: ($request->input('full_name') ?: 'Store Visitor');
+            $subject = $request->input('subject') ?: __('New Contact Form Submission');
+            $messageContent = $request->input('message') ?: ($request->input('comment') ?: json_encode($submittedFields));
+
+            $emailRecipient = get_option('invoice_data', true)->store_legal_email ?? null;
+            if ($emailRecipient) {
+                try {
+                    $mailData = [
+                        'name' => $senderName,
+                        'message' => $messageContent,
+                        'subject' => $subject,
+                        'email' => $senderEmail ?: 'no-reply@booostr.com'
+                    ];
+                    Mail::to($emailRecipient)->send(new ContactMail($mailData));
+                } catch (\Throwable $e) {
+                    \Log::error('ContactMail send error: ' . $e->getMessage());
+                }
+            }
+
+            return response()->json('Message Send Successfully');
+        }
+
+        // Standard default contact form validation & email
         $request->validate([
             'name' => 'required|max:50',
             'email' => 'required|email|max:50',
@@ -639,10 +742,13 @@ class PageController extends Controller
             'name' => $request->name,
             'message' => $request->message,
             'subject' => $request->subject,
-            'email'=>$request->email
+            'email' => $request->email
         ];
 
-        Mail::to(get_option('invoice_data',true)->store_legal_email)->send(new ContactMail($data));
+        $emailRecipient = get_option('invoice_data', true)->store_legal_email ?? null;
+        if ($emailRecipient) {
+            Mail::to($emailRecipient)->send(new ContactMail($data));
+        }
 
         return response()->json('Message Send Successfully');
     }
