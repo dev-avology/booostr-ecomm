@@ -4,10 +4,11 @@ $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [
 $clubName = trim((string) ($clubInfo['club_name'] ?? (tenant('id') ?? '')));
 $clubLogo = function_exists('tenant_club_logo') ? tenant_club_logo() : null;
 
-// Top 4 categories with the highest amount of associated products
+// Top 4 categories with active products, sorted by highest product count
 try {
     $footerCategories = \App\Models\Category::where('type', 'category')
         ->where('status', 1)
+        ->has('products')
         ->withCount('products')
         ->orderBy('products_count', 'desc')
         ->take(4)
