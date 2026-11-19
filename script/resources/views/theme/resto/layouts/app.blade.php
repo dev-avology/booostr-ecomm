@@ -30,9 +30,9 @@
       <link rel="stylesheet" href="{{ asset('theme/helper.css') }}">
       <style>
          :root {
-            --booostr-blue: #528CD7;
-            --booostr-blue-hover: #3a6db8;
-            --booostr-blue-light: #eff6ff;
+            --booostr-blue: #0A8CDE;
+            --booostr-blue-hover: #0870b2;
+            --booostr-blue-light: #e8f4fc;
          }
       </style>
       @stack('css')

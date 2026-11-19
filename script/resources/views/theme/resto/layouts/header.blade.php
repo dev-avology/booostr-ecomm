@@ -65,7 +65,7 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             <div class="cart-single-inner bottom">
                <div class="total">
                   <span>{{ __('Total') }}</span>
-                  <span class="total-amount cart_subtotal">{{ Cart::instance('default')->subtotal() }}</span>
+                  <span class="total-amount cart_subtotal">{{ booostr_price(Cart::instance('default')->subtotal()) }}</span>
                </div>
                <a href="{{ url('/cart') }}" class="btn animate btn-view-cart">{{ __('View Cart') }}</a>
                <a href="{{ url('/checkout') }}" class="btn primary animate btn-checkout">{{ __('Checkout') }}</a>
@@ -76,11 +76,45 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
 
       <style>
          /* Scoped Styles for Right Side Hover Cart: #booostr-hover-cart ONLY */
+         #booostr-hover-cart {
+            position: fixed !important;
+            top: 0 !important;
+            right: 0 !important;
+            width: 360px !important;
+            max-width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            background: #ffffff !important;
+            padding: 20px 22px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12) !important;
+            border-top: none !important;
+            z-index: 999999 !important;
+            box-sizing: border-box !important;
+         }
+
+         #booostr-hover-cart .dropdown-cart-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 15px !important;
+            padding-bottom: 12px !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            flex-shrink: 0 !important;
+         }
+
+         #booostr-hover-cart .dropdown-cart-header span {
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            color: #0f172a !important;
+         }
+
          #booostr-hover-cart .close-button a {
             background: transparent !important;
             background-color: transparent !important;
             border-radius: 0 !important;
-            color: #6b7280 !important;
+            color: #64748b !important;
             width: auto !important;
             height: auto !important;
             line-height: 1 !important;
@@ -95,25 +129,48 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
          #booostr-hover-cart .close-button a:hover {
             background: transparent !important;
             background-color: transparent !important;
-            color: #111827 !important;
+            color: #0f172a !important;
          }
          #booostr-hover-cart .close-button a i {
             color: inherit !important;
+         }
+
+         #booostr-hover-cart .shopping-item-inner {
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1 !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+         }
+
+         #booostr-hover-cart .shopping-item-inner > .cart-single-inner:first-child {
+            flex: 1 !important;
+            overflow-y: auto !important;
+            padding-right: 4px !important;
+            margin-bottom: 10px !important;
+         }
+
+         #booostr-hover-cart .shopping-item-inner > .bottom {
+            margin-top: auto !important;
+            padding-top: 14px !important;
+            border-top: 1px solid #f1f5f9 !important;
+            flex-shrink: 0 !important;
+            width: 100% !important;
          }
 
          #booostr-hover-cart .total {
             display: flex !important;
             justify-content: space-between !important;
             align-items: center !important;
-            border-top: 1px solid #e5e7eb !important;
-            padding-top: 15px !important;
-            margin-top: 20px !important;
-            margin-bottom: 12px !important;
+            border-top: none !important;
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+            margin-bottom: 14px !important;
          }
          #booostr-hover-cart .total span:first-child {
             font-size: 15px !important;
             font-weight: 700 !important;
-            color: #111827 !important;
+            color: #0f172a !important;
             text-transform: uppercase !important;
             letter-spacing: 0.5px !important;
          }
@@ -122,8 +179,8 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             background-color: transparent !important;
             border-radius: 0 !important;
             padding: 0 !important;
-            color: #111827 !important;
-            font-size: 17px !important;
+            color: #0f172a !important;
+            font-size: 18px !important;
             font-weight: 700 !important;
             display: inline-block !important;
             box-shadow: none !important;
@@ -133,8 +190,8 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
          #booostr-hover-cart .bottom a.btn:not(.primary) {
             background: #ffffff !important;
             background-color: #ffffff !important;
-            border: 1.5px solid var(--booostr-blue, #528CD7) !important;
-            color: var(--booostr-blue, #528CD7) !important;
+            border: 1.5px solid var(--booostr-blue, #0A8CDE) !important;
+            color: var(--booostr-blue, #0A8CDE) !important;
             border-radius: 6px !important;
             font-weight: 600 !important;
             font-size: 14px !important;
@@ -142,23 +199,23 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             text-align: center !important;
             padding: 12px 20px !important;
             display: block !important;
-            margin-top: 10px !important;
+            margin-top: 8px !important;
             box-shadow: none !important;
             transition: all 0.2s ease !important;
          }
          #booostr-hover-cart .bottom a.btn.btn-view-cart:hover,
          #booostr-hover-cart .bottom a.btn:not(.primary):hover {
-            background: var(--booostr-blue-light, #eff6ff) !important;
-            background-color: var(--booostr-blue-light, #eff6ff) !important;
-            border-color: var(--booostr-blue-hover, #3a6db8) !important;
-            color: var(--booostr-blue-hover, #3a6db8) !important;
+            background: var(--booostr-blue-light, #e8f4fc) !important;
+            background-color: var(--booostr-blue-light, #e8f4fc) !important;
+            border-color: var(--booostr-blue-hover, #0870b2) !important;
+            color: var(--booostr-blue-hover, #0870b2) !important;
          }
 
          #booostr-hover-cart .bottom a.btn.btn-checkout,
          #booostr-hover-cart .bottom a.btn.primary {
-            background: var(--booostr-blue, #528CD7) !important;
-            background-color: var(--booostr-blue, #528CD7) !important;
-            border: 1.5px solid var(--booostr-blue, #528CD7) !important;
+            background: var(--booostr-blue, #0A8CDE) !important;
+            background-color: var(--booostr-blue, #0A8CDE) !important;
+            border: 1.5px solid var(--booostr-blue, #0A8CDE) !important;
             color: #ffffff !important;
             border-radius: 6px !important;
             font-weight: 600 !important;
@@ -167,19 +224,54 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             text-align: center !important;
             padding: 12px 20px !important;
             display: block !important;
-            margin-top: 10px !important;
-            box-shadow: 0 2px 4px rgba(82, 140, 215, 0.2) !important;
+            margin-top: 8px !important;
+            box-shadow: 0 2px 4px rgba(10, 140, 222, 0.2) !important;
             transition: all 0.2s ease !important;
          }
          #booostr-hover-cart .bottom a.btn.btn-checkout:hover,
          #booostr-hover-cart .bottom a.btn.primary:hover {
-            background: var(--booostr-blue-hover, #3a6db8) !important;
-            background-color: var(--booostr-blue-hover, #3a6db8) !important;
-            border-color: var(--booostr-blue-hover, #3a6db8) !important;
+            background: var(--booostr-blue-hover, #0870b2) !important;
+            background-color: var(--booostr-blue-hover, #0870b2) !important;
+            border-color: var(--booostr-blue-hover, #0870b2) !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 6px rgba(58, 109, 184, 0.3) !important;
+            box-shadow: 0 4px 6px rgba(8, 112, 178, 0.3) !important;
          }
       </style>
+
+      <script>
+         window.booostrFormatPrice = function(amount) {
+            if (amount === undefined || amount === null || amount === '') return '$0.00';
+            var clean = String(amount).replace(/[^0-9.-]+/g, '');
+            var num = parseFloat(clean);
+            if (isNaN(num)) return '$0.00';
+            return '$' + num.toFixed(2);
+         };
+
+         (function() {
+            function formatCartSubtotals() {
+               var elements = document.querySelectorAll('#booostr-hover-cart .cart_subtotal');
+               elements.forEach(function(el) {
+                  var txt = el.textContent || el.innerText || '';
+                  if (txt && !txt.trim().startsWith('$')) {
+                     el.textContent = window.booostrFormatPrice(txt);
+                  }
+               });
+            }
+
+            if (typeof MutationObserver !== 'undefined') {
+               var observer = new MutationObserver(function() {
+                  formatCartSubtotals();
+               });
+               document.addEventListener('DOMContentLoaded', function() {
+                  var target = document.getElementById('booostr-hover-cart');
+                  if (target) {
+                     observer.observe(target, { childList: true, subtree: true, characterData: true });
+                  }
+                  formatCartSubtotals();
+               });
+            }
+         })();
+      </script>
       @endif
       
       <!-- Header Area -->

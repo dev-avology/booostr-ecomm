@@ -160,6 +160,19 @@ function amount_format($number)
 	return number_format($number,2);
 }
 
+if (!function_exists('booostr_price')) {
+    /**
+     * Reusable price formatter for store/customer frontend.
+     * Always prefixes dollar symbol and formats with 2 decimal places (cents).
+     * e.g., 24 -> $24.00, 24.45 -> $24.45
+     */
+    function booostr_price($amount = 0): string
+    {
+        $clean = (float) str_replace([',', '$', ' '], '', (string) $amount);
+        return '$' . number_format($clean, 2);
+    }
+}
+
 function TenantCacheClear($key)
 {
 	return env('CACHE_DRIVER') == 'memcached' || env('CACHE_DRIVER') == 'redis'  ? \Cache::forget($key) : true;

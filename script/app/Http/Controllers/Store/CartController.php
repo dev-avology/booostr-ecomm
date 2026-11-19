@@ -394,7 +394,7 @@ class CartController extends Controller
         }
 
         $productcartdata['cart_content']=Cart::content();
-        $productcartdata['cart_subtotal']=Cart::subtotal();
+        $productcartdata['cart_subtotal']=booostr_price(Cart::subtotal());
         $productcartdata['cart_tax']= Cart::tax();
         $productcartdata['cart_total']= Cart::total();
         $productcartdata['cart_count']= Cart::count();
@@ -435,7 +435,7 @@ class CartController extends Controller
     public function removecart($id)
     {
         Cart::remove($id);
-        $productcartdata['cart_subtotal']=Cart::subtotal();
+        $productcartdata['cart_subtotal']=booostr_price(Cart::subtotal());
         $productcartdata['cart_tax']= Cart::tax();
         $productcartdata['cart_total']= Cart::total();
         $productcartdata['cart_count']= Cart::count();
@@ -454,7 +454,7 @@ class CartController extends Controller
     public function CartQty(Request $request)
     {
         Cart::update($request->id, $request->qty);
-        $productcartdata['cart_subtotal']=Cart::subtotal();
+        $productcartdata['cart_subtotal']=booostr_price(Cart::subtotal());
         $productcartdata['cart_tax']= Cart::tax();
         $productcartdata['cart_total']= Cart::total();
         $productcartdata['cart_count']= Cart::count();
