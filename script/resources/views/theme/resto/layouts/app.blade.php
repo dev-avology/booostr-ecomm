@@ -35,9 +35,43 @@
             --booostr-blue: #0A8CDE;
             --booostr-blue-hover: #0870b2;
             --booostr-blue-light: #e8f4fc;
+            --primary: #0A8CDE !important;
          }
          body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, a, span {
             font-family: 'Roboto', sans-serif !important;
+         }
+         /* Global Theme Overrides: All legacy green elements mapped to Booostr Blue */
+         .cart-sidebar {
+            background: var(--booostr-blue, #0A8CDE) !important;
+         }
+         .cart-sidebar:hover {
+            background: var(--booostr-blue-hover, #0870b2) !important;
+         }
+         .sub__title {
+            color: var(--booostr-blue, #0A8CDE) !important;
+         }
+         .food-tab-main .nav li button.active {
+            background-color: var(--booostr-blue, #0A8CDE) !important;
+            border-color: var(--booostr-blue, #0A8CDE) !important;
+            color: #ffffff !important;
+         }
+         .food-tab-main .nav li button:hover:not(.active) {
+            color: var(--booostr-blue, #0A8CDE) !important;
+            border-color: var(--booostr-blue, #0A8CDE) !important;
+         }
+         .btn.primary,
+         .btn.primary.animate {
+            background: var(--booostr-blue, #0A8CDE) !important;
+            background-color: var(--booostr-blue, #0A8CDE) !important;
+            border-color: var(--booostr-blue, #0A8CDE) !important;
+            color: #ffffff !important;
+         }
+         .btn.primary:hover,
+         .btn.primary.animate:hover {
+            background: var(--booostr-blue-hover, #0870b2) !important;
+            background-color: var(--booostr-blue-hover, #0870b2) !important;
+            border-color: var(--booostr-blue-hover, #0870b2) !important;
+            color: #ffffff !important;
          }
       </style>
       @stack('css')
