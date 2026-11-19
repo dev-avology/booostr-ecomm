@@ -608,7 +608,7 @@ class PageController extends Controller
         }
 
         $url = env("WP_CLUB_URL");
-        $baseUrl = !empty($url) ? rtrim($url, '/') . '/' : 'https://staging3.booostr.co/';
+        $baseUrl = !empty($url) ? rtrim($url, '/') . '/' : 'https://app.booostr.co/';
         $apiUrl = $baseUrl . 'wp-json/store-api/v1/get-store-form/?club_id=' . $club_id;
 
         try {
