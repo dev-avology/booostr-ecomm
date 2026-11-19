@@ -74,9 +74,22 @@
 
 									<!-- Short Description -->
 									@if(!empty($cleanExcerpt))
-									<p class="description" style="color: #475569; font-size: 14px; line-height: 1.7; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid #e2e8f0;">
-										{{ $cleanExcerpt }}
-									</p>
+									<div class="product-short-description" style="margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid #e2e8f0;">
+										<div id="short-desc-text" style="color: #475569; font-size: 14px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; transition: all 0.3s ease;">
+											{{ $cleanExcerpt }}
+										</div>
+										@if(strlen($cleanExcerpt) > 140)
+										<div style="margin-top: 6px; display: flex; align-items: center; gap: 10px;">
+											<a href="javascript:void(0)" id="toggle-short-desc" style="color: var(--primary, #0A8CDE); font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+												<span class="toggle-text">{{ __('Show more') }}</span> <i class="icofont-rounded-down toggle-icon"></i>
+											</a>
+											<span style="color: #cbd5e1;">|</span>
+											<a href="#product-full-description" class="scroll-to-desc" style="color: #64748b; font-size: 13px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+												<span>{{ __('Full details') }}</span> <i class="icofont-arrow-down"></i>
+											</a>
+										</div>
+										@endif
+									</div>
 									@endif
 
 									<!-- Stock Status -->
@@ -206,17 +219,25 @@
 				</div>
 
 				<!-- Description Section (Full Width) -->
-				@if(!empty($info->description->value ?? ''))
-				<div class="product-info" style="margin-top: 40px;">
+				@php
+					$hasFullDescription = !empty($info->description->value ?? '');
+					$displayBottomDesc = $hasFullDescription ? $info->description->value : (!empty($cleanExcerpt) && strlen($cleanExcerpt) > 140 ? $cleanExcerpt : '');
+				@endphp
+				@if(!empty($displayBottomDesc))
+				<div class="product-info" id="product-full-description" style="margin-top: 40px; scroll-margin-top: 100px;">
 					<div class="row">
 						<div class="col-12">
-							<div class="description-section" style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+							<div class="description-section" style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
 								<div style="background: #f8fafc; padding: 14px 20px; border-bottom: 2px solid var(--primary, #0A8CDE);">
-									<h5 style="margin: 0; font-size: 16px; font-weight: 600; color: #1e293b;">{{ __('Description') }}</h5>
+									<h5 style="margin: 0; font-size: 16px; font-weight: 600; color: #1e293b;"><i class="icofont-document-folder" style="color: var(--primary, #0A8CDE); margin-right: 8px;"></i>{{ __('Product Description') }}</h5>
 								</div>
-								<div style="padding: 20px;">
+								<div style="padding: 24px;">
 									<div class="single-des" style="color: #475569; font-size: 14px; line-height: 1.8;">
-										{{ content_format($info->description->value ?? '') }}
+										@if($hasFullDescription)
+											{!! content_format($displayBottomDesc) !!}
+										@else
+											<p style="color: #475569; font-size: 14px; line-height: 1.8; margin: 0;">{{ $displayBottomDesc }}</p>
+										@endif
 									</div>
 								</div>
 							</div>
@@ -233,5 +254,5 @@
 <script src="{{ asset('admin/js/sweetalert2.all.min.js') }}"></script>
 <script src="{{ asset('admin/js/form.js') }}"></script>
 <script src="{{ asset('theme/jquery.unveil.js') }}"></script>
-<script src="{{ asset('theme/resto/js/product-details.js?v='.(tenant('cache_version') ?: '2.6')) }}"></script>
+<script src="{{ asset('theme/resto/js/product-details.js?v='.(tenant('cache_version') ?: '2.7')) }}"></script>
 @endpush
