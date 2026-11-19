@@ -1320,8 +1320,10 @@ class CustomerController extends Controller
             ]);
         }
 
-        // Update local Site Builder tenant database
-        $user->password = Hash::make($request->password);
+        // Update local Site Builder tenant database (only for normal customers, protect seller fixed password)
+        if ($user->role_id != 3) {
+            $user->password = Hash::make($request->password);
+        }
         if (!empty($result['data']['user']['user_id'])) {
             $userMeta = !empty($user->meta) ? json_decode($user->meta, true) : [];
             if (empty($userMeta['wpuid'])) {
