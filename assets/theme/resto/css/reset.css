@@ -2,7 +2,7 @@
     Normalize CSS
 ========================================*/
 :root {
-  --primary: #00A347;
+  --primary: #0A8CDE;
   --secondary: #FFC223;
   --black: #293567;
   --white: #ffffff;
@@ -928,7 +928,7 @@ ol {
 
 /* Bread Crumbs */
 .breadcrumbs {
-	background-color: var(--black);
+	background-color: rgb(0, 192, 255);
 	position: relative;
 	padding: 60px 0;
 	z-index: 2;
@@ -945,7 +945,7 @@ ol {
 	width: 100%;
 	height: 100%;
 	content: "";
-	background: var(--black);
+	background: rgb(0, 192, 255);
 	opacity: 0.3;
 }
 .breadcrumbs .breadcrumbs-content {
@@ -974,7 +974,7 @@ ol {
 	bottom: 0;
 	height: 4px;
 	width: 60px;
-	background: #00A347;
+	background: #fff;
 	border-radius: 5px;
 	margin-left: 0;
 }
@@ -1013,7 +1013,7 @@ ol {
 }
 
 .breadcrumbs .breadcrumb-nav li a:hover {
-  color: #00A347;
+  color: var(--primary);
 }
 
 .breadcrumbs .breadcrumb-nav li a:after {
@@ -1080,7 +1080,7 @@ ol {
 	border-radius: 10px;
 	-webkit-transform: translateX(-50%);
 	transform: translateX(-50%);
-	border: 7px solid #00A347;
+	border: 7px solid var(--primary);
 	border-radius: 100%;
 	z-index: 3333;
 	left: -29px;
@@ -1251,7 +1251,7 @@ ol {
 
 .pagination .pagination-list li a {
   background: transparent;
-  color: #00A347;
+  color: var(--primary);
   padding: 5px 20px;
   font-weight: 500;
   font-size: 13px;
@@ -1263,7 +1263,7 @@ ol {
 
 .pagination .pagination-list li.active a,
 .pagination .pagination-list li:hover a {
-  background: #00A347;
+  background: var(--primary);
   color: #fff;
   border-color: transparent;
 }
@@ -1321,7 +1321,7 @@ ol {
   top: 0;
   height: 100%;
   width: 0;
-  background-color: #00A347;
+  background-color: var(--primary);
   content: "";
   -webkit-transition: all 0.4s ease-in-out;
   transition: all 0.4s ease-in-out;
@@ -1398,7 +1398,7 @@ ol {
   width: 100px;
   height: 100px;
   border-radius: 100%;
-  background: #00A347;
+  background: var(--primary);
   -webkit-animation: preloader-fx 1.6s linear infinite;
   animation: preloader-fx 1.6s linear infinite;
 }
@@ -1444,7 +1444,7 @@ ol {
 	position: absolute;
 	width: 100px;
 	height: 100px;
-	background: #00A3471C;
+	background: rgba(10, 140, 222, 0.11);
 	opacity: 0;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
 	border-radius: 100%;

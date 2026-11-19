@@ -5815,10 +5815,22 @@ Version:	1.0
 /* Pagination Booostr Blue Theme */
 .pagination .pagination-list li.active a,
 .pagination .pagination-list li:hover a {
-    background: #0A8CDE !important;
+    background: var(--primary) !important;
     color: #ffffff !important;
-    border-color: #0A8CDE !important;
+    border-color: var(--primary) !important;
 }
 .pagination .pagination-list li a:focus {
-    color: #0A8CDE;
+    color: var(--primary);
+}
+
+/* Breadcrumb Booostr Blue Hover Theme */
+.breadcrumbs .breadcrumb-nav li a:hover,
+.breadcrumbs .breadcrumb-nav li a:hover i {
+    color: var(--primary) !important;
+}
+
+/* Button Sweep & Hover Theme */
+.button .btn:hover::before,
+.button .btn::before {
+    background-color: var(--primary) !important;
 }
