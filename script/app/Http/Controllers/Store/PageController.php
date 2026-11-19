@@ -661,23 +661,24 @@ class PageController extends Controller
 
     public function contact_send(Request $request)
     {
-        $club_id = (int) tenant('club_id');
-        $form_id = $request->input('form_id');
-
-        // Handle Booostr Form Builder submission
-        if (!empty($form_id) && !empty($club_id)) {
+        try {
             $submittedFields = $request->except(['_token', 'form_id']);
 
             if (empty($submittedFields)) {
-                return response()->json(['errors' => ['error' => __('Please fill out the form.')]], 422);
+                return response()->json([
+                    'errors' => ['error' => __('Please fill out the form before submitting.')]
+                ], 422);
             }
 
-            // Sync with Booostr Central via sync-store-form-data
-            try {
+            $club_id = (int) tenant('club_id');
+            $form_id = $request->input('form_id');
+
+            // Handle Booostr Form Builder sync
+            if (!empty($form_id) && !empty($club_id)) {
                 $wpUrl = env("WP_CLUB_URL");
                 $syncUrl = !empty($wpUrl) 
                     ? rtrim($wpUrl, '/') . '/wp-json/store-api/v1/sync-store-form-data/' 
-                    : 'https://app4.booostr.co/wp-json/store-api/v1/sync-store-form-data/';
+                    : 'https://staging3.booostr.co/wp-json/store-api/v1/sync-store-form-data/';
 
                 $syncPayload = [
                     'form_id' => $form_id,
@@ -699,22 +700,26 @@ class PageController extends Controller
                 ]);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 6);
-                curl_exec($ch);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+                $syncResponse = curl_exec($ch);
+                $curlError = curl_errno($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 curl_close($ch);
-            } catch (\Throwable $e) {
-                \Log::error('Booostr contact sync error: ' . $e->getMessage());
+
+                if ($curlError || ($httpCode >= 400 && $httpCode < 600)) {
+                    \Log::warning('Booostr contact sync HTTP warning: ' . $httpCode . ' Response: ' . $syncResponse);
+                }
             }
 
-            // Notification email to store legal email
-            $senderEmail = $request->input('email') ?: ($request->input('email_address') ?: null);
-            $senderName = $request->input('name') ?: ($request->input('full_name') ?: 'Store Visitor');
-            $subject = $request->input('subject') ?: __('New Contact Form Submission');
-            $messageContent = $request->input('message') ?: ($request->input('comment') ?: json_encode($submittedFields));
+            // Notification email to store legal email if configured
+            try {
+                $senderEmail = $request->input('email') ?: ($request->input('email_address') ?: null);
+                $senderName = $request->input('name') ?: ($request->input('full_name') ?: 'Store Visitor');
+                $subject = $request->input('subject') ?: __('New Contact Form Submission');
+                $messageContent = $request->input('message') ?: ($request->input('comment') ?: json_encode($submittedFields));
 
-            $emailRecipient = get_option('invoice_data', true)->store_legal_email ?? null;
-            if ($emailRecipient) {
-                try {
+                $emailRecipient = get_option('invoice_data', true)->store_legal_email ?? null;
+                if ($emailRecipient) {
                     $mailData = [
                         'name' => $senderName,
                         'message' => $messageContent,
@@ -722,35 +727,20 @@ class PageController extends Controller
                         'email' => $senderEmail ?: 'no-reply@booostr.com'
                     ];
                     Mail::to($emailRecipient)->send(new ContactMail($mailData));
-                } catch (\Throwable $e) {
-                    \Log::error('ContactMail send error: ' . $e->getMessage());
                 }
+            } catch (\Throwable $mailEx) {
+                \Log::error('Contact notification email error: ' . $mailEx->getMessage());
             }
 
-            return response()->json('Message Send Successfully');
+            return response()->json(__('Message Sent Successfully'));
+
+        } catch (\Throwable $e) {
+            \Log::error('Contact form submission error: ' . $e->getMessage());
+
+            return response()->json([
+                'errors' => ['error' => __('Failed to send message. Please try again later.')]
+            ], 422);
         }
-
-        // Standard default contact form validation & email
-        $request->validate([
-            'name' => 'required|max:50',
-            'email' => 'required|email|max:50',
-            'subject' => 'required|max:200',
-            'message' => 'required|max:500'
-        ]);
-
-        $data = [
-            'name' => $request->name,
-            'message' => $request->message,
-            'subject' => $request->subject,
-            'email' => $request->email
-        ];
-
-        $emailRecipient = get_option('invoice_data', true)->store_legal_email ?? null;
-        if ($emailRecipient) {
-            Mail::to($emailRecipient)->send(new ContactMail($data));
-        }
-
-        return response()->json('Message Send Successfully');
     }
 
 }
