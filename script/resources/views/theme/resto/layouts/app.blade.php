@@ -47,13 +47,6 @@
             background: var(--primary, #0A8CDE) !important;
             background-color: var(--primary, #0A8CDE) !important;
          }
-         /* Header & Footer Club Logo: Crisp White Invert on Booostr Blue with zero background box */
-         .navbar-brand img,
-         #clubNavbarLogo,
-         .footer .footer-logo img {
-            filter: brightness(0) invert(1) !important;
-            -webkit-filter: brightness(0) invert(1) !important;
-         }
          /* Header & Footer Club Logo: Crisp White Edge Glow - Keeps 100% original colors, no background box */
          .navbar-brand img,
          #clubNavbarLogo,
