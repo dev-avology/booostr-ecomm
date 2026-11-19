@@ -75,7 +75,15 @@
 									</div>
 
 									<p class="price price_area"> {{ count($info->optionwithcategories ?? []) == 0 ? $info->price->price ?? '' : '' }} </p>
-									<div class="product-tag stock_status @if(count($info->optionwithcategories ?? []) != 0) none @endif"><p class="cat">Availability: <span class="stock_status_display">@if(count($info->optionwithcategories ?? []) == 0) <a href="javascript:void(0)"> {{ $info->price->stock_status == 1 ? 'In Stock' : 'Out of stock' }} </a> @endif</span></p></div>
+									@php
+									$isOutOfStock = false;
+									if (count($info->optionwithcategories ?? []) == 0) {
+									    if (($info->price->stock_status ?? 1) == 0 || (($info->price->stock_manage ?? 0) == 1 && ($info->price->qty ?? 0) <= 0)) {
+									        $isOutOfStock = true;
+									    }
+									}
+									@endphp
+									<div class="product-tag stock_status @if(count($info->optionwithcategories ?? []) != 0) none @endif"><p class="cat">Availability: <span class="stock_status_display">@if(count($info->optionwithcategories ?? []) == 0) @if(!$isOutOfStock) <span class="badge bg-success" style="font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">{{ __('In Stock') }}</span> @else <span class="badge bg-danger" style="font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">{{ __('Out of Stock') }}</span> @endif @endif</span></p></div>
 									<p class="description">
 										{{ $info->excerpt->value ?? ''  }}
 									</p>
@@ -103,16 +111,20 @@
 									<div class="quantity">
 										<h6>{{ __('Quantity') }} :</h6>
 										<div class="quantity-container product-quantity">
-											<div class="sp-quantity single-page">
-											  <button type="button" class="inline arrow sp-minus   fff"><a class="ddd minus" data-multi="-1">-</a></button>
+											<div class="sp-quantity single-page @if($isOutOfStock) disabled-quantity @endif">
+											  <button type="button" class="inline arrow sp-minus fff" @if($isOutOfStock) disabled @endif><a class="ddd minus" data-multi="-1">-</a></button>
 											  <div class="inline sp-input">
-												<input type="text" class="quntity-input input_qty" name="qty" value="1">
+												<input type="text" class="quntity-input input_qty" name="qty" value="1" @if($isOutOfStock) disabled @endif>
 											  </div>
-											  <button type="button" class="inline arrow sp-plus  fff"><a class="ddd cart_increase plus" data-multi="1">+</a></button>
+											  <button type="button" class="inline arrow sp-plus fff" @if($isOutOfStock) disabled @endif><a class="ddd cart_increase plus" data-multi="1">+</a></button>
 											</div>
 										</div>
 									</div>
-									<div class="add-to-cart button"><button type="submit" class="btn add_to_cart_form_btn">{{ __('Add to cart') }}</button></div>
+									<div class="add-to-cart button">
+										<button type="submit" class="btn add_to_cart_form_btn" @if($isOutOfStock) disabled style="background: #94a3b8 !important; border-color: #94a3b8 !important; cursor: not-allowed;" @endif>
+											{{ $isOutOfStock ? __('Out of Stock') : __('Add to cart') }}
+										</button>
+									</div>
 
 								</div>
 								<p class="text-danger none qty_display"><span class="maxqty"></span> : {{ __('pieces available') }}</p>

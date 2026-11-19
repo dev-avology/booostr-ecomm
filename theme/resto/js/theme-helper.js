@@ -59,15 +59,21 @@ function render_primary_product(products, target,additional_class='') {
         price = amount_format(price,'icon');
 
 
-        if (product.is_variation == 1) {
-              var cart_html=`<a  href="${base_url+'/product/'+product.slug}"><i class="icofont-basket"></i>Add to cart</a>`;
-        } else {
+        var is_out_of_stock = false;
+        if (product.firstprice) {
             if (product.firstprice.stock_status == 0) {
-               var cart_html=`<a  href="${base_url+'/product/'+product.slug}"><i class="icofont-basket"></i>Add to cart</a>`;
-            } else {
-                var cart_html=`<a class="add_to_cart cart${product.id}" href="javascript:void(0)" data-isvariation="${product.is_variation}"  data-id="${product.id}" data-stockstatus="${product.firstprice.stock_status}" data-stockmanage="${product.firstprice.stock_manage}" data-qty="${product.firstprice.qty}"><i class="icofont-basket"></i>Add to cart</a>`;;
+                is_out_of_stock = true;
+            } else if (product.firstprice.stock_manage == 1 && parseInt(product.firstprice.qty) <= 0) {
+                is_out_of_stock = true;
             }
-          
+        }
+
+        if (is_out_of_stock) {
+            var cart_html=`<a class="btn-out-of-stock" href="javascript:void(0)"><i class="icofont-close-circled"></i>Out of stock</a>`;
+        } else if (product.is_variation == 1) {
+            var cart_html=`<a  href="${base_url+'/product/'+product.slug}"><i class="icofont-basket"></i>Add to cart</a>`;
+        } else {
+            var cart_html=`<a class="add_to_cart cart${product.id}" href="javascript:void(0)" data-isvariation="${product.is_variation}"  data-id="${product.id}" data-stockstatus="${product.firstprice.stock_status}" data-stockmanage="${product.firstprice.stock_manage}" data-qty="${product.firstprice.qty}"><i class="icofont-basket"></i>Add to cart</a>`;
         }
 
         var ratings='';
@@ -85,11 +91,12 @@ function render_primary_product(products, target,additional_class='') {
         var clean_excerpt = raw_excerpt ? raw_excerpt.replace(/<\/?[^>]+(>|$)/g, "").trim() : '';
 
         var html=`<div class="col-lg-3 col-md-6 col-6 ${additional_class} d-flex align-items-stretch">
-                                        <div class="single-popular-product w-100">
-                                            <div class="image">
+                                        <div class="single-popular-product w-100 ${is_out_of_stock ? 'product-out-of-stock' : ''}">
+                                            <div class="image ${is_out_of_stock ? 'out-of-stock-img-wrap' : ''}">
+                                                ${is_out_of_stock ? '<span class="out-of-stock-badge">Out of Stock</span>' : ''}
                                                 <img class="lazy" src="${preloader}" data-src="${preview}" alt="">
                                                 <div class="product-overlay">
-                                                    <a href="${base_url+'/product/'+product.slug}" class="btn add-to-cart" title="add to Cart"><i class="icofont-shopping-cart"></i></a>
+                                                    ${is_out_of_stock ? '' : `<a href="${base_url+'/product/'+product.slug}" class="btn add-to-cart" title="add to Cart"><i class="icofont-shopping-cart"></i></a>`}
                                                     <a href="javascript:void(0)" data-id="${product.id}" class="btn wishlist add_to_wishlist" title="add to Wishlist"><i class="icofont-heart"></i></a>
                                                     <a href="${base_url+'/product/'+product.slug}"class="btn view"><i class="icofont-link-alt"></i></a>
                                                 </div>
@@ -100,14 +107,14 @@ function render_primary_product(products, target,additional_class='') {
                                                 <p class="single-item-excerpt">${str_limit(clean_excerpt,50)}</p>
                                             </div>
                                             <div class="single-item-bottom">
-                                                <div class="quantity-main boxed-quantity">
+                                                <div class="quantity-main boxed-quantity ${is_out_of_stock ? 'disabled-quantity' : ''}">
                                                     
                                                     <div class="sp-quantity">
-                                                      <button class="inline arrow sp-minus fff"><a class="minus" data-multi="-1">-</a></button>
+                                                      <button class="inline arrow sp-minus fff" ${is_out_of_stock ? 'disabled' : ''}><a class="minus" data-multi="-1">-</a></button>
                                                       <div class="inline sp-input">
-                                                        <input type="number" ${product.stock_status == 0 ? 'disabled' : ''}  value="1" min="1" data-max="${product.firstprice.stock_manage == 1 ? product.firstprice.qty : 1}" class="quntity-input cart_qty${product.firstprice.stock_status == 0 ? '' :product.id}" >
+                                                        <input type="number" ${is_out_of_stock ? 'disabled' : ''}  value="1" min="1" data-max="${product.firstprice.stock_manage == 1 ? product.firstprice.qty : 1}" class="quntity-input cart_qty${is_out_of_stock ? '' :product.id}" >
                                                       </div>
-                                                      <button class="inline arrow sp-plus fff"><a class="plus" data-multi="1">+</a></button>
+                                                      <button class="inline arrow sp-plus fff" ${is_out_of_stock ? 'disabled' : ''}><a class="plus" data-multi="1">+</a></button>
                                                     </div>
                                                 </div>
                                                 <div class="cart-button">
@@ -118,11 +125,12 @@ function render_primary_product(products, target,additional_class='') {
                                     </div>`;
 
             var listViewHtml=`<div class="col-12 ${additional_class}">
-                                            <div class="single-popular-product list-style">
-                                                        <div class="image">
+                                            <div class="single-popular-product list-style ${is_out_of_stock ? 'product-out-of-stock' : ''}">
+                                                        <div class="image ${is_out_of_stock ? 'out-of-stock-img-wrap' : ''}">
+                                                            ${is_out_of_stock ? '<span class="out-of-stock-badge">Out of Stock</span>' : ''}
                                                             <img class="lazy" src="${preloader}" data-src="${preview}" alt="">
                                                             <div class="product-overlay">
-                                                            <a href="${base_url+'/product/'+product.slug}" class="btn add-to-cart" title="add to Cart"><i class="icofont-shopping-cart"></i></a>
+                                                            ${is_out_of_stock ? '' : `<a href="${base_url+'/product/'+product.slug}" class="btn add-to-cart" title="add to Cart"><i class="icofont-shopping-cart"></i></a>`}
                                                             <a href="javascript:void(0)" data-id="${product.id}" class="btn wishlist add_to_wishlist" title="add to Wishlist"><i class="icofont-heart"></i></a>
                                                             <a href="${base_url+'/product/'+product.slug}"class="btn view"><i class="icofont-link-alt"></i></a>
                                                             </div>
@@ -133,13 +141,13 @@ function render_primary_product(products, target,additional_class='') {
                                                             <p class="single-item-excerpt">${str_limit(clean_excerpt,100)}</p>
                                                         </div>
                                                         <div class="single-item-bottom">
-                                                            <div class="quantity-main boxed-quantity">
+                                                            <div class="quantity-main boxed-quantity ${is_out_of_stock ? 'disabled-quantity' : ''}">
                                                             <div class="sp-quantity">
-                                                            <button class="inline arrow sp-minus fff"><a class="minus" data-multi="-1">-</a></button>
+                                                            <button class="inline arrow sp-minus fff" ${is_out_of_stock ? 'disabled' : ''}><a class="minus" data-multi="-1">-</a></button>
                                                             <div class="inline sp-input">
-                                                            <input type="number" ${product.stock_status == 0 ? 'disabled' : ''}  value="1" min="1" data-max="${product.firstprice.stock_manage == 1 ? product.firstprice.qty : 1}" class="quntity-input cart_qty${product.firstprice.stock_status == 0 ? '' :product.id}" >
+                                                            <input type="number" ${is_out_of_stock ? 'disabled' : ''}  value="1" min="1" data-max="${product.firstprice.stock_manage == 1 ? product.firstprice.qty : 1}" class="quntity-input cart_qty${is_out_of_stock ? '' :product.id}" >
                                                             </div>
-                                                            <button class="inline arrow sp-plus fff"><a class="plus" data-multi="1">+</a></button>
+                                                            <button class="inline arrow sp-plus fff" ${is_out_of_stock ? 'disabled' : ''}><a class="plus" data-multi="1">+</a></button>
                                                             </div>
                                                             </div>
                                                             <div class="cart-button">
