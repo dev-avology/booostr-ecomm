@@ -36,15 +36,9 @@ try {
                            @endif
                         </a>
                      </div>
-                     <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+                     <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6; margin-bottom: 0;">
                         {{ __('Welcome to our official store. Browse our merchandise and support our club and community.') }}
                      </p>
-                     <div class="footer-social-links" style="display: flex; gap: 10px; align-items: center;">
-                        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #ffffff; font-size: 15px; transition: all 0.3s ease;" onmouseover="this.style.background='var(--primary, #0A8CDE)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"><i class="icofont-facebook"></i></a>
-                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #ffffff; font-size: 15px; transition: all 0.3s ease;" onmouseover="this.style.background='var(--primary, #0A8CDE)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"><i class="icofont-twitter"></i></a>
-                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #ffffff; font-size: 15px; transition: all 0.3s ease;" onmouseover="this.style.background='var(--primary, #0A8CDE)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"><i class="icofont-instagram"></i></a>
-                        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #ffffff; font-size: 15px; transition: all 0.3s ease;" onmouseover="this.style.background='var(--primary, #0A8CDE)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"><i class="icofont-linkedin"></i></a>
-                     </div>
                   </div>
                </div>
 
