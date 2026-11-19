@@ -81,8 +81,11 @@ function render_primary_product(products, target,additional_class='') {
 
         var rating_html='';
 
-        var html=`<div class="col-lg-3 col-md-6 col-6 ${additional_class}">
-                                        <div class="single-popular-product">
+        var raw_excerpt = product.excerpt != null ? product.excerpt.value : '';
+        var clean_excerpt = raw_excerpt ? raw_excerpt.replace(/<\/?[^>]+(>|$)/g, "").trim() : '';
+
+        var html=`<div class="col-lg-3 col-md-6 col-6 ${additional_class} d-flex align-items-stretch">
+                                        <div class="single-popular-product w-100">
                                             <div class="image">
                                                 <img class="lazy" src="${preloader}" data-src="${preview}" alt="">
                                                 <div class="product-overlay">
@@ -92,9 +95,9 @@ function render_primary_product(products, target,additional_class='') {
                                                 </div>
                                             </div>
                                             <div class="single-item-text">
-                                                <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,20)}</a></h3>
+                                                <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,35)}</a></h3>
                                                 <h4 class="single-item-price">${price}</h4>
-                                                <p>${str_limit(product.excerpt != null ? product.excerpt.value : '',30)}</p>
+                                                <p class="single-item-excerpt">${str_limit(clean_excerpt,50)}</p>
                                             </div>
                                             <div class="single-item-bottom">
                                                 <div class="quantity-main boxed-quantity">
@@ -125,9 +128,9 @@ function render_primary_product(products, target,additional_class='') {
                                                             </div>
                                                         </div>
                                                         <div class="single-item-text">
-                                                            <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,20)}</a></h3>
+                                                            <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,40)}</a></h3>
                                                             <h4 class="single-item-price">${price}</h4>
-                                                            <p>${str_limit(product.excerpt != null ? product.excerpt.value : '',100)}</p>
+                                                            <p class="single-item-excerpt">${str_limit(clean_excerpt,100)}</p>
                                                         </div>
                                                         <div class="single-item-bottom">
                                                             <div class="quantity-main boxed-quantity">

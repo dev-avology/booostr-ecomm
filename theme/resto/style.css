@@ -5549,3 +5549,212 @@ Version:	1.0
 #reviews {
     display: none !important;
 }
+
+/* ========================================================
+   Booostr Product Tile Modern Grid & Equal Height Overrides
+   ======================================================== */
+.single-popular-product {
+    text-align: center;
+    background-color: #ffffff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 30px;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    height: calc(100% - 30px) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.single-popular-product:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.09);
+}
+
+/* 1. Fixed Image Box with Equal Aspect Ratio across all cards */
+.single-popular-product .image {
+    width: 100% !important;
+    height: 220px !important;
+    min-height: 220px !important;
+    max-height: 220px !important;
+    background-color: #f8fafc !important;
+    position: relative !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+}
+.single-popular-product .image img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: 0 auto !important;
+    transition: transform 0.3s ease;
+}
+.single-popular-product:hover .image img {
+    transform: scale(1.05);
+}
+
+/* 2. Middle Content with consistent spacing */
+.single-popular-product .single-item-text {
+    padding: 16px 14px 10px 14px !important;
+    position: relative !important;
+    text-align: center !important;
+    flex-grow: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+}
+.single-popular-product .single-item-title {
+    margin-top: 0 !important;
+    margin-bottom: 6px !important;
+    min-height: 44px !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+.single-popular-product .single-item-title a {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+    transition: color 0.2s ease;
+}
+.single-popular-product .single-item-title a:hover {
+    color: var(--primary, #0A8CDE) !important;
+}
+.single-popular-product .single-item-price {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    margin: 4px 0 8px 0 !important;
+    line-height: 1.2 !important;
+}
+.single-popular-product .single-item-excerpt {
+    font-size: 13px !important;
+    color: #64748b !important;
+    line-height: 1.4 !important;
+    margin-bottom: 0 !important;
+    min-height: 36px !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* 3. Bottom Controls Locked to Card Bottom */
+.single-popular-product .single-item-bottom {
+    padding: 10px 14px 18px 14px !important;
+    margin-top: auto !important;
+}
+.single-popular-product .quantity-main.boxed-quantity {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin-bottom: 12px !important;
+}
+.single-popular-product .sp-quantity {
+    position: relative !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 104px !important;
+    height: 32px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+}
+.single-popular-product .sp-quantity button,
+.single-popular-product .sp-quantity button.fff,
+.single-popular-product .sp-quantity button.sp-minus,
+.single-popular-product .sp-quantity button.sp-plus {
+    position: static !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 100% !important;
+    border: none !important;
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+.single-popular-product .sp-quantity button:hover {
+    background: #e8f4fc !important;
+    color: var(--primary, #0A8CDE) !important;
+}
+.single-popular-product .sp-quantity button a {
+    color: inherit !important;
+    font-size: 15px !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+    display: block !important;
+}
+.single-popular-product .sp-quantity .inline.sp-input {
+    width: 48px !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+}
+.single-popular-product .sp-quantity .quntity-input {
+    width: 100% !important;
+    height: 100% !important;
+    border: none !important;
+    text-align: center !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    padding: 0 !important;
+    background: transparent !important;
+    outline: none !important;
+}
+
+/* Add to Cart Button Strict Sizing and Styling */
+.single-popular-product .cart-button {
+    width: 100% !important;
+    text-align: center !important;
+}
+.single-popular-product .single-item-bottom .cart-button a {
+    line-height: normal !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    background: #f8fafc !important;
+    color: #334155 !important;
+    padding: 8px 18px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+}
+.single-popular-product .single-item-bottom .cart-button a i {
+    font-size: 14px !important;
+    line-height: 1 !important;
+}
+.single-popular-product .single-item-bottom .cart-button a:hover {
+    color: #ffffff !important;
+    background-color: var(--primary, #0A8CDE) !important;
+    border-color: var(--primary, #0A8CDE) !important;
+}
