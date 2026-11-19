@@ -1,24 +1,18 @@
 @extends('theme.resto.layouts.app')
 @section('content')
 
-		<!-- Start Breadcrumbs Area -->
-		<div class="breadcrumbs" @if(!empty($product_page_banner)) style="background-image: url({{ asset($product_page_banner) }});" @endif>
-			<div class="container">
-				<div class="row">
-					<div class="col-lg-6 col-md-8 col-12">
-						<div class="breadcrumbs-content">
-							<h1 class="page-title">{{ $info->title }}</h1>
-							<p>{{ $info->excerpt->value ?? ''  }}</p>
-						</div>
-						<ul class="breadcrumb-nav">
-							<li><a href="{{ url('/') }}"><i class="icofont-home"></i> {{ __('Home') }}</a></li>
-							<li><i class="icofont-fast-food"></i> {{ $info->title }}</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!--/ End Breadcrumbs Area -->
+@php
+    $cleanExcerpt = !empty($info->excerpt->value) ? trim(strip_tags($info->excerpt->value)) : '';
+@endphp
+@include('theme.resto.components.page-banner', [
+    'title' => $info->title,
+    'description' => \Illuminate\Support\Str::limit($cleanExcerpt, 120),
+    'breadcrumbs' => [
+        ['url' => url('/'), 'label' => __('Home'), 'icon' => 'icofont-home'],
+        ['url' => url('/products'), 'label' => __('Products'), 'icon' => 'icofont-box'],
+        ['url' => '', 'label' => $info->title, 'icon' => 'icofont-tag'],
+    ]
+])
 		
 		<!-- Shop Single -->
 		<section class="shop single section">

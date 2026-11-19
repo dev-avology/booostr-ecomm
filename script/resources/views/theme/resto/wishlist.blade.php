@@ -4,24 +4,17 @@
 $autoloaddata=getautoloadquery();
 $currency_data=$autoloaddata['currency_data'];
 @endphp
-<!-- Start Breadcrumbs Area -->
-		<div class="breadcrumbs" style="background-image:url({{ asset($page_data->wishlist_page_banner ?? '')  }})">
-			<div class="container">
-				<div class="row">
-					<div class="col-lg-6 col-md-8 col-12">
-						<div class="breadcrumbs-content">
-							<h1 class="page-title"> {{ $page_data->wishlist_page_title ?? 'Wishlist' }}</h1>
-							<p>{{ $page_data->wishlist_page_description ?? '' }}</p>
-						</div>
-						<ul class="breadcrumb-nav">
-							<li><a href="{{ url('/') }}"><i class="icofont-home"></i> Home</a></li>
-							<li><i class="icofont-fast-food"></i> {{ __('Wishlist') }}</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!--/ End Breadcrumbs Area -->
+@php
+    $wishlistDescription = __('View and manage your saved items.');
+@endphp
+@include('theme.resto.components.page-banner', [
+    'title' => __('Wishlist'),
+    'description' => $wishlistDescription,
+    'breadcrumbs' => [
+        ['url' => url('/'), 'label' => __('Home'), 'icon' => 'icofont-home'],
+        ['url' => '', 'label' => __('Wishlist'), 'icon' => 'icofont-heart'],
+    ]
+])
 		
 		
 		<!-- Shopping Cart -->
