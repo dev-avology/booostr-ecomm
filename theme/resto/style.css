@@ -5811,3 +5811,14 @@ Version:	1.0
 .single-popular-product .single-item-bottom .cart-button a.btn-max-in-cart i {
     color: #0A8CDE !important;
 }
+
+/* Pagination Booostr Blue Theme */
+.pagination .pagination-list li.active a,
+.pagination .pagination-list li:hover a {
+    background: #0A8CDE !important;
+    color: #ffffff !important;
+    border-color: #0A8CDE !important;
+}
+.pagination .pagination-list li a:focus {
+    color: #0A8CDE;
+}
