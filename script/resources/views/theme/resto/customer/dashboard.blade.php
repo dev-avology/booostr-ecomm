@@ -282,7 +282,7 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #528CD7 0%, #3a6db8 100%);
+    background: linear-gradient(135deg, var(--primary, #0A8CDE) 0%, var(--booostr-blue-hover, #0870b2) 100%);
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -290,7 +290,7 @@
     font-size: 20px;
     font-weight: 700;
     flex-shrink: 0;
-    box-shadow: 0 4px 10px rgba(82, 140, 215, 0.25);
+    box-shadow: 0 4px 10px rgba(10, 140, 222, 0.25);
 }
 
 .dash-status-pill {
@@ -332,7 +332,7 @@
 
 .dash-icon-blue {
     background-color: #EFF6FF;
-    color: #528CD7;
+    color: var(--primary, #0A8CDE);
 }
 
 .dash-icon-amber {
@@ -348,7 +348,7 @@
 .dash-card-action {
     font-size: 13px;
     font-weight: 600;
-    color: #528CD7;
+    color: var(--primary, #0A8CDE);
     text-decoration: none !important;
     display: inline-flex;
     align-items: center;
@@ -356,7 +356,7 @@
 }
 
 .dash-card-action:hover {
-    color: #2b5fa3;
+    color: var(--booostr-blue-hover, #0870b2);
     text-decoration: underline !important;
 }
 
@@ -400,19 +400,19 @@
 }
 
 .dash-order-no {
-    color: #528CD7 !important;
+    color: var(--primary, #0A8CDE) !important;
     font-size: 15px;
     transition: color 0.15s ease;
 }
 
 .dash-order-no:hover {
-    color: #3b6fb5 !important;
+    color: var(--booostr-blue-hover, #0870b2) !important;
     text-decoration: underline !important;
 }
 
 .dash-action-btn {
-    border-color: #528CD7 !important;
-    color: #528CD7 !important;
+    border-color: var(--primary, #0A8CDE) !important;
+    color: var(--primary, #0A8CDE) !important;
     font-weight: 600 !important;
     padding: 5px 14px !important;
     border-radius: 6px !important;
@@ -420,7 +420,7 @@
 }
 
 .dash-action-btn:hover {
-    background-color: #528CD7 !important;
+    background-color: var(--primary, #0A8CDE) !important;
     color: #ffffff !important;
 }
 

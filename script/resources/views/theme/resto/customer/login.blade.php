@@ -49,11 +49,11 @@
 						<!-- Remember Me and Forgot Password Row -->
 						<div class="remember-forgot-row" style="display: flex; justify-content: space-between; align-items: center; margin: 24px 0 28px;">
 							<div class="d-flex align-items-center" style="gap: 9px;">
-								<input type="checkbox" name="remember" id="rememberMe" style="width: 18px; min-width: 18px; height: 18px; accent-color: #528CD7; cursor: pointer; margin: 0; border-radius: 4px;">
+								<input type="checkbox" name="remember" id="rememberMe" style="width: 18px; min-width: 18px; height: 18px; accent-color: var(--primary, #0A8CDE); cursor: pointer; margin: 0; border-radius: 4px;">
 								<label for="rememberMe" style="font-size: 14px; color: #475569; cursor: pointer; margin: 0; user-select: none;">{{ __('Remember me') }}</label>
 							</div>
 							<div>
-								<a href="{{ route('customer.forget.password') }}" class="forgot-link" style="font-size: 14px; color: #528CD7; text-decoration: none; font-weight: 500; transition: color 0.2s ease;">{{ __('Forgot password?') }}</a>
+								<a href="{{ route('customer.forget.password') }}" class="forgot-link" style="font-size: 14px; color: var(--primary, #0A8CDE); text-decoration: none; font-weight: 500; transition: color 0.2s ease;">{{ __('Forgot password?') }}</a>
 							</div>
 						</div>
 
@@ -67,7 +67,7 @@
 						<!-- Sign Up Footer Link matching reference wording -->
 						<p class="outer-link text-center" style="font-size: 14.5px; color: #64748b; margin-top: 32px; margin-bottom: 0;">
 							{{ __("Don't have an account with Booostr?") }} 
-							<a href="{{ url('/customer/register') }}" class="signup-link" style="color: #528CD7; font-weight: 600; text-decoration: none;">
+							<a href="{{ url('/customer/register') }}" class="signup-link" style="color: var(--primary, #0A8CDE); font-weight: 600; text-decoration: none;">
 								{{ __('Sign up today!') }}
 							</a>
 						</p>
@@ -123,8 +123,8 @@
 }
 
 .login .form-head .custom-input:focus {
-	border-color: #528CD7 !important;
-	box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.2) !important;
+	border-color: var(--primary, #0A8CDE) !important;
+	box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.2) !important;
 	background-color: #ffffff !important;
 }
 
@@ -138,16 +138,16 @@
 }
 
 .forgot-link:hover {
-	color: #3d71b5 !important;
+	color: var(--booostr-blue-hover, #0870b2) !important;
 	text-decoration: underline !important;
 }
 
 .signup-link:hover {
-	color: #3d71b5 !important;
+	color: var(--booostr-blue-hover, #0870b2) !important;
 	text-decoration: underline !important;
 }
 
-/* Login Button Styled with #528CD7 - Green hover completely eliminated */
+/* Login Button Styled with var(--primary, #0A8CDE) - Green hover completely eliminated */
 .login-button-wrapper,
 .login .form-head form .login-button-wrapper {
 	margin-top: 10px;
@@ -158,8 +158,8 @@
 .login-button-wrapper #loginSubmitBtn,
 .login .form-head form .login-button-wrapper #loginSubmitBtn,
 .login .form-head form .button #loginSubmitBtn {
-	background: #528CD7 !important;
-	background-color: #528CD7 !important;
+	background: var(--primary, #0A8CDE) !important;
+	background-color: var(--primary, #0A8CDE) !important;
 	color: #ffffff !important;
 	border: none !important;
 	height: 52px !important;
@@ -197,16 +197,16 @@
 }
 
 #loginSubmitBtn:hover:not(:disabled):not(.is-processing) {
-	background: #467fcb !important; /* Subtle theme blue - never green */
-	background-color: #467fcb !important;
+	background: var(--booostr-blue-hover, #0870b2) !important;
+	background-color: var(--booostr-blue-hover, #0870b2) !important;
 	color: #ffffff !important;
-	box-shadow: 0 4px 12px rgba(82, 140, 215, 0.25) !important;
+	box-shadow: 0 4px 12px rgba(10, 140, 222, 0.25) !important;
 }
 
 #loginSubmitBtn:focus,
 #loginSubmitBtn:active {
-	background: #467fcb !important;
-	background-color: #467fcb !important;
+	background: var(--booostr-blue-hover, #0870b2) !important;
+	background-color: var(--booostr-blue-hover, #0870b2) !important;
 	color: #ffffff !important;
 	outline: none !important;
 	box-shadow: none !important;
@@ -215,8 +215,8 @@
 #loginSubmitBtn:disabled {
 	opacity: 0.55 !important;
 	cursor: not-allowed !important;
-	background: #94b8e8 !important;
-	background-color: #94b8e8 !important;
+	background: #94a3b8 !important;
+	background-color: #94a3b8 !important;
 	box-shadow: none !important;
 }
 
@@ -224,8 +224,8 @@
 	opacity: 0.8 !important;
 	cursor: wait !important;
 	pointer-events: none !important;
-	background: #528CD7 !important;
-	background-color: #528CD7 !important;
+	background: var(--primary, #0A8CDE) !important;
+	background-color: var(--primary, #0A8CDE) !important;
 	box-shadow: none !important;
 }
 

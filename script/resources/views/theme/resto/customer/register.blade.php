@@ -211,8 +211,8 @@
 }
 
 .login .form-head .custom-input:focus {
-	border-color: #528CD7 !important;
-	box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.2) !important;
+	border-color: var(--primary, #0A8CDE) !important;
+	box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.2) !important;
 	background-color: #ffffff !important;
 }
 
@@ -241,7 +241,7 @@
 .booostr-sso-btn {
 	display: flex !important;
 	align-items: stretch !important;
-	border: 1.5px solid #528CD7 !important;
+	border: 1.5px solid var(--primary, #0A8CDE) !important;
 	border-radius: 8px !important;
 	overflow: hidden !important;
 	height: 54px !important;
@@ -250,12 +250,12 @@
 	text-decoration: none !important;
 	cursor: pointer !important;
 	transition: all 0.25s ease !important;
-	box-shadow: 0 2px 8px rgba(82, 140, 215, 0.15) !important;
+	box-shadow: 0 2px 8px rgba(10, 140, 222, 0.15) !important;
 }
 
 .booostr-sso-btn:hover {
 	opacity: 0.98 !important;
-	box-shadow: 0 4px 16px rgba(82, 140, 215, 0.3) !important;
+	box-shadow: 0 4px 16px rgba(10, 140, 222, 0.3) !important;
 }
 
 .booostr-sso-btn .sso-logo-box {
@@ -267,7 +267,7 @@
 	align-items: center !important;
 	justify-content: center !important;
 	padding: 4px 8px !important;
-	border-right: 1.5px solid #528CD7 !important;
+	border-right: 1.5px solid var(--primary, #0A8CDE) !important;
 }
 
 .booostr-sso-btn .sso-logo-box img {
@@ -280,7 +280,7 @@
 }
 
 .booostr-sso-btn .sso-text-box {
-	background: #528CD7 !important;
+	background: var(--primary, #0A8CDE) !important;
 	flex: 1 !important;
 	display: flex !important;
 	align-items: center !important;
@@ -352,7 +352,7 @@
 	margin: 0 !important;
 	padding: 0 !important;
 	cursor: pointer !important;
-	accent-color: #528CD7 !important;
+	accent-color: var(--primary, #0A8CDE) !important;
 	display: inline-block !important;
 	flex-shrink: 0 !important;
 	border: 1.5px solid #cbd5e1 !important;
@@ -370,14 +370,14 @@
 }
 
 .agree-terms-container a {
-	color: #528CD7 !important;
+	color: var(--primary, #0A8CDE) !important;
 	font-weight: 600 !important;
 	text-decoration: underline !important;
 	transition: color 0.2s ease !important;
 }
 
 .agree-terms-container a:hover {
-	color: #3d71b5 !important;
+	color: var(--booostr-blue-hover, #0870b2) !important;
 }
 
 /* reCAPTCHA Left Aligned */
@@ -389,7 +389,7 @@
 	overflow-x: auto;
 }
 
-/* Register Button Styled with #528CD7 - Green hover completely removed */
+/* Register Button Styled with var(--primary, #0A8CDE) - Green hover completely removed */
 .register-button-wrapper,
 .login .form-head form .register-button-wrapper {
 	margin-top: 24px;
@@ -400,8 +400,8 @@
 .register-button-wrapper #registerSubmitBtn,
 .login .form-head form .register-button-wrapper #registerSubmitBtn,
 .login .form-head form .button #registerSubmitBtn {
-	background: #528CD7 !important;
-	background-color: #528CD7 !important;
+	background: var(--primary, #0A8CDE) !important;
+	background-color: var(--primary, #0A8CDE) !important;
 	color: #ffffff !important;
 	border: none !important;
 	height: 48px !important;
@@ -438,16 +438,16 @@
 }
 
 #registerSubmitBtn:hover:not(:disabled):not(.is-processing) {
-	background: #467fcb !important; /* Subtle theme blue - never green */
-	background-color: #467fcb !important;
+	background: var(--booostr-blue-hover, #0870b2) !important;
+	background-color: var(--booostr-blue-hover, #0870b2) !important;
 	color: #ffffff !important;
-	box-shadow: 0 4px 12px rgba(82, 140, 215, 0.25) !important;
+	box-shadow: 0 4px 12px rgba(10, 140, 222, 0.25) !important;
 }
 
 #registerSubmitBtn:focus,
 #registerSubmitBtn:active {
-	background: #467fcb !important;
-	background-color: #467fcb !important;
+	background: var(--booostr-blue-hover, #0870b2) !important;
+	background-color: var(--booostr-blue-hover, #0870b2) !important;
 	color: #ffffff !important;
 	outline: none !important;
 	box-shadow: none !important;
@@ -465,8 +465,8 @@
 	opacity: 0.8 !important;
 	cursor: wait !important;
 	pointer-events: none !important;
-	background: #528CD7 !important;
-	background-color: #528CD7 !important;
+	background: var(--primary, #0A8CDE) !important;
+	background-color: var(--primary, #0A8CDE) !important;
 	box-shadow: none !important;
 }
 
@@ -475,14 +475,14 @@
 }
 
 .login-link {
-	color: #528CD7 !important;
+	color: var(--primary, #0A8CDE) !important;
 	font-weight: 600 !important;
 	text-decoration: none !important;
 	transition: color 0.2s ease !important;
 }
 
 .login-link:hover {
-	color: #3d71b5 !important;
+	color: var(--booostr-blue-hover, #0870b2) !important;
 	text-decoration: underline !important;
 }
 

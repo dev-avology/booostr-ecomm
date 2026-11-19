@@ -42,7 +42,7 @@
         </div>
     @else
         <!-- Fallback branded hero banner when no banner image is uploaded -->
-        <div class="store-banner-area w-100 overflow-hidden" style="background-color: #528CD7; padding: 65px 15px; min-height: 220px; display: flex; align-items: center; justify-content: center;">
+        <div class="store-banner-area w-100 overflow-hidden" style="background-color: var(--primary, #0A8CDE); padding: 65px 15px; min-height: 220px; display: flex; align-items: center; justify-content: center;">
             <div class="container text-center">
                 <h1 style="color: #ffffff; font-size: 32px; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.5px; line-height: 1.2;">{{ $displayName }}</h1>
                 <p style="color: rgba(255, 255, 255, 0.9); font-size: 15px; font-weight: 400; margin-bottom: 0;">{{ __('Official Online Store & Merchandise') }}</p>
@@ -51,7 +51,7 @@
     @endif
 @else
     <!-- Inner Pages (Cart, etc.) Breadcrumbs Area -->
-    <div class="breadcrumbs" style="{{ $hasBannerImage ? "background-image: url('{$finalBannerUrl}'); background-size: cover; background-position: center; background-repeat: no-repeat;" : 'background-color: #528CD7 !important; background-image: none !important;' }}">
+    <div class="breadcrumbs" style="{{ $hasBannerImage ? "background-image: url('{$finalBannerUrl}'); background-size: cover; background-position: center; background-repeat: no-repeat;" : 'background-color: var(--primary, #0A8CDE) !important; background-image: none !important;' }}">
         <div class="container">
             <div class="row">
                 <div class="col-lg-6 col-md-8 col-12">

@@ -17,12 +17,12 @@
 					@if(Session::has('booostr_register_action'))
 						<!-- State 3: User exists in Booostr Central API - Direct to Registration -->
 						<div class="booostr-action-container text-center mt-3 mb-2">
-							<a href="{{ Session::get('booostr_register_action') }}" class="btn w-100 mb-3" style="height: 52px; background: #528CD7; color: #ffffff; font-size: 15.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 14px rgba(82, 140, 215, 0.3); transition: all 0.25s ease;">
+							<a href="{{ Session::get('booostr_register_action') }}" class="btn w-100 mb-3" style="height: 52px; background: var(--primary, #0A8CDE); color: #ffffff; font-size: 15.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 14px rgba(10, 140, 222, 0.3); transition: all 0.25s ease;">
 								{{ __('Create Your Account') }}
 							</a>
 							<p style="font-size: 13.5px; color: #64748b; margin-top: 15px;">
 								{{ __('Need to use a different email?') }} 
-								<a href="{{ route('customer.forget.password') }}" style="color: #528CD7; font-weight: 600; text-decoration: none;">
+								<a href="{{ route('customer.forget.password') }}" style="color: var(--primary, #0A8CDE); font-weight: 600; text-decoration: none;">
 									{{ __('Try another email') }}
 								</a>
 							</p>
@@ -63,13 +63,13 @@
 					<div class="text-center mt-4 pt-2">
 						<p style="font-size: 14px; color: #64748b; margin-bottom: 8px;">
 							{{ __('Remember your password?') }} 
-							<a href="{{ url('/customer/login') }}" style="color: #528CD7; font-weight: 600; text-decoration: none;">
+							<a href="{{ url('/customer/login') }}" style="color: var(--primary, #0A8CDE); font-weight: 600; text-decoration: none;">
 								{{ __('Login here') }}
 							</a>
 						</p>
 						<p style="font-size: 14px; color: #64748b; margin-bottom: 0;">
 							{{ __("Don't have an account with Booostr?") }} 
-							<a href="{{ url('/customer/register') }}" style="color: #528CD7; font-weight: 600; text-decoration: none;">
+							<a href="{{ url('/customer/register') }}" style="color: var(--primary, #0A8CDE); font-weight: 600; text-decoration: none;">
 								{{ __('Sign up today!') }}
 							</a>
 						</p>
@@ -100,8 +100,8 @@
 }
 
 .custom-input:focus {
-	border-color: #528CD7 !important;
-	box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.18) !important;
+	border-color: var(--primary, #0A8CDE) !important;
+	box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.18) !important;
 	background-color: #ffffff !important;
 }
 
@@ -118,7 +118,7 @@
 #forgetSubmitBtn {
 	width: 100% !important;
 	height: 52px !important;
-	background-color: #528CD7 !important;
+	background-color: var(--primary, #0A8CDE) !important;
 	border: none !important;
 	border-radius: 8px !important;
 	color: #ffffff !important;
@@ -131,7 +131,7 @@
 	align-items: center !important;
 	justify-content: center !important;
 	text-decoration: none !important;
-	box-shadow: 0 4px 14px rgba(82, 140, 215, 0.25) !important;
+	box-shadow: 0 4px 14px rgba(10, 140, 222, 0.25) !important;
 	position: relative !important;
 }
 
@@ -142,9 +142,9 @@
 }
 
 #forgetSubmitBtn:hover:not(:disabled) {
-	background-color: #467fcb !important;
+	background-color: var(--booostr-blue-hover, #0870b2) !important;
 	color: #ffffff !important;
-	box-shadow: 0 6px 18px rgba(70, 127, 203, 0.35) !important;
+	box-shadow: 0 6px 18px rgba(8, 112, 178, 0.35) !important;
 	transform: translateY(-1px);
 }
 
@@ -153,7 +153,7 @@
 }
 
 #forgetSubmitBtn:disabled {
-	background-color: #a0c4f1 !important;
+	background-color: #94a3b8 !important;
 	color: #ffffff !important;
 	cursor: not-allowed !important;
 	opacity: 0.8 !important;
@@ -162,7 +162,7 @@
 }
 
 #forgetSubmitBtn.is-processing {
-	background-color: #467fcb !important;
+	background-color: var(--booostr-blue-hover, #0870b2) !important;
 	opacity: 0.9 !important;
 	cursor: wait !important;
 	pointer-events: none !important;
@@ -276,12 +276,12 @@ document.addEventListener('DOMContentLoaded', function() {
 				if (data.booostr_register_action && dynamicContent) {
 					dynamicContent.innerHTML = `
 						<div class="booostr-action-container text-center mt-3 mb-2">
-							<a href="${data.booostr_register_action}" class="btn w-100 mb-3" style="height: 52px; background: #528CD7; color: #ffffff; font-size: 15.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 14px rgba(82, 140, 215, 0.3); transition: all 0.25s ease;">
+							<a href="${data.booostr_register_action}" class="btn w-100 mb-3" style="height: 52px; background: var(--primary, #0A8CDE); color: #ffffff; font-size: 15.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 14px rgba(10, 140, 222, 0.3); transition: all 0.25s ease;">
 								${{!! json_encode(__('Create Your Account')) !!}}
 							</a>
 							<p style="font-size: 13.5px; color: #64748b; margin-top: 15px;">
 								${{!! json_encode(__('Need to use a different email?')) !!}} 
-								<a href="${window.location.href}" style="color: #528CD7; font-weight: 600; text-decoration: none;">
+								<a href="${window.location.href}" style="color: var(--primary, #0A8CDE); font-weight: 600; text-decoration: none;">
 									${{!! json_encode(__('Try another email')) !!}}
 								</a>
 							</p>

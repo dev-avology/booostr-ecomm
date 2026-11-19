@@ -26,7 +26,7 @@
 
     <div class="inner-block">
         {{-- Information Banner --}}
-        <div class="alert alert-info py-2 px-3 mb-4 d-flex align-items-center" role="alert" style="font-size: 0.9rem; border-radius: 8px; border-left: 4px solid #528CD7; background-color: #eff6ff; color: #1e40af;">
+        <div class="alert alert-info py-2 px-3 mb-4 d-flex align-items-center" role="alert" style="font-size: 0.9rem; border-radius: 8px; border-left: 4px solid var(--primary, #0A8CDE); background-color: #eff6ff; color: #1e40af;">
             <i class="icofont-info-circle me-2 fs-5"></i> 
             <div>{{ __('Ensure your new password has at least 8 characters and is different from your current password. Changing your password here will also keep your Booostr account synced.') }}</div>
         </div>
@@ -147,8 +147,8 @@
     }
 
     .password-change-block .form-control:focus {
-        border-color: #528CD7 !important;
-        box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.2) !important;
+        border-color: var(--primary, #0A8CDE) !important;
+        box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.2) !important;
         background-color: #ffffff !important;
     }
 
@@ -213,9 +213,9 @@
     }
 
     .update-password-btn {
-        background: #528CD7 !important;
-        background-color: #528CD7 !important;
-        border: 1.5px solid #528CD7 !important;
+        background: var(--primary, #0A8CDE) !important;
+        background-color: var(--primary, #0A8CDE) !important;
+        border: 1.5px solid var(--primary, #0A8CDE) !important;
         color: #ffffff !important;
         height: 48px !important;
         padding: 0 28px !important;
@@ -232,17 +232,17 @@
     }
 
     .update-password-btn:hover:not(:disabled) {
-        background: #467fcb !important; /* Brand Blue Hover - Never Green */
-        background-color: #467fcb !important;
-        border-color: #467fcb !important;
+        background: var(--booostr-blue-hover, #0870b2) !important;
+        background-color: var(--booostr-blue-hover, #0870b2) !important;
+        border-color: var(--booostr-blue-hover, #0870b2) !important;
         color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(82, 140, 215, 0.25) !important;
+        box-shadow: 0 4px 12px rgba(10, 140, 222, 0.25) !important;
     }
 
     .update-password-btn:focus,
     .update-password-btn:active {
-        background: #467fcb !important;
-        background-color: #467fcb !important;
+        background: var(--booostr-blue-hover, #0870b2) !important;
+        background-color: var(--booostr-blue-hover, #0870b2) !important;
         border-color: #467fcb !important;
         color: #ffffff !important;
         outline: none !important;

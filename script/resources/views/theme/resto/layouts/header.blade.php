@@ -818,10 +818,10 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
       }
       .custom-dropdown-item:hover {
          background-color: #f1f5f9 !important;
-         color: #528CD7 !important;
+         color: var(--primary, #0A8CDE) !important;
       }
       .custom-dropdown-item:hover i {
-         color: #528CD7 !important;
+         color: var(--primary, #0A8CDE) !important;
       }
       .custom-dropdown-item.text-danger {
          color: #dc2626 !important;
@@ -854,7 +854,7 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
          border-color: #ffffff !important;
       }
       .nav-auth-btn-register {
-         background: #528CD7 !important;
+         background: var(--primary, #0A8CDE) !important;
          color: #ffffff !important;
          font-size: 13px !important;
          font-weight: 600 !important;
@@ -865,12 +865,12 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
          line-height: 1.4 !important;
          display: inline-block !important;
-         border: 1px solid #528CD7 !important;
+         border: 1px solid var(--primary, #0A8CDE) !important;
       }
       .nav-auth-btn-register:hover {
-         background: #467fcb !important;
+         background: var(--booostr-blue-hover, #0870b2) !important;
          color: #ffffff !important;
-         border-color: #467fcb !important;
+         border-color: var(--booostr-blue-hover, #0870b2) !important;
       }
       </style>
 

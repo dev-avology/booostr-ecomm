@@ -133,8 +133,8 @@
     }
 
     .order-search-field:focus {
-        border-color: #528CD7 !important;
-        box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.2) !important;
+        border-color: var(--primary, #0A8CDE) !important;
+        box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.2) !important;
         outline: none !important;
     }
 
@@ -176,8 +176,8 @@
     }
 
     .order-filter-select:focus {
-        border-color: #528CD7 !important;
-        box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.2) !important;
+        border-color: var(--primary, #0A8CDE) !important;
+        box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.2) !important;
         outline: none !important;
     }
 
@@ -211,7 +211,7 @@
     }
 
     .order-invoice-link {
-        color: #528CD7 !important;
+        color: var(--primary, #0A8CDE) !important;
         font-size: 15px !important;
         font-weight: 700 !important;
         transition: color 0.2s ease !important;
@@ -325,8 +325,8 @@
     /* View Button */
     .view-order-btn {
         background: transparent !important;
-        border: 1.5px solid #528CD7 !important;
-        color: #528CD7 !important;
+        border: 1.5px solid var(--primary, #0A8CDE) !important;
+        color: var(--primary, #0A8CDE) !important;
         border-radius: 6px !important;
         font-size: 13px !important;
         font-weight: 600 !important;
@@ -335,9 +335,9 @@
     }
 
     .view-order-btn:hover {
-        background: #528CD7 !important;
+        background: var(--primary, #0A8CDE) !important;
         color: #ffffff !important;
-        box-shadow: 0 2px 8px rgba(82, 140, 215, 0.25) !important;
+        box-shadow: 0 2px 8px rgba(10, 140, 222, 0.25) !important;
     }
 
     /* 5. Loading Overlay */
@@ -373,7 +373,7 @@
     }
 
     .ajax-pagination .page-item .page-link {
-        color: #528CD7 !important;
+        color: var(--primary, #0A8CDE) !important;
         border: 1px solid #e2e8f0 !important;
         border-radius: 6px !important;
         margin: 0 3px !important;
@@ -382,8 +382,8 @@
     }
 
     .ajax-pagination .page-item.active .page-link {
-        background-color: #528CD7 !important;
-        border-color: #528CD7 !important;
+        background-color: var(--primary, #0A8CDE) !important;
+        border-color: var(--primary, #0A8CDE) !important;
         color: #ffffff !important;
     }
 </style>

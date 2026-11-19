@@ -30,7 +30,7 @@
 							{{ __('This password reset link is invalid or has expired. Please request a new reset link.') }}
 						</div>
 						<div class="text-center mt-3">
-							<a href="{{ route('customer.forget.password') }}" class="btn w-100" style="height: 52px; background: #528CD7; color: #ffffff; font-size: 15.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 14px rgba(82, 140, 215, 0.3);">
+							<a href="{{ route('customer.forget.password') }}" class="btn w-100" style="height: 52px; background: var(--primary, #0A8CDE); color: #ffffff; font-size: 15.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 14px rgba(10, 140, 222, 0.3);">
 								{{ __('Request New Reset Link') }}
 							</a>
 						</div>
@@ -97,7 +97,7 @@
 					<div class="text-center mt-4 pt-2">
 						<p style="font-size: 14px; color: #64748b; margin-bottom: 0;">
 							{{ __('Remembered your password?') }} 
-							<a href="{{ url('/customer/login') }}" style="color: #528CD7; font-weight: 600; text-decoration: none;">
+							<a href="{{ url('/customer/login') }}" style="color: var(--primary, #0A8CDE); font-weight: 600; text-decoration: none;">
 								{{ __('Back to login') }}
 							</a>
 						</p>
@@ -128,8 +128,8 @@
 }
 
 .custom-input:focus {
-	border-color: #528CD7 !important;
-	box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.18) !important;
+	border-color: var(--primary, #0A8CDE) !important;
+	box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.18) !important;
 	background-color: #ffffff !important;
 }
 
@@ -139,7 +139,7 @@
 }
 
 .password-toggle-icon:hover {
-	color: #528CD7 !important;
+	color: var(--primary, #0A8CDE) !important;
 }
 
 .reset-button-wrapper {
@@ -149,7 +149,7 @@
 #resetSubmitBtn {
 	width: 100% !important;
 	height: 52px !important;
-	background-color: #528CD7 !important;
+	background-color: var(--primary, #0A8CDE) !important;
 	border: none !important;
 	border-radius: 8px !important;
 	color: #ffffff !important;
@@ -162,7 +162,7 @@
 	align-items: center !important;
 	justify-content: center !important;
 	text-decoration: none !important;
-	box-shadow: 0 4px 14px rgba(82, 140, 215, 0.25) !important;
+	box-shadow: 0 4px 14px rgba(10, 140, 222, 0.25) !important;
 	position: relative !important;
 }
 
@@ -173,9 +173,9 @@
 }
 
 #resetSubmitBtn:hover:not(:disabled) {
-	background-color: #467fcb !important;
+	background-color: var(--booostr-blue-hover, #0870b2) !important;
 	color: #ffffff !important;
-	box-shadow: 0 6px 18px rgba(70, 127, 203, 0.35) !important;
+	box-shadow: 0 6px 18px rgba(8, 112, 178, 0.35) !important;
 	transform: translateY(-1px);
 }
 
@@ -184,7 +184,7 @@
 }
 
 #resetSubmitBtn:disabled {
-	background-color: #a0c4f1 !important;
+	background-color: #94a3b8 !important;
 	color: #ffffff !important;
 	cursor: not-allowed !important;
 	opacity: 0.8 !important;
@@ -193,7 +193,7 @@
 }
 
 #resetSubmitBtn.is-processing {
-	background-color: #467fcb !important;
+	background-color: var(--booostr-blue-hover, #0870b2) !important;
 	opacity: 0.9 !important;
 	cursor: wait !important;
 	pointer-events: none !important;

@@ -23,7 +23,7 @@
 	.order-view-title-clean span {
 		background-image: none !important;
 		background: none !important;
-		color: #528CD7 !important;
+		color: var(--primary, #0A8CDE) !important;
 		font-weight: 700 !important;
 		display: inline-block !important;
 	}
@@ -36,7 +36,7 @@
 		border-radius: 6px !important;
 		font-size: 13px !important;
 		font-weight: 500 !important;
-		color: #528CD7 !important;
+		color: var(--primary, #0A8CDE) !important;
 		background: #F0F5FD !important;
 		border: 1px solid #D6E4F8 !important;
 		text-decoration: none !important;
@@ -45,9 +45,9 @@
 	}
 
 	.btn-back-history:hover {
-		background: #528CD7 !important;
+		background: var(--primary, #0A8CDE) !important;
 		color: #ffffff !important;
-		border-color: #528CD7 !important;
+		border-color: var(--primary, #0A8CDE) !important;
 	}
 
 	.rating-main {
@@ -135,10 +135,10 @@
 
 	/* Total Amount Block */
 	.total-am-top .total-amount {
-		background: #528CD7 !important;
+		background: var(--primary, #0A8CDE) !important;
 		border-radius: 8px !important;
 		color: #ffffff !important;
-		box-shadow: 0 4px 12px rgba(82, 140, 215, 0.25) !important;
+		box-shadow: 0 4px 12px rgba(10, 140, 222, 0.25) !important;
 	}
 
 	.total-am-top .total-amount span {

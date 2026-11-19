@@ -187,8 +187,8 @@
 
 	.profile-settings-block .form-control:focus,
 	.profile-settings-block select:focus {
-		border-color: #528CD7 !important;
-		box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.2) !important;
+		border-color: var(--primary, #0A8CDE) !important;
+		box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.2) !important;
 		background-color: #ffffff !important;
 	}
 
@@ -235,9 +235,9 @@
 	}
 
 	.profile-upload-btn {
-		background: #528CD7 !important;
-		background-color: #528CD7 !important;
-		border: 1.5px solid #528CD7 !important;
+		background: var(--primary, #0A8CDE) !important;
+		background-color: var(--primary, #0A8CDE) !important;
+		border: 1.5px solid var(--primary, #0A8CDE) !important;
 		color: #ffffff !important;
 		height: 42px !important;
 		padding: 0 22px !important;
@@ -253,17 +253,17 @@
 	}
 	.profile-upload-btn:hover,
 	.profile-upload-btn:focus {
-		background: #467fcb !important;
-		background-color: #467fcb !important;
-		border-color: #467fcb !important;
+		background: var(--booostr-blue-hover, #0870b2) !important;
+		background-color: var(--booostr-blue-hover, #0870b2) !important;
+		border-color: var(--booostr-blue-hover, #0870b2) !important;
 		color: #ffffff !important;
-		box-shadow: 0 2px 8px rgba(82, 140, 215, 0.25) !important;
+		box-shadow: 0 2px 8px rgba(10, 140, 222, 0.25) !important;
 	}
 
 	#saveProfileBtn {
-		background: #528CD7 !important;
-		background-color: #528CD7 !important;
-		border: 1.5px solid #528CD7 !important;
+		background: var(--primary, #0A8CDE) !important;
+		background-color: var(--primary, #0A8CDE) !important;
+		border: 1.5px solid var(--primary, #0A8CDE) !important;
 		color: #ffffff !important;
 		height: 48px !important;
 		padding: 0 32px !important;
@@ -279,36 +279,36 @@
 		cursor: pointer !important;
 	}
 	#saveProfileBtn:hover:not(:disabled):not(.is-processing) {
-		background: #467fcb !important; /* Consistent Brand Blue Hover - Never Green */
-		background-color: #467fcb !important;
-		border-color: #467fcb !important;
+		background: var(--booostr-blue-hover, #0870b2) !important;
+		background-color: var(--booostr-blue-hover, #0870b2) !important;
+		border-color: var(--booostr-blue-hover, #0870b2) !important;
 		color: #ffffff !important;
-		box-shadow: 0 4px 12px rgba(82, 140, 215, 0.25) !important;
+		box-shadow: 0 4px 12px rgba(10, 140, 222, 0.25) !important;
 	}
 	#saveProfileBtn:focus,
 	#saveProfileBtn:active {
-		background: #467fcb !important;
-		background-color: #467fcb !important;
-		border-color: #467fcb !important;
+		background: var(--booostr-blue-hover, #0870b2) !important;
+		background-color: var(--booostr-blue-hover, #0870b2) !important;
+		border-color: var(--booostr-blue-hover, #0870b2) !important;
 		color: #ffffff !important;
 		outline: none !important;
-		box-shadow: 0 0 0 3px rgba(82, 140, 215, 0.25) !important;
+		box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.25) !important;
 	}
 	#saveProfileBtn:disabled {
 		opacity: 0.55 !important;
 		cursor: not-allowed !important;
-		background: #94b8e8 !important;
-		background-color: #94b8e8 !important;
-		border-color: #94b8e8 !important;
+		background: #94a3b8 !important;
+		background-color: #94a3b8 !important;
+		border-color: #94a3b8 !important;
 		box-shadow: none !important;
 	}
 	#saveProfileBtn.is-processing {
 		opacity: 0.8 !important;
 		cursor: wait !important;
 		pointer-events: none !important;
-		background: #528CD7 !important;
-		background-color: #528CD7 !important;
-		border-color: #528CD7 !important;
+		background: var(--primary, #0A8CDE) !important;
+		background-color: var(--primary, #0A8CDE) !important;
+		border-color: var(--primary, #0A8CDE) !important;
 		box-shadow: none !important;
 	}
 </style>
