@@ -79,13 +79,7 @@ function render_primary_product(products, target,additional_class='') {
             i > product.rating ? ratings += review_half: ratings += review_full;
         }
 
-        var rating_html=`<div class="rating-main">
-                    <ul class="rating">
-
-                    ${product.rating != null ? ratings : ''}
-                    </ul>
-                    <a href="#" class="total-review">${product.rating != null ? '('+product.rating+') Review' : ''}</a>
-               </div>`;
+        var rating_html='';
 
         var html=`<div class="col-lg-3 col-md-6 col-6 ${additional_class}">
                                         <div class="single-popular-product">
@@ -100,7 +94,6 @@ function render_primary_product(products, target,additional_class='') {
                                             <div class="single-item-text">
                                                 <h4 class="single-item-price">${price}</h4>
                                                 <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,20)}</a></h3>
-                                                ${product.rating != null ? rating_html : ''}
                                                 <p>${str_limit(product.excerpt != null ? product.excerpt.value : '',30)}</p>
                                             </div>
                                             <div class="single-item-bottom">
@@ -133,9 +126,7 @@ function render_primary_product(products, target,additional_class='') {
                                                         </div>
                                                         <div class="single-item-text">
                                                             <h4 class="single-item-price">${price}</h4>
-                                                            <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,20)}</a></h3><div class="rating-main">
-                                                                ${rating_html}
-                                                            </div>
+                                                            <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,20)}</a></h3>
                                                             <p>${str_limit(product.excerpt != null ? product.excerpt.value : '',100)}</p>
                                                         </div>
                                                         <div class="single-item-bottom">

@@ -5536,3 +5536,12 @@ Version:	1.0
     margin: 0;
     line-height: 1.6;
 }
+
+/* Hide reviews and rating stars globally on customer frontend */
+.rating-main,
+.ratting-main,
+.reviews-panel,
+#reviews-tab,
+#reviews {
+    display: none !important;
+}
