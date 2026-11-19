@@ -597,7 +597,7 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                      <nav class="navbar navbar-expand-lg">
                         <a class="navbar-brand" href="{{ url('/') }}" id="clubBrandContainer" style="display: inline-flex; align-items: center; text-decoration: none; margin-right: 30px; background: transparent !important;">
                            @if(!empty($clubLogo))
-                              <img id="clubNavbarLogo" src="{{ $clubLogo }}" alt="{{ $clubName }}" style="max-height: 44px; width: auto; object-fit: contain; display: block; background: transparent !important; filter: brightness(0) invert(1); -webkit-filter: brightness(0) invert(1);" />
+                              <img id="clubNavbarLogo" src="{{ $clubLogo }}" alt="{{ $clubName }}" style="max-height: 44px; width: auto; object-fit: contain; display: block; background: transparent !important;" />
                            @elseif(!empty($clubName))
                               <span id="clubNavbarName" style="font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.3px; display: inline-block;">{{ $clubName }}</span>
                            @endif
