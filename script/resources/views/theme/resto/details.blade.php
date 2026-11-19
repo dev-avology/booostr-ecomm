@@ -99,7 +99,7 @@
 											<span class="stock_status_display">
 												@if(!$hasVariations)
 													@if(!$isOutOfStock)
-														<span class="badge bg-success" style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">{{ __('In Stock') }}</span>
+														<span class="badge" style="background-color: var(--primary, #0A8CDE) !important; color: #ffffff !important; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">{{ __('In Stock') }}</span>
 													@else
 														<span class="badge" style="background-color: #94a3b8 !important; color: #ffffff !important; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">{{ __('Out of Stock') }}</span>
 													@endif
@@ -196,7 +196,7 @@
 											</div>
 										</div>
 										<div class="add-to-cart button">
-											<button type="submit" class="btn add_to_cart_form_btn" @if($isOutOfStock) disabled style="background: #94a3b8 !important; border-color: #94a3b8 !important; cursor: not-allowed;" @endif>
+											<button type="submit" class="btn add_to_cart_form_btn" @if($isOutOfStock) disabled style="background: #94a3b8 !important; border-color: #94a3b8 !important; cursor: not-allowed;" @else style="background: var(--primary, #0A8CDE) !important; border-color: var(--primary, #0A8CDE) !important; color: #ffffff !important;" @endif>
 												{{ $isOutOfStock ? __('Out of Stock') : __('Add to cart') }}
 											</button>
 										</div>
@@ -254,5 +254,5 @@
 <script src="{{ asset('admin/js/sweetalert2.all.min.js') }}"></script>
 <script src="{{ asset('admin/js/form.js') }}"></script>
 <script src="{{ asset('theme/jquery.unveil.js') }}"></script>
-<script src="{{ asset('theme/resto/js/product-details.js?v='.(tenant('cache_version') ?: '2.7')) }}"></script>
+<script src="{{ asset('theme/resto/js/product-details.js?v='.(tenant('cache_version') ?: '2.8')) }}"></script>
 @endpush

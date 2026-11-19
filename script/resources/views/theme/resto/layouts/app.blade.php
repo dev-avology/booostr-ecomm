@@ -199,6 +199,47 @@
                height: 60px;
             }
          }
+         /* Product Details Add to Cart button: strictly Booostr Blue with NO hover effect */
+         .single-item-des .add-to-cart .btn,
+         .single-item-des .add-to-cart .btn.add_to_cart_form_btn {
+            background: var(--primary, #0A8CDE) !important;
+            background-color: var(--primary, #0A8CDE) !important;
+            border-color: var(--primary, #0A8CDE) !important;
+            color: #ffffff !important;
+            border-radius: 6px !important;
+            padding: 12px 28px !important;
+            font-weight: 600 !important;
+            box-shadow: none !important;
+            transition: none !important;
+         }
+         .single-item-des .add-to-cart .btn:hover,
+         .single-item-des .add-to-cart .btn:focus,
+         .single-item-des .add-to-cart .btn:active,
+         .single-item-des .add-to-cart .btn.add_to_cart_form_btn:hover,
+         .single-item-des .add-to-cart .btn.add_to_cart_form_btn:focus,
+         .single-item-des .add-to-cart .btn.add_to_cart_form_btn:active {
+            background: var(--primary, #0A8CDE) !important;
+            background-color: var(--primary, #0A8CDE) !important;
+            border-color: var(--primary, #0A8CDE) !important;
+            color: #ffffff !important;
+            box-shadow: none !important;
+            transform: none !important;
+         }
+         .single-item-des .add-to-cart .btn::before,
+         .single-item-des .add-to-cart .btn::after,
+         .single-item-des .add-to-cart .btn.add_to_cart_form_btn::before,
+         .single-item-des .add-to-cart .btn.add_to_cart_form_btn::after {
+            display: none !important;
+            content: none !important;
+         }
+         .single-item-des .add-to-cart .btn[disabled],
+         .single-item-des .add-to-cart .btn.add_to_cart_form_btn[disabled] {
+            background: #94a3b8 !important;
+            background-color: #94a3b8 !important;
+            border-color: #94a3b8 !important;
+            color: #ffffff !important;
+            cursor: not-allowed !important;
+         }
       </style>
       @stack('css')
       {{ load_header() }}

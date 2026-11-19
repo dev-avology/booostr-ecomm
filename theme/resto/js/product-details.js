@@ -16,7 +16,7 @@ $('.pricesvariations').on('change',function(){
 	if ($(this).is(':checked')){
 		var isOut = (stockstatus == 0) || (stockmanage == 1 && parseInt(qty) <= 0);
 		var stockstatus_html = !isOut ? 
-			'<span class="badge bg-success" style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">In Stock</span>' : 
+			'<span class="badge" style="background-color: var(--primary, #0A8CDE) !important; color: #ffffff !important; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">In Stock</span>' : 
 			'<span class="badge" style="background-color: #94a3b8 !important; color: #ffffff !important; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">Out of Stock</span>';
 		$('.stock_status_display').html(stockstatus_html);
 		$('.stock_status').show();
