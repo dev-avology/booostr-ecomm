@@ -46,7 +46,7 @@
 									@foreach($galleries ?? [] as $key => $row)
 									<li class="single-thumbs" role="presentation">
 										<a class="{{ $key == 0 ? 'active' : '' }}" id="pills-home-tab{{ $key }}" data-bs-toggle="pill" href="#pills-home{{ $key }}" role="tab" aria-controls="pills-home" aria-selected="true">
-											<img height="100" src="{{ asset($row) }}" alt="{{ $info->title }}">
+											<img src="{{ asset($row) }}" alt="{{ $info->title }}">
 										</a>
 									</li>
 									@endforeach
