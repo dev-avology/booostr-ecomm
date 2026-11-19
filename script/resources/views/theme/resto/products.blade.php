@@ -66,16 +66,6 @@
 					
 					<div class="col-lg-3 col-12">
 						<div class="category-sidebar">
-							<!-- Single Widget -->
-							@if(!empty($products_page_product_ads_link))
-							<div class="single-widget">
-								<h3 class="wd-title">{{ __('Special Offer') }}</h3>
-								<div class="recommend-img">
-									<a href="{{ url($products_page_product_ads_link) }}"><img src="{{ asset($products_page_product_ads_banner) }}" alt=""></a>
-								</div>
-							</div>
-							@endif
-							<!-- End Single Widget -->
 							<div class="single-widget categories-widget food category_area">
 								<h3 class="wd-title">{{ __('Categories') }}</h3>
 								<ul class="custom product_menu">
@@ -87,7 +77,7 @@
 								</ul>
 							</div>
 							<div class="single-widget categories-widget food none brand_area">
-								<h4 class="wd-title">{{ __('Brands') }}</h4>
+								<h3 class="wd-title">{{ __('Brands') }}</h3>
 								<ul class="custom product_brands">
 								</ul>
 							</div>

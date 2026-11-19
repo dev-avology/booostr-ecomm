@@ -76,7 +76,11 @@ class DataController extends Controller
         $categories=$orderby == 'ASC' ? $categories : $categories->latest();
         $categories= $with == '' ? $categories : $categories->with($with);
 
-        $categories=$withcount != false ? $categories->withCount('termcategories') : $categories;
+        $categories=$withcount != false ? $categories->withCount(['termcategories' => function($q) {
+            $q->whereHas('term', function($t) {
+                $t->where('status', 1);
+            });
+        }]) : $categories;
 
         return $categories->get(); 
 
@@ -99,7 +103,11 @@ class DataController extends Controller
         $categories=$featured == false ? $categories : $categories->where('featured',$featured);
 
         $categories= $orderby == 'ASC' ? $categories : $categories->latest();
-        $categories= $withcount != false ? $categories->withCount('termcategories') : $categories;
+        $categories= $withcount != false ? $categories->withCount(['termcategories' => function($q) {
+            $q->whereHas('term', function($t) {
+                $t->where('status', 1);
+            });
+        }]) : $categories;
         $categories= $with == '' ? $categories : $categories->with($with);
         return $categories->get(); 
 
@@ -119,7 +127,11 @@ class DataController extends Controller
         $categories= $with_child == false ? $categories : $categories->where('category_id',null)->with('childrenCategories');
 
         $categories= $orderby == 'ASC' ? $categories : $categories->latest();
-        $categories= $withcount != false ? $categories->withCount('termcategories') : $categories;
+        $categories= $withcount != false ? $categories->withCount(['termcategories' => function($q) {
+            $q->whereHas('term', function($t) {
+                $t->where('status', 1);
+            });
+        }]) : $categories;
         $categories= $with == '' ? $categories : $categories->with($with);
         return $categories->get(); 
 
@@ -135,13 +147,21 @@ class DataController extends Controller
         $withcount = $types['withcount'] ?? false;
         $random=$types['random'] ?? false;
 
-        $categories=Category::query()->where('type',$type)->where('status',1)->whereHas('termcategories')->select('id','name','type');
+        $categories=Category::query()->where('type',$type)->where('status',1)->whereHas('termcategories', function($q) {
+            $q->whereHas('term', function($t) {
+                $t->where('status', 1);
+            });
+        })->select('id','name','type');
         $categories= $random != false ?  $categories->inRandomOrder() : $categories;
         $categories= $limit == '-1' ? $categories : $categories->take($limit);
         $categories= $with_child == false ? $categories : $categories->where('category_id',null)->with('childrenCategories');
 
         $categories= $orderby == 'ASC' ? $categories : $categories->latest();
-        $categories= $withcount != false ? $categories->withCount('termcategories') : $categories;
+        $categories= $withcount != false ? $categories->withCount(['termcategories' => function($q) {
+            $q->whereHas('term', function($t) {
+                $t->where('status', 1);
+            });
+        }]) : $categories;
         $categories= $with == '' ? $categories : $categories->with($with);
         return $categories->get(); 
     }

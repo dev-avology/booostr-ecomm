@@ -65,32 +65,40 @@ $.ajax({
 
        var cat=$('#cat').val();
 
-       $.each(response.categories, function(key, category) {
-	       	if(cat == category.id){
-	       		var selected="active";
-	       	}
-	       	else{
-	       		var selected='';
-	       	}
-       		var html=`<li><a data-count="${category.termcategories_count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${category.termcategories_count}</span></a></li>`;
-        	$('.product_menu').append(html);
-        });
+       if (response.categories && response.categories.length > 0) {
+           $.each(response.categories, function(key, category) {
+               if(cat == category.id){
+                   var selected="active";
+               }
+               else{
+                   var selected='';
+               }
+               var count = parseInt(category.termcategories_count) || 0;
+               var html=`<li><a data-count="${count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
+               $('.product_menu').append(html);
+           });
+       } else {
+           $('.product_menu').append('<li class="no-item-msg" style="padding: 14px 20px; background: #f8fafc; color: #64748b; font-size: 14px; font-weight: 500; border-radius: 4px; border: 1px dashed #cbd5e1; text-align: center;">No categories available</li>');
+       }
 
-       response.categories.length == 0 ? $('.category_area').remove() : '';
+       $('.brand_area').removeClass('none').show();
+       $('.product_brands').empty();
 
-       $.each(response.brands, function(key, category) {
-	       	if(cat == category.id){
-	       		var selected="active";
-	       	}
-	       	else{
-	       		var selected='';
-	       	}
-
-       		var html=`<li><a data-count="${category.termcategories_count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${category.termcategories_count}</span></a></li>`;
-        	$('.product_brands').append(html);
-        });
-
-       response.brands.length > 0 ? $('.brand_area').show() : '';
+       if (response.brands && response.brands.length > 0) {
+           $.each(response.brands, function(key, category) {
+               if(cat == category.id){
+                   var selected="active";
+               }
+               else{
+                   var selected='';
+               }
+               var count = parseInt(category.termcategories_count) || 0;
+               var html=`<li><a data-count="${count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
+               $('.product_brands').append(html);
+           });
+       } else {
+           $('.product_brands').append('<li class="no-item-msg" style="padding: 14px 20px; background: #f8fafc; color: #64748b; font-size: 14px; font-weight: 500; border-radius: 4px; border: 1px dashed #cbd5e1; text-align: center;">No brands available</li>');
+       }
 
        var featuredids=[];
        $.each(response.randomfeatures, function(key, category) {

@@ -50,14 +50,16 @@ $.ajax({
     success: function(response) {
        $('.menu_preload').remove();
 
-       $.each(response.productmenu, function(key, category) {
-         	categories.push(category.id);
-       		var html=`<li><a data-count="${category.termcategories_count}" data-id="${category.id}" class="menu_item" href="javascript:void(0)">${category.name}<span>${category.termcategories_count}</span></a></li>`;
-        	
-        	$('.product_menu').append(html);
-        	
-        	
-        });
+       if (response.productmenu && response.productmenu.length > 0) {
+           $.each(response.productmenu, function(key, category) {
+             	categories.push(category.id);
+                var count = parseInt(category.termcategories_count) || 0;
+           		var html=`<li><a data-count="${count}" data-id="${category.id}" class="menu_item" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
+            	$('.product_menu').append(html);
+           });
+       } else {
+           $('.product_menu').append('<li class="no-item-msg" style="padding: 14px 20px; background: #f8fafc; color: #64748b; font-size: 14px; font-weight: 500; border-radius: 4px; border: 1px dashed #cbd5e1; text-align: center;">No categories available</li>');
+       }
 
        getproducts(base_url + '/get-product');
 
