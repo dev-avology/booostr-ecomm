@@ -1,4 +1,7 @@
 @extends('theme.resto.layouts.app')
+@php
+$page_data = $page_data ?? null;
+@endphp
 @section('content')
 @include('theme.resto.components.page-banner', ['is_home' => true])
       
@@ -40,7 +43,7 @@
                <div class="col-lg-6 offset-lg-3 col-md-8 offset-md-2 col-12">
                   <div class="section__title text-center">
                      <span class="sub__title wow fadeInUp" data-wow-delay=".2s">{{ $page_data->products_area_short_title ?? 'For you' }}</span>
-                     <h2 class="main__title wow fadeInUp" data-wow-delay=".4s"><span></span>{{ $page_data->products_area_title ?? 'Latest Foods' }}</h2>
+                     <h2 class="main__title wow fadeInUp" data-wow-delay=".4s"><span></span>{{ $page_data->products_area_title ?? 'Latest Products' }}</h2>
                      <p class="section__text">{{ $page_data->products_area_description ?? '' }}</p>
                   </div>
                </div>

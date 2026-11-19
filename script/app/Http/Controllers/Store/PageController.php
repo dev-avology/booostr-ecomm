@@ -31,7 +31,7 @@ class PageController extends Controller
             : (tenant('store_name') ?: 'Booostr');
 
         $pageTitle = $clubName . ' - Online Store';
-        $pageDescription = 'Shop products, event tickets, and support ' . $clubName . ' on Booostr.';
+        $pageDescription = "Official online store for {$clubName}. Browse and shop our products securely on Booostr.";
 
         SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($pageDescription);
@@ -43,12 +43,10 @@ class PageController extends Controller
         TwitterCard::setTitle($pageTitle);
         TwitterCard::setDescription($pageDescription);
 
-        $home_data = optionfromcache('home_page');
-        $page_data = $home_data->meta ?? '';
         $store_banner_image = optionfromcache('banner_logo') ?: (get_option('banner_logo') ?: '');
         $store_banner_url = optionfromcache('banner_url') ?: (get_option('banner_url') ?: '');
 
-        return view(baseview('index'), compact('page_data', 'store_banner_image', 'store_banner_url'));
+        return view(baseview('index'), compact('store_banner_image', 'store_banner_url'));
     }
 
     public function category_product(Request $request)
