@@ -1,13 +1,13 @@
 @if(!empty($menus))
 	@php
 	$mainMenus=$menus['data'] ?? [];
-	$hiddenMenus = ['menu', 'blogs', 'customer', 'rider'];
+	$hiddenMenus = ['menu', 'blogs', 'customer', 'rider', 'pages'];
 	@endphp
 	@foreach ($mainMenus ?? [] as $row) 
 		@php
 		$menuText = strtolower(trim($row->text ?? ''));
 		$menuHref = strtolower(trim($row->href ?? ''));
-		if (in_array($menuText, $hiddenMenus, true) || $menuHref === '/menu' || $menuHref === '/blog' || $menuHref === '/blogs') {
+		if (in_array($menuText, $hiddenMenus, true) || $menuHref === '/menu' || $menuHref === '/blog' || $menuHref === '/blogs' || $menuText === 'pages') {
 			continue;
 		}
 		@endphp
