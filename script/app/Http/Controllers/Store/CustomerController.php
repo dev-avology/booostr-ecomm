@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Order;
+use App\Models\Ordermeta;
 use App\Models\Review;
 use App\Models\Term;
 use Auth;
@@ -262,6 +263,9 @@ class CustomerController extends Controller
         if ($authenticatedUser) {
             Auth::login($authenticatedUser, $remember);
             session(['seller_session_active' => false]);
+
+            // Auto-claim unassigned guest orders placed with customer's email
+            $this->claimGuestOrdersByEmail($authenticatedUser);
 
             // Redirect user to intended checkout / customer dashboard destination
             // (Storefront login ALWAYS directs users to the customer portal, never seller/admin)
@@ -535,6 +539,9 @@ class CustomerController extends Controller
 
         Auth::loginUsingId($user->id);
 
+        // Auto-claim unassigned guest orders placed with customer's email
+        $this->claimGuestOrdersByEmail($user);
+
         $intended = session()->pull('url.intended');
         if ($intended && (str_contains($intended, '/checkout') || str_contains($intended, 'checkout'))) {
             return redirect()->to($intended);
@@ -548,6 +555,9 @@ class CustomerController extends Controller
         abort_if(tenant('customer_modules') != 'on',404);
 
         try {
+            // Auto-claim any unassigned orders matching the customer's email
+            $this->claimGuestOrdersByEmail();
+
             $total_orders = Order::where('user_id', Auth::id())->count();
             $total_pending_orders = Order::where('user_id', Auth::id())
                 ->where('status_id', '!=', 2)
@@ -601,6 +611,9 @@ class CustomerController extends Controller
         abort_if(tenant('customer_modules') != 'on', 404);
 
         try {
+            // Auto-claim any unassigned orders matching the customer's email
+            $this->claimGuestOrdersByEmail();
+
             $query = Order::where('user_id', Auth::id())
                 ->with(['orderstatus', 'orderitems:id,order_id,qty'])
                 ->withCount('orderitems');
@@ -661,6 +674,7 @@ class CustomerController extends Controller
     public function orderview($id)
     {
         abort_if(tenant('customer_modules') != 'on',404);
+        $this->claimGuestOrdersByEmail();
         $info=Order::where('user_id',Auth::id())->with('orderitemswithpreview','shippingwithinfo','orderstatus','ordermeta','schedule','reviews')->findorFail($id);
         SEOMeta::setTitle($info->invoice_no);
         $reviews=[];
@@ -1340,5 +1354,75 @@ class CustomerController extends Controller
             'msg' => __('Password Changed Successfully'),
             'type' => 'success'
         ]);
+    }
+
+    /**
+     * Automatically claims unassigned guest orders matching the customer's email address.
+     * Only affects orders with user_id NULL or 0 in the tenant store.
+     *
+     * @param \App\Models\User|null $user
+     * @return int
+     */
+    protected function claimGuestOrdersByEmail($user = null)
+    {
+        try {
+            $user = $user ?: Auth::user();
+            if (!$user || empty($user->email)) {
+                return 0;
+            }
+
+            $userEmail = strtolower(trim($user->email));
+
+            // Fast check: Are there any orders with user_id NULL or 0?
+            $unassignedOrderIds = Order::where(function ($q) {
+                $q->whereNull('user_id')->orWhere('user_id', 0);
+            })->pluck('id')->toArray();
+
+            if (empty($unassignedOrderIds)) {
+                return 0;
+            }
+
+            // Look up orderinfo metadata for these unassigned orders
+            $orderMetas = Ordermeta::whereIn('order_id', $unassignedOrderIds)
+                ->where('key', 'orderinfo')
+                ->get(['order_id', 'value']);
+
+            $claimedIds = [];
+            foreach ($orderMetas as $meta) {
+                if (empty($meta->value)) {
+                    continue;
+                }
+                $info = json_decode($meta->value, true);
+                if (is_array($info) && !empty($info['email'])) {
+                    if (strtolower(trim($info['email'])) === $userEmail) {
+                        $claimedIds[] = (int) $meta->order_id;
+                    }
+                }
+            }
+
+            if (!empty($claimedIds)) {
+                $claimedIds = array_unique($claimedIds);
+                Order::whereIn('id', $claimedIds)
+                    ->where(function ($q) {
+                        $q->whereNull('user_id')->orWhere('user_id', 0);
+                    })
+                    ->update(['user_id' => $user->id]);
+
+                \Log::info("Claimed guest orders for customer", [
+                    'user_id' => $user->id,
+                    'email' => $userEmail,
+                    'claimed_order_ids' => $claimedIds,
+                ]);
+
+                return count($claimedIds);
+            }
+        } catch (\Throwable $e) {
+            \Log::error("Error linking guest orders to customer: " . $e->getMessage(), [
+                'user_id' => $user->id ?? null,
+                'email' => $user->email ?? null,
+            ]);
+        }
+
+        return 0;
     }
 }
