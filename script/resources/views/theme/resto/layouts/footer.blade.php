@@ -48,9 +48,13 @@ try {
                      <h3>{{ __('Shop Categories') }}</h3>
                      <ul>
                         <li><a href="{{ url('/products') }}">{{ __('All Categories') }}</a></li>
-                        @foreach($footerCategories as $fCat)
-                           <li><a href="{{ url('/category/' . $fCat->slug) }}">{{ $fCat->name }}</a></li>
-                        @endforeach
+                        @if(!empty($footerCategories) && count($footerCategories) > 0)
+                           @foreach($footerCategories as $fCat)
+                              @if(!empty($fCat->slug) && !empty($fCat->name))
+                                 <li><a href="{{ url('/category/' . $fCat->slug) }}">{{ $fCat->name }}</a></li>
+                              @endif
+                           @endforeach
+                        @endif
                      </ul>
                   </div>
                </div>
