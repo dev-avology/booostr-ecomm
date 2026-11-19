@@ -399,7 +399,7 @@ $(document).on('click', '.filter_products', function () {
 
         var callbackdata = {
             "with_paginate": false,
-            "limit": 30,
+            "limit": 12,
             "categories": arr,
             "with": ["preview", "excerpt"]
         }
