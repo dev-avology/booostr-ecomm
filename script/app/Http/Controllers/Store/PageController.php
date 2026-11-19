@@ -678,7 +678,7 @@ class PageController extends Controller
                 $wpUrl = env("WP_CLUB_URL");
                 $syncUrl = !empty($wpUrl) 
                     ? rtrim($wpUrl, '/') . '/wp-json/store-api/v1/sync-store-form-data/' 
-                    : 'https://staging3.booostr.co/wp-json/store-api/v1/sync-store-form-data/';
+                    : 'https://app.booostr.co/wp-json/store-api/v1/sync-store-form-data/';
 
                 $syncPayload = [
                     'form_id' => $form_id,
@@ -709,27 +709,6 @@ class PageController extends Controller
                 if ($curlError || ($httpCode >= 400 && $httpCode < 600)) {
                     \Log::warning('Booostr contact sync HTTP warning: ' . $httpCode . ' Response: ' . $syncResponse);
                 }
-            }
-
-            // Notification email to store legal email if configured
-            try {
-                $senderEmail = $request->input('email') ?: ($request->input('email_address') ?: null);
-                $senderName = $request->input('name') ?: ($request->input('full_name') ?: 'Store Visitor');
-                $subject = $request->input('subject') ?: __('New Contact Form Submission');
-                $messageContent = $request->input('message') ?: ($request->input('comment') ?: json_encode($submittedFields));
-
-                $emailRecipient = get_option('invoice_data', true)->store_legal_email ?? null;
-                if ($emailRecipient) {
-                    $mailData = [
-                        'name' => $senderName,
-                        'message' => $messageContent,
-                        'subject' => $subject,
-                        'email' => $senderEmail ?: 'no-reply@booostr.com'
-                    ];
-                    Mail::to($emailRecipient)->send(new ContactMail($mailData));
-                }
-            } catch (\Throwable $mailEx) {
-                \Log::error('Contact notification email error: ' . $mailEx->getMessage());
             }
 
             return response()->json(__('Message Sent Successfully'));
