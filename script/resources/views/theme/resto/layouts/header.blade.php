@@ -52,8 +52,8 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
       <!-- Shopping Item -->
       <div class="shopping-item" id="booostr-hover-cart">
          <div class="dropdown-cart-header">
-            <div class="close-button"><a href="#"><i class="icofont-close"></i></a></div>
-            <span><span class="cart_count">{{ $cart_count }}</span> {{ __('Items') }}</span>
+            <span class="cart-header-title">{{ __('Shopping Cart') }} (<span class="cart_count">{{ $cart_count }}</span>)</span>
+            <div class="close-button"><a href="javascript:void(0)" aria-label="Close cart"><i class="icofont-close"></i></a></div>
          </div>
          <div class="shopping-item-inner">
             <div class="cart-single-inner">
@@ -80,55 +80,79 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             position: fixed !important;
             top: 0 !important;
             right: 0 !important;
-            width: 360px !important;
+            width: 420px !important;
             max-width: 100vw !important;
             height: 100vh !important;
             max-height: 100vh !important;
             background: #ffffff !important;
-            padding: 20px 22px !important;
+            padding: 22px 24px !important;
             display: flex !important;
             flex-direction: column !important;
-            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12) !important;
+            box-shadow: -6px 0 30px rgba(0, 0, 0, 0.14) !important;
             border-top: none !important;
             z-index: 999999 !important;
             box-sizing: border-box !important;
+            scrollbar-width: thin !important;
+            scrollbar-color: #cbd5e1 transparent !important;
+         }
+
+         #booostr-hover-cart *::-webkit-scrollbar {
+            width: 5px !important;
+         }
+         #booostr-hover-cart *::-webkit-scrollbar-track {
+            background: transparent !important;
+         }
+         #booostr-hover-cart *::-webkit-scrollbar-thumb {
+            background: #cbd5e1 !important;
+            border-radius: 4px !important;
+         }
+         #booostr-hover-cart *::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8 !important;
+         }
+
+         @media (max-width: 480px) {
+            #booostr-hover-cart {
+               width: 100vw !important;
+               padding: 16px 18px !important;
+            }
          }
 
          #booostr-hover-cart .dropdown-cart-header {
             display: flex !important;
             justify-content: space-between !important;
             align-items: center !important;
-            margin-bottom: 15px !important;
-            padding-bottom: 12px !important;
+            margin-bottom: 14px !important;
+            padding-bottom: 14px !important;
             border-bottom: 1px solid #f1f5f9 !important;
             flex-shrink: 0 !important;
          }
 
-         #booostr-hover-cart .dropdown-cart-header span {
-            font-size: 15px !important;
+         #booostr-hover-cart .dropdown-cart-header .cart-header-title {
+            font-size: 17px !important;
             font-weight: 700 !important;
             color: #0f172a !important;
+            letter-spacing: -0.2px !important;
          }
 
          #booostr-hover-cart .close-button a {
             background: transparent !important;
             background-color: transparent !important;
-            border-radius: 0 !important;
+            border-radius: 6px !important;
             color: #64748b !important;
-            width: auto !important;
-            height: auto !important;
+            width: 32px !important;
+            height: 32px !important;
             line-height: 1 !important;
-            padding: 4px !important;
+            padding: 0 !important;
             font-size: 20px !important;
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
             box-shadow: none !important;
-            transition: color 0.2s ease !important;
+            transition: all 0.2s ease !important;
          }
          #booostr-hover-cart .close-button a:hover {
-            background: transparent !important;
-            background-color: transparent !important;
+            background: #f1f5f9 !important;
+            background-color: #f1f5f9 !important;
             color: #0f172a !important;
          }
          #booostr-hover-cart .close-button a i {
@@ -146,10 +170,197 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
          #booostr-hover-cart .shopping-item-inner > .cart-single-inner:first-child {
             flex: 1 !important;
             overflow-y: auto !important;
-            padding-right: 4px !important;
-            margin-bottom: 10px !important;
+            padding-right: 6px !important;
+            margin-bottom: 8px !important;
          }
 
+         #booostr-hover-cart .shopping-list {
+            list-style: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+         }
+
+         #booostr-hover-cart .shopping-list li.cart_item {
+            padding: 16px 0 !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            margin-bottom: 0 !important;
+            overflow: visible !important;
+         }
+         #booostr-hover-cart .shopping-list li.cart_item:last-child {
+            border-bottom: none !important;
+         }
+
+         /* Cart Item Modern Card Layout */
+         #booostr-hover-cart .cart-single-main {
+            display: flex !important;
+            gap: 14px !important;
+            align-items: flex-start !important;
+            width: 100% !important;
+         }
+
+         #booostr-hover-cart .cart-item-img-wrap {
+            width: 72px !important;
+            height: 72px !important;
+            min-width: 72px !important;
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+         }
+         #booostr-hover-cart .cart-item-img-wrap a.cart-img {
+            width: 100% !important;
+            height: 100% !important;
+            display: block !important;
+            border: none !important;
+            border-radius: 0 !important;
+            float: none !important;
+         }
+         #booostr-hover-cart .cart-item-img-wrap img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border: none !important;
+            border-radius: 0 !important;
+         }
+
+         #booostr-hover-cart .cart-single-item {
+            flex: 1 !important;
+            min-width: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+         }
+
+         #booostr-hover-cart .cart-item-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            gap: 8px !important;
+            margin-bottom: 4px !important;
+         }
+
+         #booostr-hover-cart .cart-item-title {
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            color: #0f172a !important;
+            margin: 0 !important;
+            line-height: 1.35 !important;
+            flex: 1 !important;
+         }
+         #booostr-hover-cart .cart-item-title a {
+            color: #0f172a !important;
+            text-decoration: none !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+            transition: color 0.2s ease !important;
+         }
+         #booostr-hover-cart .cart-item-title a:hover {
+            color: var(--booostr-blue, #0A8CDE) !important;
+         }
+
+         #booostr-hover-cart .remove_cart {
+            background: transparent !important;
+            color: #94a3b8 !important;
+            font-size: 16px !important;
+            border: none !important;
+            padding: 3px 6px !important;
+            border-radius: 4px !important;
+            line-height: 1 !important;
+            cursor: pointer !important;
+            position: static !important;
+            width: auto !important;
+            height: auto !important;
+            transition: all 0.2s ease !important;
+            flex-shrink: 0 !important;
+         }
+         #booostr-hover-cart .remove_cart:hover {
+            color: #ef4444 !important;
+            background: #fee2e2 !important;
+         }
+
+         #booostr-hover-cart .cart-item-meta {
+            font-size: 12px !important;
+            color: #64748b !important;
+            margin-bottom: 6px !important;
+            line-height: 1.3 !important;
+         }
+
+         #booostr-hover-cart .cart-item-footer {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-top: 8px !important;
+         }
+
+         /* Modern Quantity Selector Pill */
+         #booostr-hover-cart .sp-quantity {
+            display: inline-flex !important;
+            align-items: center !important;
+            background: #f8fafc !important;
+            border-radius: 6px !important;
+            padding: 2px !important;
+            border: 1px solid #e2e8f0 !important;
+            height: 32px !important;
+         }
+
+         #booostr-hover-cart .sp-quantity button.qty-btn,
+         #booostr-hover-cart .sp-quantity button.cart_decrement,
+         #booostr-hover-cart .sp-quantity button.cart_increment {
+            width: 26px !important;
+            height: 26px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 4px !important;
+            color: #334155 !important;
+            cursor: pointer !important;
+            font-weight: 700 !important;
+            font-size: 14px !important;
+            line-height: 1 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+            padding: 0 !important;
+            text-decoration: none !important;
+            transition: all 0.15s ease !important;
+         }
+         #booostr-hover-cart .sp-quantity button.cart_decrement:hover,
+         #booostr-hover-cart .sp-quantity button.cart_increment:hover {
+            background: #e2e8f0 !important;
+            color: #0f172a !important;
+         }
+         #booostr-hover-cart .sp-quantity button a.ddd {
+            color: inherit !important;
+            text-decoration: none !important;
+            display: block !important;
+            line-height: 24px !important;
+         }
+
+         #booostr-hover-cart .sp-quantity .quntity-input {
+            width: 34px !important;
+            height: 26px !important;
+            text-align: center !important;
+            border: none !important;
+            background: transparent !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            color: #0f172a !important;
+            padding: 0 !important;
+         }
+
+         #booostr-hover-cart .cart-item-price {
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            color: #0f172a !important;
+            letter-spacing: -0.2px !important;
+         }
+
+         /* Drawer Bottom Total & Action Buttons */
          #booostr-hover-cart .shopping-item-inner > .bottom {
             margin-top: auto !important;
             padding-top: 14px !important;
@@ -163,14 +374,14 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             justify-content: space-between !important;
             align-items: center !important;
             border-top: none !important;
-            padding-top: 0 !important;
-            margin-top: 0 !important;
-            margin-bottom: 14px !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            padding: 0 0 12px 0 !important;
+            margin: 0 0 12px 0 !important;
          }
          #booostr-hover-cart .total span:first-child {
-            font-size: 15px !important;
+            font-size: 14px !important;
             font-weight: 700 !important;
-            color: #0f172a !important;
+            color: #475569 !important;
             text-transform: uppercase !important;
             letter-spacing: 0.5px !important;
          }
@@ -180,10 +391,11 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             border-radius: 0 !important;
             padding: 0 !important;
             color: #0f172a !important;
-            font-size: 18px !important;
-            font-weight: 700 !important;
+            font-size: 20px !important;
+            font-weight: 800 !important;
             display: inline-block !important;
             box-shadow: none !important;
+            letter-spacing: -0.3px !important;
          }
 
          #booostr-hover-cart .bottom a.btn.btn-view-cart,
@@ -192,12 +404,13 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             background-color: #ffffff !important;
             border: 1.5px solid var(--booostr-blue, #0A8CDE) !important;
             color: var(--booostr-blue, #0A8CDE) !important;
-            border-radius: 6px !important;
-            font-weight: 600 !important;
+            border-radius: 8px !important;
+            font-weight: 700 !important;
             font-size: 14px !important;
             text-transform: uppercase !important;
+            letter-spacing: 0.4px !important;
             text-align: center !important;
-            padding: 12px 20px !important;
+            padding: 13px 20px !important;
             display: block !important;
             margin-top: 8px !important;
             box-shadow: none !important;
@@ -217,15 +430,16 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             background-color: var(--booostr-blue, #0A8CDE) !important;
             border: 1.5px solid var(--booostr-blue, #0A8CDE) !important;
             color: #ffffff !important;
-            border-radius: 6px !important;
-            font-weight: 600 !important;
+            border-radius: 8px !important;
+            font-weight: 700 !important;
             font-size: 14px !important;
             text-transform: uppercase !important;
+            letter-spacing: 0.4px !important;
             text-align: center !important;
-            padding: 12px 20px !important;
+            padding: 13px 20px !important;
             display: block !important;
             margin-top: 8px !important;
-            box-shadow: 0 2px 4px rgba(10, 140, 222, 0.2) !important;
+            box-shadow: 0 4px 12px rgba(10, 140, 222, 0.25) !important;
             transition: all 0.2s ease !important;
          }
          #booostr-hover-cart .bottom a.btn.btn-checkout:hover,
@@ -234,7 +448,7 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             background-color: var(--booostr-blue-hover, #0870b2) !important;
             border-color: var(--booostr-blue-hover, #0870b2) !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 6px rgba(8, 112, 178, 0.3) !important;
+            box-shadow: 0 6px 16px rgba(8, 112, 178, 0.35) !important;
          }
       </style>
 

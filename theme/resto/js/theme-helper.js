@@ -436,24 +436,33 @@ function render_cart(items) {
                 cart_options +=`<br><small>${option_key}: (${child_options})</small>`;
               }); 
 
+        var item_line_price = (typeof window.booostrFormatPrice === 'function')
+            ? window.booostrFormatPrice(item.price * parseInt(item.qty || 1))
+            : ('$' + (parseFloat(item.price || 0) * parseInt(item.qty || 1)).toFixed(2));
+
         var cart_item = `<li class="cart_item cart_item${item.rowId}">
-                     <a data-id="${item.rowId}" href="javascript:void(0)" class="remove remove_cart" title="Remove this item"><i class="icofont-close-circled"></i></a>
                      <div class="cart-single-main">
-                        <div class="cart-single-item">
-                           <h4><a href="${base_url+'/product/'+item.options.slug}">${str_limit(item.name,20)}</a><span>${cart_options}</span></h4>
-                           <div class="quantity-main">
-                              <p class="quantity">Quantity</p>
-                              <div class="sp-quantity">
-                                <button class="inline arrow sp-minus fff cart_decrement" data-id="${item.rowId}" data-stock="${item.options.stock }" data-isvariation="${item.options.options.length != 0 ? 1 : 0}" data-productid="${item.id}""><a class="ddd" href="${item.options.options.length != 0 ? base_url+'/product/'+item.options.slug : 'javascript:void(0)'}" data-multi="-1">-</a></button>
-                                <div class="inline sp-input">
-                                 <input type="text" class="quntity-input current_cart_qty${item.rowId} exist_cart${item.id}" value="${item.qty}">
-                                </div>
-                                <button class="inline arrow sp-plus fff cart_increment last" data-id="${item.rowId}" data-stock="${item.options.stock }" data-isvariation="${item.options.options.length != 0 ? 1 : 0}" data-productid="${item.id}"><a class="ddd" href="${item.options.options.length != 0 ? base_url+'/product/'+item.options.slug : 'javascript:void(0)'}" data-multi="1">+</a></button>
-                              </div>
-                           </div>
+                        <div class="cart-item-img-wrap">
+                           <a href="${base_url+'/product/'+item.options.slug}" class="cart-img">
+                              <img src="${item.options.preview != null ? item.options.preview : ''}" alt="${item.name}">
+                           </a>
                         </div>
-                        <div class="cart-top">
-                           <a class="cart-img " ><img src="${item.options.preview != null ? item.options.preview : ''}" alt=""></a>
+                        <div class="cart-single-item">
+                           <div class="cart-item-header">
+                              <h4 class="cart-item-title"><a href="${base_url+'/product/'+item.options.slug}">${str_limit(item.name, 45)}</a></h4>
+                              <a data-id="${item.rowId}" href="javascript:void(0)" class="remove remove_cart" title="Remove this item"><i class="icofont-trash"></i></a>
+                           </div>
+                           ${cart_options ? `<div class="cart-item-meta">${cart_options}</div>` : ''}
+                           <div class="cart-item-footer">
+                              <div class="sp-quantity">
+                                <button type="button" class="inline arrow sp-minus fff cart_decrement" data-id="${item.rowId}" data-stock="${item.options.stock}" data-isvariation="${item.options.options.length != 0 ? 1 : 0}" data-productid="${item.id}"><a class="ddd" href="${item.options.options.length != 0 ? base_url+'/product/'+item.options.slug : 'javascript:void(0)'}" data-multi="-1">-</a></button>
+                                <div class="inline sp-input">
+                                 <input type="text" readonly class="quntity-input current_cart_qty${item.rowId} exist_cart${item.id}" value="${item.qty}">
+                                </div>
+                                <button type="button" class="inline arrow sp-plus fff cart_increment last" data-id="${item.rowId}" data-stock="${item.options.stock}" data-isvariation="${item.options.options.length != 0 ? 1 : 0}" data-productid="${item.id}"><a class="ddd" href="${item.options.options.length != 0 ? base_url+'/product/'+item.options.slug : 'javascript:void(0)'}" data-multi="1">+</a></button>
+                              </div>
+                              <span class="cart-item-price">${item_line_price}</span>
+                           </div>
                         </div>
                      </div>
                   </li>`;
