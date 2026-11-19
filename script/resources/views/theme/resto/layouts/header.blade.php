@@ -854,8 +854,8 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
          border-color: #ffffff !important;
       }
       .nav-auth-btn-register {
-         background: var(--primary, #0A8CDE) !important;
-         color: #ffffff !important;
+         background: #ffffff !important;
+         color: var(--primary, #0A8CDE) !important;
          font-size: 13px !important;
          font-weight: 600 !important;
          text-decoration: none !important;
@@ -865,12 +865,12 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
          line-height: 1.4 !important;
          display: inline-block !important;
-         border: 1px solid var(--primary, #0A8CDE) !important;
+         border: 1px solid #ffffff !important;
       }
       .nav-auth-btn-register:hover {
-         background: var(--booostr-blue-hover, #0870b2) !important;
-         color: #ffffff !important;
-         border-color: var(--booostr-blue-hover, #0870b2) !important;
+         background: #f1f5f9 !important;
+         color: var(--booostr-blue-hover, #0870b2) !important;
+         border-color: #f1f5f9 !important;
       }
       </style>
 

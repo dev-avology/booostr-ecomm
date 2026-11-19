@@ -141,11 +141,11 @@
 	visibility: hidden !important;
 }
 
-/* Sidebar Logout Button - Clean Navy styling, never green */
+/* Sidebar Logout Button - Standard Booostr Blue */
 .dashboard-sidebar .dashboard-menu .dashboard-logout-wrapper .btn {
-	background-color: #1f2d5a !important;
+	background-color: var(--primary, #0A8CDE) !important;
 	color: #ffffff !important;
-	border: 1px solid #1f2d5a !important;
+	border: 1px solid var(--primary, #0A8CDE) !important;
 	border-radius: 8px !important;
 	padding: 11px 20px !important;
 	font-size: 14px !important;
@@ -153,10 +153,10 @@
 	transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 .dashboard-sidebar .dashboard-menu .dashboard-logout-wrapper .btn:hover {
-	background-color: #162142 !important;
-	border-color: #162142 !important;
+	background-color: var(--booostr-blue-hover, #0870b2) !important;
+	border-color: var(--booostr-blue-hover, #0870b2) !important;
 	color: #ffffff !important;
-	box-shadow: 0 4px 12px rgba(31, 45, 90, 0.25) !important;
+	box-shadow: 0 4px 12px rgba(10, 140, 222, 0.3) !important;
 }
 </style>
 @endpush

@@ -40,6 +40,124 @@
          body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, a, span {
             font-family: 'Roboto', sans-serif !important;
          }
+         /* Header & Navbar: Standard Booostr Blue */
+         .header.navbar-area,
+         .navbar-area,
+         .navbar-area.sticky {
+            background: var(--primary, #0A8CDE) !important;
+            background-color: var(--primary, #0A8CDE) !important;
+         }
+         .navbar-nav .nav-item a {
+            color: #ffffff !important;
+         }
+         .navbar-nav .nav-item a.active,
+         .navbar-nav .nav-item:hover a,
+         .navbar-nav .nav-item a:hover {
+            color: #ffffff !important;
+            opacity: 1 !important;
+         }
+         .header .navbar .nav-item a:hover .span-dot,
+         .header .navbar .nav-item a.active .span-dot {
+            opacity: 1 !important;
+            visibility: visible !important;
+         }
+         .cart-list-top a:hover {
+            color: #ffffff !important;
+            border-color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+         }
+
+         /* Footer: Standard Booostr Blue */
+         .footer {
+            background: var(--primary, #0A8CDE) !important;
+            background-color: var(--primary, #0A8CDE) !important;
+         }
+         .footer .footer-top .inner-content {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+         }
+         .footer .footer-bottom .inner-content {
+            border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+         }
+         .footer .single-footer h3 {
+            color: #ffffff !important;
+         }
+         .footer .single-footer h3::before {
+            background-color: rgba(255, 255, 255, 0.7) !important;
+         }
+         .footer .single-footer.f-link ul li a {
+            color: rgba(255, 255, 255, 0.85) !important;
+         }
+         .footer .single-footer.f-link ul li a:hover {
+            color: #ffffff !important;
+            padding-left: 5px;
+         }
+         .footer .copyright p {
+            color: rgba(255, 255, 255, 0.85) !important;
+         }
+         .footer-terms-link {
+            color: rgba(255, 255, 255, 0.85) !important;
+         }
+         .footer-terms-link:hover {
+            color: #ffffff !important;
+            text-decoration: underline !important;
+         }
+
+         /* Scroll-To-Top Button: Standard Booostr Blue */
+         .scroll-top {
+            background: var(--primary, #0A8CDE) !important;
+            background-color: var(--primary, #0A8CDE) !important;
+            color: #ffffff !important;
+            opacity: 1 !important;
+            box-shadow: 0 4px 14px rgba(10, 140, 222, 0.35) !important;
+         }
+         .scroll-top:hover {
+            background: var(--booostr-blue-hover, #0870b2) !important;
+            background-color: var(--booostr-blue-hover, #0870b2) !important;
+            color: #ffffff !important;
+            box-shadow: 0 6px 18px rgba(8, 112, 178, 0.45) !important;
+            transform: translate3d(0, -4px, 0) !important;
+         }
+
+         /* Customer Sidebar Logout Button & Action Buttons */
+         .dashboard-sidebar .dashboard-menu .dashboard-logout-wrapper .btn,
+         .dashboard-sidebar .button .btn.alt-btn {
+            background: var(--primary, #0A8CDE) !important;
+            background-color: var(--primary, #0A8CDE) !important;
+            border-color: var(--primary, #0A8CDE) !important;
+            color: #ffffff !important;
+            box-shadow: none !important;
+         }
+         .dashboard-sidebar .dashboard-menu .dashboard-logout-wrapper .btn:hover,
+         .dashboard-sidebar .button .btn.alt-btn:hover {
+            background: var(--booostr-blue-hover, #0870b2) !important;
+            background-color: var(--booostr-blue-hover, #0870b2) !important;
+            border-color: var(--booostr-blue-hover, #0870b2) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(10, 140, 222, 0.3) !important;
+         }
+
+         /* Outline Buttons (e.g. View Full History) */
+         .btn-outline-primary {
+            color: var(--primary, #0A8CDE) !important;
+            border-color: var(--primary, #0A8CDE) !important;
+         }
+         .btn-outline-primary:hover,
+         .btn-outline-primary:focus,
+         .btn-outline-primary:active {
+            background: var(--primary, #0A8CDE) !important;
+            background-color: var(--primary, #0A8CDE) !important;
+            border-color: var(--primary, #0A8CDE) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(10, 140, 222, 0.25) !important;
+         }
+
+         /* Shopping Cart Order Summary Box */
+         .shopping-cart .right,
+         .shopping-cart .total-amount .right {
+            background: var(--primary, #0A8CDE) !important;
+            background-color: var(--primary, #0A8CDE) !important;
+         }
+
          /* Global Theme Overrides: All legacy green elements mapped to Booostr Blue */
          .cart-sidebar {
             background: var(--booostr-blue, #0A8CDE) !important;

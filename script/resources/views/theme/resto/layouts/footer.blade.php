@@ -95,7 +95,7 @@ try {
             <div class="row align-items-center">
                <div class="col-lg-6 col-md-6 col-12 text-md-start text-center">
                   <div class="copyright">
-                     <p style="margin: 0; color: #cbd5e1; font-size: 14px;">
+                     <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 14px;">
                         © {{ date('Y') }} {{ !empty($clubName) ? $clubName : (tenant('id') ?? 'Booostr') }}. {{ __('All rights reserved.') }}
                      </p>
                   </div>
@@ -104,7 +104,7 @@ try {
                   <div class="footer-legal-links d-flex align-items-center justify-content-md-end justify-content-center" style="gap: 16px;">
                      <a href="{{ url('/page/terms-and-conditions') }}" class="footer-terms-link">{{ __('Terms and Conditions') }}</a>
                      <span style="color: rgba(255,255,255,0.25);">|</span>
-                     <span style="color: #94a3b8; font-size: 13px;">{{ __('Powered by') }} <a href="https://booostr.co" target="_blank" rel="noopener noreferrer" style="color: var(--primary, #0A8CDE); text-decoration: none; font-weight: 600;">Booostr</a></span>
+                     <span style="color: rgba(255, 255, 255, 0.85); font-size: 13px;">{{ __('Powered by') }} <a href="https://booostr.co" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline; font-weight: 700;">Booostr</a></span>
                   </div>
                </div>
             </div>
@@ -116,14 +116,14 @@ try {
 
 <style>
    .footer-terms-link {
-      color: rgba(255, 255, 255, 0.75) !important;
+      color: rgba(255, 255, 255, 0.85) !important;
       text-decoration: none !important;
       font-size: 13px !important;
       font-weight: 500 !important;
       transition: color 0.2s ease !important;
    }
    .footer-terms-link:hover {
-      color: var(--booostr-blue, #0A8CDE) !important;
+      color: #ffffff !important;
       text-decoration: underline !important;
    }
 </style>
