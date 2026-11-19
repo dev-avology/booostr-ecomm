@@ -50,7 +50,7 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
          
                
       <!-- Shopping Item -->
-      <div class="shopping-item">
+      <div class="shopping-item" id="booostr-hover-cart">
          <div class="dropdown-cart-header">
             <div class="close-button"><a href="#"><i class="icofont-close"></i></a></div>
             <span><span class="cart_count">{{ $cart_count }}</span> {{ __('Items') }}</span>
@@ -67,12 +67,119 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                   <span>{{ __('Total') }}</span>
                   <span class="total-amount cart_subtotal">{{ Cart::instance('default')->subtotal() }}</span>
                </div>
-               <a href="{{ url('/cart') }}" class="btn animate">{{ __('View Cart') }}</a>
-               <a href="{{ url('/checkout') }}" class="btn primary animate">{{ __('Checkout') }}</a>
+               <a href="{{ url('/cart') }}" class="btn animate btn-view-cart">{{ __('View Cart') }}</a>
+               <a href="{{ url('/checkout') }}" class="btn primary animate btn-checkout">{{ __('Checkout') }}</a>
             </div>
          </div>
       </div>
       <!--/ End Shopping Item -->
+
+      <style>
+         /* Scoped Styles for Right Side Hover Cart: #booostr-hover-cart ONLY */
+         #booostr-hover-cart .close-button a {
+            background: transparent !important;
+            background-color: transparent !important;
+            border-radius: 0 !important;
+            color: #6b7280 !important;
+            width: auto !important;
+            height: auto !important;
+            line-height: 1 !important;
+            padding: 4px !important;
+            font-size: 20px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: none !important;
+            transition: color 0.2s ease !important;
+         }
+         #booostr-hover-cart .close-button a:hover {
+            background: transparent !important;
+            background-color: transparent !important;
+            color: #111827 !important;
+         }
+         #booostr-hover-cart .close-button a i {
+            color: inherit !important;
+         }
+
+         #booostr-hover-cart .total {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            border-top: 1px solid #e5e7eb !important;
+            padding-top: 15px !important;
+            margin-top: 20px !important;
+            margin-bottom: 12px !important;
+         }
+         #booostr-hover-cart .total span:first-child {
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            color: #111827 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+         }
+         #booostr-hover-cart .total .total-amount {
+            background: transparent !important;
+            background-color: transparent !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            color: #111827 !important;
+            font-size: 17px !important;
+            font-weight: 700 !important;
+            display: inline-block !important;
+            box-shadow: none !important;
+         }
+
+         #booostr-hover-cart .bottom a.btn.btn-view-cart,
+         #booostr-hover-cart .bottom a.btn:not(.primary) {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border: 1.5px solid var(--booostr-blue, #528CD7) !important;
+            color: var(--booostr-blue, #528CD7) !important;
+            border-radius: 6px !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            text-transform: uppercase !important;
+            text-align: center !important;
+            padding: 12px 20px !important;
+            display: block !important;
+            margin-top: 10px !important;
+            box-shadow: none !important;
+            transition: all 0.2s ease !important;
+         }
+         #booostr-hover-cart .bottom a.btn.btn-view-cart:hover,
+         #booostr-hover-cart .bottom a.btn:not(.primary):hover {
+            background: var(--booostr-blue-light, #eff6ff) !important;
+            background-color: var(--booostr-blue-light, #eff6ff) !important;
+            border-color: var(--booostr-blue-hover, #3a6db8) !important;
+            color: var(--booostr-blue-hover, #3a6db8) !important;
+         }
+
+         #booostr-hover-cart .bottom a.btn.btn-checkout,
+         #booostr-hover-cart .bottom a.btn.primary {
+            background: var(--booostr-blue, #528CD7) !important;
+            background-color: var(--booostr-blue, #528CD7) !important;
+            border: 1.5px solid var(--booostr-blue, #528CD7) !important;
+            color: #ffffff !important;
+            border-radius: 6px !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            text-transform: uppercase !important;
+            text-align: center !important;
+            padding: 12px 20px !important;
+            display: block !important;
+            margin-top: 10px !important;
+            box-shadow: 0 2px 4px rgba(82, 140, 215, 0.2) !important;
+            transition: all 0.2s ease !important;
+         }
+         #booostr-hover-cart .bottom a.btn.btn-checkout:hover,
+         #booostr-hover-cart .bottom a.btn.primary:hover {
+            background: var(--booostr-blue-hover, #3a6db8) !important;
+            background-color: var(--booostr-blue-hover, #3a6db8) !important;
+            border-color: var(--booostr-blue-hover, #3a6db8) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 6px rgba(58, 109, 184, 0.3) !important;
+         }
+      </style>
       @endif
       
       <!-- Header Area -->

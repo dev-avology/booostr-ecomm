@@ -28,6 +28,13 @@
       <link rel="stylesheet" href="{{ asset('theme/resto/style.css') }}">
       <link rel="stylesheet" href="{{ asset('theme/resto/css/responsive.css') }}">
       <link rel="stylesheet" href="{{ asset('theme/helper.css') }}">
+      <style>
+         :root {
+            --booostr-blue: #528CD7;
+            --booostr-blue-hover: #3a6db8;
+            --booostr-blue-light: #eff6ff;
+         }
+      </style>
       @stack('css')
       {{ load_header() }}
    </head>
