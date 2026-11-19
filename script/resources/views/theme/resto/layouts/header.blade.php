@@ -238,11 +238,13 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             display: flex !important;
             justify-content: space-between !important;
             align-items: flex-start !important;
-            gap: 8px !important;
-            margin-bottom: 4px !important;
+            gap: 10px !important;
+            margin-bottom: 8px !important;
+            width: 100% !important;
          }
 
-         #booostr-hover-cart .cart-item-title {
+         #booostr-hover-cart .cart-item-title,
+         #booostr-hover-cart .shopping-list h4 {
             font-size: 14px !important;
             font-weight: 600 !important;
             color: #0f172a !important;
@@ -250,7 +252,8 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             line-height: 1.35 !important;
             flex: 1 !important;
          }
-         #booostr-hover-cart .cart-item-title a {
+         #booostr-hover-cart .cart-item-title a,
+         #booostr-hover-cart .shopping-list h4 a {
             color: #0f172a !important;
             text-decoration: none !important;
             display: -webkit-box !important;
@@ -259,28 +262,57 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             overflow: hidden !important;
             transition: color 0.2s ease !important;
          }
-         #booostr-hover-cart .cart-item-title a:hover {
+         #booostr-hover-cart .cart-item-title a:hover,
+         #booostr-hover-cart .shopping-list h4 a:hover {
             color: var(--booostr-blue, #0A8CDE) !important;
+            text-decoration: none !important;
          }
 
+         /* Trash / Remove Button Overrides - Clean Icon, No Grey Box, Red Hover */
+         #booostr-hover-cart .shopping-list li a.remove,
+         #booostr-hover-cart .shopping-list li .remove,
+         #booostr-hover-cart a.remove_cart,
          #booostr-hover-cart .remove_cart {
-            background: transparent !important;
-            color: #94a3b8 !important;
-            font-size: 16px !important;
-            border: none !important;
-            padding: 3px 6px !important;
-            border-radius: 4px !important;
-            line-height: 1 !important;
-            cursor: pointer !important;
             position: static !important;
-            width: auto !important;
-            height: auto !important;
+            top: auto !important;
+            bottom: auto !important;
+            left: auto !important;
+            right: auto !important;
+            margin: 0 !important;
+            margin-top: 0 !important;
+            padding: 0 !important;
+            width: 30px !important;
+            height: 30px !important;
+            line-height: 30px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            border-radius: 6px !important;
+            color: #94a3b8 !important;
+            font-size: 17px !important;
+            cursor: pointer !important;
+            box-shadow: none !important;
             transition: all 0.2s ease !important;
             flex-shrink: 0 !important;
+            text-decoration: none !important;
          }
+         #booostr-hover-cart .shopping-list li a.remove:hover,
+         #booostr-hover-cart .shopping-list li .remove:hover,
+         #booostr-hover-cart a.remove_cart:hover,
          #booostr-hover-cart .remove_cart:hover {
-            color: #ef4444 !important;
             background: #fee2e2 !important;
+            background-color: #fee2e2 !important;
+            color: #ef4444 !important;
+            border: none !important;
+         }
+         #booostr-hover-cart .shopping-list li a.remove i,
+         #booostr-hover-cart .remove_cart i {
+            color: inherit !important;
+            font-size: 17px !important;
+            line-height: 1 !important;
          }
 
          #booostr-hover-cart .cart-item-meta {
@@ -294,29 +326,51 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             display: flex !important;
             justify-content: space-between !important;
             align-items: center !important;
-            margin-top: 8px !important;
+            margin-top: 10px !important;
+            width: 100% !important;
          }
 
-         /* Modern Quantity Selector Pill */
+         /* Modern Quantity Selector Pill Overrides - Clean Layout, No Absolute Stacking, Blue Hover */
          #booostr-hover-cart .sp-quantity {
+            position: static !important;
             display: inline-flex !important;
+            flex-direction: row !important;
             align-items: center !important;
+            justify-content: space-between !important;
             background: #f8fafc !important;
+            background-color: #f8fafc !important;
             border-radius: 6px !important;
-            padding: 2px !important;
             border: 1px solid #e2e8f0 !important;
             height: 32px !important;
+            width: 98px !important;
+            min-width: 98px !important;
+            max-width: 98px !important;
+            padding: 2px !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            top: auto !important;
          }
 
-         #booostr-hover-cart .sp-quantity button.qty-btn,
+         #booostr-hover-cart .sp-quantity button,
+         #booostr-hover-cart .sp-quantity button.sp-minus,
+         #booostr-hover-cart .sp-quantity button.sp-plus,
          #booostr-hover-cart .sp-quantity button.cart_decrement,
          #booostr-hover-cart .sp-quantity button.cart_increment {
+            position: static !important;
+            top: auto !important;
+            bottom: auto !important;
+            left: auto !important;
+            right: auto !important;
             width: 26px !important;
+            min-width: 26px !important;
+            max-width: 26px !important;
             height: 26px !important;
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
             background: #ffffff !important;
+            background-color: #ffffff !important;
             border: 1px solid #e2e8f0 !important;
             border-radius: 4px !important;
             color: #334155 !important;
@@ -326,38 +380,83 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             line-height: 1 !important;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
             padding: 0 !important;
+            margin: 0 !important;
+            z-index: 1 !important;
             text-decoration: none !important;
             transition: all 0.15s ease !important;
+            box-sizing: border-box !important;
          }
+
+         #booostr-hover-cart .sp-quantity button:hover,
          #booostr-hover-cart .sp-quantity button.cart_decrement:hover,
          #booostr-hover-cart .sp-quantity button.cart_increment:hover {
-            background: #e2e8f0 !important;
-            color: #0f172a !important;
+            background: var(--booostr-blue-light, #e8f4fc) !important;
+            background-color: var(--booostr-blue-light, #e8f4fc) !important;
+            border-color: var(--booostr-blue, #0A8CDE) !important;
+            color: var(--booostr-blue, #0A8CDE) !important;
          }
+
+         #booostr-hover-cart .sp-quantity button a,
          #booostr-hover-cart .sp-quantity button a.ddd {
             color: inherit !important;
             text-decoration: none !important;
-            display: block !important;
-            line-height: 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            height: 100% !important;
+            line-height: 1 !important;
+            font-size: 14px !important;
+            font-weight: 700 !important;
+         }
+         #booostr-hover-cart .sp-quantity button:hover a,
+         #booostr-hover-cart .sp-quantity button:hover a.ddd {
+            color: var(--booostr-blue, #0A8CDE) !important;
          }
 
-         #booostr-hover-cart .sp-quantity .quntity-input {
-            width: 34px !important;
+         #booostr-hover-cart .sp-quantity .inline,
+         #booostr-hover-cart .sp-quantity .inline.sp-input {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 38px !important;
+            min-width: 38px !important;
+            max-width: 38px !important;
             height: 26px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            position: static !important;
+            box-sizing: border-box !important;
+         }
+
+         #booostr-hover-cart .sp-quantity .quntity-input,
+         #booostr-hover-cart .shopping-list .sp-quantity .quntity-input {
+            position: static !important;
+            width: 38px !important;
+            min-width: 38px !important;
+            max-width: 38px !important;
+            height: 26px !important;
+            line-height: 26px !important;
+            padding: 0 !important;
+            margin: 0 !important;
             text-align: center !important;
             border: none !important;
             background: transparent !important;
+            background-color: transparent !important;
             font-size: 13px !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             color: #0f172a !important;
-            padding: 0 !important;
+            box-shadow: none !important;
+            outline: none !important;
+            box-sizing: border-box !important;
          }
 
          #booostr-hover-cart .cart-item-price {
-            font-size: 15px !important;
+            font-size: 16px !important;
             font-weight: 700 !important;
             color: #0f172a !important;
             letter-spacing: -0.2px !important;
+            margin-left: auto !important;
          }
 
          /* Drawer Bottom Total & Action Buttons */
