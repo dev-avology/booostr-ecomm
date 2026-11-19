@@ -5759,22 +5759,22 @@ Version:	1.0
     border-color: var(--primary, #0A8CDE) !important;
 }
 
-/* Out of Stock Badges & Controls */
+/* Out of Stock Badges & Controls in Booostr Blue */
 .out-of-stock-badge {
     position: absolute;
     top: 10px;
     left: 10px;
-    background: #fee2e2 !important;
-    color: #ef4444 !important;
-    border: 1px solid #fca5a5 !important;
+    background: #0A8CDE !important;
+    color: #ffffff !important;
+    border: none !important;
     font-size: 11px !important;
     font-weight: 700 !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 3px 8px !important;
+    padding: 3px 9px !important;
     border-radius: 4px !important;
     z-index: 102;
-    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.12);
+    box-shadow: 0 2px 6px rgba(10, 140, 222, 0.25) !important;
 }
 .single-popular-product .image.out-of-stock-img-wrap img {
     opacity: 0.65 !important;
@@ -5790,12 +5790,12 @@ Version:	1.0
 }
 .single-popular-product .single-item-bottom .cart-button a.btn-out-of-stock {
     background: #f1f5f9 !important;
-    color: #94a3b8 !important;
+    color: #64748b !important;
     border-color: #e2e8f0 !important;
     cursor: not-allowed !important;
     pointer-events: none !important;
     box-shadow: none !important;
 }
 .single-popular-product .single-item-bottom .cart-button a.btn-out-of-stock i {
-    color: #ef4444 !important;
+    color: #0A8CDE !important;
 }

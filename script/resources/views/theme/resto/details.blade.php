@@ -83,7 +83,7 @@
 									    }
 									}
 									@endphp
-									<div class="product-tag stock_status @if(count($info->optionwithcategories ?? []) != 0) none @endif"><p class="cat">Availability: <span class="stock_status_display">@if(count($info->optionwithcategories ?? []) == 0) @if(!$isOutOfStock) <span class="badge bg-success" style="font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">{{ __('In Stock') }}</span> @else <span class="badge bg-danger" style="font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">{{ __('Out of Stock') }}</span> @endif @endif</span></p></div>
+									<div class="product-tag stock_status @if(count($info->optionwithcategories ?? []) != 0) none @endif"><p class="cat">Availability: <span class="stock_status_display">@if(count($info->optionwithcategories ?? []) == 0) @if(!$isOutOfStock) <span class="badge bg-success" style="font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">{{ __('In Stock') }}</span> @else <span class="badge" style="background-color: #0A8CDE !important; color: #ffffff !important; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">{{ __('Out of Stock') }}</span> @endif @endif</span></p></div>
 									<p class="description">
 										{{ $info->excerpt->value ?? ''  }}
 									</p>
