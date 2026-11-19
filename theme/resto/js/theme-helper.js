@@ -92,8 +92,8 @@ function render_primary_product(products, target,additional_class='') {
                                                 </div>
                                             </div>
                                             <div class="single-item-text">
-                                                <h4 class="single-item-price">${price}</h4>
                                                 <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,20)}</a></h3>
+                                                <h4 class="single-item-price">${price}</h4>
                                                 <p>${str_limit(product.excerpt != null ? product.excerpt.value : '',30)}</p>
                                             </div>
                                             <div class="single-item-bottom">
@@ -125,8 +125,8 @@ function render_primary_product(products, target,additional_class='') {
                                                             </div>
                                                         </div>
                                                         <div class="single-item-text">
-                                                            <h4 class="single-item-price">${price}</h4>
                                                             <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,20)}</a></h3>
+                                                            <h4 class="single-item-price">${price}</h4>
                                                             <p>${str_limit(product.excerpt != null ? product.excerpt.value : '',100)}</p>
                                                         </div>
                                                         <div class="single-item-bottom">

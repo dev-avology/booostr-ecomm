@@ -24,24 +24,22 @@ function runpreloader() {
     --------------------------*/
 function amount_format(amount,type='icon') {
 
-	var format= type == 'name' ?  ' '+currency_settings.currency_name+' ' : currency_settings.currency_icon;
+	var format= type == 'name' ?  ' '+(currency_settings.currency_name || 'USD')+' ' : (currency_settings.currency_icon || '$');
  
-     amount = parseFloat(amount);
+    var num = parseFloat(amount);
+    if (isNaN(num)) {
+        num = 0.00;
+    }
+    var formattedAmount = num.toFixed(2);
      
-    if (currency_settings.currency_position == 'left') {
-
-        var price=format+amount?.toFixed(2);
-       
+    if (currency_settings && currency_settings.currency_position == 'right') {
+        var price = formattedAmount + ' ' + format;
     }
-    else{
-        var price=amount.toFixed(2)+' '+format;
+    else {
+        var price = format + formattedAmount;
     }
-
-   
     
     return price;
-    
-   
 }
 
 /*-------------------------
