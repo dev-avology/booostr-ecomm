@@ -42,7 +42,7 @@ $currency_data=$autoloaddata['currency_data'];
 										<p class="product-name"><a href="{{ url('/product',$row->options->slug) }}">{{ $row->name }}</a></p>
 										
 									</td>
-									<td class="price" data-title="Price"><span>{{ number_format($row->price,2) }} </span></td>
+									<td class="price" data-title="Price"><span>{{ booostr_price($row->price) }}</span></td>
 									
 									
 									<td class="action" data-title="Remove"><a href="{{ url('/remove-wishlist',$row->rowId) }}" class=""><i class="icofont-trash remove-icon"></i></a></td>

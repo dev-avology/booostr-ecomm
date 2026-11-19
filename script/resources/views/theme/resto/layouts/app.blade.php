@@ -26,16 +26,16 @@
       <link rel="stylesheet" href="{{ asset('theme/resto/css/glightbox.min.css') }}">
       <link rel="stylesheet" href="{{ asset('theme/resto/css/perfect-scrollbar.css') }}">
       <!-- Theme Styles -->
-      <link rel="stylesheet" href="{{ asset('theme/resto/css/reset.css') }}">
-      <link rel="stylesheet" href="{{ asset('theme/resto/style.css') }}">
-      <link rel="stylesheet" href="{{ asset('theme/resto/css/responsive.css') }}">
-      <link rel="stylesheet" href="{{ asset('theme/helper.css') }}">
+      <link rel="stylesheet" href="{{ asset('theme/resto/css/reset.css?v='.(tenant('cache_version') ?: '2.5')) }}">
+      <link rel="stylesheet" href="{{ asset('theme/resto/style.css?v='.(tenant('cache_version') ?: '2.5')) }}">
+      <link rel="stylesheet" href="{{ asset('theme/resto/css/responsive.css?v='.(tenant('cache_version') ?: '2.5')) }}">
+      <link rel="stylesheet" href="{{ asset('theme/helper.css?v='.(tenant('cache_version') ?: '2.5')) }}">
       <style>
          :root {
             --booostr-blue: #0A8CDE;
             --booostr-blue-hover: #0870b2;
             --booostr-blue-light: #e8f4fc;
-            --primary: #0A8CDE !important;
+            --primary: #0A8CDE;
          }
          body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, a, span {
             font-family: 'Roboto', sans-serif !important;
@@ -72,6 +72,34 @@
             background-color: var(--booostr-blue-hover, #0870b2) !important;
             border-color: var(--booostr-blue-hover, #0870b2) !important;
             color: #ffffff !important;
+         }
+         /* Pagination Booostr Blue Theme */
+         .pagination .pagination-list li.active a,
+         .pagination .pagination-list li.active span,
+         .pagination .pagination-list li:hover a,
+         .pagination .pagination-list li:hover span,
+         .pagination .pagination-list li a.active,
+         .pagination-list li.active a,
+         .pagination-list li.active span {
+            background: var(--primary, #0A8CDE) !important;
+            background-color: var(--primary, #0A8CDE) !important;
+            border-color: var(--primary, #0A8CDE) !important;
+            color: #ffffff !important;
+         }
+         .pagination .pagination-list li a:focus {
+            color: var(--primary, #0A8CDE) !important;
+         }
+         /* Breadcrumbs: Booostr Blue hover on links & icons */
+         .breadcrumbs .breadcrumb-nav li a:hover,
+         .breadcrumbs .breadcrumb-nav li a:hover i,
+         .breadcrumb-nav li a:hover,
+         .breadcrumb-nav li a:hover i {
+            color: var(--primary, #0A8CDE) !important;
+         }
+         /* General hover & primary button sweep */
+         .button .btn:hover::before,
+         .button .btn::before {
+            background-color: var(--primary, #0A8CDE) !important;
          }
       </style>
       @stack('css')
@@ -144,8 +172,8 @@
 <script src="{{ asset('theme/resto/js/glightbox.min.js') }}"></script>
 <script src="{{ asset('theme/resto/js/perfect-scrollbar.min.js') }}"></script>
 <script src="{{ asset('theme/resto/js/main.js') }}"></script>
-<script src="{{ asset('theme/helper.js?v='.tenant('cache_version')) }}"></script>
-<script src="{{ asset('theme/resto/js/theme-helper.js?v='.tenant('cache_version')) }}"></script>
+<script src="{{ asset('theme/helper.js?v='.(tenant('cache_version') ?: '2.5')) }}"></script>
+<script src="{{ asset('theme/resto/js/theme-helper.js?v='.(tenant('cache_version') ?: '2.5')) }}"></script>
 
 @stack('js')
 {{ load_footer() }}

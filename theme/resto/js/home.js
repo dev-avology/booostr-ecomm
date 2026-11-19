@@ -54,8 +54,8 @@ function popular_productslider(topratedproducts) {
 
     $.each(topratedproducts, function (key, product) {
         var preview = product.preview != null ? product.preview.value : base_url + '/uploads/default.png';
-        var price = product.firstprice.price;
-        price = amount_format(price, 'icon');
+        var numPrice = parseFloat(product.firstprice ? product.firstprice.price : 0);
+        var price = !isNaN(numPrice) ? ('$' + numPrice.toFixed(2)) : (typeof amount_format === 'function' ? amount_format(product.firstprice.price, 'icon') : ('$' + product.firstprice.price));
 
         var html = `<div class="p-slide-active">
                      <div class="single-p-food align-items-center">

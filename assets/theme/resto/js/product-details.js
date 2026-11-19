@@ -1,6 +1,6 @@
 "use strict";
 
-getreviews(base_url+'/get-product-reviews/'+{{$info->id}});	
+getreviews(base_url+'/get-product-reviews/'+$('#term_id').val());	
 
 var totalprice=0;
 var totaloldprice=0;
@@ -24,13 +24,36 @@ $('.pricesvariations').on('change',function(){
 	totaloldprice=0;
 
 	if ($(this).is(':checked')){
-		var stockstatus_html= stockstatus == 1 ? `<a href="javascript:void(0)">In stock</a>` : '<a href="javascript:void(0)">Stock Out</a>';
+		var isOut = (stockstatus == 0) || (stockmanage == 1 && parseInt(qty) <= 0);
+		var stockstatus_html = !isOut ? 
+			`<span class="badge bg-success" style="font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">In Stock</span>` : 
+			`<span class="badge" style="background-color: #0A8CDE !important; color: #ffffff !important; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">Out of Stock</span>`;
 		$('.stock_status_display').html(stockstatus_html);
 		$('.stock_status').show();
 
-		if(stockmanage == 1){
+		if(stockmanage == 1 && !isOut){
 			$('.qty_display').show();
 		    $('.maxqty').html(qty);
+		} else {
+			$('.qty_display').hide();
+		}
+
+		if (isOut) {
+			$('.add_to_cart_form_btn').text('Out of Stock').attr('disabled', 'disabled').css({
+				'background': '#94a3b8',
+				'border-color': '#94a3b8',
+				'cursor': 'not-allowed'
+			});
+			$('.product-quantity .sp-quantity').addClass('disabled-quantity');
+			$('.product-quantity input.input_qty').attr('disabled', 'disabled');
+		} else {
+			$('.add_to_cart_form_btn').text('Add to cart').removeAttr('disabled').css({
+				'background': '',
+				'border-color': '',
+				'cursor': ''
+			});
+			$('.product-quantity .sp-quantity').removeClass('disabled-quantity');
+			$('.product-quantity input.input_qty').removeAttr('disabled');
 		}
 		
 	}
@@ -115,8 +138,9 @@ function variations() {
 
 
 	
-    var newtotaloldprice = totaloldprice != 0 ? amount_format(totaloldprice,'name') : '';
-    var price_html=`<span class="discount">${amount_format(totalprice,'name')}</span><s>${newtotaloldprice}</s>`;
+    var formattedTotalPrice = '$' + (parseFloat(totalprice) || 0).toFixed(2);
+    var newtotaloldprice = totaloldprice != 0 ? ('<s>$' + (parseFloat(totaloldprice) || 0).toFixed(2) + '</s>') : '';
+    var price_html=`<span class="discount">${formattedTotalPrice}</span>${newtotaloldprice}`;
 	$('.price_area').html(price_html);
 
 

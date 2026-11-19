@@ -138,8 +138,9 @@ function variations() {
 
 
 	
-    var newtotaloldprice = totaloldprice != 0 ? amount_format(totaloldprice,'name') : '';
-    var price_html=`<span class="discount">${amount_format(totalprice,'name')}</span><s>${newtotaloldprice}</s>`;
+    var formattedTotalPrice = '$' + (parseFloat(totalprice) || 0).toFixed(2);
+    var newtotaloldprice = totaloldprice != 0 ? ('<s>$' + (parseFloat(totaloldprice) || 0).toFixed(2) + '</s>') : '';
+    var price_html=`<span class="discount">${formattedTotalPrice}</span>${newtotaloldprice}`;
 	$('.price_area').html(price_html);
 
 

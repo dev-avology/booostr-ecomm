@@ -68,7 +68,7 @@
 										<a href="javascript:void(0)" class="total-review">({{ $info->reviews_count }}) Reviews</a>
 									</div>
 
-									<p class="price price_area"> {{ count($info->optionwithcategories ?? []) == 0 ? $info->price->price ?? '' : '' }} </p>
+									<p class="price price_area"> {{ count($info->optionwithcategories ?? []) == 0 && isset($info->price->price) ? booostr_price($info->price->price) : '' }} </p>
 									@php
 									$isOutOfStock = false;
 									if (count($info->optionwithcategories ?? []) == 0) {
@@ -230,5 +230,5 @@
 <script src="{{ asset('admin/js/sweetalert2.all.min.js') }}"></script>
 <script src="{{ asset('admin/js/form.js') }}"></script>
 <script src="{{ asset('theme/jquery.unveil.js') }}"></script>
-<script src="{{ asset('theme/resto/js/product-details.js') }}"></script>
+<script src="{{ asset('theme/resto/js/product-details.js?v='.(tenant('cache_version') ?: '2.5')) }}"></script>
 @endpush

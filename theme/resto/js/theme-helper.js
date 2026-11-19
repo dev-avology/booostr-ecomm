@@ -152,10 +152,9 @@ function render_primary_product(products, target,additional_class='') {
 
        
        
-        var price= product.firstprice.price;
-        
-        
-        price = amount_format(price,'icon');
+        var rawPrice = product.firstprice ? product.firstprice.price : 0;
+        var numPrice = parseFloat(rawPrice);
+        var price = !isNaN(numPrice) ? ('$' + numPrice.toFixed(2)) : (typeof amount_format === 'function' ? amount_format(rawPrice, 'icon') : ('$' + rawPrice));
 
 
         var is_out_of_stock = false;
@@ -327,16 +326,18 @@ function render_discountable_product(products, target) {
 
     $.each(products, function(key, product) {
 
+        var fPrice = parseFloat(product.firstprice ? product.firstprice.price : 0) || 0;
+        var price = '';
         if (product.is_variation == 1 ) {
-            var lastprice=' - ' + product.lastprice.price > 0 ? product.lastprice.price : '';
-           
-            var price= product.firstprice.price + lastprice;
+            var lPrice = parseFloat(product.lastprice ? product.lastprice.price : 0) || 0;
+            price = lPrice > 0 ? ('$' + fPrice.toFixed(2) + ' - $' + lPrice.toFixed(2)) : ('$' + fPrice.toFixed(2));
         }
         else{
-            var price= product.firstprice.old_price == null ? product.firstprice.price : product.firstprice.price + ` <span>${product.firstprice.old_price}</span>`;
+            var oldPrice = product.firstprice && product.firstprice.old_price != null ? parseFloat(product.firstprice.old_price) : null;
+            price = (oldPrice !== null && !isNaN(oldPrice) && oldPrice > 0)
+                ? ('$' + fPrice.toFixed(2) + ` <span>$${oldPrice.toFixed(2)}</span>`)
+                : ('$' + fPrice.toFixed(2));
         }
-
-        var price=amount_format(price,'icon');
 
         var preview = product.preview != null ? product.preview.value : base_url + '/uploads/default.png';
         var ratings='';

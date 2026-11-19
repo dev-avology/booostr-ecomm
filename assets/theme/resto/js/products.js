@@ -65,32 +65,40 @@ $.ajax({
 
        var cat=$('#cat').val();
 
-       $.each(response.categories, function(key, category) {
-	       	if(cat == category.id){
-	       		var selected="active";
-	       	}
-	       	else{
-	       		var selected='';
-	       	}
-       		var html=`<li><a data-count="${category.termcategories_count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${category.termcategories_count}</span></a></li>`;
-        	$('.product_menu').append(html);
-        });
+       if (response.categories && response.categories.length > 0) {
+           $.each(response.categories, function(key, category) {
+               if(cat == category.id){
+                   var selected="active";
+               }
+               else{
+                   var selected='';
+               }
+               var count = parseInt(category.termcategories_count) || 0;
+               var html=`<li><a data-count="${count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
+               $('.product_menu').append(html);
+           });
+       } else {
+           $('.product_menu').append('<li class="no-item-msg" style="padding: 14px 20px; background: #f8fafc; color: #64748b; font-size: 14px; font-weight: 500; border-radius: 4px; border: 1px dashed #cbd5e1; text-align: center;">No categories available</li>');
+       }
 
-       response.categories.length == 0 ? $('.category_area').remove() : '';
+       $('.brand_area').removeClass('none').show();
+       $('.product_brands').empty();
 
-       $.each(response.brands, function(key, category) {
-	       	if(cat == category.id){
-	       		var selected="active";
-	       	}
-	       	else{
-	       		var selected='';
-	       	}
-
-       		var html=`<li><a data-count="${category.termcategories_count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${category.termcategories_count}</span></a></li>`;
-        	$('.product_brands').append(html);
-        });
-
-       response.brands.length > 0 ? $('.brand_area').show() : '';
+       if (response.brands && response.brands.length > 0) {
+           $.each(response.brands, function(key, category) {
+               if(cat == category.id){
+                   var selected="active";
+               }
+               else{
+                   var selected='';
+               }
+               var count = parseInt(category.termcategories_count) || 0;
+               var html=`<li><a data-count="${count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
+               $('.product_brands').append(html);
+           });
+       } else {
+           $('.product_brands').append('<li class="no-item-msg" style="padding: 14px 20px; background: #f8fafc; color: #64748b; font-size: 14px; font-weight: 500; border-radius: 4px; border: 1px dashed #cbd5e1; text-align: center;">No brands available</li>');
+       }
 
        var featuredids=[];
        $.each(response.randomfeatures, function(key, category) {
@@ -160,7 +168,8 @@ function getrandomproducts(ids) {
            	var preview = product.preview != null ? product.preview.value : base_url + '/uploads/default.png';
            	var price= product.firstprice.price;
         
-            price = amount_format(price,'icon');
+            var numPrice = parseFloat(product.firstprice ? product.firstprice.price : 0);
+            price = !isNaN(numPrice) ? ('$' + numPrice.toFixed(2)) : amount_format(price,'icon');
 
             if (product.is_variation == 1) {
               var cart_html=`<a class="btn btn-alt"  href="${base_url+'/product/'+product.slug}"><i class="icofont-basket"></i>Add to cart</a>`;
@@ -224,22 +233,28 @@ function getproducts(url) {
         },
         success: function(response) {
            $('.content-preloader').remove();
-           $('.from_products').html(response.from);
-           $('.to_products').html(response.to);
-           $('.total_products').html(response.total);
+           var total = response.total ? parseInt(response.total) : (response.data ? response.data.length : 0);
+           var from = response.from ? response.from : (total > 0 ? 1 : 0);
+           var to = response.to ? response.to : total;
+           
+           $('.from_products').html(from);
+           $('.to_products').html(to);
+           $('.total_products').html(total);
           
-           render_primary_product(response.data, '.latest_products','product-item');
-           
-           if(response.links.length > 3) {
-           		render_pagination('.pagination-list',response.links,'icofont-arrow-left','icofont-arrow-right');
+           if (!response.data || response.data.length === 0) {
+               $('.zero_product').show();
+               $('.pagination-list').empty();
+           } else {
+               $('.zero_product').hide();
+               render_primary_product(response.data, '.latest_products','product-item');
+               
+               if(response.links && response.links.length > 3) {
+               		render_pagination('.pagination-list',response.links,'icofont-arrow-left','icofont-arrow-right');
+               }
+               else{
+               		$('.page-item').remove();
+               }
            }
-           else{
-           		$('.page-item').remove();
-           }
-
-
-           
-
         },
 
     });

@@ -26,7 +26,12 @@
 									</div>
 									<div class="tab-content" id="nav-tabContent">
 										<div class="tab-pane fade show active" id="nav-grid" role="tabpanel">
-											<h6 class="text-center mt-2 none zero_product">{{ __('0 Product available') }}</h6>
+											<div class="text-center py-5 none zero_product" style="display: none; padding: 50px 20px;">
+												<div style="font-size: 50px; color: #cbd5e1; margin-bottom: 15px;"><i class="icofont-box"></i></div>
+												<h5 style="color: #475569; font-weight: 600; margin-bottom: 8px;">{{ __('No Products Found') }}</h5>
+												<p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">{{ __('There are currently no products available in this category.') }}</p>
+												<a href="{{ url('/') }}" class="btn" style="background: var(--primary, #0A8CDE); color: #fff; padding: 9px 22px; border-radius: 4px; font-weight: 500; display: inline-block;">{{ __('Back to Home') }}</a>
+											</div>
 											<div class="row latest_products">
 												
 												
@@ -89,5 +94,5 @@
 <script src="{{ asset('admin/js/sweetalert2.all.min.js') }}"></script>
 <script src="{{ asset('admin/js/form.js') }}"></script>
 <script src="{{ asset('theme/jquery.unveil.js') }}"></script>
-<script src="{{ asset('theme/resto/js/products.js') }}"></script>
+<script src="{{ asset('theme/resto/js/products.js?v='.(tenant('cache_version') ?: '2.5')) }}"></script>
 @endpush

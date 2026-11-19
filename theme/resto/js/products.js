@@ -168,7 +168,8 @@ function getrandomproducts(ids) {
            	var preview = product.preview != null ? product.preview.value : base_url + '/uploads/default.png';
            	var price= product.firstprice.price;
         
-            price = amount_format(price,'icon');
+            var numPrice = parseFloat(product.firstprice ? product.firstprice.price : 0);
+            price = !isNaN(numPrice) ? ('$' + numPrice.toFixed(2)) : amount_format(price,'icon');
 
             if (product.is_variation == 1) {
               var cart_html=`<a class="btn btn-alt"  href="${base_url+'/product/'+product.slug}"><i class="icofont-basket"></i>Add to cart</a>`;
@@ -232,22 +233,28 @@ function getproducts(url) {
         },
         success: function(response) {
            $('.content-preloader').remove();
-           $('.from_products').html(response.from);
-           $('.to_products').html(response.to);
-           $('.total_products').html(response.total);
+           var total = response.total ? parseInt(response.total) : (response.data ? response.data.length : 0);
+           var from = response.from ? response.from : (total > 0 ? 1 : 0);
+           var to = response.to ? response.to : total;
+           
+           $('.from_products').html(from);
+           $('.to_products').html(to);
+           $('.total_products').html(total);
           
-           render_primary_product(response.data, '.latest_products','product-item');
-           
-           if(response.links.length > 3) {
-           		render_pagination('.pagination-list',response.links,'icofont-arrow-left','icofont-arrow-right');
+           if (!response.data || response.data.length === 0) {
+               $('.zero_product').show();
+               $('.pagination-list').empty();
+           } else {
+               $('.zero_product').hide();
+               render_primary_product(response.data, '.latest_products','product-item');
+               
+               if(response.links && response.links.length > 3) {
+               		render_pagination('.pagination-list',response.links,'icofont-arrow-left','icofont-arrow-right');
+               }
+               else{
+               		$('.page-item').remove();
+               }
            }
-           else{
-           		$('.page-item').remove();
-           }
-
-
-           
-
         },
 
     });

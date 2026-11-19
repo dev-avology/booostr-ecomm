@@ -104,5 +104,5 @@ $page_data = $page_data ?? null;
 <script src="{{ asset('admin/js/sweetalert2.all.min.js') }}"></script>
 <script src="{{ asset('admin/js/form.js') }}"></script>
 <script src="{{ asset('theme/jquery.unveil.js') }}"></script>
-<script src="{{ asset('theme/resto/js/home.js?v='.tenant('cache_version')) }}"></script>
+<script src="{{ asset('theme/resto/js/home.js?v='.(tenant('cache_version') ?: '2.5')) }}"></script>
 @endpush

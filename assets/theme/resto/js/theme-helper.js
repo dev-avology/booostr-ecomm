@@ -8,7 +8,106 @@ var base_url = $('#base_url').val();
 var preloader= $('#preloader').val();
 var cart_increment = $('#cart_increment').val();
 var cart_decrement = $('#cart_decrement').val();
-const cart_content = JSON.parse($('#cart_content').val());
+
+var initial_cart = {};
+try {
+    var rawCart = $('#cart_content').val();
+    if (rawCart && rawCart !== '') {
+        initial_cart = JSON.parse(rawCart);
+    }
+} catch (e) {
+    initial_cart = {};
+}
+window.booostr_cart_content = initial_cart;
+const cart_content = window.booostr_cart_content;
+
+function get_product_cart_qty(productId) {
+    var total = 0;
+    if (!window.booostr_cart_content) return 0;
+    $.each(window.booostr_cart_content, function(k, item) {
+        if (item && item.id == productId) {
+            var q = parseInt(item.qty);
+            if (!isNaN(q) && q > 0) {
+                total += q;
+            }
+        }
+    });
+    return total;
+}
+
+function update_all_cards_stock_ui() {
+    $('.single-popular-product').each(function() {
+        var $card = $(this);
+        var productId = $card.attr('data-product-id');
+        if (!productId) return;
+
+        var stockStatus = parseInt($card.attr('data-stock-status'));
+        if (isNaN(stockStatus)) stockStatus = 1;
+        var stockManage = parseInt($card.attr('data-stock-manage'));
+        if (isNaN(stockManage)) stockManage = 0;
+        var totalStock = parseInt($card.attr('data-total-stock')) || 0;
+        var isVariation = parseInt($card.attr('data-is-variation')) || 0;
+        var productSlug = $card.attr('data-product-slug') || '';
+        var currentBaseUrl = $('#base_url').val() || '';
+
+        // Inherent out of stock in database
+        if (stockStatus === 0 || (stockManage === 1 && totalStock <= 0)) {
+            $card.addClass('product-out-of-stock');
+            if ($card.find('.out-of-stock-badge').length === 0) {
+                $card.find('.image').addClass('out-of-stock-img-wrap').prepend('<span class="out-of-stock-badge">Out of Stock</span>');
+            }
+            $card.find('.quantity-main').addClass('disabled-quantity');
+            $card.find('.quntity-input').prop('disabled', true).val(1);
+            $card.find('.sp-minus, .sp-plus').prop('disabled', true);
+            $card.find('.cart-button').html('<a class="btn-out-of-stock" href="javascript:void(0)"><i class="icofont-close-circled"></i>Out of stock</a>');
+            return;
+        }
+
+        // Managed stock tracking
+        if (stockManage === 1) {
+            var inCart = get_product_cart_qty(productId);
+            var remaining = Math.max(0, totalStock - inCart);
+
+            if (remaining <= 0) {
+                // All items already added to cart
+                $card.find('.quantity-main').addClass('disabled-quantity');
+                $card.find('.quntity-input').prop('disabled', true).attr('data-max', 0).val(0);
+                $card.find('.sp-minus, .sp-plus').prop('disabled', true);
+                $card.find('.cart-button').html('<a class="btn-out-of-stock btn-max-in-cart" href="javascript:void(0)" title="All available stock is in your cart"><i class="icofont-check-circled"></i>Max in cart</a>');
+            } else {
+                // Stock still available to add
+                $card.removeClass('product-out-of-stock');
+                $card.find('.quantity-main').removeClass('disabled-quantity');
+                var $input = $card.find('.quntity-input');
+                $input.prop('disabled', false).attr('data-max', remaining);
+                var curVal = parseInt($input.val()) || 1;
+                if (curVal > remaining) {
+                    $input.val(remaining);
+                } else if (curVal < 1) {
+                    $input.val(1);
+                }
+                $card.find('.sp-minus, .sp-plus').prop('disabled', false);
+
+                if (isVariation === 1) {
+                    $card.find('.cart-button').html('<a href="' + currentBaseUrl + '/product/' + productSlug + '"><i class="icofont-basket"></i>Add to cart</a>');
+                } else {
+                    $card.find('.cart-button').html('<a class="add_to_cart cart' + productId + '" href="javascript:void(0)" data-isvariation="0" data-id="' + productId + '" data-stockstatus="' + stockStatus + '" data-stockmanage="' + stockManage + '" data-qty="' + totalStock + '"><i class="icofont-basket"></i>Add to cart</a>');
+                }
+            }
+        } else {
+            // Unmanaged stock: ensure controls are enabled
+            $card.removeClass('product-out-of-stock');
+            $card.find('.quantity-main').removeClass('disabled-quantity');
+            $card.find('.quntity-input').prop('disabled', false).attr('data-max', 9999);
+            $card.find('.sp-minus, .sp-plus').prop('disabled', false);
+            if (isVariation === 1) {
+                $card.find('.cart-button').html('<a href="' + currentBaseUrl + '/product/' + productSlug + '"><i class="icofont-basket"></i>Add to cart</a>');
+            } else {
+                $card.find('.cart-button').html('<a class="add_to_cart cart' + productId + '" href="javascript:void(0)" data-isvariation="0" data-id="' + productId + '" data-stockstatus="' + stockStatus + '" data-stockmanage="' + stockManage + '" data-qty="' + totalStock + '"><i class="icofont-basket"></i>Add to cart</a>');
+            }
+        }
+    });
+}
 
 /*-------------------------------------
 		render_product_preloaded
@@ -29,6 +128,21 @@ function render_product_preloaded(preload_count = 6, target) {
 function render_primary_product(products, target,additional_class='') {
     var base_url = $('#base_url').val();
     additional_class != '' ? $('.'+additional_class).remove() : '';
+    $(target).find('.no-products-found').remove();
+
+    if (!products || products.length === 0) {
+        var empty_html = `<div class="col-12 text-center py-4 no-products-found ${additional_class}">
+            <div class="no-products-found-card">
+                <div class="no-products-found-icon">
+                    <i class="icofont-box"></i>
+                </div>
+                <h4 class="no-products-found-title">No Products Found</h4>
+                <p class="no-products-found-desc">There are currently no products available in this section. Please check back later!</p>
+            </div>
+        </div>`;
+        $(target).append(empty_html);
+        return;
+    }
 
     var listview= $('.listviewproducts').length != 0 ? true : false;
 
@@ -38,22 +152,53 @@ function render_primary_product(products, target,additional_class='') {
 
        
        
-        var price= product.firstprice.price;
-        
-        
-        price = amount_format(price,'icon');
+        var rawPrice = product.firstprice ? product.firstprice.price : 0;
+        var numPrice = parseFloat(rawPrice);
+        var price = !isNaN(numPrice) ? ('$' + numPrice.toFixed(2)) : (typeof amount_format === 'function' ? amount_format(rawPrice, 'icon') : ('$' + rawPrice));
 
 
-        if (product.is_variation == 1) {
-              var cart_html=`<a  href="${base_url+'/product/'+product.slug}"><i class="icofont-basket"></i>Add to cart</a>`;
-        } else {
-            if (product.firstprice.stock_status == 0) {
-               var cart_html=`<a  href="${base_url+'/product/'+product.slug}"><i class="icofont-basket"></i>Add to cart</a>`;
-            } else {
-                var cart_html=`<a class="add_to_cart cart${product.id}" href="javascript:void(0)" data-isvariation="${product.is_variation}"  data-id="${product.id}" data-stockstatus="${product.firstprice.stock_status}" data-stockmanage="${product.firstprice.stock_manage}" data-qty="${product.firstprice.qty}"><i class="icofont-basket"></i>Add to cart</a>`;;
+        var is_out_of_stock = false;
+        var is_max_in_cart = false;
+        var total_stock = 0;
+        var remaining_stock = 9999;
+        var stock_manage = 0;
+        var stock_status = 1;
+
+        if (product.firstprice) {
+            stock_status = parseInt(product.firstprice.stock_status);
+            if (isNaN(stock_status)) stock_status = 1;
+            stock_manage = parseInt(product.firstprice.stock_manage);
+            if (isNaN(stock_manage)) stock_manage = 0;
+            total_stock = parseInt(product.firstprice.qty) || 0;
+
+            if (stock_status == 0) {
+                is_out_of_stock = true;
+            } else if (stock_manage == 1 && total_stock <= 0) {
+                is_out_of_stock = true;
+            } else if (stock_manage == 1) {
+                var in_cart_qty = get_product_cart_qty(product.id);
+                remaining_stock = Math.max(0, total_stock - in_cart_qty);
+                if (remaining_stock <= 0) {
+                    is_max_in_cart = true;
+                }
             }
-          
         }
+
+        var cart_html = '';
+        if (is_out_of_stock) {
+            cart_html = `<a class="btn-out-of-stock" href="javascript:void(0)"><i class="icofont-close-circled"></i>Out of stock</a>`;
+        } else if (is_max_in_cart) {
+            cart_html = `<a class="btn-out-of-stock btn-max-in-cart" href="javascript:void(0)" title="All available stock is in your cart"><i class="icofont-check-circled"></i>Max in cart</a>`;
+        } else if (product.is_variation == 1) {
+            cart_html = `<a href="${base_url+'/product/'+product.slug}"><i class="icofont-basket"></i>Add to cart</a>`;
+        } else {
+            cart_html = `<a class="add_to_cart cart${product.id}" href="javascript:void(0)" data-isvariation="${product.is_variation}" data-id="${product.id}" data-stockstatus="${stock_status}" data-stockmanage="${stock_manage}" data-qty="${total_stock}"><i class="icofont-basket"></i>Add to cart</a>`;
+        }
+
+        var is_disabled_ctrls = is_out_of_stock || is_max_in_cart;
+        var max_data_attr = stock_manage == 1 ? remaining_stock : 9999;
+        var default_input_val = is_max_in_cart ? 0 : 1;
+        var min_input_val = is_max_in_cart ? 0 : 1;
 
         var ratings='';
 
@@ -64,39 +209,36 @@ function render_primary_product(products, target,additional_class='') {
             i > product.rating ? ratings += review_half: ratings += review_full;
         }
 
-        var rating_html=`<div class="rating-main">
-                    <ul class="rating">
+        var rating_html='';
 
-                    ${product.rating != null ? ratings : ''}
-                    </ul>
-                    <a href="#" class="total-review">${product.rating != null ? '('+product.rating+') Review' : ''}</a>
-               </div>`;
+        var raw_excerpt = product.excerpt != null ? product.excerpt.value : '';
+        var clean_excerpt = raw_excerpt ? raw_excerpt.replace(/<\/?[^>]+(>|$)/g, "").trim() : '';
 
-        var html=`<div class="col-lg-3 col-md-6 col-6 ${additional_class}">
-                                        <div class="single-popular-product">
-                                            <div class="image">
+        var html=`<div class="col-lg-3 col-md-6 col-6 ${additional_class} d-flex align-items-stretch">
+                                        <div class="single-popular-product w-100 ${is_out_of_stock ? 'product-out-of-stock' : ''}" data-product-id="${product.id}" data-stock-status="${stock_status}" data-stock-manage="${stock_manage}" data-total-stock="${total_stock}" data-is-variation="${product.is_variation}" data-product-slug="${product.slug}">
+                                            <div class="image ${is_out_of_stock ? 'out-of-stock-img-wrap' : ''}">
+                                                ${is_out_of_stock ? '<span class="out-of-stock-badge">Out of Stock</span>' : ''}
                                                 <img class="lazy" src="${preloader}" data-src="${preview}" alt="">
                                                 <div class="product-overlay">
-                                                    <a href="${base_url+'/product/'+product.slug}" class="btn add-to-cart" title="add to Cart"><i class="icofont-shopping-cart"></i></a>
+                                                    ${is_out_of_stock ? '' : `<a href="${base_url+'/product/'+product.slug}" class="btn add-to-cart" title="add to Cart"><i class="icofont-shopping-cart"></i></a>`}
                                                     <a href="javascript:void(0)" data-id="${product.id}" class="btn wishlist add_to_wishlist" title="add to Wishlist"><i class="icofont-heart"></i></a>
                                                     <a href="${base_url+'/product/'+product.slug}"class="btn view"><i class="icofont-link-alt"></i></a>
                                                 </div>
                                             </div>
                                             <div class="single-item-text">
+                                                <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,35)}</a></h3>
                                                 <h4 class="single-item-price">${price}</h4>
-                                                <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${escapeHtml(str_limit(product.title,20))}</a></h3>
-                                                ${product.rating != null ? rating_html : ''}
-                                                <p>${str_limit(product.excerpt != null ? product.excerpt.value : '',30)}</p>
+                                                <p class="single-item-excerpt">${str_limit(clean_excerpt,50)}</p>
                                             </div>
                                             <div class="single-item-bottom">
-                                                <div class="quantity-main boxed-quantity">
+                                                <div class="quantity-main boxed-quantity ${is_disabled_ctrls ? 'disabled-quantity' : ''}">
                                                     
                                                     <div class="sp-quantity">
-                                                      <button class="inline arrow sp-minus fff"><a class="minus" data-multi="-1">-</a></button>
+                                                      <button class="inline arrow sp-minus fff" ${is_disabled_ctrls ? 'disabled' : ''}><a class="minus" data-multi="-1">-</a></button>
                                                       <div class="inline sp-input">
-                                                        <input type="number" ${product.stock_status == 0 ? 'disabled' : ''}  value="1" min="1" data-max="${product.firstprice.stock_manage == 1 ? product.firstprice.qty : 1}" class="quntity-input cart_qty${product.firstprice.stock_status == 0 ? '' :product.id}" >
+                                                        <input type="number" ${is_disabled_ctrls ? 'disabled' : ''}  value="${default_input_val}" min="${min_input_val}" data-max="${max_data_attr}" class="quntity-input cart_qty${is_disabled_ctrls ? '' : product.id}" >
                                                       </div>
-                                                      <button class="inline arrow sp-plus fff"><a class="plus" data-multi="1">+</a></button>
+                                                      <button class="inline arrow sp-plus fff" ${is_disabled_ctrls ? 'disabled' : ''}><a class="plus" data-multi="1">+</a></button>
                                                     </div>
                                                 </div>
                                                 <div class="cart-button">
@@ -107,30 +249,29 @@ function render_primary_product(products, target,additional_class='') {
                                     </div>`;
 
             var listViewHtml=`<div class="col-12 ${additional_class}">
-                                            <div class="single-popular-product list-style">
-                                                        <div class="image">
+                                            <div class="single-popular-product list-style ${is_out_of_stock ? 'product-out-of-stock' : ''}" data-product-id="${product.id}" data-stock-status="${stock_status}" data-stock-manage="${stock_manage}" data-total-stock="${total_stock}" data-is-variation="${product.is_variation}" data-product-slug="${product.slug}">
+                                                        <div class="image ${is_out_of_stock ? 'out-of-stock-img-wrap' : ''}">
+                                                            ${is_out_of_stock ? '<span class="out-of-stock-badge">Out of Stock</span>' : ''}
                                                             <img class="lazy" src="${preloader}" data-src="${preview}" alt="">
                                                             <div class="product-overlay">
-                                                            <a href="${base_url+'/product/'+product.slug}" class="btn add-to-cart" title="add to Cart"><i class="icofont-shopping-cart"></i></a>
+                                                            ${is_out_of_stock ? '' : `<a href="${base_url+'/product/'+product.slug}" class="btn add-to-cart" title="add to Cart"><i class="icofont-shopping-cart"></i></a>`}
                                                             <a href="javascript:void(0)" data-id="${product.id}" class="btn wishlist add_to_wishlist" title="add to Wishlist"><i class="icofont-heart"></i></a>
                                                             <a href="${base_url+'/product/'+product.slug}"class="btn view"><i class="icofont-link-alt"></i></a>
                                                             </div>
                                                         </div>
                                                         <div class="single-item-text">
+                                                            <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,40)}</a></h3>
                                                             <h4 class="single-item-price">${price}</h4>
-                                                            <h3 class="single-item-title"><a href="${base_url+'/product/'+product.slug}">${escapeHtml(str_limit(product.title,20))}</a></h3><div class="rating-main">
-                                                                ${rating_html}
-                                                            </div>
-                                                            <p>${str_limit(product.excerpt != null ? product.excerpt.value : '',100)}</p>
+                                                            <p class="single-item-excerpt">${str_limit(clean_excerpt,100)}</p>
                                                         </div>
                                                         <div class="single-item-bottom">
-                                                            <div class="quantity-main boxed-quantity">
+                                                            <div class="quantity-main boxed-quantity ${is_disabled_ctrls ? 'disabled-quantity' : ''}">
                                                             <div class="sp-quantity">
-                                                            <button class="inline arrow sp-minus fff"><a class="minus" data-multi="-1">-</a></button>
+                                                            <button class="inline arrow sp-minus fff" ${is_disabled_ctrls ? 'disabled' : ''}><a class="minus" data-multi="-1">-</a></button>
                                                             <div class="inline sp-input">
-                                                            <input type="number" ${product.stock_status == 0 ? 'disabled' : ''}  value="1" min="1" data-max="${product.firstprice.stock_manage == 1 ? product.firstprice.qty : 1}" class="quntity-input cart_qty${product.firstprice.stock_status == 0 ? '' :product.id}" >
+                                                            <input type="number" ${is_disabled_ctrls ? 'disabled' : ''}  value="${default_input_val}" min="${min_input_val}" data-max="${max_data_attr}" class="quntity-input cart_qty${is_disabled_ctrls ? '' : product.id}" >
                                                             </div>
-                                                            <button class="inline arrow sp-plus fff"><a class="plus" data-multi="1">+</a></button>
+                                                            <button class="inline arrow sp-plus fff" ${is_disabled_ctrls ? 'disabled' : ''}><a class="plus" data-multi="1">+</a></button>
                                                             </div>
                                                             </div>
                                                             <div class="cart-button">
@@ -147,6 +288,7 @@ function render_primary_product(products, target,additional_class='') {
     });
 
     run_lazy();
+    update_all_cards_stock_ui();
 }
 
 /*-------------------------------------
@@ -157,7 +299,7 @@ function render_reviews(data,target) {
         var html=`<div class="col-lg-4 col-md-6 col-12">
                   <div class="single-testimonial">
                      <div class="text">
-                        <p>"${row.comment}"</p>
+                        <p>"${escapeHtml(row.comment)}"</p>
                      </div>
                      <div class="testi-author">
                         <div class="image">
@@ -184,16 +326,18 @@ function render_discountable_product(products, target) {
 
     $.each(products, function(key, product) {
 
+        var fPrice = parseFloat(product.firstprice ? product.firstprice.price : 0) || 0;
+        var price = '';
         if (product.is_variation == 1 ) {
-            var lastprice=' - ' + product.lastprice.price > 0 ? product.lastprice.price : '';
-           
-            var price= product.firstprice.price + lastprice;
+            var lPrice = parseFloat(product.lastprice ? product.lastprice.price : 0) || 0;
+            price = lPrice > 0 ? ('$' + fPrice.toFixed(2) + ' - $' + lPrice.toFixed(2)) : ('$' + fPrice.toFixed(2));
         }
         else{
-            var price= product.firstprice.old_price == null ? product.firstprice.price : product.firstprice.price + ` <span>${product.firstprice.old_price}</span>`;
+            var oldPrice = product.firstprice && product.firstprice.old_price != null ? parseFloat(product.firstprice.old_price) : null;
+            price = (oldPrice !== null && !isNaN(oldPrice) && oldPrice > 0)
+                ? ('$' + fPrice.toFixed(2) + ` <span>$${oldPrice.toFixed(2)}</span>`)
+                : ('$' + fPrice.toFixed(2));
         }
-
-        var price=amount_format(price,'icon');
 
         var preview = product.preview != null ? product.preview.value : base_url + '/uploads/default.png';
         var ratings='';
@@ -217,7 +361,7 @@ function render_discountable_product(products, target) {
                               </div>
                               <div class="col-lg-7 col-md-7 col-12">
                                  <div class="content">
-                                    <h3><a href="${base_url+'/product/'+product.slug}">${escapeHtml(str_limit(product.title,20))}</a></h3>
+                                    <h3><a href="${base_url+'/product/'+product.slug}">${str_limit(product.title,20)}</a></h3>
                                     <p>
                                        ${str_limit(product.excerpt != null ? product.excerpt.value : '',30)}
                                     </p>
@@ -247,40 +391,51 @@ function render_discountable_product(products, target) {
 		Add To Cart Modal
 	---------------------------------------*/
 $(document).on('click', '.add_to_cart', function() {
-    var id = $(this).data('id');
-    var stockstatus = $(this).data('stockstatus');
-    var stockmanage = $(this).data('stockmanage');
-    var stockqty = $(this).data('qty');
+    var $btn = $(this);
+    var id = $btn.data('id');
+    var stockstatus = parseInt($btn.data('stockstatus'));
+    if (isNaN(stockstatus)) stockstatus = 1;
+    var stockmanage = parseInt($btn.data('stockmanage'));
+    if (isNaN(stockmanage)) stockmanage = 0;
+    var stockqty = parseInt($btn.data('qty')) || 0;
 
-
-    if (stockstatus == 0) {
-        Sweet('error', 'Stock Out');
-
-        return true;
+    if (stockstatus === 0) {
+        Sweet('error', 'This item is currently out of stock.');
+        return false;
     }
 
-    if (stockmanage == 1) {
-        if ($('.exist_cart' + id).length != 0) {
-            var exisist_cart = $('.exist_cart' + id).text();
-            exisist_cart = parseInt(exisist_cart);
-            console.log(exisist_cart)
-            if (exisist_cart == stockqty) {
-                Sweet('error', 'Opps maximum stock limit exceeded...!!');
+    var $qtyInput = $('.cart_qty' + id);
+    var requested_qty = parseInt($qtyInput.val()) || 1;
 
-                return true;
-            }
+    if (requested_qty < 1) {
+        $qtyInput.val(1);
+        requested_qty = 1;
+    }
+
+    if (stockmanage === 1) {
+        var already_in_cart = get_product_cart_qty(id);
+        var remaining = stockqty - already_in_cart;
+
+        if (remaining <= 0) {
+            Sweet('error', 'Maximum available stock limit (' + stockqty + ') is already in your cart.');
+            update_all_cards_stock_ui();
+            return false;
+        }
+
+        if (requested_qty > remaining) {
+            Sweet('error', 'Only ' + remaining + ' piece(s) available in stock. Cannot add ' + requested_qty + '.');
+            $qtyInput.val(remaining);
+            return false;
         }
     }
 
-
-    var btn_html = $(this).html();
-    $(this).attr('disabled', '');
+    var btn_html = $btn.html();
+    $btn.attr('disabled', 'disabled');
     var spinner = `<div class="spinner-border spinner-border-sm" role="status">
   <span class="visually-hidden"></span>
 </div> Please Wait...`;
-    $(this).html('');
-    $(this).html(spinner);
-    var qty = $('.cart_qty' + id).val();
+    $btn.html('');
+    $btn.html(spinner);
 
     $.ajaxSetup({
         headers: {
@@ -292,38 +447,40 @@ $(document).on('click', '.add_to_cart', function() {
         url: cart_link,
         data: {
             id: id,
-            qty: qty
+            qty: requested_qty
         },
         dataType: 'json',
         success: function(response) {
             $('.cart' + id).html(btn_html);
             $('.cart' + id).removeAttr('disabled');
 
-            
             $('.cart_subtotal').html(response.cart_subtotal);
-            
             $('.cart_count').html(response.cart_count);
             $('.cart_total').html(response.cart_total);
             $('.cart_tax').html(response.cart_tax);
-            render_cart(response.cart_content);
+
+            if (response.cart_content) {
+                window.booostr_cart_content = response.cart_content;
+                render_cart(response.cart_content);
+            }
+            update_all_cards_stock_ui();
             audio();
             Sweet('success', 'Cart Added');
         },
         error: function(xhr, status, error) {
-
             $('.cart' + id).html(btn_html);
             $('.cart' + id).removeAttr('disabled');
 
-            $.each(xhr.responseJSON.errors, function(key, item) {
-                Sweet('error', item)
-            });
-
+            if (xhr.responseJSON && xhr.responseJSON.errors) {
+                $.each(xhr.responseJSON.errors, function(key, item) {
+                    Sweet('error', item);
+                });
+            } else {
+                Sweet('error', 'Unable to add item to cart. Please try again.');
+            }
+            update_all_cards_stock_ui();
         }
     });
-
-
-
-
 });
 
 /*----------------------
@@ -333,20 +490,28 @@ $(document).on('click', '.remove_cart', function() {
     audio(cart_sound);
     var rowid = $(this).data('id');
     $('.cart_item' + rowid).remove();
+
+    if (window.booostr_cart_content && window.booostr_cart_content[rowid]) {
+        delete window.booostr_cart_content[rowid];
+        update_all_cards_stock_ui();
+    }
+
     $.ajax({
         type: 'get',
         url: base_url + '/remove-cart/' + rowid,
         dataType: 'json',
         success: function(response) {
-            
-         
             $('.cart_count').html(response.cart_count);
             $('.cart_subtotal').text(response.cart_subtotal);
-             $('.cart_total').html(response.cart_total);
+            $('.cart_total').html(response.cart_total);
             $('.cart_tax').html(response.cart_tax);
 
+            if (response.cart_content) {
+                window.booostr_cart_content = response.cart_content;
+                render_cart(response.cart_content);
+            }
+            update_all_cards_stock_ui();
         },
-
     });
 });
 
@@ -357,34 +522,30 @@ $(document).on('click', '.cart_increment', function() {
     var rowid = $(this).data('id');
     var stock = $(this).data('stock');
     var productid = $(this).data('productid');
-    var totalqty = $('.current_cart_qty' + rowid).val();
+    var totalqty = parseInt($('.current_cart_qty' + rowid).val()) || 0;
+
     if ($(this).data('isvariation') == 1) {
-       
         return true;
     }
 
-    
-    totalqty = parseInt(totalqty);
-    if (stock != null || stock != '') {
-
-        if (totalqty < stock) {
-            var newqty = totalqty + 1;
-            $('.current_cart_qty' + rowid).val(newqty);
-            
-            audio(cart_sound);
-            cartqty(rowid, newqty);
-        } else {
-            Sweet('error', 'Opps maximum stock limit exceeded...!!');
+    var stockNum = parseInt(stock);
+    if (!isNaN(stockNum) && stockNum > 0) {
+        if (totalqty >= stockNum) {
+            Sweet('error', 'Maximum available stock limit (' + stockNum + ') reached.');
+            return false;
         }
-    } else {
-        var newqty = totalqty + 1;
-        $('.current_cart_qty' + rowid).val(newqty);
-        
-
-        audio(cart_sound);
-        cartqty(rowid, newqty);
     }
 
+    var newqty = totalqty + 1;
+    $('.current_cart_qty' + rowid).val(newqty);
+
+    if (window.booostr_cart_content && window.booostr_cart_content[rowid]) {
+        window.booostr_cart_content[rowid].qty = newqty;
+        update_all_cards_stock_ui();
+    }
+
+    audio(cart_sound);
+    cartqty(rowid, newqty);
 });
 
 
@@ -395,32 +556,39 @@ $(document).on('click', '.cart_decrement', function() {
     var rowid = $(this).data('id');
     var stock = $(this).data('stock');
     var productid = $(this).data('productid');
-    var totalqty = $('.current_cart_qty' + rowid).val();
+    var totalqty = parseInt($('.current_cart_qty' + rowid).val()) || 0;
 
     if ($(this).data('isvariation') == 1) {
-        
         return true;
     }
 
-
-    totalqty = parseInt(totalqty);
     var newqty = totalqty - 1;
     $('.current_cart_qty' + rowid).val(newqty);
-    
 
-    if (newqty == 0 || newqty == NaN) {
+    if (newqty <= 0) {
         $('.cart_item' + rowid).remove();
+        if (window.booostr_cart_content && window.booostr_cart_content[rowid]) {
+            delete window.booostr_cart_content[rowid];
+            update_all_cards_stock_ui();
+        }
+    } else {
+        if (window.booostr_cart_content && window.booostr_cart_content[rowid]) {
+            window.booostr_cart_content[rowid].qty = newqty;
+            update_all_cards_stock_ui();
+        }
     }
+
     audio(cart_sound);
     cartqty(rowid, newqty);
-
-
 });
 
 /*----------------------
 		render_cart
 	------------------------*/
 function render_cart(items) {
+    if (items) {
+        window.booostr_cart_content = items;
+    }
     $('.cart_item').remove();
     var cartpage=$('.cart_page').length != 0 ? true : false;
     $.each(items, function(key, item) {
@@ -429,31 +597,40 @@ function render_cart(items) {
               {
                 var child_options='';
                 $.each(option, function (child_option_key, child_option_value) 
-                 {
-                  child_options +=`${escapeHtml(child_option_value.name)},`;
-                 })
+                  {
+                   child_options +=`${child_option_value.name},`;
+                  })
 
                 cart_options +=`<br><small>${option_key}: (${child_options})</small>`;
               }); 
 
+        var item_line_price = (typeof window.booostrFormatPrice === 'function')
+            ? window.booostrFormatPrice(item.price * parseInt(item.qty || 1))
+            : ('$' + (parseFloat(item.price || 0) * parseInt(item.qty || 1)).toFixed(2));
+
         var cart_item = `<li class="cart_item cart_item${item.rowId}">
-                     <a data-id="${item.rowId}" href="javascript:void(0)" class="remove remove_cart" title="Remove this item"><i class="icofont-close-circled"></i></a>
                      <div class="cart-single-main">
-                        <div class="cart-single-item">
-                           <h4><a href="${base_url+'/product/'+item.options.slug}">${escapeHtml(str_limit(item.name,20))}</a><span>${cart_options}</span></h4>
-                           <div class="quantity-main">
-                              <p class="quantity">Quantity</p>
-                              <div class="sp-quantity">
-                                <button class="inline arrow sp-minus fff cart_decrement" data-id="${item.rowId}" data-stock="${item.options.stock }" data-isvariation="${item.options.options.length != 0 ? 1 : 0}" data-productid="${item.id}""><a class="ddd" href="${item.options.options.length != 0 ? base_url+'/product/'+item.options.slug : 'javascript:void(0)'}" data-multi="-1">-</a></button>
-                                <div class="inline sp-input">
-                                 <input type="text" class="quntity-input current_cart_qty${item.rowId} exist_cart${item.id}" value="${item.qty}">
-                                </div>
-                                <button class="inline arrow sp-plus fff cart_increment last" data-id="${item.rowId}" data-stock="${item.options.stock }" data-isvariation="${item.options.options.length != 0 ? 1 : 0}" data-productid="${item.id}"><a class="ddd" href="${item.options.options.length != 0 ? base_url+'/product/'+item.options.slug : 'javascript:void(0)'}" data-multi="1">+</a></button>
-                              </div>
-                           </div>
+                        <div class="cart-item-img-wrap">
+                           <a href="${base_url+'/product/'+item.options.slug}" class="cart-img">
+                              <img src="${item.options.preview != null ? item.options.preview : ''}" alt="${item.name}">
+                           </a>
                         </div>
-                        <div class="cart-top">
-                           <a class="cart-img " ><img src="${item.options.preview != null ? item.options.preview : ''}" alt=""></a>
+                        <div class="cart-single-item">
+                           <div class="cart-item-header">
+                              <h4 class="cart-item-title"><a href="${base_url+'/product/'+item.options.slug}">${str_limit(item.name, 45)}</a></h4>
+                              <a data-id="${item.rowId}" href="javascript:void(0)" class="remove remove_cart" title="Remove this item"><i class="icofont-trash"></i></a>
+                           </div>
+                           ${cart_options ? `<div class="cart-item-meta">${cart_options}</div>` : ''}
+                           <div class="cart-item-footer">
+                              <div class="sp-quantity">
+                                <button type="button" class="inline arrow sp-minus fff cart_decrement" data-id="${item.rowId}" data-stock="${item.options.stock}" data-isvariation="${item.options.options.length != 0 ? 1 : 0}" data-productid="${item.id}"><a class="ddd" href="${item.options.options.length != 0 ? base_url+'/product/'+item.options.slug : 'javascript:void(0)'}" data-multi="-1">-</a></button>
+                                <div class="inline sp-input">
+                                 <input type="text" readonly class="quntity-input current_cart_qty${item.rowId} exist_cart${item.id}" value="${item.qty}">
+                                </div>
+                                <button type="button" class="inline arrow sp-plus fff cart_increment last" data-id="${item.rowId}" data-stock="${item.options.stock}" data-isvariation="${item.options.options.length != 0 ? 1 : 0}" data-productid="${item.id}"><a class="ddd" href="${item.options.options.length != 0 ? base_url+'/product/'+item.options.slug : 'javascript:void(0)'}" data-multi="1">+</a></button>
+                              </div>
+                              <span class="cart-item-price">${item_line_price}</span>
+                           </div>
                         </div>
                      </div>
                   </li>`;
@@ -462,7 +639,7 @@ function render_cart(items) {
             var cart_page_item=`<tr class="cart_item cart_item${item.rowId}">
             <td class="image" data-title="No"><img src="${item.options.preview != null ? item.options.preview : ''}" alt="#"></td>
             <td class="product-desc" data-title="Description">
-            <p class="product-name"><a href="${base_url+'/product/'+item.options.slug}">${escapeHtml(str_limit(item.name,100))}</a></p>
+            <p class="product-name"><a href="${base_url+'/product/'+item.options.slug}">${str_limit(item.name,100)}</a></p>
             <p class="product-des">${cart_options}</p>
             </td>
             <td class="price" data-title="Price"><span>${amount_format(item.price)} </span></td>
@@ -487,6 +664,8 @@ function render_cart(items) {
 
 
     });
+
+    update_all_cards_stock_ui();
 }
 
 /*----------------------
@@ -515,16 +694,20 @@ function cartqty(cartId, qty) {
             $('.cart_total').html(response.cart_total);
             $('.cart_tax').html(response.cart_tax);
             
-
+            if (response.cart_content) {
+                window.booostr_cart_content = response.cart_content;
+                render_cart(response.cart_content);
+            }
+            update_all_cards_stock_ui();
         },
         error: function(xhr, status, error) {
 
-
-
-            $.each(xhr.responseJSON.errors, function(key, item) {
-                Sweet('error', item)
-            });
-
+            if (xhr.responseJSON && xhr.responseJSON.errors) {
+                $.each(xhr.responseJSON.errors, function(key, item) {
+                    Sweet('error', item);
+                });
+            }
+            update_all_cards_stock_ui();
         }
     });
 
@@ -607,14 +790,14 @@ function cartqty(cartId, qty) {
               child_html +=`
               <label class="selectgroup-item">
               <input data-qty="${child.qty}" data-stockmanage="${child.stock_manage}" data-stockstatus="${child.stock_status}" ${child.stock_status == 0 && child.qty == 0  ? 'disabled' : ''} type="${item.select_type == 1 ? 'checkbox' : 'radio'}" name="option[${item.id}][]" value="${child.id}" class="selectgroup-input product_option ${item.is_required == 1 ? 'req' : ''}">
-              <span class="selectgroup-button">${child.stock_status == 0 && child.qty == 0 ? '<del>' : ''} ${escapeHtml(child.category.name)} ${child.stock_status == 0 && child.qty == 0  ? '</del>' : ''}</span>
+              <span class="selectgroup-button">${child.stock_status == 0 && child.qty == 0 ? '<del>' : ''} ${child.category.name} ${child.stock_status == 0 && child.qty == 0  ? '</del>' : ''}</span>
             </label>
             `;
           });
 
           html +=`
             <div class="form-group">
-          <label class="form-label">${escapeHtml(item.categorywithchild.name)} ${item.is_required == 1 ? '<span class="text-danger">*</span>' : ''} </label>
+          <label class="form-label">${item.categorywithchild.name} ${item.is_required == 1 ? '<span class="text-danger">*</span>' : ''} </label>
           <div class="selectgroup w-100">
             ${child_html}
           
