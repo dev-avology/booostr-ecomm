@@ -30,7 +30,7 @@ try {
                      <div class="footer-logo mb-3">
                         <a href="{{ url('/') }}" style="display: inline-flex; align-items: center; text-decoration: none; background: transparent !important;">
                            @if(!empty($clubLogo))
-                              <img src="{{ $clubLogo }}" alt="{{ $clubName }}" style="max-height: 48px; width: auto; object-fit: contain; display: block; background: transparent !important;" />
+                              <img src="{{ $clubLogo }}" alt="{{ $clubName }}" style="max-height: 48px; width: auto; object-fit: contain; display: block; background: transparent !important; filter: drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85)); -webkit-filter: drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85));" />
                            @elseif(!empty($clubName))
                               <span style="font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.3px; display: inline-block;">{{ $clubName }}</span>
                            @endif
@@ -132,3 +132,4 @@ try {
 @if(($site_settings->scroll_to_top ?? 'yes') == 'yes')
 <a href="#" class="scroll-top btn-hover"><i class="icofont-long-arrow-up"></i></a>
 @endif
+

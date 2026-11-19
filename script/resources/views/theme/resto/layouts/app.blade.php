@@ -47,6 +47,13 @@
             background: var(--primary, #0A8CDE) !important;
             background-color: var(--primary, #0A8CDE) !important;
          }
+         /* Header & Footer Club Logo: Crisp White Edge Glow - Keeps 100% original colors, no background box */
+         .navbar-brand img,
+         #clubNavbarLogo,
+         .footer .footer-logo img {
+            filter: drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85)) !important;
+            -webkit-filter: drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85)) !important;
+         }
          .navbar-nav .nav-item a {
             color: #ffffff !important;
          }
