@@ -13,6 +13,39 @@
 		<section class="category-page section">
 			<div class="container">
 				<div class="row">
+					<!-- Start Category & Brand Sidebar (Left Side) -->
+					<div class="col-lg-3 col-12">
+						<div class="category-sidebar">
+							<div class="single-widget categories-widget food category_area">
+								<h3 class="wd-title">{{ __('Categories') }}</h3>
+								<ul class="custom product_menu">
+									<li class="menu_preload content-preloader  content-placeholder" data-height="40px"  data-width="100%"></li>
+									<li class="menu_preload content-preloader  content-placeholder" data-height="40px"  data-width="100%"></li>
+									<li class="menu_preload content-preloader  content-placeholder" data-height="40px"  data-width="100%"></li>
+									<li class="menu_preload content-preloader  content-placeholder" data-height="40px"  data-width="100%"></li>
+									<li class="menu_preload content-preloader  content-placeholder" data-height="40px"  data-width="100%"></li>
+								</ul>
+							</div>
+							<div class="single-widget categories-widget food none brand_area">
+								<h3 class="wd-title">{{ __('Brands') }}</h3>
+								<ul class="custom product_brands">
+								</ul>
+							</div>
+							
+							<!-- Start Single Widget -->
+							<div class="single-widget hot-product featured_area none">
+								<h3 class="wd-title featured_title"></h3>
+								<ul class="all-products featured_products">
+									
+									
+								</ul>
+							</div>
+							<!-- End Single Widget -->
+						</div>
+					</div>
+					<!-- End Category & Brand Sidebar -->
+
+					<!-- Start Products Grid (Right Side) -->
 					<div class="col-lg-9 col-12">
 						<div class="category-grid-list">
 							<div class="row">
@@ -53,36 +86,7 @@
 							</div>
 						</div>
 					</div>
-					
-					<div class="col-lg-3 col-12">
-						<div class="category-sidebar">
-							<div class="single-widget categories-widget food category_area">
-								<h3 class="wd-title">{{ __('Categories') }}</h3>
-								<ul class="custom product_menu">
-									<li class="menu_preload content-preloader  content-placeholder" data-height="40px"  data-width="100%"></li>
-									<li class="menu_preload content-preloader  content-placeholder" data-height="40px"  data-width="100%"></li>
-									<li class="menu_preload content-preloader  content-placeholder" data-height="40px"  data-width="100%"></li>
-									<li class="menu_preload content-preloader  content-placeholder" data-height="40px"  data-width="100%"></li>
-									<li class="menu_preload content-preloader  content-placeholder" data-height="40px"  data-width="100%"></li>
-								</ul>
-							</div>
-							<div class="single-widget categories-widget food none brand_area">
-								<h3 class="wd-title">{{ __('Brands') }}</h3>
-								<ul class="custom product_brands">
-								</ul>
-							</div>
-							
-							<!-- Start Single Widget -->
-							<div class="single-widget hot-product featured_area none">
-								<h3 class="wd-title featured_title"></h3>
-								<ul class="all-products featured_products">
-									
-									
-								</ul>
-							</div>
-							<!-- End Single Widget -->
-						</div>
-					</div>
+					<!-- End Products Grid -->
 				</div>
 			</div>
 		</section>
