@@ -316,21 +316,22 @@ class PageController extends Controller
     {
         store_set_seo('Contact');
 
-        $booostrForm = $this->getBooostrClubContactForm();
+        $club_id = (int) tenant('club_id');
+        $form_id = $this->getBooostrClubContactFormId($club_id);
+        $club_info = tenant_club_info();
 
-        return view(baseview('contact'), compact('booostrForm'));
+        return view(baseview('contact'), compact('club_id', 'form_id', 'club_info'));
     }
 
-    protected function getBooostrClubContactForm()
+    protected function getBooostrClubContactFormId($club_id)
     {
-        $club_id = (int) tenant('club_id');
         if (!$club_id) {
             return null;
         }
 
         $url = env("WP_CLUB_URL");
         $baseUrl = !empty($url) ? rtrim($url, '/') . '/' : 'https://app.booostr.co/';
-        $apiUrl = $baseUrl . 'wp-json/store-api/v1/get-store-form/?club_id=' . $club_id;
+        $apiUrl = $baseUrl . 'wp-json/store-api/v1/get-store-form-contact-form/?club_id=' . $club_id;
 
         try {
             $ch = curl_init();
@@ -338,7 +339,7 @@ class PageController extends Controller
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
             $response = curl_exec($ch);
             $hasError = curl_errno($ch);
             curl_close($ch);
@@ -350,31 +351,14 @@ class PageController extends Controller
                     $forms = is_string($rawForms) ? json_decode($rawForms, true) : $rawForms;
 
                     if (is_array($forms) && count($forms) > 0) {
-                        $contactForm = null;
-                        foreach ($forms as $form) {
-                            $formItem = is_array($form) ? (object) $form : $form;
-                            $title = strtolower($formItem->title ?? '');
-                            if (strpos($title, 'contact') !== false) {
-                                $contactForm = $formItem;
-                                break;
-                            }
-                        }
-
-                        if (!$contactForm && count($forms) > 0) {
-                            $first = $forms[0];
-                            $contactForm = is_array($first) ? (object) $first : $first;
-                        }
-
-                        if ($contactForm && !empty($contactForm->fields)) {
-                            $fields = is_string($contactForm->fields) ? json_decode($contactForm->fields, true) : $contactForm->fields;
-                            $contactForm->parsed_fields = is_array($fields) ? $fields : [];
-                            return $contactForm;
-                        }
+                        $firstForm = $forms[0];
+                        $formId = is_array($firstForm) ? ($firstForm['id'] ?? null) : ($firstForm->id ?? null);
+                        return $formId;
                     }
                 }
             }
         } catch (\Throwable $e) {
-            \Log::error('Booostr Form Builder fetch error: ' . $e->getMessage());
+            \Log::error('Booostr Contact Form fetch error: ' . $e->getMessage());
         }
 
         return null;
