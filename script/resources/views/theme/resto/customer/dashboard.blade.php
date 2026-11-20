@@ -31,8 +31,14 @@
 <!-- 1. Welcome Greeting Banner -->
 <div class="dash-welcome-banner mb-4 p-4 bg-white rounded border d-flex align-items-center justify-content-between flex-wrap gap-3 shadow-sm">
     <div class="d-flex align-items-center gap-3">
-        <div class="dash-user-avatar">
-            {{ strtoupper(substr($displayName, 0, 1)) }}
+        <div class="dash-user-avatar" style="overflow: hidden; padding: 0; width: 48px; height: 48px; border-radius: 50%;">
+            @if(!empty($userMeta['avatar']))
+                <img src="{{ asset($userMeta['avatar']) }}" alt="{{ $displayName }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+            @else
+                <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                    {{ strtoupper(substr($displayName, 0, 1)) }}
+                </div>
+            @endif
         </div>
         <div>
             <h3 class="fs-5 fw-bold mb-1 text-dark">{{ __('Welcome back') }}, {{ $displayName }}!</h3>

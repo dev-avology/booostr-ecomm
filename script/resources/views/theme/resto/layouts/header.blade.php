@@ -623,15 +623,33 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
                         </ul>
 
                         @if(Auth::check())
+                        @php
+                           $headerUser = Auth::user();
+                           $headerMeta = !empty($headerUser->meta) ? json_decode($headerUser->meta, true) : [];
+                           $headerAvatar = !empty($headerMeta['avatar']) ? $headerMeta['avatar'] : null;
+                        @endphp
                         <!-- User Profile Dropdown (Separate from cart-list-top to prevent CSS conflicts) -->
                         <div class="user-custom-dropdown ms-3" style="position: relative;">
-                           <a href="javascript:void(0)" class="user-avatar-circle-btn d-flex align-items-center justify-content-center" id="userMenuToggleBtn" title="{{ Auth::user()->name }}">
-                              <i class="icofont-ui-user"></i>
+                           <a href="javascript:void(0)" class="user-avatar-circle-btn d-flex align-items-center justify-content-center" id="userMenuToggleBtn" title="{{ $headerUser->name }}">
+                              @if(!empty($headerAvatar))
+                                 <img src="{{ asset($headerAvatar) }}" alt="{{ $headerUser->name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                              @else
+                                 <i class="icofont-ui-user"></i>
+                              @endif
                            </a>
                            <div class="user-custom-menu shadow" id="userCustomDropdownMenu">
-                              <div class="user-dropdown-header">
-                                 <div class="user-dropdown-name">{{ Auth::user()->name }}</div>
-                                 <div class="user-dropdown-email">{{ Auth::user()->email }}</div>
+                              <div class="user-dropdown-header d-flex align-items-center gap-2" style="padding: 12px 16px;">
+                                 @if(!empty($headerAvatar))
+                                    <img src="{{ asset($headerAvatar) }}" alt="{{ $headerUser->name }}" class="rounded-circle border" style="width: 38px; height: 38px; object-fit: cover; flex-shrink: 0;">
+                                 @else
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; font-weight: 700; font-size: 15px; flex-shrink: 0;">
+                                       {{ strtoupper(substr($headerUser->name, 0, 1)) }}
+                                    </div>
+                                 @endif
+                                 <div style="min-width: 0; flex: 1;">
+                                    <div class="user-dropdown-name text-truncate" style="font-weight: 600; font-size: 14px; color: #1e293b;">{{ $headerUser->name }}</div>
+                                    <div class="user-dropdown-email text-truncate" style="font-size: 12px; color: #64748b;">{{ $headerUser->email }}</div>
+                                 </div>
                               </div>
                               <div class="user-dropdown-body">
                                  <a class="custom-dropdown-item" href="{{ url('/customer/dashboard') }}">
