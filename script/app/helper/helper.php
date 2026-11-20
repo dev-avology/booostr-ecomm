@@ -661,25 +661,6 @@ function store_page_title($pageName = '') {
 }
 
 /**
- * Resolves the tenant club/store logo URL.
- *
- * @return string
- */
-function tenant_club_logo() {
-    $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
-    if (!empty($clubInfo['club_logo'])) {
-        return $clubInfo['club_logo'];
-    }
-    if (function_exists('tenant') && tenant('uid')) {
-        $localLogo = 'uploads/' . tenant('uid') . '/logo.png';
-        if (file_exists(public_path($localLogo))) {
-            return asset($localLogo);
-        }
-    }
-    return '';
-}
-
-/**
  * Sets unified, standardized storefront SEO across all meta providers without database options dependency.
  *
  * @param string $pageName Page title or suffix (e.g., 'Products', 'Contact', 'Home')
