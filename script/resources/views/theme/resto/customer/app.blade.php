@@ -50,20 +50,12 @@
 			<div class="col-lg-3 col-md-4 col-12">
 				<!-- Start Dashboard Sidebar -->
 				<div class="dashboard-sidebar">
-					<div class="user-image text-center mb-3">
+					<div class="user-image">
 						@php
 							$userMeta = !empty(Auth::user()->meta) ? json_decode(Auth::user()->meta, true) : [];
 							$displayName = !empty($userMeta['username']) ? $userMeta['username'] : Auth::user()->name;
-							$avatar = !empty($userMeta['avatar']) ? $userMeta['avatar'] : null;
 						@endphp
-						@if(!empty($avatar))
-							<img src="{{ asset($avatar) }}" alt="{{ $displayName }}" class="rounded-circle mb-2 border shadow-sm" style="width: 72px; height: 72px; object-fit: cover;">
-						@else
-							<div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-2 shadow-sm" style="width: 72px; height: 72px; font-size: 26px; font-weight: 700;">
-								{{ strtoupper(substr($displayName, 0, 1)) }}
-							</div>
-						@endif
-						<h3 class="mt-1 fs-5 fw-bold text-dark mb-0">{{ $displayName }}</h3>
+						<h3>{{ $displayName }}</h3>
 					</div>
 					<div class="dashboard-menu">
 						<ul>
