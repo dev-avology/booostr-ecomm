@@ -350,7 +350,20 @@
 		if (fileInput) {
 			fileInput.addEventListener('change', function () {
 				if (this.files && this.files.length > 0) {
-					if (fileNameDisplay) fileNameDisplay.textContent = this.files[0].name;
+					const file = this.files[0];
+					// Client-side 2MB file size safeguard to prevent server timeouts/drops
+					if (file.size > 2 * 1024 * 1024) {
+						if (typeof Sweet === 'function') {
+							Sweet('error', '{{ __("Image size must be less than 2MB. Please choose a smaller image.") }}');
+						} else {
+							alert('{{ __("Image size must be less than 2MB. Please choose a smaller image.") }}');
+						}
+						this.value = '';
+						if (fileNameDisplay) fileNameDisplay.textContent = '';
+						return;
+					}
+
+					if (fileNameDisplay) fileNameDisplay.textContent = file.name;
 					if (removeInput) removeInput.value = '0';
 					if (removeBtn) removeBtn.classList.remove('d-none');
 					if (avatarPreview) {
@@ -359,7 +372,7 @@
 							avatarPreview.src = e.target.result;
 							avatarPreview.classList.remove('d-none');
 						};
-						reader.readAsDataURL(this.files[0]);
+						reader.readAsDataURL(file);
 					}
 				}
 			});

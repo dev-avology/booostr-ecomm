@@ -727,17 +727,16 @@ class CustomerController extends Controller
             $existingMeta['state']   = $request->state ?? ($existingMeta['state'] ?? '');
             $existingMeta['country'] = $country;
 
-            // Handle Avatar image removal or upload
+            // Handle Avatar image removal or upload using Laravel Storage (Option 1)
             $removeImage = $request->input('remove_image') == '1' || $request->boolean('remove_image');
 
             if ($removeImage) {
                 try {
                     if (!empty($existingMeta['avatar'])) {
-                        $oldAvatar = $existingMeta['avatar'];
-                        if (file_exists($oldAvatar)) {
-                            @unlink($oldAvatar);
-                        } elseif (file_exists(public_path($oldAvatar))) {
-                            @unlink(public_path($oldAvatar));
+                        $oldFilename = basename($existingMeta['avatar']);
+                        $oldStoragePath = storage_path('app/public/avatar/' . $oldFilename);
+                        if (file_exists($oldStoragePath)) {
+                            @unlink($oldStoragePath);
                         }
                     }
                 } catch (\Throwable $e) {}
@@ -745,48 +744,30 @@ class CustomerController extends Controller
             } elseif ($request->hasFile('image')) {
                 try {
                     $file = $request->file('image');
-                    $tenantId = function_exists('tenant') && tenant() ? (tenant('id') ?: (tenant()->id ?? 'default')) : 'default';
-                    $uploadDir = 'uploads/' . $tenantId . '/';
+                    $avatarStorageDir = storage_path('app/public/avatar');
 
-                    if (!file_exists($uploadDir)) {
-                        @mkdir($uploadDir, 0755, true);
+                    if (!file_exists($avatarStorageDir)) {
+                        @mkdir($avatarStorageDir, 0755, true);
                     }
 
-                    // Delete old avatar file if exists to prevent disk clutter
+                    // Delete old avatar file if exists
                     if (!empty($existingMeta['avatar'])) {
-                        $oldAvatar = $existingMeta['avatar'];
-                        if (file_exists($oldAvatar)) {
-                            @unlink($oldAvatar);
-                        } elseif (file_exists(public_path($oldAvatar))) {
-                            @unlink(public_path($oldAvatar));
+                        $oldFilename = basename($existingMeta['avatar']);
+                        $oldStoragePath = $avatarStorageDir . '/' . $oldFilename;
+                        if (file_exists($oldStoragePath)) {
+                            @unlink($oldStoragePath);
                         }
                     }
 
-                    $imageName = 'avatar_' . $user->id . '_' . time() . '.' . strtolower($file->getClientOriginalExtension());
-                    $targetPath = $uploadDir . $imageName;
+                    $extension = strtolower($file->extension() ?: $file->getClientOriginalExtension());
+                    $imageName = 'avatar_' . $user->id . '_' . time() . '.' . $extension;
 
-                    // Compress and fit image to 400x400 with 80% quality if Intervention Image is available
-                    $saved = false;
-                    try {
-                        if (class_exists('\Image') && extension_loaded('gd')) {
-                            $img = \Image::make($file->getRealPath());
-                            $img->fit(400, 400, function ($constraint) {
-                                $constraint->upsize();
-                            });
-                            $img->save($targetPath, 80);
-                            $saved = true;
-                        }
-                    } catch (\Throwable $imgErr) {
-                        $saved = false;
-                    }
+                    // Native Laravel file move directly into storage/app/public/avatar
+                    $file->move($avatarStorageDir, $imageName);
 
-                    if (!$saved) {
-                        $file->move($uploadDir, $imageName);
-                    }
-
-                    $existingMeta['avatar'] = $uploadDir . $imageName;
+                    $existingMeta['avatar'] = 'storage/avatar/' . $imageName;
                 } catch (\Throwable $e) {
-                    // Safeguarded: never crash the request due to file system exceptions
+                    // Safeguarded against file system exceptions
                 }
             }
 

@@ -31,6 +31,16 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
         return redirect('/'); 
     });
 
+    // Serve avatars from Laravel storage (works natively with or without symbolic links)
+    Route::get('/storage/avatar/{filename}', function ($filename) {
+        $filename = basename($filename);
+        $path = storage_path('app/public/avatar/' . $filename);
+        if (!file_exists($path)) {
+            abort(404);
+        }
+        return response()->file($path);
+    });
+
     // Ticket routes
     Route::get('/ticket/scan/{uuid}', [TicketScanController::class, 'scan']);
     Route::get('/tickets/qr_{uuid}.png', [TicketScanController::class, 'ticketQrPng']);
