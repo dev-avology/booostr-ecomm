@@ -319,7 +319,7 @@ class PageController extends Controller
         $club_id = (int) tenant('club_id');
         $form_id = $this->getBooostrClubContactFormId($club_id);
         $club_info = tenant_club_info();
-        $formBaseUrl = rtrim(env("BOOOSTR_FORM_EMBED_URL") ?: 'https://staging5.booostr.co', '/');
+        $formBaseUrl = rtrim(env("BOOOSTR_FORM_EMBED_URL") ?: 'https://booostr.co', '/');
 
         return view(baseview('contact'), compact('club_id', 'form_id', 'club_info', 'formBaseUrl'));
     }

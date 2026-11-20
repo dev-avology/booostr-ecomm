@@ -23,11 +23,11 @@
         <div class="container">
             @if(!empty($form_id) && !empty($club_id))
                 <div class="volunteer-form-container" style="width: 100%; max-width: 800px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; overflow: hidden; padding: 20px;">
-                    <iframe id="fornstupframework{{ $form_id }}" class="fornstupframework" style="overflow-y: hidden;width: 100%;" frameborder="0" border="0" cellspacing="0" scrolling="no" onload="AdjustIframeHeightOnLoad()" src="{{ $formBaseUrl ?? 'https://staging5.booostr.co' }}/?em_embed_form={{ $form_id }}&em_item={{ $club_id }}"></iframe>
+                    <iframe id="fornstupframework{{ $form_id }}" class="fornstupframework" style="overflow-y: hidden;width: 100%;" frameborder="0" border="0" cellspacing="0" scrolling="no" onload="AdjustIframeHeightOnLoad()" src="{{ $formBaseUrl ?? 'https://booostr.co' }}/?em_embed_form={{ $form_id }}&em_item={{ $club_id }}"></iframe>
                     <script>
                     function AdjustIframeHeightOnLoad() {}
                     window.addEventListener("message", function(e) {
-                        if (e.origin !== "https://staging5.booostr.co" && e.origin !== "https://booostr.co" && e.origin !== "https://app.booostr.co") return;
+                        if (e.origin !== "https://booostr.co" && e.origin !== "https://app.booostr.co" && e.origin !== "https://staging5.booostr.co") return;
                         if (e.data && e.data.iframeHeight) {
                             var i = document.getElementById("fornstupframeworkcalform{{ $form_id }}") || document.getElementById("fornstupframework{{ $form_id }}");
                             if (i) {
