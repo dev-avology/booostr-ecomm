@@ -53,37 +53,9 @@ class CustomerController extends Controller
             }
         }
         
-        $home_data=optionfromcache('login_page');
-
-        $seo=$home_data->seo ?? '';
-        $pageTitle = store_page_title('Login');
-        SEOMeta::setTitle($pageTitle);
-        SEOMeta::setDescription($seo->description ?? '');
-       
-
-        OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($pageTitle);
-
-        OpenGraph::addProperty('keywords', $seo->tags ?? '');
-
-        TwitterCard::setTitle($pageTitle);
-        TwitterCard::setSite($seo->twitter_title ?? '');
-
-        JsonLd::setTitle($pageTitle);
-        JsonLd::setDescription($seo->description ?? '');
-        JsonLd::addImage($seo->meta_image ?? '');
-
-        SEOTools::setTitle($pageTitle);
-        SEOTools::setDescription($seo->description ?? '');
-        SEOTools::opengraph()->setUrl(url('/'));
-        SEOTools::setCanonical(url('/'));
+        store_set_seo('Login');
         
-        SEOTools::twitter()->setSite($seo->twitter_title ?? '');
-        SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
-        SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
-
-        
-       return view(baseview('customer/login'));
+        return view(baseview('customer/login'));
     }
 
     /**
@@ -307,34 +279,7 @@ class CustomerController extends Controller
     {
         abort_if(tenant('customer_modules') != 'on',404);
 
-        $home_data=optionfromcache('register_page');
-        $seo=$home_data->seo ?? '';
-        $pageTitle = store_page_title('Register');
-        SEOMeta::setTitle($pageTitle);
-        SEOMeta::setDescription($seo->description ?? '');
-       
-
-        OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($pageTitle);
-
-        OpenGraph::addProperty('keywords', $seo->tags ?? '');
-
-        TwitterCard::setTitle($pageTitle);
-        TwitterCard::setSite($seo->twitter_title ?? '');
-
-        JsonLd::setTitle($pageTitle);
-        JsonLd::setDescription($seo->description ?? '');
-        JsonLd::addImage($seo->meta_image ?? '');
-
-        SEOTools::setTitle($pageTitle);
-        SEOTools::setDescription($seo->description ?? '');
-        SEOTools::opengraph()->setUrl(url('/'));
-        SEOTools::setCanonical(url('/'));
-        
-        SEOTools::twitter()->setSite($seo->twitter_title ?? '');
-        SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
-        SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
-
+        store_set_seo('Register');
         
         return view(baseview('customer/register'));
     }
@@ -579,7 +524,7 @@ class CustomerController extends Controller
                 ->pluck('status_id')
                 ->toArray();
 
-            SEOMeta::setTitle(store_page_title('Dashboard'));
+            store_set_seo('Dashboard');
             return view(baseview('customer/dashboard'), compact(
                 'total_orders',
                 'total_pending_orders',
@@ -598,7 +543,7 @@ class CustomerController extends Controller
             $orders = collect();
             $pendingStatusIds = [];
 
-            SEOMeta::setTitle(store_page_title('Dashboard'));
+            store_set_seo('Dashboard');
             return view(baseview('customer/dashboard'), compact(
                 'total_orders',
                 'total_pending_orders',
@@ -648,7 +593,7 @@ class CustomerController extends Controller
                 ]);
             }
 
-            SEOMeta::setTitle(store_page_title('Purchase History'));
+            store_set_seo('Purchase History');
             return view(baseview('customer/orders'), compact('orders', 'orderStatuses'));
         } catch (\Throwable $e) {
             \Log::error('Customer orders error: ' . $e->getMessage(), [
@@ -668,7 +613,7 @@ class CustomerController extends Controller
             // Graceful fallback to avoid breaking the user interface
             $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
             $orderStatuses = collect();
-            SEOMeta::setTitle(store_page_title('Purchase History'));
+            store_set_seo('Purchase History');
             return view(baseview('customer/orders'), compact('orders', 'orderStatuses'))->with('error', __('Unable to load orders at this time. Please try again.'));
         }
     }
@@ -678,7 +623,7 @@ class CustomerController extends Controller
         abort_if(tenant('customer_modules') != 'on',404);
         $this->claimGuestOrdersByEmail();
         $info=Order::where('user_id',Auth::id())->with('orderitemswithpreview','shippingwithinfo','orderstatus','ordermeta','schedule','reviews')->findorFail($id);
-        SEOMeta::setTitle(store_page_title('Order #' . $info->invoice_no));
+        store_set_seo('Order #' . $info->invoice_no);
         $reviews=[];
         foreach($info->reviews ?? [] as $row){
             $reviews[$row->term_id]['rating']=$row->rating;
@@ -727,7 +672,7 @@ class CustomerController extends Controller
             'VA' => 'Virginia', 'WA' => 'Washington', 'WV' => 'West Virginia', 'WI' => 'Wisconsin', 'WY' => 'Wyoming',
         ];
 
-        SEOMeta::setTitle(store_page_title('Settings'));
+        store_set_seo('Settings');
         return view(baseview('customer/settings'), compact('meta', 'order_settings', 'fname', 'lname', 'country', 'usStates'));
     }
 
@@ -853,7 +798,7 @@ class CustomerController extends Controller
         if (Auth::user()->role_id == 3) {
             return redirect('/customer/dashboard');
         }
-        SEOMeta::setTitle(store_page_title('Change Password'));
+        store_set_seo('Change Password');
         return view(baseview('customer/change-password'));
     }
 
@@ -995,7 +940,7 @@ class CustomerController extends Controller
     public function showForgetPasswordForm()
     {
         abort_if(tenant('customer_modules') != 'on', 404);
-        SEOMeta::setTitle(store_page_title('Forgot Password'));
+        store_set_seo('Forgot Password');
         return view('theme.resto.customer.forget-password');
     }
 
@@ -1223,7 +1168,7 @@ class CustomerController extends Controller
 
         $tokenValid = !empty($tokenRecord);
 
-        SEOMeta::setTitle(store_page_title('Reset Password'));
+        store_set_seo('Reset Password');
 
         return view('theme.resto.customer.reset-password', [
             'username' => $username,

@@ -660,6 +660,114 @@ function store_page_title($pageName = '') {
     return $clubName . ' - ' . $pageName;
 }
 
+/**
+ * Resolves the tenant club/store logo URL.
+ *
+ * @return string
+ */
+function tenant_club_logo() {
+    $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+    if (!empty($clubInfo['club_logo'])) {
+        return $clubInfo['club_logo'];
+    }
+    if (function_exists('tenant') && tenant('uid')) {
+        $localLogo = 'uploads/' . tenant('uid') . '/logo.png';
+        if (file_exists(public_path($localLogo))) {
+            return asset($localLogo);
+        }
+    }
+    return '';
+}
+
+/**
+ * Sets unified, standardized storefront SEO across all meta providers without database options dependency.
+ *
+ * @param string $pageName Page title or suffix (e.g., 'Products', 'Contact', 'Home')
+ * @param string|null $description Custom description, or auto-generated if null
+ * @param string|null $image Custom preview image URL, or tenant logo if null
+ * @param string $type OpenGraph type (website, article, etc.)
+ * @return string The generated title
+ */
+function store_set_seo($pageName = '', $description = null, $image = null, $type = 'website') {
+    $clubName = tenant_club_name();
+    $pageTitle = store_page_title($pageName);
+
+    if ($description === null || trim((string)$description) === '') {
+        $cleanPage = trim((string)$pageName);
+        if (empty($cleanPage) || strcasecmp($cleanPage, 'home') === 0) {
+            $description = "Official online store for {$clubName}. Browse and shop our products securely on Booostr.";
+        } else {
+            $description = "Browse {$cleanPage} at {$clubName}. Shop securely online on Booostr.";
+        }
+    } else {
+        $description = trim(strip_tags((string)$description));
+    }
+
+    if (empty($image)) {
+        $image = tenant_club_logo();
+    }
+
+    $currentUrl = function_exists('url') ? url()->current() : '';
+
+    // SEOMeta
+    if (class_exists('\Artesaos\SEOTools\Facades\SEOMeta')) {
+        \Artesaos\SEOTools\Facades\SEOMeta::setTitle($pageTitle);
+        \Artesaos\SEOTools\Facades\SEOMeta::setDescription($description);
+        if (!empty($currentUrl)) {
+            \Artesaos\SEOTools\Facades\SEOMeta::setCanonical($currentUrl);
+        }
+    }
+
+    // OpenGraph
+    if (class_exists('\Artesaos\SEOTools\Facades\OpenGraph')) {
+        \Artesaos\SEOTools\Facades\OpenGraph::setTitle($pageTitle);
+        \Artesaos\SEOTools\Facades\OpenGraph::setDescription($description);
+        if (!empty($currentUrl)) {
+            \Artesaos\SEOTools\Facades\OpenGraph::setUrl($currentUrl);
+        }
+        \Artesaos\SEOTools\Facades\OpenGraph::addProperty('type', $type);
+        if (!empty($image)) {
+            \Artesaos\SEOTools\Facades\OpenGraph::addImage($image);
+        }
+    }
+
+    // TwitterCard
+    if (class_exists('\Artesaos\SEOTools\Facades\TwitterCard')) {
+        \Artesaos\SEOTools\Facades\TwitterCard::setTitle($pageTitle);
+        \Artesaos\SEOTools\Facades\TwitterCard::setSite('@booostr');
+        \Artesaos\SEOTools\Facades\TwitterCard::setDescription($description);
+        if (!empty($image)) {
+            \Artesaos\SEOTools\Facades\TwitterCard::setImage($image);
+        }
+    }
+
+    // JsonLd
+    if (class_exists('\Artesaos\SEOTools\Facades\JsonLd')) {
+        \Artesaos\SEOTools\Facades\JsonLd::setTitle($pageTitle);
+        \Artesaos\SEOTools\Facades\JsonLd::setDescription($description);
+        if (!empty($image)) {
+            \Artesaos\SEOTools\Facades\JsonLd::addImage($image);
+        }
+    }
+
+    // SEOTools wrapper
+    if (class_exists('\Artesaos\SEOTools\Facades\SEOTools')) {
+        \Artesaos\SEOTools\Facades\SEOTools::setTitle($pageTitle);
+        \Artesaos\SEOTools\Facades\SEOTools::setDescription($description);
+        if (!empty($currentUrl)) {
+            \Artesaos\SEOTools\Facades\SEOTools::opengraph()->setUrl($currentUrl);
+        }
+        \Artesaos\SEOTools\Facades\SEOTools::opengraph()->addProperty('type', $type);
+        \Artesaos\SEOTools\Facades\SEOTools::twitter()->setSite('@booostr');
+        if (!empty($image)) {
+            \Artesaos\SEOTools\Facades\SEOTools::opengraph()->addImage($image);
+            \Artesaos\SEOTools\Facades\SEOTools::jsonLd()->addImage($image);
+        }
+    }
+
+    return $pageTitle;
+}
+
 function credit_card_fee($total){
   return number_format($total * 0.029 + 0.30,2);
 }

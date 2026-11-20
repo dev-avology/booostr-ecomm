@@ -16,33 +16,7 @@ class BlogController extends Controller
     public function index(Request $request)
     {
         $home_data=optionfromcache('blog_page');
-
-        $seo=$home_data->seo ?? '';
-        $pageTitle = store_page_title('Blogs');
-        SEOMeta::setTitle($pageTitle);
-        SEOMeta::setDescription($seo->description ?? '');
-       
-
-        OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($pageTitle);
-
-        OpenGraph::addProperty('keywords', $seo->tags ?? '');
-
-        TwitterCard::setTitle($pageTitle);
-        TwitterCard::setSite($seo->twitter_title ?? '');
-
-        JsonLd::setTitle($pageTitle);
-        JsonLd::setDescription($seo->description ?? '');
-        JsonLd::addImage($seo->meta_image ?? '');
-
-        SEOTools::setTitle($pageTitle);
-        SEOTools::setDescription($seo->description ?? '');
-        SEOTools::opengraph()->setUrl(url('/'));
-        SEOTools::setCanonical(url('/'));
-        
-        SEOTools::twitter()->setSite($seo->twitter_title ?? '');
-        SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
-        SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
+        store_set_seo('Blogs');
 
         $page_data=$home_data->meta ?? '';
 
@@ -60,21 +34,8 @@ class BlogController extends Controller
         abort_if(empty($info),404);
         $recent_posts=Term::query()->where('type','blog')->where('status',1)->with('preview')->latest()->take(3)->get();
 
-        $pageTitle = store_page_title($info->title ?? 'Blog');
-        JsonLdMulti::setTitle($pageTitle);
-        JsonLdMulti::setDescription($info->excerpt->value ?? '');
-        JsonLdMulti::addImage(asset($info->preview->value ?? ''));
-
-        SEOMeta::setTitle($pageTitle);
-        SEOMeta::setDescription($info->excerpt->value ?? '');
-     
-        SEOTools::setTitle($pageTitle);
-        SEOTools::setDescription($info->excerpt->value ?? '');
-     
-        SEOTools::opengraph()->addProperty('image', asset('uploads/'.tenant('uid').'/logo.png'));
-        SEOTools::twitter()->setTitle($pageTitle);
-        SEOTools::twitter()->setSite($pageTitle);
-        SEOTools::jsonLd()->addImage(asset($info->preview->value ?? ''));
+        $previewImg = !empty($info->preview->value) ? asset($info->preview->value) : null;
+        store_set_seo($info->title ?? 'Blog', $info->excerpt->value ?? null, $previewImg, 'article');
         
         return  view(baseview('blog/show'),compact('info','recent_posts'));
     }

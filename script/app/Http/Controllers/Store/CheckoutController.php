@@ -51,33 +51,7 @@ class CheckoutController extends Controller
         // Cart::setGlobalTax($tax);
 
         $home_data=optionfromcache('cart_page');
-
-        $seo=$home_data->seo ?? '';
-        $pageTitle = store_page_title('Cart');
-        SEOMeta::setTitle($pageTitle);
-        SEOMeta::setDescription($seo->description ?? '');
-
-
-        OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($pageTitle);
-
-        OpenGraph::addProperty('keywords', $seo->tags ?? '');
-
-        TwitterCard::setTitle($pageTitle);
-        TwitterCard::setSite($seo->twitter_title ?? '');
-
-        JsonLd::setTitle($pageTitle);
-        JsonLd::setDescription($seo->description ?? '');
-        JsonLd::addImage($seo->meta_image ?? '');
-
-        SEOTools::setTitle($pageTitle);
-        SEOTools::setDescription($seo->description ?? '');
-        SEOTools::opengraph()->setUrl(url('/'));
-
-
-        SEOTools::twitter()->setSite($seo->twitter_title ?? '');
-        SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
-        SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
+        store_set_seo('Cart');
         $page_data=$home_data->meta ?? '';
         return view(baseview('cart'),compact('page_data'));
     }
@@ -271,33 +245,7 @@ class CheckoutController extends Controller
 
 
         $home_data=optionfromcache('checkout_page');
-
-        $seo=$home_data->seo ?? '';
-        $pageTitle = store_page_title('Checkout');
-        SEOMeta::setTitle($pageTitle);
-        SEOMeta::setDescription($seo->description ?? '');
-
-
-        OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($pageTitle);
-
-        OpenGraph::addProperty('keywords', $seo->tags ?? '');
-
-        TwitterCard::setTitle($pageTitle);
-        TwitterCard::setSite($seo->twitter_title ?? '');
-
-        JsonLd::setTitle($pageTitle);
-        JsonLd::setDescription($seo->description ?? '');
-        JsonLd::addImage($seo->meta_image ?? '');
-
-        SEOTools::setTitle($pageTitle);
-        SEOTools::setDescription($seo->description ?? '');
-        SEOTools::opengraph()->setUrl(url('/'));
-
-
-        SEOTools::twitter()->setSite($seo->twitter_title ?? '');
-        SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
-        SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
+        store_set_seo('Checkout');
 
         $page_data=$home_data->meta ?? '';
 
@@ -535,33 +483,7 @@ class CheckoutController extends Controller
 
 
         $home_data=optionfromcache('checkout_page');
-
-        $seo=$home_data->seo ?? '';
-        $pageTitle = store_page_title('Checkout');
-        SEOMeta::setTitle($pageTitle);
-        SEOMeta::setDescription($seo->description ?? '');
-
-
-        OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($pageTitle);
-
-        OpenGraph::addProperty('keywords', $seo->tags ?? '');
-
-        TwitterCard::setTitle($pageTitle);
-        TwitterCard::setSite($seo->twitter_title ?? '');
-
-        JsonLd::setTitle($pageTitle);
-        JsonLd::setDescription($seo->description ?? '');
-        JsonLd::addImage($seo->meta_image ?? '');
-
-        SEOTools::setTitle($pageTitle);
-        SEOTools::setDescription($seo->description ?? '');
-        SEOTools::opengraph()->setUrl(url('/'));
-
-
-        SEOTools::twitter()->setSite($seo->twitter_title ?? '');
-        SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
-        SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
+        store_set_seo('Checkout');
 
         $page_data=$home_data->meta ?? '';
 
@@ -713,10 +635,7 @@ class CheckoutController extends Controller
 
         // If user is not logged in and not guest, show the Pre-Checkout Gate
         if (!Auth::check() && !Session::get('is_guest')) {
-            $home_data = optionfromcache('checkout_page');
-            $seo = $home_data->seo ?? '';
-            SEOMeta::setTitle(store_page_title('Checkout'));
-            SEOMeta::setDescription($seo->description ?? '');
+            store_set_seo('Checkout');
             return view('store.checkout.pre-checkout');
         }
 
@@ -790,30 +709,7 @@ class CheckoutController extends Controller
         $invoice_data = optionfromcache('invoice_data');
 
         $home_data = optionfromcache('checkout_page');
-
-        $seo = $home_data->seo ?? '';
-        $pageTitle = store_page_title('Checkout');
-        SEOMeta::setTitle($pageTitle);
-        SEOMeta::setDescription($seo->description ?? '');
-
-        OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($pageTitle);
-        OpenGraph::addProperty('keywords', $seo->tags ?? '');
-
-        TwitterCard::setTitle($pageTitle);
-        TwitterCard::setSite($seo->twitter_title ?? '');
-
-        JsonLd::setTitle($pageTitle);
-        JsonLd::setDescription($seo->description ?? '');
-        JsonLd::addImage($seo->meta_image ?? '');
-
-        SEOTools::setTitle($pageTitle);
-        SEOTools::setDescription($seo->description ?? '');
-        SEOTools::opengraph()->setUrl(url('/'));
-
-        SEOTools::twitter()->setSite($seo->twitter_title ?? '');
-        SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
-        SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
+        store_set_seo('Checkout');
 
         $page_data = $home_data->meta ?? '';
 
@@ -1115,33 +1011,7 @@ class CheckoutController extends Controller
 
 
         $home_data=optionfromcache('checkout_page');
-
-        $seo=$home_data->seo ?? '';
-        $pageTitle = store_page_title('Checkout');
-        SEOMeta::setTitle($pageTitle);
-        SEOMeta::setDescription($seo->description ?? '');
-
-
-        OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($pageTitle);
-
-        OpenGraph::addProperty('keywords', $seo->tags ?? '');
-
-        TwitterCard::setTitle($pageTitle);
-        TwitterCard::setSite($seo->twitter_title ?? '');
-
-        JsonLd::setTitle($pageTitle);
-        JsonLd::setDescription($seo->description ?? '');
-        JsonLd::addImage($seo->meta_image ?? '');
-
-        SEOTools::setTitle($pageTitle);
-        SEOTools::setDescription($seo->description ?? '');
-        SEOTools::opengraph()->setUrl(url('/'));
-
-
-        SEOTools::twitter()->setSite($seo->twitter_title ?? '');
-        SEOTools::jsonLd()->addImage($seo->meta_image ?? '');
-        SEOTools::opengraph()->addProperty('keywords', $seo->tags ?? '');
+        store_set_seo('Checkout');
 
         $page_data=$home_data->meta ?? '';
 
@@ -3202,7 +3072,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
     {
         abort_if(!Session::has('invoice_no'),404);
         $orderno=Session::get('invoice_no');
-        SEOMeta::setTitle(store_page_title('Thanks'));
+        store_set_seo('Thanks');
         return view(baseview('thanks'),compact('orderno'));
     }
 
