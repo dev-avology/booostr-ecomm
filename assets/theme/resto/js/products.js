@@ -43,6 +43,45 @@ $(document).on('click','.menu_item',function(){
 
 });
 
+// Sidebar Accordion Collapse/Expand
+$(document).on('click', '.sidebar-accordion-header', function(e) {
+    e.preventDefault();
+    var $header = $(this);
+    var $widget = $header.closest('.single-widget');
+    var $content = $widget.find('.sidebar-widget-content');
+    var $icon = $header.find('.sidebar-accordion-icon');
+
+    $content.stop(true, true).slideToggle(200, function() {
+        if ($content.is(':visible')) {
+            $header.removeClass('collapsed');
+            $icon.css('transform', 'rotate(0deg)');
+        } else {
+            $header.addClass('collapsed');
+            $icon.css('transform', 'rotate(-90deg)');
+        }
+    });
+});
+
+// Sidebar "View More / View Less"
+$(document).on('click', '.btn-sidebar-view-more', function(e) {
+    e.preventDefault();
+    var $btn = $(this);
+    var targetSelector = $btn.data('target');
+    var extraCount = $btn.data('extra');
+    var $extraItems = $(targetSelector).find('.sidebar-extra-item');
+    var isExpanded = $btn.hasClass('is-expanded');
+
+    if (isExpanded) {
+        $extraItems.addClass('d-none');
+        $btn.removeClass('is-expanded');
+        $btn.find('.toggle-text').text('+ View More (' + extraCount + ')');
+    } else {
+        $extraItems.removeClass('d-none');
+        $btn.addClass('is-expanded');
+        $btn.find('.toggle-text').text('- View Less');
+    }
+});
+
 $.ajax({
     type: 'get',
     url: callback_url,
@@ -66,17 +105,35 @@ $.ajax({
        var cat=$('#cat').val();
 
        if (response.categories && response.categories.length > 0) {
+           var catHasActiveExtra = false;
            $.each(response.categories, function(key, category) {
                if(cat == category.id){
                    var selected="active";
+                   if (key >= 6) catHasActiveExtra = true;
                }
                else{
                    var selected='';
                }
+               var isExtra = (key >= 6) ? 'sidebar-extra-item d-none' : '';
                var count = parseInt(category.termcategories_count) || 0;
-               var html=`<li><a data-count="${count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
+               var html=`<li class="${isExtra}"><a data-count="${count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
                $('.product_menu').append(html);
            });
+
+           if (response.categories.length > 6) {
+               var extraCount = response.categories.length - 6;
+               var moreHtml = `<div class="sidebar-more-wrapper">
+                   <button type="button" class="btn-sidebar-view-more" data-target=".product_menu" data-extra="${extraCount}">
+                       <span class="toggle-text">+ View More (${extraCount})</span>
+                   </button>
+               </div>`;
+               var $catBox = $('.category_area .sidebar-widget-content').length ? $('.category_area .sidebar-widget-content') : $('.category_area');
+               $catBox.find('.sidebar-more-wrapper').remove();
+               $catBox.append(moreHtml);
+               if (catHasActiveExtra) {
+                   $catBox.find('.btn-sidebar-view-more').trigger('click');
+               }
+           }
        } else {
            $('.product_menu').append('<li class="no-item-msg" style="padding: 14px 20px; background: #f8fafc; color: #64748b; font-size: 14px; font-weight: 500; border-radius: 4px; border: 1px dashed #cbd5e1; text-align: center;">No categories available</li>');
        }
@@ -85,17 +142,35 @@ $.ajax({
        $('.product_brands').empty();
 
        if (response.brands && response.brands.length > 0) {
+           var brandHasActiveExtra = false;
            $.each(response.brands, function(key, category) {
                if(cat == category.id){
                    var selected="active";
+                   if (key >= 6) brandHasActiveExtra = true;
                }
                else{
                    var selected='';
                }
+               var isExtra = (key >= 6) ? 'sidebar-extra-item d-none' : '';
                var count = parseInt(category.termcategories_count) || 0;
-               var html=`<li><a data-count="${count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
+               var html=`<li class="${isExtra}"><a data-count="${count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
                $('.product_brands').append(html);
            });
+
+           if (response.brands.length > 6) {
+               var extraCount = response.brands.length - 6;
+               var moreHtml = `<div class="sidebar-more-wrapper">
+                   <button type="button" class="btn-sidebar-view-more" data-target=".product_brands" data-extra="${extraCount}">
+                       <span class="toggle-text">+ View More (${extraCount})</span>
+                   </button>
+               </div>`;
+               var $brandBox = $('.brand_area .sidebar-widget-content').length ? $('.brand_area .sidebar-widget-content') : $('.brand_area');
+               $brandBox.find('.sidebar-more-wrapper').remove();
+               $brandBox.append(moreHtml);
+               if (brandHasActiveExtra) {
+                   $brandBox.find('.btn-sidebar-view-more').trigger('click');
+               }
+           }
        } else {
            $('.product_brands').append('<li class="no-item-msg" style="padding: 14px 20px; background: #f8fafc; color: #64748b; font-size: 14px; font-weight: 500; border-radius: 4px; border: 1px dashed #cbd5e1; text-align: center;">No brands available</li>');
        }
