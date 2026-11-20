@@ -20,7 +20,7 @@ class CartController extends Controller
     public function addtowishlist(Request $request){
         $getrowid=$request->getrowid ?? false;
 
-        $info=Term::query()->where('type','product')->with('preview','firstprice')->where('status',1)->findOrFail($request->id);
+        $info=Term::query()->where('type','product')->where('status',1)->webProducts()->with('preview','firstprice')->findOrFail($request->id);
         $price=$info->firstprice;
         $weight=$price->weight ?? 0;
         $options=[
@@ -118,7 +118,7 @@ class CartController extends Controller
        }
         
         if ($request->term) {
-            $info=Term::query()->where('type','product')->with('preview')->where('status',1)->findOrFail($request->term);
+            $info=Term::query()->where('type','product')->where('status',1)->webProducts()->with('preview')->findOrFail($request->term);
         }
         
         
@@ -243,7 +243,7 @@ class CartController extends Controller
        }
         
         if ($request->id) {
-            $info=Term::query()->where('type','product')->with('preview')->where('status',1)->findOrFail($request->id);
+            $info=Term::query()->where('type','product')->where('status',1)->webProducts()->with('preview')->findOrFail($request->id);
         }
         Session::put('cartid', 'default');
         Cart::instance('default');

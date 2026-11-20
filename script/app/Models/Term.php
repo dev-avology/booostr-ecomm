@@ -243,4 +243,18 @@ class Term extends Model
         return $this->hasOne(Termmeta::class, 'term_id')->where('key', 'ticket_sale_end');
     }
 
+    /**
+     * Scope query to only include products listed for Ecommerce / Web.
+     * list_type:
+     * 0 = Both on Web and POS
+     * 1 = Web Only
+     * NULL = Default / legacy products
+     * Excludes 2 (POS Only) and 3 (Form Page Product)
+     */
+    public function scopeWebProducts($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereIn('list_type', [0, 1])->orWhereNull('list_type');
+        });
+    }
 }

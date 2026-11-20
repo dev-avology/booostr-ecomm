@@ -59,7 +59,11 @@ class DataController extends Controller
         $with=$types['with'] ?? '';
         $is_home = $types['is_home'] ?? false;
         
-        $categories=Category::query()->where('type',$type)->whereHas('termcategories')->where('status',1);
+        $categories=Category::query()->where('type',$type)->whereHas('termcategories', function($q) {
+            $q->whereHas('term', function($t) {
+                $t->where('status', 1)->webProducts();
+            });
+        })->where('status',1);
         
         // Homepage only requires active categories with products; other contexts still filter by menu_status
         if ($is_home == true || $is_home === 'true') {
@@ -78,7 +82,7 @@ class DataController extends Controller
 
         $categories=$withcount != false ? $categories->withCount(['termcategories' => function($q) {
             $q->whereHas('term', function($t) {
-                $t->where('status', 1);
+                $t->where('status', 1)->webProducts();
             });
         }]) : $categories;
 
@@ -105,7 +109,7 @@ class DataController extends Controller
         $categories= $orderby == 'ASC' ? $categories : $categories->latest();
         $categories= $withcount != false ? $categories->withCount(['termcategories' => function($q) {
             $q->whereHas('term', function($t) {
-                $t->where('status', 1);
+                $t->where('status', 1)->webProducts();
             });
         }]) : $categories;
         $categories= $with == '' ? $categories : $categories->with($with);
@@ -129,7 +133,7 @@ class DataController extends Controller
         $categories= $orderby == 'ASC' ? $categories : $categories->latest();
         $categories= $withcount != false ? $categories->withCount(['termcategories' => function($q) {
             $q->whereHas('term', function($t) {
-                $t->where('status', 1);
+                $t->where('status', 1)->webProducts();
             });
         }]) : $categories;
         $categories= $with == '' ? $categories : $categories->with($with);
@@ -149,7 +153,7 @@ class DataController extends Controller
 
         $categories=Category::query()->where('type',$type)->where('status',1)->whereHas('termcategories', function($q) {
             $q->whereHas('term', function($t) {
-                $t->where('status', 1);
+                $t->where('status', 1)->webProducts();
             });
         })->select('id','name','type');
         $categories= $random != false ?  $categories->inRandomOrder() : $categories;
@@ -159,7 +163,7 @@ class DataController extends Controller
         $categories= $orderby == 'ASC' ? $categories : $categories->latest();
         $categories= $withcount != false ? $categories->withCount(['termcategories' => function($q) {
             $q->whereHas('term', function($t) {
-                $t->where('status', 1);
+                $t->where('status', 1)->webProducts();
             });
         }]) : $categories;
         $categories= $with == '' ? $categories : $categories->with($with);
@@ -168,7 +172,7 @@ class DataController extends Controller
 
     public function productDetails($id)
     {
-        $info=Term::query()->where('type','product')->with('tags','category','brands','excerpt','preview','optionwithcategories','price','firstprice','lastprice')->withCount('reviews')->findorfail($id);
+        $info=Term::query()->where('type','product')->where('status', 1)->webProducts()->with('tags','category','brands','excerpt','preview','optionwithcategories','price','firstprice','lastprice')->withCount('reviews')->findorfail($id);
         
 
         $data['data']=$info;
@@ -341,7 +345,7 @@ class DataController extends Controller
         $orderby=$types['orderby'] ?? 'DESC';
         $is_random=$types['is_random'] ?? false;
 
-        $products=Term::query()->where('type','product')->where('status',1)->with(['firstprice','lastprice'])->whereHas('firstprice');
+        $products=Term::query()->where('type','product')->where('status',1)->webProducts()->with(['firstprice','lastprice'])->whereHas('firstprice');
         $products= $with == '' ? $products : $products->with($with);
         if ($is_random == false) {
             $products=$orderby == 'ASC' ? $products : $products->latest();
@@ -358,7 +362,11 @@ class DataController extends Controller
 
     public function HomePageFeaturedWithProducts($types = [])
     {
-       $categories=Category::query()->where('type','product_feature')->where('featured',1)->whereHas('termcategories')->with('preview')->orderBy('menu_status','ASC')->get()->map(function ($q){
+       $categories=Category::query()->where('type','product_feature')->where('featured',1)->whereHas('termcategories', function($q) {
+            $q->whereHas('term', function($t) {
+                $t->where('status', 1)->webProducts();
+            });
+       })->with('preview')->orderBy('menu_status','ASC')->get()->map(function ($q){
         $data['id']=$q->id;
         $data['name']=$q->name;
         $data['slug']=$q->slug;
@@ -385,7 +393,7 @@ class DataController extends Controller
         $orderby=$types['orderby'] ?? 'DESC';
         $is_random=$types['is_product_random'] ?? false;
 
-        $products=Term::query()->where('type','product')->where('status',1)->with(['firstprice','lastprice','termcategories'])->whereHas('firstprice');
+        $products=Term::query()->where('type','product')->where('status',1)->webProducts()->with(['firstprice','lastprice','termcategories'])->whereHas('firstprice');
          if (count($cats_ids ?? []) != 0) {
             $products=$products->whereHas('termcategories',function($q) use ($cats_ids) {
                return $q->whereIn('category_id',$cats_ids);
@@ -426,7 +434,7 @@ class DataController extends Controller
         $with=$types['with'] ?? '';
         $orderby=$types['orderby'] ?? 'DESC';
 
-        $products=Term::query()->where('type','product')->where('rating','!=',null)->where('status',1)->with(['firstprice','lastprice'])->whereHas('firstprice');
+        $products=Term::query()->where('type','product')->where('rating','!=',null)->where('status',1)->webProducts()->with(['firstprice','lastprice'])->whereHas('firstprice');
         $products= $with == '' ? $products : $products->with($with);
         $products=$products->withCount('reviews')->orderBy('reviews_count','DESC');
         $products= $products->take($limit)->get();
@@ -445,7 +453,7 @@ class DataController extends Controller
         $random=$request->random ?? false;
         $hasdiscount=$request->hasdiscount ?? false;
 
-        $products=Term::query()->where('type','product')->where('status',1)->with(['firstprice','lastprice'])->whereHas('firstprice');
+        $products=Term::query()->where('type','product')->where('status',1)->webProducts()->with(['firstprice','lastprice'])->whereHas('firstprice');
 
         if (!empty($request->src)) {
            $products=$products->where('title','LIKE','%'.$request->src.'%');
@@ -508,7 +516,7 @@ class DataController extends Controller
         $with=$types['with'] ?? '';
         $orderby=$types['orderby'] ?? 'DESC';
 
-        $products=Term::query()->where('type','product')->where('status',1)->with(['firstprice','lastprice'])->whereHas('firstprice');
+        $products=Term::query()->where('type','product')->where('status',1)->webProducts()->with(['firstprice','lastprice'])->whereHas('firstprice');
         $products= $with == '' ? $products : $products->with($with);
         $products=$orderby == 'ASC' ? $products : $products->latest();
         $products=$products->whereHas('discount');
@@ -595,7 +603,7 @@ class DataController extends Controller
             ['title', 'LIKE', "%$value%"],
             ['type','product'],
             ['status',1]
-        ])->with(['firstprice','lastprice','excerpt','preview','tags'])->whereHas('firstprice')->paginate(20);
+        ])->webProducts()->with(['firstprice','lastprice','excerpt','preview','tags'])->whereHas('firstprice')->paginate(20);
 
         return response()->json($products);
     }
