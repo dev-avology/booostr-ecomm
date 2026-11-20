@@ -49,14 +49,14 @@
                             }
                             var card = document.getElementById("contactFormCard");
                             if (card) {
-                                card.style.padding = "25px 20px 20px 20px";
+                                card.style.padding = "25px 20px 25px 20px";
                                 card.style.maxWidth = "700px";
                             }
                             var iframe = getIframe();
                             if (iframe) {
-                                var targetH = (newHeight && newHeight >= 300 && newHeight <= 550) ? newHeight : 420;
+                                var targetH = newHeight ? Math.max(newHeight + 25, 530) : 530;
                                 iframe.style.height = targetH + "px";
-                                iframe.style.minHeight = "auto";
+                                iframe.style.minHeight = targetH + "px";
                             }
                         }
 
@@ -94,14 +94,16 @@
                                     maxFormHeight = h;
                                 }
 
-                                // If height drops significantly (e.g. from ~750px form down to ~350-450px thank-you screen)
-                                if (maxFormHeight > 500 && h < (maxFormHeight - 150)) {
+                                // If height drops significantly (e.g. from ~750px form down to ~350-500px thank-you screen)
+                                if (maxFormHeight > 550 && h < (maxFormHeight - 150)) {
                                     markFormSubmitted(h);
                                     return;
                                 }
 
                                 if (isSubmitted) {
-                                    iframe.style.height = (h < 550 ? h : 420) + "px";
+                                    var targetH = Math.max(h + 25, 530);
+                                    iframe.style.height = targetH + "px";
+                                    iframe.style.minHeight = targetH + "px";
                                 } else {
                                     iframe.style.height = h + "px";
                                 }
