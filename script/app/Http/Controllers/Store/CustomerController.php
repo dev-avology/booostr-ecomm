@@ -727,16 +727,17 @@ class CustomerController extends Controller
             $existingMeta['state']   = $request->state ?? ($existingMeta['state'] ?? '');
             $existingMeta['country'] = $country;
 
-            // Handle Avatar image removal or upload using Laravel Storage (Option 1)
+            // Handle Avatar image removal or upload into dedicated uploads/avatar directory
             $removeImage = $request->input('remove_image') == '1' || $request->boolean('remove_image');
 
             if ($removeImage) {
                 try {
                     if (!empty($existingMeta['avatar'])) {
-                        $oldFilename = basename($existingMeta['avatar']);
-                        $oldStoragePath = storage_path('app/public/avatar/' . $oldFilename);
-                        if (file_exists($oldStoragePath)) {
-                            @unlink($oldStoragePath);
+                        $oldFile = $existingMeta['avatar'];
+                        if (file_exists($oldFile)) {
+                            @unlink($oldFile);
+                        } elseif (file_exists(public_path($oldFile))) {
+                            @unlink(public_path($oldFile));
                         }
                     }
                 } catch (\Throwable $e) {}
@@ -744,28 +745,29 @@ class CustomerController extends Controller
             } elseif ($request->hasFile('image')) {
                 try {
                     $file = $request->file('image');
-                    $avatarStorageDir = storage_path('app/public/avatar');
+                    $avatarDir = 'uploads/avatar/';
 
-                    if (!file_exists($avatarStorageDir)) {
-                        @mkdir($avatarStorageDir, 0755, true);
+                    if (!file_exists($avatarDir)) {
+                        @mkdir($avatarDir, 0755, true);
                     }
 
                     // Delete old avatar file if exists
                     if (!empty($existingMeta['avatar'])) {
-                        $oldFilename = basename($existingMeta['avatar']);
-                        $oldStoragePath = $avatarStorageDir . '/' . $oldFilename;
-                        if (file_exists($oldStoragePath)) {
-                            @unlink($oldStoragePath);
+                        $oldFile = $existingMeta['avatar'];
+                        if (file_exists($oldFile)) {
+                            @unlink($oldFile);
+                        } elseif (file_exists(public_path($oldFile))) {
+                            @unlink(public_path($oldFile));
                         }
                     }
 
                     $extension = strtolower($file->extension() ?: $file->getClientOriginalExtension());
                     $imageName = 'avatar_' . $user->id . '_' . time() . '.' . $extension;
 
-                    // Native Laravel file move directly into storage/app/public/avatar
-                    $file->move($avatarStorageDir, $imageName);
+                    // Native file move directly into uploads/avatar/
+                    $file->move($avatarDir, $imageName);
 
-                    $existingMeta['avatar'] = 'storage/avatar/' . $imageName;
+                    $existingMeta['avatar'] = $avatarDir . $imageName;
                 } catch (\Throwable $e) {
                     // Safeguarded against file system exceptions
                 }
