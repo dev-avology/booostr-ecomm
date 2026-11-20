@@ -678,149 +678,163 @@ class CustomerController extends Controller
 
     public function profileUpdate(Request $request)
     {
-        $validationRules = [
-            'fname'   => ['required', 'string', 'max:191'],
-            'lname'   => ['required', 'string', 'max:191'],
-            'phone'   => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s().]+$/'],
-            'age'     => ['required', 'string'],
-            'state'   => ['nullable', 'string', 'max:50'],
-            'city'    => ['nullable', 'string', 'max:100'],
-            'address' => ['nullable', 'string', 'max:300'],
-            'country' => ['nullable', 'string', 'max:100'],
-            'image'   => ['nullable', 'image', 'max:10240'],
-        ];
-
-        $validationMessages = [
-            'fname.required' => 'First name is required.',
-            'lname.required' => 'Last name is required.',
-            'phone.regex'    => 'Please enter a valid mobile number.',
-            'age.required'   => 'Age is required.',
-            'image.image'    => 'The uploaded file must be an image.',
-            'image.max'      => 'The image size may not be greater than 10MB.',
-        ];
-
-        $request->validate($validationRules, $validationMessages);
-
-        // Normalize Country
-        $rawCountry = trim($request->country ?? '');
-        if (empty($rawCountry) || in_array($rawCountry, ['United States of America', 'United States', 'US', 'Belarus'], true)) {
-            $country = 'USA';
-        } else {
-            $country = $rawCountry;
-        }
-
-        $user = User::findOrFail(Auth::id());
-        $firstName = trim($request->fname);
-        $lastName = trim($request->lname);
-        $user->name = trim($firstName . ' ' . $lastName);
-        // Note: Email is readonly and not updated here per security/account standards
-        $user->phone = $request->phone;
-
-        // Preserve existing meta structure with exact key names matching registration & login
-        $existingMeta = !empty($user->meta) ? json_decode($user->meta, true) : [];
-        $existingMeta['fname']   = $firstName;
-        $existingMeta['lname']   = $lastName;
-        $existingMeta['age']     = $request->age;
-        $existingMeta['address'] = $request->address ?? ($existingMeta['address'] ?? '');
-        $existingMeta['city']    = $request->city ?? ($existingMeta['city'] ?? '');
-        $existingMeta['state']   = $request->state ?? ($existingMeta['state'] ?? '');
-        $existingMeta['country'] = $country;
-
-        // Handle Avatar image removal or upload
-        $removeImage = $request->input('remove_image') == '1' || $request->boolean('remove_image');
-
-        if ($removeImage) {
-            try {
-                if (!empty($existingMeta['avatar'])) {
-                    $oldAvatar = $existingMeta['avatar'];
-                    if (file_exists($oldAvatar)) {
-                        @unlink($oldAvatar);
-                    } elseif (file_exists(public_path($oldAvatar))) {
-                        @unlink(public_path($oldAvatar));
-                    }
-                }
-            } catch (\Throwable $e) {}
-            $existingMeta['avatar'] = null;
-        } elseif ($request->hasFile('image')) {
-            try {
-                $file = $request->file('image');
-                $tenantId = function_exists('tenant') && tenant() ? (tenant('id') ?: (tenant()->id ?? 'default')) : 'default';
-                $uploadDir = 'uploads/' . $tenantId . '/';
-
-                if (!file_exists($uploadDir)) {
-                    @mkdir($uploadDir, 0755, true);
-                }
-
-                // Delete old avatar file if exists to prevent disk clutter
-                if (!empty($existingMeta['avatar'])) {
-                    $oldAvatar = $existingMeta['avatar'];
-                    if (file_exists($oldAvatar)) {
-                        @unlink($oldAvatar);
-                    } elseif (file_exists(public_path($oldAvatar))) {
-                        @unlink(public_path($oldAvatar));
-                    }
-                }
-
-                $imageName = 'avatar_' . $user->id . '_' . time() . '.' . strtolower($file->getClientOriginalExtension());
-                $targetPath = $uploadDir . $imageName;
-
-                // Compress and fit image to 400x400 with 80% quality if Intervention Image is available
-                $saved = false;
-                try {
-                    if (class_exists('\Image') && extension_loaded('gd')) {
-                        $img = \Image::make($file->getRealPath());
-                        $img->fit(400, 400, function ($constraint) {
-                            $constraint->upsize();
-                        });
-                        $img->save($targetPath, 80);
-                        $saved = true;
-                    }
-                } catch (\Throwable $imgErr) {
-                    $saved = false;
-                }
-
-                if (!$saved) {
-                    $file->move($uploadDir, $imageName);
-                }
-
-                $existingMeta['avatar'] = $uploadDir . $imageName;
-            } catch (\Throwable $e) {
-                // Safeguarded: never crash the request due to file system exceptions
-            }
-        }
-
-        $user->meta = json_encode($existingMeta);
-        $user->save();
-
-        // Synchronize updated profile to Booostr Central API
         try {
-            $client = new Client();
-            $apiUrl = env('WP_WEBBUILDER_PROFILE_UPDATE_API_URL') ?: 'https://app.booostr.co/wp-json/webbuilder-api/v1/user-update';
+            $validationRules = [
+                'fname'   => ['required', 'string', 'max:191'],
+                'lname'   => ['required', 'string', 'max:191'],
+                'phone'   => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s().]+$/'],
+                'age'     => ['required', 'string'],
+                'state'   => ['nullable', 'string', 'max:50'],
+                'city'    => ['nullable', 'string', 'max:100'],
+                'address' => ['nullable', 'string', 'max:300'],
+                'country' => ['nullable', 'string', 'max:100'],
+                'image'   => ['nullable', 'image', 'max:10240'],
+            ];
 
-            $clubId = function_exists('tenant') && tenant() ? (tenant('id') ?: (tenant()->id ?? '')) : '';
+            $validationMessages = [
+                'fname.required' => 'First name is required.',
+                'lname.required' => 'Last name is required.',
+                'phone.regex'    => 'Please enter a valid mobile number.',
+                'age.required'   => 'Age is required.',
+                'image.image'    => 'The uploaded file must be an image.',
+                'image.max'      => 'The image size may not be greater than 10MB.',
+            ];
 
-            $client->post($apiUrl, [
-                'verify'  => false,
-                'timeout' => 15,
-                'headers' => ['Accept' => 'application/json'],
-                'json'    => [
-                    'email'        => $user->email, // Required (Lookup identifier)
-                    'first_name'   => $firstName,
-                    'last_name'    => $lastName,
-                    'age'          => $request->age,
-                    'user_phone'   => $request->phone ?? ($user->phone ?? ''),
-                    'user_address' => $request->address ?? '',
-                    'user_city'    => $request->city ?? '',
-                    'user_state'   => $request->state ?? '',
-                    'user_country' => $country,
-                    'club'         => (string) $clubId,
-                ],
+            $request->validate($validationRules, $validationMessages);
+
+            // Normalize Country
+            $rawCountry = trim($request->country ?? '');
+            if (empty($rawCountry) || in_array($rawCountry, ['United States of America', 'United States', 'US', 'Belarus'], true)) {
+                $country = 'USA';
+            } else {
+                $country = $rawCountry;
+            }
+
+            $user = User::findOrFail(Auth::id());
+            $firstName = trim($request->fname);
+            $lastName = trim($request->lname);
+            $user->name = trim($firstName . ' ' . $lastName);
+            // Note: Email is readonly and not updated here per security/account standards
+            $user->phone = $request->phone;
+
+            // Preserve existing meta structure with exact key names matching registration & login
+            $existingMeta = !empty($user->meta) ? json_decode($user->meta, true) : [];
+            $existingMeta['fname']   = $firstName;
+            $existingMeta['lname']   = $lastName;
+            $existingMeta['age']     = $request->age;
+            $existingMeta['address'] = $request->address ?? ($existingMeta['address'] ?? '');
+            $existingMeta['city']    = $request->city ?? ($existingMeta['city'] ?? '');
+            $existingMeta['state']   = $request->state ?? ($existingMeta['state'] ?? '');
+            $existingMeta['country'] = $country;
+
+            // Handle Avatar image removal or upload
+            $removeImage = $request->input('remove_image') == '1' || $request->boolean('remove_image');
+
+            if ($removeImage) {
+                try {
+                    if (!empty($existingMeta['avatar'])) {
+                        $oldAvatar = $existingMeta['avatar'];
+                        if (file_exists($oldAvatar)) {
+                            @unlink($oldAvatar);
+                        } elseif (file_exists(public_path($oldAvatar))) {
+                            @unlink(public_path($oldAvatar));
+                        }
+                    }
+                } catch (\Throwable $e) {}
+                $existingMeta['avatar'] = null;
+            } elseif ($request->hasFile('image')) {
+                try {
+                    $file = $request->file('image');
+                    $tenantId = function_exists('tenant') && tenant() ? (tenant('id') ?: (tenant()->id ?? 'default')) : 'default';
+                    $uploadDir = 'uploads/' . $tenantId . '/';
+
+                    if (!file_exists($uploadDir)) {
+                        @mkdir($uploadDir, 0755, true);
+                    }
+
+                    // Delete old avatar file if exists to prevent disk clutter
+                    if (!empty($existingMeta['avatar'])) {
+                        $oldAvatar = $existingMeta['avatar'];
+                        if (file_exists($oldAvatar)) {
+                            @unlink($oldAvatar);
+                        } elseif (file_exists(public_path($oldAvatar))) {
+                            @unlink(public_path($oldAvatar));
+                        }
+                    }
+
+                    $imageName = 'avatar_' . $user->id . '_' . time() . '.' . strtolower($file->getClientOriginalExtension());
+                    $targetPath = $uploadDir . $imageName;
+
+                    // Compress and fit image to 400x400 with 80% quality if Intervention Image is available
+                    $saved = false;
+                    try {
+                        if (class_exists('\Image') && extension_loaded('gd')) {
+                            $img = \Image::make($file->getRealPath());
+                            $img->fit(400, 400, function ($constraint) {
+                                $constraint->upsize();
+                            });
+                            $img->save($targetPath, 80);
+                            $saved = true;
+                        }
+                    } catch (\Throwable $imgErr) {
+                        $saved = false;
+                    }
+
+                    if (!$saved) {
+                        $file->move($uploadDir, $imageName);
+                    }
+
+                    $existingMeta['avatar'] = $uploadDir . $imageName;
+                } catch (\Throwable $e) {
+                    // Safeguarded: never crash the request due to file system exceptions
+                }
+            }
+
+            $user->meta = json_encode($existingMeta);
+            $user->save();
+
+            // Synchronize updated profile to Booostr Central API
+            try {
+                $client = new Client();
+                $apiUrl = env('WP_WEBBUILDER_PROFILE_UPDATE_API_URL') ?: 'https://app.booostr.co/wp-json/webbuilder-api/v1/user-update';
+
+                $clubId = function_exists('tenant') && tenant() ? (tenant('club_id') ?: (tenant('id') ?: '')) : '';
+
+                $client->post($apiUrl, [
+                    'verify'  => false,
+                    'timeout' => 5,
+                    'headers' => ['Accept' => 'application/json'],
+                    'json'    => [
+                        'email'        => $user->email, // Required (Lookup identifier)
+                        'first_name'   => $firstName,
+                        'last_name'    => $lastName,
+                        'age'          => $request->age,
+                        'user_phone'   => $request->phone ?? ($user->phone ?? ''),
+                        'user_address' => $request->address ?? '',
+                        'user_city'    => $request->city ?? '',
+                        'user_state'   => $request->state ?? '',
+                        'user_country' => $country,
+                        'club'         => (string) $clubId,
+                    ],
+                ]);
+            } catch (\Throwable $e) {
+                // Safeguarded against central API sync timeouts or network failures
+            }
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => __('Successfully your information updated...!!'),
             ]);
-        } catch (\Throwable $e) {
-            // Safeguarded against central API sync timeouts or missing log directories
-        }
 
-        return response()->json('Successfully your information updated...!!');
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage() ?: __('Failed to update profile. Please try again.'),
+                'errors'  => ['error' => [$e->getMessage() ?: __('Failed to update profile.')]]
+            ], 500);
+        }
     }
 
     /**

@@ -438,7 +438,8 @@
 						alertArea.innerHTML = errorHtml;
 
 						if (typeof Sweet === 'function') {
-							Sweet('error', '{{ __("Please check the form for errors.") }}');
+							const toastErr = (data && data.message) ? data.message : '{{ __("Please check the form for errors.") }}';
+							Sweet('error', toastErr);
 						}
 
 						alertArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

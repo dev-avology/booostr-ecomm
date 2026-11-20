@@ -113,6 +113,12 @@ class TenancyServiceProvider extends ServiceProvider
         \Stancl\Tenancy\Middleware\InitializeTenancyByPath::$onFail = function () {
            abort(404);
         };
+        \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::$onFail = function () {
+           return response()->json([
+               'status' => 'error',
+               'message' => 'Tenant could not be identified by request data.',
+           ], 400);
+        };
         Event::listen(TenancyBootstrapped::class, function (TenancyBootstrapped $event) {
             // \Spatie\Permission\PermissionRegistrar::$cacheKey = 'spatie.permission.cache.tenant.' . $event->tenancy->tenant->id;
             // Config::set('permission.cache.key', 'spatie.permission.cache.tenant.' . $event->tenancy->tenant->id);
