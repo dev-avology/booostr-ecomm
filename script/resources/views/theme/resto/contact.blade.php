@@ -22,12 +22,16 @@
     <div class="contact-area" style="margin: 60px 0 100px 0;">
         <div class="container">
             @if(!empty($form_id) && !empty($club_id))
-                <div class="volunteer-form-container" style="width: 100%; max-width: 800px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; overflow: hidden; padding: 20px;">
+                <div class="volunteer-form-container" style="width: 100%; max-width: 800px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; overflow: hidden; padding: 35px 30px 25px 30px;">
+                    <div class="contact-card-heading" style="margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
+                        <h3 style="font-size: 22px; font-weight: 700; color: #1e293b; margin: 0;">{{ __('Send Us a Message') }}</h3>
+                        <p style="color: #64748b; font-size: 14px; margin-top: 6px; margin-bottom: 0;">{{ __('Please fill out the form below and our team will get back to you shortly.') }}</p>
+                    </div>
                     <iframe id="fornstupframework{{ $form_id }}" class="fornstupframework" style="overflow-y: hidden;width: 100%;" frameborder="0" border="0" cellspacing="0" scrolling="no" onload="AdjustIframeHeightOnLoad()" src="{{ $formBaseUrl ?? 'https://booostr.co' }}/?em_embed_form={{ $form_id }}&em_item={{ $club_id }}"></iframe>
                     <script>
                     function AdjustIframeHeightOnLoad() {}
                     window.addEventListener("message", function(e) {
-                        if (e.origin !== "https://booostr.co" && e.origin !== "https://app.booostr.co" && e.origin !== "https://staging5.booostr.co") return;
+                        if (e.origin !== "https://booostr.co") return;
                         if (e.data && e.data.iframeHeight) {
                             var i = document.getElementById("fornstupframeworkcalform{{ $form_id }}") || document.getElementById("fornstupframework{{ $form_id }}");
                             if (i) {
