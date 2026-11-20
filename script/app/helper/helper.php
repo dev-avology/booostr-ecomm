@@ -632,6 +632,34 @@ function tenant_club_info(){
   return $club_info;
 }
 
+/**
+ * Resolves the tenant club/store display name.
+ *
+ * @return string
+ */
+function tenant_club_name() {
+    $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+    if (!empty($clubInfo['club_name']) && trim($clubInfo['club_name']) !== '') {
+        return trim($clubInfo['club_name']);
+    }
+    return tenant('store_name') ?: (tenant('id') ?: 'Booostr');
+}
+
+/**
+ * Standardized Page Meta Title: "<Club Name> - <Page Name>"
+ *
+ * @param string $pageName
+ * @return string
+ */
+function store_page_title($pageName = '') {
+    $clubName = tenant_club_name();
+    $pageName = trim((string) $pageName);
+    if (empty($pageName)) {
+        return $clubName;
+    }
+    return $clubName . ' - ' . $pageName;
+}
+
 function credit_card_fee($total){
   return number_format($total * 0.029 + 0.30,2);
 }

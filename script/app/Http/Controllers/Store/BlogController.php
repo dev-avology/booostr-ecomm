@@ -18,23 +18,24 @@ class BlogController extends Controller
         $home_data=optionfromcache('blog_page');
 
         $seo=$home_data->seo ?? '';
-        SEOMeta::setTitle($seo->site_title ?? '');
+        $pageTitle = store_page_title('Blogs');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($seo->description ?? '');
        
 
         OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($seo->site_title ?? '');
+        OpenGraph::setTitle($pageTitle);
 
         OpenGraph::addProperty('keywords', $seo->tags ?? '');
 
-        TwitterCard::setTitle($seo->site_title ?? '');
+        TwitterCard::setTitle($pageTitle);
         TwitterCard::setSite($seo->twitter_title ?? '');
 
-        JsonLd::setTitle($seo->site_title ?? '');
+        JsonLd::setTitle($pageTitle);
         JsonLd::setDescription($seo->description ?? '');
         JsonLd::addImage($seo->meta_image ?? '');
 
-        SEOTools::setTitle($seo->site_title ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($seo->description ?? '');
         SEOTools::opengraph()->setUrl(url('/'));
         SEOTools::setCanonical(url('/'));
@@ -59,19 +60,20 @@ class BlogController extends Controller
         abort_if(empty($info),404);
         $recent_posts=Term::query()->where('type','blog')->where('status',1)->with('preview')->latest()->take(3)->get();
 
-        JsonLdMulti::setTitle($info->title ?? '');
+        $pageTitle = store_page_title($info->title ?? 'Blog');
+        JsonLdMulti::setTitle($pageTitle);
         JsonLdMulti::setDescription($info->excerpt->value ?? '');
         JsonLdMulti::addImage(asset($info->preview->value ?? ''));
 
-        SEOMeta::setTitle($info->title ?? '');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($info->excerpt->value ?? '');
      
-        SEOTools::setTitle($info->title ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($info->excerpt->value ?? '');
      
         SEOTools::opengraph()->addProperty('image', asset('uploads/'.tenant('uid').'/logo.png'));
-        SEOTools::twitter()->setTitle($info->title ?? '');
-        SEOTools::twitter()->setSite($info->title ?? '');
+        SEOTools::twitter()->setTitle($pageTitle);
+        SEOTools::twitter()->setSite($pageTitle);
         SEOTools::jsonLd()->addImage(asset($info->preview->value ?? ''));
         
         return  view(baseview('blog/show'),compact('info','recent_posts'));

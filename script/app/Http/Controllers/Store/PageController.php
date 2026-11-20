@@ -30,7 +30,7 @@ class PageController extends Controller
             ? trim($clubInfo['club_name']) 
             : (tenant('store_name') ?: 'Booostr');
 
-        $pageTitle = $clubName . ' - Online Store';
+        $pageTitle = store_page_title('Home');
         $pageDescription = "Official online store for {$clubName}. Browse and shop our products securely on Booostr.";
 
         SEOMeta::setTitle($pageTitle);
@@ -60,23 +60,24 @@ class PageController extends Controller
         $home_data=optionfromcache('products_page');
 
         $seo=$home_data->seo ?? '';
-        SEOMeta::setTitle($seo->site_title ?? '');
+        $pageTitle = store_page_title('Products');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($seo->description ?? '');
        
 
         OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($seo->site_title ?? '');
+        OpenGraph::setTitle($pageTitle);
 
         OpenGraph::addProperty('keywords', $seo->tags ?? '');
 
-        TwitterCard::setTitle($seo->site_title ?? '');
+        TwitterCard::setTitle($pageTitle);
         TwitterCard::setSite($seo->twitter_title ?? '');
 
-        JsonLd::setTitle($seo->site_title ?? '');
+        JsonLd::setTitle($pageTitle);
         JsonLd::setDescription($seo->description ?? '');
         JsonLd::addImage($seo->meta_image ?? '');
 
-        SEOTools::setTitle($seo->site_title ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($seo->description ?? '');
         SEOTools::opengraph()->setUrl(url('/'));
         
@@ -104,23 +105,24 @@ class PageController extends Controller
         $home_data=optionfromcache('deal_page');
 
         $seo=$home_data->seo ?? '';
-        SEOMeta::setTitle($seo->site_title ?? '');
+        $pageTitle = store_page_title('Deals');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($seo->description ?? '');
        
 
         OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($seo->site_title ?? '');
+        OpenGraph::setTitle($pageTitle);
 
         OpenGraph::addProperty('keywords', $seo->tags ?? '');
 
-        TwitterCard::setTitle($seo->site_title ?? '');
+        TwitterCard::setTitle($pageTitle);
         TwitterCard::setSite($seo->twitter_title ?? '');
 
-        JsonLd::setTitle($seo->site_title ?? '');
+        JsonLd::setTitle($pageTitle);
         JsonLd::setDescription($seo->description ?? '');
         JsonLd::addImage($seo->meta_image ?? '');
 
-        SEOTools::setTitle($seo->site_title ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($seo->description ?? '');
        
         
@@ -153,23 +155,24 @@ class PageController extends Controller
 
         $seo=$home_data->seo ?? '';
 
-        SEOMeta::setTitle($category->name ?? '');
+        $pageTitle = store_page_title($category->name ?? 'Brand');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($category->description->content ?? '');
        
 
         OpenGraph::setDescription($category->description->content ?? '');
-        OpenGraph::setTitle($category->name ?? '');
+        OpenGraph::setTitle($pageTitle);
 
         OpenGraph::addProperty('keywords', $category->slug ?? '');
 
-        TwitterCard::setTitle($category->name ?? '');
+        TwitterCard::setTitle($pageTitle);
         TwitterCard::setSite($seo->twitter_title ?? '');
 
-        JsonLd::setTitle($category->name ?? '');
+        JsonLd::setTitle($pageTitle);
         JsonLd::setDescription($category->description->content ?? '');
         JsonLd::addImage($category->preview->content ?? '');
 
-        SEOTools::setTitle($category->name ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($category->description->content ?? '');
         
         
@@ -203,23 +206,24 @@ class PageController extends Controller
 
         $seo=$home_data->seo ?? '';
 
-        SEOMeta::setTitle($category->name ?? '');
+        $pageTitle = store_page_title($category->name ?? 'Featured');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($category->description->content ?? '');
        
 
         OpenGraph::setDescription($category->description->content ?? '');
-        OpenGraph::setTitle($category->name ?? '');
+        OpenGraph::setTitle($pageTitle);
 
         OpenGraph::addProperty('keywords', $category->slug ?? '');
 
-        TwitterCard::setTitle($category->name ?? '');
+        TwitterCard::setTitle($pageTitle);
         TwitterCard::setSite($seo->twitter_title ?? '');
 
-        JsonLd::setTitle($category->name ?? '');
+        JsonLd::setTitle($pageTitle);
         JsonLd::setDescription($category->description->content ?? '');
         JsonLd::addImage(asset($category->preview->content ?? ''));
 
-        SEOTools::setTitle($category->name ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($category->description->content ?? '');
         
         
@@ -253,12 +257,13 @@ class PageController extends Controller
 
         $seo=$home_data->seo ?? '';
 
-        SEOMeta::setTitle($category->name ?? '');
-        OpenGraph::setTitle($category->name ?? '');
+        $pageTitle = store_page_title($category->name ?? 'Tag');
+        SEOMeta::setTitle($pageTitle);
+        OpenGraph::setTitle($pageTitle);
         OpenGraph::addProperty('keywords', $category->slug ?? '');
-        TwitterCard::setTitle($category->name ?? '');
-        JsonLd::setTitle($category->name ?? '');
-        SEOTools::setTitle($category->name ?? '');
+        TwitterCard::setTitle($pageTitle);
+        JsonLd::setTitle($pageTitle);
+        SEOTools::setTitle($pageTitle);
         SEOTools::twitter()->setSite($category->name ?? '');
         SEOTools::opengraph()->addProperty('keywords', $category->name ?? '');
 
@@ -287,23 +292,24 @@ class PageController extends Controller
 
         $seo=$home_data->seo ?? '';
 
-        SEOMeta::setTitle($category->name ?? '');
+        $pageTitle = store_page_title($category->name ?? 'Category');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($category->description->content ?? '');
        
 
         OpenGraph::setDescription($category->description->content ?? '');
-        OpenGraph::setTitle($category->name ?? '');
+        OpenGraph::setTitle($pageTitle);
 
         OpenGraph::addProperty('keywords', $category->slug ?? '');
 
-        TwitterCard::setTitle($category->name ?? '');
+        TwitterCard::setTitle($pageTitle);
         TwitterCard::setSite($seo->twitter_title ?? '');
 
-        JsonLd::setTitle($category->name ?? '');
+        JsonLd::setTitle($pageTitle);
         JsonLd::setDescription($category->description->content ?? '');
         JsonLd::addImage($category->preview->content ?? '');
 
-        SEOTools::setTitle($category->name ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($category->description->content ?? '');
         
         
@@ -346,20 +352,21 @@ class PageController extends Controller
             array_push($galleries,$row);
         }
 
-        SEOMeta::setTitle($seo->title ?? $info->title);
+        $pageTitle = store_page_title($seo->title ?? $info->title);
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($seo->description ?? '');
         SEOMeta::addMeta('article:published_time', $info->updated_at->toW3CString(), 'property');
         SEOMeta::addKeyword([$seo->tags ?? '']);
 
         OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($seo->title ?? $info->title);
+        OpenGraph::setTitle($pageTitle);
         
         OpenGraph::addProperty('type', 'article');
 
         OpenGraph::addImage($seo->preview ?? '');
         OpenGraph::addImage($galleries ?? []);
     
-        JsonLd::setTitle($seo->title ?? $info->title);
+        JsonLd::setTitle($pageTitle);
         JsonLd::setDescription($seo->description ?? '');
         JsonLd::addImage($seo->preview ?? '');
         JsonLd::addImage($galleries ?? []);
@@ -381,19 +388,20 @@ class PageController extends Controller
         abort_if(empty($info),404);
         $meta=json_decode($info->meta->value ?? '');
 
-        JsonLdMulti::setTitle($info->title ?? '');
+        $pageTitle = store_page_title($info->title ?? 'Page');
+        JsonLdMulti::setTitle($pageTitle);
         JsonLdMulti::setDescription($meta->page_excerpt ?? null);
         JsonLdMulti::addImage(asset('uploads/'.tenant('uid').'/logo.png'));
 
-        SEOMeta::setTitle($info->title ?? '');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($meta->page_excerpt ?? null);
      
-        SEOTools::setTitle($info->title ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($meta->page_excerpt ?? null);
      
         SEOTools::opengraph()->addProperty('image', asset('uploads/'.tenant('uid').'/logo.png'));
-        SEOTools::twitter()->setTitle($info->title ?? '');
-        SEOTools::twitter()->setSite($info->title ?? '');
+        SEOTools::twitter()->setTitle($pageTitle);
+        SEOTools::twitter()->setSite($pageTitle);
         SEOTools::jsonLd()->addImage(asset('uploads/'.tenant('uid').'/logo.png'));
         
         //return view(baseview('page'),compact('info','meta'));
@@ -405,23 +413,24 @@ class PageController extends Controller
         $home_data=optionfromcache('menu_page');
 
         $seo=$home_data->seo ?? '';
-        SEOMeta::setTitle($seo->site_title ?? '');
+        $pageTitle = store_page_title('Products');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($seo->description ?? '');
        
 
         OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($seo->site_title ?? '');
+        OpenGraph::setTitle($pageTitle);
 
         OpenGraph::addProperty('keywords', $seo->tags ?? '');
 
-        TwitterCard::setTitle($seo->site_title ?? '');
+        TwitterCard::setTitle($pageTitle);
         TwitterCard::setSite($seo->twitter_title ?? '');
 
-        JsonLd::setTitle($seo->site_title ?? '');
+        JsonLd::setTitle($pageTitle);
         JsonLd::setDescription($seo->description ?? '');
         JsonLd::addImage($seo->meta_image ?? '');
 
-        SEOTools::setTitle($seo->site_title ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($seo->description ?? '');
         SEOTools::opengraph()->setUrl(url('/'));
        
@@ -445,23 +454,24 @@ class PageController extends Controller
         $home_data=optionfromcache('cart_page');
 
         $seo=$home_data->seo ?? '';
-        SEOMeta::setTitle($seo->site_title ?? '');
+        $pageTitle = store_page_title('Cart');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($seo->description ?? '');
        
 
         OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($seo->site_title ?? '');
+        OpenGraph::setTitle($pageTitle);
 
         OpenGraph::addProperty('keywords', $seo->tags ?? '');
 
-        TwitterCard::setTitle($seo->site_title ?? '');
+        TwitterCard::setTitle($pageTitle);
         TwitterCard::setSite($seo->twitter_title ?? '');
 
-        JsonLd::setTitle($seo->site_title ?? '');
+        JsonLd::setTitle($pageTitle);
         JsonLd::setDescription($seo->description ?? '');
         JsonLd::addImage($seo->meta_image ?? '');
 
-        SEOTools::setTitle($seo->site_title ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($seo->description ?? '');
         SEOTools::opengraph()->setUrl(url('/'));
       
@@ -489,23 +499,24 @@ class PageController extends Controller
         $home_data=optionfromcache('wishlist_page');
 
         $seo=$home_data->seo ?? '';
-        SEOMeta::setTitle($seo->site_title ?? '');
+        $pageTitle = store_page_title('Wishlist');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($seo->description ?? '');
        
 
         OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($seo->site_title ?? '');
+        OpenGraph::setTitle($pageTitle);
 
         OpenGraph::addProperty('keywords', $seo->tags ?? '');
 
-        TwitterCard::setTitle($seo->site_title ?? '');
+        TwitterCard::setTitle($pageTitle);
         TwitterCard::setSite($seo->twitter_title ?? '');
 
-        JsonLd::setTitle($seo->site_title ?? '');
+        JsonLd::setTitle($pageTitle);
         JsonLd::setDescription($seo->description ?? '');
         JsonLd::addImage($seo->meta_image ?? '');
 
-        SEOTools::setTitle($seo->site_title ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($seo->description ?? '');
         SEOTools::opengraph()->setUrl(url('/'));
        
@@ -546,23 +557,24 @@ class PageController extends Controller
         $home_data=optionfromcache('checkout_page');
 
         $seo=$home_data->seo ?? '';
-        SEOMeta::setTitle($seo->site_title ?? '');
+        $pageTitle = store_page_title('Checkout');
+        SEOMeta::setTitle($pageTitle);
         SEOMeta::setDescription($seo->description ?? '');
        
 
         OpenGraph::setDescription($seo->description ?? '');
-        OpenGraph::setTitle($seo->site_title ?? '');
+        OpenGraph::setTitle($pageTitle);
 
         OpenGraph::addProperty('keywords', $seo->tags ?? '');
 
-        TwitterCard::setTitle($seo->site_title ?? '');
+        TwitterCard::setTitle($pageTitle);
         TwitterCard::setSite($seo->twitter_title ?? '');
 
-        JsonLd::setTitle($seo->site_title ?? '');
+        JsonLd::setTitle($pageTitle);
         JsonLd::setDescription($seo->description ?? '');
         JsonLd::addImage($seo->meta_image ?? '');
 
-        SEOTools::setTitle($seo->site_title ?? '');
+        SEOTools::setTitle($pageTitle);
         SEOTools::setDescription($seo->description ?? '');
         SEOTools::opengraph()->setUrl(url('/'));
     
@@ -587,13 +599,18 @@ class PageController extends Controller
         $order = \App\Models\Order::where('invoice_no', $orderno)->with('orderitems')->first();
         $club_info = tenant_club_info();
 
-        SEOMeta::setTitle($orderno.' - Thanks');
+        SEOMeta::setTitle(store_page_title('Thanks'));
         return view(baseview('thanks'), compact('orderno', 'order', 'club_info'));
     }
 
     public function contact()
     {
-        SEOMeta::setTitle(__('Contact Us'));
+        $pageTitle = store_page_title('Contact');
+        SEOMeta::setTitle($pageTitle);
+        OpenGraph::setTitle($pageTitle);
+        TwitterCard::setTitle($pageTitle);
+        JsonLd::setTitle($pageTitle);
+        SEOTools::setTitle($pageTitle);
 
         $booostrForm = $this->getBooostrClubContactForm();
 
