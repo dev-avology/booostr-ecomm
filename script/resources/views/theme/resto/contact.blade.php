@@ -22,20 +22,38 @@
     <div class="contact-area" style="margin: 60px 0 100px 0;">
         <div class="container">
             @if(!empty($form_id) && !empty($club_id))
-                <div class="volunteer-form-container" style="width: 100%; max-width: 800px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; overflow: hidden; padding: 35px 30px 25px 30px;">
-                    <div class="contact-card-heading" style="margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
+                <div class="volunteer-form-container" style="width: 100%; max-width: 800px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; overflow: hidden; padding: 35px 30px 25px 30px; transition: all 0.3s ease;">
+                    <div class="contact-card-heading" id="contactCardHeading" style="margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
                         <h3 style="font-size: 22px; font-weight: 700; color: #1e293b; margin: 0;">{{ __('Send Us a Message') }}</h3>
                         <p style="color: #64748b; font-size: 14px; margin-top: 6px; margin-bottom: 0;">{{ __('Please fill out the form below and our team will get back to you shortly.') }}</p>
                     </div>
-                    <iframe id="fornstupframework{{ $form_id }}" class="fornstupframework" style="overflow-y: hidden;width: 100%;" frameborder="0" border="0" cellspacing="0" scrolling="no" onload="AdjustIframeHeightOnLoad()" src="{{ $formBaseUrl ?? 'https://booostr.co' }}/?em_embed_form={{ $form_id }}&em_item={{ $club_id }}"></iframe>
+                    <iframe id="fornstupframework{{ $form_id }}" class="fornstupframework" style="overflow-y: hidden; width: 100%; min-height: 380px; display: block; border: 0;" frameborder="0" border="0" cellspacing="0" scrolling="no" onload="AdjustIframeHeightOnLoad()" src="{{ $formBaseUrl ?? 'https://booostr.co' }}/?em_embed_form={{ $form_id }}&em_item={{ $club_id }}"></iframe>
                     <script>
                     function AdjustIframeHeightOnLoad() {}
+                    var maxFormHeight = 0;
                     window.addEventListener("message", function(e) {
                         if (e.origin !== "https://booostr.co") return;
+                        var h = null;
                         if (e.data && e.data.iframeHeight) {
-                            var i = document.getElementById("fornstupframeworkcalform{{ $form_id }}") || document.getElementById("fornstupframework{{ $form_id }}");
-                            if (i) {
-                                i.style.height = e.data.iframeHeight + "px";
+                            h = parseInt(e.data.iframeHeight, 10);
+                        } else if (typeof e.data === 'number') {
+                            h = parseInt(e.data, 10);
+                        }
+
+                        var iframe = document.getElementById("fornstupframeworkcalform{{ $form_id }}") || document.getElementById("fornstupframework{{ $form_id }}");
+                        if (iframe && h && !isNaN(h)) {
+                            iframe.style.height = h + "px";
+
+                            if (h > maxFormHeight) {
+                                maxFormHeight = h;
+                            }
+
+                            // If height drops significantly (e.g. from ~700px form down to ~350-450px thank-you screen)
+                            var heading = document.getElementById("contactCardHeading");
+                            if (heading) {
+                                if ((maxFormHeight > 550 && h < 520) || (e.data && (e.data.status === 'success' || e.data.formSubmitted || e.data.submitted))) {
+                                    heading.style.display = "none";
+                                }
                             }
                         }
                     });
