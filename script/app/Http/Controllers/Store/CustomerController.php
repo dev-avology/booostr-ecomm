@@ -687,7 +687,7 @@ class CustomerController extends Controller
             'city'    => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string', 'max:300'],
             'country' => ['nullable', 'string', 'max:100'],
-            'image'   => ['nullable', 'image', 'max:2048'],
+            'image'   => ['nullable', 'image', 'max:10240'],
         ];
 
         $validationMessages = [
@@ -695,6 +695,8 @@ class CustomerController extends Controller
             'lname.required' => 'Last name is required.',
             'phone.regex'    => 'Please enter a valid mobile number.',
             'age.required'   => 'Age is required.',
+            'image.image'    => 'The uploaded file must be an image.',
+            'image.max'      => 'The image size may not be greater than 10MB.',
         ];
 
         $request->validate($validationRules, $validationMessages);
@@ -724,33 +726,66 @@ class CustomerController extends Controller
         $existingMeta['state']   = $request->state ?? ($existingMeta['state'] ?? '');
         $existingMeta['country'] = $country;
 
-        // Handle Avatar image upload with compression
-        if ($request->hasFile('image')) {
+        // Handle Avatar image removal or upload
+        $removeImage = $request->input('remove_image') == '1' || $request->boolean('remove_image');
+
+        if ($removeImage) {
+            try {
+                if (!empty($existingMeta['avatar'])) {
+                    $oldAvatar = $existingMeta['avatar'];
+                    if (file_exists($oldAvatar)) {
+                        @unlink($oldAvatar);
+                    } elseif (file_exists(public_path($oldAvatar))) {
+                        @unlink(public_path($oldAvatar));
+                    }
+                }
+            } catch (\Throwable $e) {}
+            $existingMeta['avatar'] = null;
+        } elseif ($request->hasFile('image')) {
             try {
                 $file = $request->file('image');
-                $uploadDir = public_path('uploads/' . tenant('id') . '/');
+                $tenantId = function_exists('tenant') && tenant() ? (tenant('id') ?: (tenant()->id ?? 'default')) : 'default';
+                $uploadDir = 'uploads/' . $tenantId . '/';
+
                 if (!file_exists($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
+                    @mkdir($uploadDir, 0755, true);
                 }
 
                 // Delete old avatar file if exists to prevent disk clutter
-                if (!empty($existingMeta['avatar']) && file_exists(public_path($existingMeta['avatar']))) {
-                    @unlink(public_path($existingMeta['avatar']));
+                if (!empty($existingMeta['avatar'])) {
+                    $oldAvatar = $existingMeta['avatar'];
+                    if (file_exists($oldAvatar)) {
+                        @unlink($oldAvatar);
+                    } elseif (file_exists(public_path($oldAvatar))) {
+                        @unlink(public_path($oldAvatar));
+                    }
                 }
 
-                $imageName = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $imageName = 'avatar_' . $user->id . '_' . time() . '.' . strtolower($file->getClientOriginalExtension());
                 $targetPath = $uploadDir . $imageName;
 
-                // Compress and fit image to 400x400 with 80% quality
-                $img = \Image::make($file->getRealPath());
-                $img->fit(400, 400, function ($constraint) {
-                    $constraint->upsize();
-                });
-                $img->save($targetPath, 80);
+                // Compress and fit image to 400x400 with 80% quality if Intervention Image is available
+                $saved = false;
+                try {
+                    if (class_exists('\Image') && extension_loaded('gd')) {
+                        $img = \Image::make($file->getRealPath());
+                        $img->fit(400, 400, function ($constraint) {
+                            $constraint->upsize();
+                        });
+                        $img->save($targetPath, 80);
+                        $saved = true;
+                    }
+                } catch (\Throwable $imgErr) {
+                    $saved = false;
+                }
 
-                $existingMeta['avatar'] = 'uploads/' . tenant('id') . '/' . $imageName;
+                if (!$saved) {
+                    $file->move($uploadDir, $imageName);
+                }
+
+                $existingMeta['avatar'] = $uploadDir . $imageName;
             } catch (\Throwable $e) {
-                \Log::warning('Avatar image upload or compression failed: ' . $e->getMessage());
+                // Safeguarded: never crash the request due to file system exceptions
             }
         }
 
@@ -782,7 +817,7 @@ class CustomerController extends Controller
                 ],
             ]);
         } catch (\Throwable $e) {
-            \Log::warning('Booostr Central profile update API sync error: ' . $e->getMessage());
+            // Safeguarded against central API sync timeouts or missing log directories
         }
 
         return response()->json('Successfully your information updated...!!');

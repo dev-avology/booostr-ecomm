@@ -107,17 +107,28 @@
 				<div class="col-lg-6 col-12">
 					<div class="form-group mb-3">
 						<label class="form-label font-weight-bold d-block">{{ __('Image') }}</label>
-						<div class="d-flex align-items-center">
-							@if(!empty($meta->avatar ?? ''))
-							<img src="{{ asset($meta->avatar) }}" id="avatar_preview" class="rounded-circle me-3 border" style="width: 44px; height: 44px; object-fit: cover;" alt="Avatar" />
-							@else
-							<img src="" id="avatar_preview" class="rounded-circle me-3 border d-none" style="width: 44px; height: 44px; object-fit: cover;" alt="Avatar" />
-							@endif
+						<div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+							<img src="{{ !empty($meta->avatar ?? '') ? asset($meta->avatar) : '' }}" 
+							     id="avatar_preview" 
+							     class="rounded-circle border {{ empty($meta->avatar ?? '') ? 'd-none' : '' }}" 
+							     style="width: 44px; height: 44px; object-fit: cover;" 
+							     alt="Avatar" />
+
 							<input type="file" name="image" id="profile_image_input" class="d-none" accept="image/*">
+							<input type="hidden" name="remove_image" id="remove_image_input" value="0">
+
 							<button type="button" class="btn profile-upload-btn" onclick="document.getElementById('profile_image_input').click();">
 								{{ __('Upload') }}
 							</button>
-							<span id="selected_image_name" class="ms-3 text-muted small"></span>
+
+							<button type="button" 
+							        id="remove_avatar_btn" 
+							        class="btn btn-outline-danger btn-sm {{ empty($meta->avatar ?? '') ? 'd-none' : '' }}" 
+							        style="padding: 7px 14px; font-size: 13px; border-radius: 6px; font-weight: 500;">
+								<i class="icofont-trash me-1"></i>{{ __('Remove') }}
+							</button>
+
+							<span id="selected_image_name" class="text-muted small"></span>
 						</div>
 					</div>
 				</div>
@@ -329,14 +340,19 @@
 		setTimeout(removeNiceSelect, 100);
 		setTimeout(removeNiceSelect, 500);
 
-		// Show selected image file name and live preview
+		// Show selected image file name, live preview, and handle remove option
 		const fileInput = document.getElementById('profile_image_input');
 		const fileNameDisplay = document.getElementById('selected_image_name');
 		const avatarPreview = document.getElementById('avatar_preview');
+		const removeBtn = document.getElementById('remove_avatar_btn');
+		const removeInput = document.getElementById('remove_image_input');
+
 		if (fileInput) {
 			fileInput.addEventListener('change', function () {
 				if (this.files && this.files.length > 0) {
 					if (fileNameDisplay) fileNameDisplay.textContent = this.files[0].name;
+					if (removeInput) removeInput.value = '0';
+					if (removeBtn) removeBtn.classList.remove('d-none');
 					if (avatarPreview) {
 						const reader = new FileReader();
 						reader.onload = function(e) {
@@ -345,9 +361,20 @@
 						};
 						reader.readAsDataURL(this.files[0]);
 					}
-				} else {
-					if (fileNameDisplay) fileNameDisplay.textContent = '';
 				}
+			});
+		}
+
+		if (removeBtn) {
+			removeBtn.addEventListener('click', function () {
+				if (fileInput) fileInput.value = '';
+				if (fileNameDisplay) fileNameDisplay.textContent = '';
+				if (avatarPreview) {
+					avatarPreview.src = '';
+					avatarPreview.classList.add('d-none');
+				}
+				if (removeInput) removeInput.value = '1';
+				removeBtn.classList.add('d-none');
 			});
 		}
 
@@ -380,6 +407,8 @@
 				.then(async (response) => {
 					const data = await response.json().catch(() => null);
 					if (response.ok) {
+						if (removeInput) removeInput.value = '0';
+						if (fileNameDisplay) fileNameDisplay.textContent = '';
 						const msg = (typeof data === 'string' ? data : (data && data.message ? data.message : '{{ __("Profile updated successfully!") }}'));
 						alertArea.innerHTML = '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
 							'<i class="icofont-check-circled me-2"></i>' + msg +
