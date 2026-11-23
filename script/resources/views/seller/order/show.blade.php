@@ -1173,8 +1173,19 @@
                                             <strong>{{reset($cur_opt_name)->category->name}} : </strong>{{$sel_val->name}}<br>
                                             @endforeach
                                                 <hr>
+                                        @elseif(is_array($item))
+                                            @php
+                                                $optVals = [];
+                                                foreach ($item as $subVal) {
+                                                    $val = is_array($subVal) ? ($subVal['name'] ?? '') : (is_object($subVal) ? ($subVal->name ?? '') : (string)$subVal);
+                                                    if ($val !== '') $optVals[] = $val;
+                                                }
+                                            @endphp
+                                            @if(count($optVals))
+                                                <strong>{{ ucfirst($key) }} : </strong>{{ implode(', ', $optVals) }}<br>
                                             @endif
-                                            @endforeach
+                                        @endif
+                                        @endforeach
                                         @else
                                           @if(is_object($options) && isset($options->varition_options))
                                             @php  $product_options = $options->varition_options; @endphp
