@@ -96,23 +96,41 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
             scrollbar-color: #cbd5e1 transparent !important;
          }
 
-         #booostr-hover-cart *::-webkit-scrollbar {
+         #booostr-hover-cart .cart-single-inner:first-child::-webkit-scrollbar {
             width: 5px !important;
          }
-         #booostr-hover-cart *::-webkit-scrollbar-track {
+         #booostr-hover-cart .cart-single-inner:first-child::-webkit-scrollbar-track {
             background: transparent !important;
          }
-         #booostr-hover-cart *::-webkit-scrollbar-thumb {
+         #booostr-hover-cart .cart-single-inner:first-child::-webkit-scrollbar-thumb {
             background: #cbd5e1 !important;
             border-radius: 4px !important;
          }
-         #booostr-hover-cart *::-webkit-scrollbar-thumb:hover {
+         #booostr-hover-cart .cart-single-inner:first-child::-webkit-scrollbar-thumb:hover {
             background: #94a3b8 !important;
          }
 
-         @media (max-width: 480px) {
+         /* Disable clumsy legacy perfectScrollbar rails on hover cart */
+         #booostr-hover-cart .ps__rail-x,
+         #booostr-hover-cart .ps__rail-y,
+         #booostr-hover-cart .ps__scrollbar-x-rail,
+         #booostr-hover-cart .ps__scrollbar-y-rail {
+            display: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            width: 0 !important;
+         }
+         #booostr-hover-cart .ps {
+            overflow: visible !important;
+         }
+
+         @media (max-width: 767px) {
             #booostr-hover-cart {
                width: 100vw !important;
+               max-width: 100vw !important;
+               right: 0 !important;
                padding: 16px 18px !important;
             }
          }
@@ -162,26 +180,43 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
          #booostr-hover-cart .shopping-item-inner {
             display: flex !important;
             flex-direction: column !important;
-            flex: 1 !important;
+            flex: 1 1 0% !important;
             min-height: 0 !important;
+            height: calc(100vh - 85px) !important;
+            max-height: calc(100vh - 85px) !important;
             overflow: hidden !important;
          }
 
          #booostr-hover-cart .shopping-item-inner > .cart-single-inner:first-child {
-            flex: 1 !important;
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            height: auto !important;
+            max-height: none !important;
             overflow-y: auto !important;
-            padding-right: 6px !important;
-            margin-bottom: 8px !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            padding-right: 8px !important;
+            margin-bottom: 0 !important;
+            scrollbar-width: thin !important;
+            scrollbar-color: #cbd5e1 transparent !important;
          }
 
-         #booostr-hover-cart .shopping-list {
+         #booostr-hover-cart .shopping-list,
+         #booostr-hover-cart ul.shopping-list,
+         .shopping-item.active .shopping-list,
+         .shopping-item .shopping-list {
             list-style: none !important;
             padding: 0 !important;
             margin: 0 !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+            position: relative !important;
          }
 
          #booostr-hover-cart .shopping-list li.cart_item {
-            padding: 16px 0 !important;
+            padding: 14px 0 !important;
             border-bottom: 1px solid #f1f5f9 !important;
             margin-bottom: 0 !important;
             overflow: visible !important;
