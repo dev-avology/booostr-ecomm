@@ -27,6 +27,13 @@ function matchVariationCombination() {
 
 	if (selectedOptionIds.length < totalGroups) {
 		$('#selected_variation_id').val('');
+		$('.add_to_cart_form_btn').text('Select Options').attr('disabled', 'disabled').css({
+			'background': '#94a3b8',
+			'border-color': '#94a3b8',
+			'cursor': 'not-allowed'
+		});
+		$('.stock_status').hide();
+		$('.sku_display').hide();
 		return true;
 	}
 
@@ -53,7 +60,7 @@ function matchVariationCombination() {
 		var oldPriceHtml = (totaloldprice > 0) ? '<s style="font-size: 16px; color: #94a3b8; font-weight: 400; margin-left: 8px;">$' + totaloldprice.toFixed(2) + '</s>' : '';
 		$('.price_area').html('<span class="discount">' + formattedPrice + '</span>' + oldPriceHtml);
 
-		if (matchedPrice.sku && matchedPrice.sku !== '') {
+		if (matchedPrice.sku && matchedPrice.sku !== '' && matchedPrice.sku !== '0' && matchedPrice.sku !== 0) {
 			$('.sku_value').text(matchedPrice.sku);
 			$('.sku_display').show();
 		} else {
@@ -68,11 +75,7 @@ function matchVariationCombination() {
 		$('.stock_status').show();
 
 		if (matchedPrice.stock_manage == 1 && !isOut) {
-			$('.qty_display').show();
-			$('.maxqty').html(matchedPrice.qty);
 			$('.input_qty').attr('data-max', matchedPrice.qty).attr('max', matchedPrice.qty);
-		} else {
-			$('.qty_display').hide();
 		}
 
 		if (isOut) {
@@ -290,6 +293,15 @@ function variations() {
             if (!$('#selected_variation_id').val()) {
                 Sweet('error', 'Please select all required options');
                 return false;
+            }
+            var varId = parseInt($('#selected_variation_id').val());
+            var matchedVar = window.booostr_variation_prices.find(function(p) { return parseInt(p.id) === varId; });
+            if (matchedVar) {
+                var isOutStock = (matchedVar.stock_status == 0) || (matchedVar.stock_manage == 1 && parseInt(matchedVar.qty) <= 0);
+                if (isOutStock) {
+                    Sweet('error', 'Selected variation is out of stock');
+                    return false;
+                }
             }
             required = true;
         } else {

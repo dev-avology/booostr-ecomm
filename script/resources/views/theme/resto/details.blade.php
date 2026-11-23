@@ -105,7 +105,7 @@
 									</div>
 
 									<!-- SKU -->
-									@if(!$hasVariations && !empty($productSku))
+									@if(!$hasVariations && !empty($productSku) && $productSku !== '0')
 									<div class="product-meta-row sku_display" style="margin-bottom: 10px;">
 										<p style="margin: 0; font-size: 14px; color: #475569;">
 											<strong>{{ __('SKU') }}:</strong> <span class="sku_value">{{ $productSku }}</span>
@@ -182,9 +182,9 @@
 									@include('theme.resto.components.variations', ['info' => $info ?? ''])
 
 									<!-- Quantity + Add to Cart -->
-									<div class="product-buy" style="margin-top: 15px;">
-										<div class="quantity">
-											<h6>{{ __('Quantity') }} :</h6>
+									<div class="product-buy" style="margin-top: 24px; clear: both; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;">
+										<div class="quantity" style="margin: 0;">
+											<h6 style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #1e293b;">{{ __('Quantity') }} :</h6>
 											<div class="quantity-container product-quantity">
 												<div class="sp-quantity single-page @if($isOutOfStock) disabled-quantity @endif">
 													<button type="button" class="inline arrow sp-minus fff" @if($isOutOfStock) disabled @endif><a class="ddd minus" data-multi="-1">-</a></button>
@@ -195,7 +195,7 @@
 												</div>
 											</div>
 										</div>
-										<div class="add-to-cart button d-flex align-items-center flex-wrap" style="gap: 10px;">
+										<div class="add-to-cart button d-flex align-items-center flex-wrap" style="gap: 10px; margin: 0;">
 											<button type="submit" class="btn add_to_cart_form_btn" @if($isOutOfStock) disabled style="background: #94a3b8 !important; border-color: #94a3b8 !important; cursor: not-allowed;" @else style="background: var(--primary, #0A8CDE) !important; border-color: var(--primary, #0A8CDE) !important; color: #ffffff !important;" @endif>
 												{{ $isOutOfStock ? __('Out of Stock') : __('Add to cart') }}
 											</button>
@@ -208,7 +208,6 @@
 											</a>
 										</div>
 									</div>
-									<p class="text-danger none qty_display"><span class="maxqty"></span> : {{ __('pieces available') }}</p>
 								</form>
 
 								<!-- Social Share -->

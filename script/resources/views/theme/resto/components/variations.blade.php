@@ -8,8 +8,8 @@
     $legacyItems = !$hasVaritions ? ($row->priceswithcategories ?? collect([])) : collect([]);
 @endphp
 
-<div class="product-weight variation-group mb-3" data-group-id="{{ $row->id }}" data-required="{{ $row->is_required ?? 0 }}">
-    <h6 class="mb-2" style="font-size: 14px; font-weight: 600; color: #1e293b;">
+<div class="product-weight variation-group mb-3" data-group-id="{{ $row->id }}" data-required="{{ $row->is_required ?? 0 }}" style="clear: both; width: 100%; display: block; margin-top: 15px; margin-bottom: 18px;">
+    <h6 class="mb-2" style="font-size: 14px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 8px;">
         <span class="text-danger {{ $row->is_required == 1 ? 'required_var' : '' }}" data-id="{{ $row->id }}">
             {{ $row->is_required == 1 ? '*' : '' }}
         </span>{{ $groupName }} :
@@ -17,8 +17,8 @@
 
     @if($hasVaritions)
         @if($isSelect)
-            <div class="variation-select-wrapper" style="max-width: 320px;">
-                <select class="form-control variation-select-input pricesvariations" name="option[{{ $row->id }}][]" data-group-id="{{ $row->id }}" style="height: 42px; border-radius: 6px; border: 1.5px solid #cbd5e1; font-weight: 500; font-size: 14px; color: #334155; padding: 0 14px;">
+            <div class="variation-select-wrapper" style="max-width: 360px; width: 100%;">
+                <select class="form-control variation-select-input pricesvariations" name="option[{{ $row->id }}][]" data-group-id="{{ $row->id }}" style="height: 42px; border-radius: 6px; border: 1.5px solid #cbd5e1; font-weight: 500; font-size: 14px; color: #334155; padding: 0 14px; width: 100%; max-width: 100%;">
                     <option value="">-- {{ __('Select') }} {{ $groupName }} --</option>
                     @foreach($variationItems as $price_category)
                         <option value="{{ $price_category->id }}">{{ $price_category->name }}</option>
