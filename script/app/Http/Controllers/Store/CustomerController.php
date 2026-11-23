@@ -566,7 +566,8 @@ class CustomerController extends Controller
         ]);
 
         $identity = trim($request->username);
-        $clubTitle = get_option('shop_name') ?: (tenant('id') ?? 'Club');
+        $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+        $clubTitle = trim((string) ($clubInfo['club_name'] ?? (tenant('id') ?? 'Club')));
 
         // 1. Check if user already exists in local Store DB
         $localUser = User::where('email', $identity)->first();
@@ -650,9 +651,10 @@ class CustomerController extends Controller
 
         $username = trim($request->username);
         $password = $request->password;
-        $clubTitle = get_option('shop_name') ?: (tenant('id') ?? 'Club');
-        $clubEmail = get_option('store_email') ?: (get_option('email') ?: null);
-        $clubLogo = get_option('banner_logo') ?: (get_option('logo') ?: asset('uploads/booostr-logo.png'));
+        $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+        $clubTitle = trim((string) ($clubInfo['club_name'] ?? (tenant('id') ?? 'Club')));
+        $clubEmail = trim((string) ($clubInfo['club_email'] ?? ($clubInfo['email'] ?? '')));
+        $clubLogo = function_exists('tenant_club_logo') && tenant_club_logo() ? tenant_club_logo() : asset('uploads/booostr-logo.png');
 
         try {
             $client = new \GuzzleHttp\Client();
@@ -760,9 +762,10 @@ class CustomerController extends Controller
         ]);
 
         $username = trim($request->username);
-        $clubTitle = get_option('shop_name') ?: (tenant('id') ?? 'Club');
-        $clubEmail = get_option('store_email') ?: (get_option('email') ?: null);
-        $clubLogo = get_option('banner_logo') ?: (get_option('logo') ?: asset('uploads/booostr-logo.png'));
+        $clubInfo = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+        $clubTitle = trim((string) ($clubInfo['club_name'] ?? (tenant('id') ?? 'Club')));
+        $clubEmail = trim((string) ($clubInfo['club_email'] ?? ($clubInfo['email'] ?? '')));
+        $clubLogo = function_exists('tenant_club_logo') && tenant_club_logo() ? tenant_club_logo() : asset('uploads/booostr-logo.png');
 
         try {
             $client = new \GuzzleHttp\Client();

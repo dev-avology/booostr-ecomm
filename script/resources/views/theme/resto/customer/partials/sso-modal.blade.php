@@ -1,7 +1,8 @@
 {{-- Booostr SSO Modal Component --}}
 @php
-    $club_title = get_option('shop_name') ?: (tenant('id') ?? 'Club');
-    $club_logo_url = get_option('banner_logo') ?: (get_option('logo') ?: asset('uploads/booostr-logo.png'));
+    $club_info = function_exists('tenant_club_info') ? (tenant_club_info() ?: []) : [];
+    $club_title = trim((string) ($club_info['club_name'] ?? (tenant('id') ?? 'Club')));
+    $club_logo_url = function_exists('tenant_club_logo') && tenant_club_logo() ? tenant_club_logo() : asset('uploads/booostr-logo.png');
     $booostr_logo = asset('uploads/booostr-logo.png');
 @endphp
 
