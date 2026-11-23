@@ -247,28 +247,6 @@ function variations() {
         }
 }); 
 
-// Toggle short description expand/collapse
-$(document).on('click', '#toggle-short-desc', function(e) {
-    e.preventDefault();
-    var $desc = $('#short-desc-text');
-    var $btn = $(this);
-    if ($desc.hasClass('expanded')) {
-        $desc.removeClass('expanded').css({
-            '-webkit-line-clamp': '3',
-            'display': '-webkit-box'
-        });
-        $btn.find('.toggle-text').text('Show more');
-        $btn.find('.toggle-icon').removeClass('icofont-rounded-up').addClass('icofont-rounded-down');
-    } else {
-        $desc.addClass('expanded').css({
-            '-webkit-line-clamp': 'unset',
-            'display': 'block'
-        });
-        $btn.find('.toggle-text').text('Show less');
-        $btn.find('.toggle-icon').removeClass('icofont-rounded-down').addClass('icofont-rounded-up');
-    }
-});
-
 // Smooth scroll to full description
 $(document).on('click', '.scroll-to-desc', function(e) {
     e.preventDefault();

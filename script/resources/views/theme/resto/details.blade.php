@@ -78,13 +78,9 @@
 										<div id="short-desc-text" style="color: #475569; font-size: 14px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; transition: all 0.3s ease;">
 											{{ $cleanExcerpt }}
 										</div>
-										@if(strlen($cleanExcerpt) > 140)
-										<div style="margin-top: 6px; display: flex; align-items: center; gap: 10px;">
-											<a href="javascript:void(0)" id="toggle-short-desc" style="color: var(--primary, #0A8CDE); font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-												<span class="toggle-text">{{ __('Show more') }}</span> <i class="icofont-rounded-down toggle-icon"></i>
-											</a>
-											<span style="color: #cbd5e1;">|</span>
-											<a href="#product-full-description" class="scroll-to-desc" style="color: #64748b; font-size: 13px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+										@if(!empty($info->description->value ?? '') || strlen($cleanExcerpt) > 140)
+										<div style="margin-top: 6px;">
+											<a href="#product-full-description" class="scroll-to-desc" style="color: var(--primary, #0A8CDE); font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
 												<span>{{ __('Full details') }}</span> <i class="icofont-arrow-down"></i>
 											</a>
 										</div>
@@ -254,5 +250,5 @@
 <script src="{{ asset('admin/js/sweetalert2.all.min.js') }}"></script>
 <script src="{{ asset('admin/js/form.js') }}"></script>
 <script src="{{ asset('theme/jquery.unveil.js') }}"></script>
-<script src="{{ asset('theme/resto/js/product-details.js?v='.(tenant('cache_version') ?: '2.8')) }}"></script>
+<script src="{{ asset('theme/resto/js/product-details.js?v='.(tenant('cache_version') ?: '2.9')) }}"></script>
 @endpush
