@@ -168,6 +168,10 @@
          .sub__title {
             color: var(--booostr-blue, #0A8CDE) !important;
          }
+         .section__title .main__title,
+         .main__title {
+            color: #1e293b !important;
+         }
          .food-tab-main .nav li button.active {
             background-color: var(--booostr-blue, #0A8CDE) !important;
             border-color: var(--booostr-blue, #0A8CDE) !important;
