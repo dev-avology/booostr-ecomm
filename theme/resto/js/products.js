@@ -26,21 +26,47 @@ $('#cat').val() != '' ? categories.push($('#cat').val()) : '';
 console.log(categories);
 
 $(document).on('click','.menu_item',function(){
-	$('.menu_item').removeClass('active');
-	$(this).addClass('active')
-	if ($(this).data('count') == 0 && $(this).is(':checked') == true) {
+    var $this = $(this);
+    var clickedId = $this.data('id');
+    var isBrand = $this.closest('.product_brands').length > 0;
+
+    if (!isBrand) {
+        $('.product_menu .menu_item').removeClass('active');
+        $this.addClass('active');
+
+        if (clickedId === 'all' || !clickedId) {
+            categories = [];
+            $('.product_brands .menu_item').removeClass('active');
+            $('.product_brands .all_brand_item').addClass('active');
+        } else {
+            categories = [clickedId];
+            $('.product_brands .menu_item').removeClass('active');
+            $('.product_brands .all_brand_item').addClass('active');
+        }
+    } else {
+        $('.product_brands .menu_item').removeClass('active');
+        $this.addClass('active');
+
+        if (clickedId === 'all' || !clickedId) {
+            categories = [];
+            $('.product_menu .menu_item').removeClass('active');
+            $('.product_menu .all_cat_item').addClass('active');
+        } else {
+            categories = [clickedId];
+            $('.product_menu .menu_item').removeClass('active');
+            $('.product_menu .all_cat_item').addClass('active');
+        }
+    }
+
+	if ($this.data('count') == 0 && clickedId !== 'all') {
 		$('.product-item').remove();
 		$('.zero_product').show();
 		render_pagination('.pagination-list',[],'icofont-arrow-left','icofont-arrow-right');
 		return false;
 	}
 	$('.zero_product').hide();
-	categories=[];
-	categories.push($(this).data('id'));
 
 	getproducts(base_url + '/get-product');
-
-
 });
 
 // Sidebar Accordion Collapse/Expand
@@ -106,22 +132,31 @@ $.ajax({
 
        if (response.categories && response.categories.length > 0) {
            var catHasActiveExtra = false;
+           var totalCatCount = 0;
+           $.each(response.categories, function(key, category) {
+               totalCatCount += (parseInt(category.termcategories_count) || 0);
+           });
+
+           var isAllCatActive = (!cat || cat === '' || cat === '0' || cat === 'all') ? 'active' : '';
+           var allCatHtml = `<li><a data-count="${totalCatCount}" data-id="all" class="menu_item all_cat_item ${isAllCatActive}" href="javascript:void(0)">All<span class="all_cat_count">${totalCatCount}</span></a></li>`;
+           $('.product_menu').append(allCatHtml);
+
            $.each(response.categories, function(key, category) {
                if(cat == category.id){
                    var selected="active";
-                   if (key >= 6) catHasActiveExtra = true;
+                   if (key >= 5) catHasActiveExtra = true;
                }
                else{
                    var selected='';
                }
-               var isExtra = (key >= 6) ? 'sidebar-extra-item d-none' : '';
+               var isExtra = (key >= 5) ? 'sidebar-extra-item d-none' : '';
                var count = parseInt(category.termcategories_count) || 0;
                var html=`<li class="${isExtra}"><a data-count="${count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
                $('.product_menu').append(html);
            });
 
-           if (response.categories.length > 6) {
-               var extraCount = response.categories.length - 6;
+           if (response.categories.length > 5) {
+               var extraCount = response.categories.length - 5;
                var moreHtml = `<div class="sidebar-more-wrapper">
                    <button type="button" class="btn-sidebar-view-more" data-target=".product_menu" data-extra="${extraCount}">
                        <span class="toggle-text">+ View More (${extraCount})</span>
@@ -143,22 +178,31 @@ $.ajax({
 
        if (response.brands && response.brands.length > 0) {
            var brandHasActiveExtra = false;
+           var totalBrandCount = 0;
+           $.each(response.brands, function(key, category) {
+               totalBrandCount += (parseInt(category.termcategories_count) || 0);
+           });
+
+           var isAllBrandActive = (!cat || cat === '' || cat === '0' || cat === 'all') ? 'active' : '';
+           var allBrandHtml = `<li><a data-count="${totalBrandCount}" data-id="all" class="menu_item all_brand_item ${isAllBrandActive}" href="javascript:void(0)">All<span class="all_brand_count">${totalBrandCount}</span></a></li>`;
+           $('.product_brands').append(allBrandHtml);
+
            $.each(response.brands, function(key, category) {
                if(cat == category.id){
                    var selected="active";
-                   if (key >= 6) brandHasActiveExtra = true;
+                   if (key >= 5) brandHasActiveExtra = true;
                }
                else{
                    var selected='';
                }
-               var isExtra = (key >= 6) ? 'sidebar-extra-item d-none' : '';
+               var isExtra = (key >= 5) ? 'sidebar-extra-item d-none' : '';
                var count = parseInt(category.termcategories_count) || 0;
                var html=`<li class="${isExtra}"><a data-count="${count}" data-id="${category.id}" class="menu_item ${selected}" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
                $('.product_brands').append(html);
            });
 
-           if (response.brands.length > 6) {
-               var extraCount = response.brands.length - 6;
+           if (response.brands.length > 5) {
+               var extraCount = response.brands.length - 5;
                var moreHtml = `<div class="sidebar-more-wrapper">
                    <button type="button" class="btn-sidebar-view-more" data-target=".product_brands" data-extra="${extraCount}">
                        <span class="toggle-text">+ View More (${extraCount})</span>
@@ -315,6 +359,9 @@ function getproducts(url) {
            $('.from_products').html(from);
            $('.to_products').html(to);
            $('.total_products').html(total);
+           if (categories.length === 0 && total > 0) {
+               $('.all_cat_count').html(total);
+           }
           
            if (!response.data || response.data.length === 0) {
                $('.zero_product').show();

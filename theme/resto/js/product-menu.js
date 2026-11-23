@@ -15,19 +15,20 @@ var categories=[];
 
 $(document).on('click','.menu_item',function(){
 	$('.menu_item').removeClass('active');
-	$(this).addClass('active')
-	if ($(this).data('count') == 0) {
+	$(this).addClass('active');
+	var clickedId = $(this).data('id');
+	categories = [];
+	if (clickedId && clickedId !== 'all') {
+		categories.push(clickedId);
+	}
+	if ($(this).data('count') == 0 && clickedId !== 'all') {
 		$('.product-item').remove();
 		$('.zero_product').show();
 		return false;
 	}
 	$('.zero_product').hide();
-	categories=[];
-	categories.push($(this).data('id'));
 
 	getproducts(base_url + '/get-product');
-
-
 });
 
 $.ajax({
@@ -51,8 +52,13 @@ $.ajax({
        $('.menu_preload').remove();
 
        if (response.productmenu && response.productmenu.length > 0) {
+           var totalCount = 0;
            $.each(response.productmenu, function(key, category) {
-             	categories.push(category.id);
+               totalCount += (parseInt(category.termcategories_count) || 0);
+           });
+           var allHtml = `<li><a data-count="${totalCount}" data-id="all" class="menu_item active" href="javascript:void(0)">All<span>${totalCount}</span></a></li>`;
+           $('.product_menu').append(allHtml);
+           $.each(response.productmenu, function(key, category) {
                 var count = parseInt(category.termcategories_count) || 0;
            		var html=`<li><a data-count="${count}" data-id="${category.id}" class="menu_item" href="javascript:void(0)">${category.name}<span>${count}</span></a></li>`;
             	$('.product_menu').append(html);
