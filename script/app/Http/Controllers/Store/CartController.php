@@ -469,8 +469,13 @@ class CartController extends Controller
     public function removeWishlist(Request $request,$id)
     {
        Cart::instance('wishlist')->remove($id);
+       $count = Cart::instance('wishlist')->count();
+       $wishlist_ids = Cart::instance('wishlist')->content()->pluck('id')->map(function($id){ return (int)$id; })->values()->all();
        if ($request->ajax()) {
-           return Cart::count();
+           return response()->json([
+               'count' => $count,
+               'wishlist_ids' => $wishlist_ids
+           ]);
        }
        return back();
     }

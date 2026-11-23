@@ -258,12 +258,14 @@ class PageController extends Controller
         Cart::setGlobalTax($tax);
         $contents=Cart::instance('wishlist')->content();
 
+        $productIds = $contents->pluck('id')->toArray();
+        $products = Term::query()->where('type','product')->where('status',1)->webProducts()->with('firstprice', 'preview')->whereIn('id', $productIds)->get()->keyBy('id');
 
         $home_data=optionfromcache('wishlist_page');
         store_set_seo('Wishlist');
 
         $page_data=$home_data->meta ?? '';
-        return view(baseview('wishlist'),compact('contents','page_data'));
+        return view(baseview('wishlist'),compact('contents','products','page_data'));
     }
 
     public function checkout(Request $request)
