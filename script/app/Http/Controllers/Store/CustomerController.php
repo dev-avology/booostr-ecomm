@@ -556,6 +556,380 @@ class CustomerController extends Controller
         return redirect()->to(url('/customer/dashboard'));
     }
 
+    /**
+     * Booostr SSO Step 1: Verify Email/Username exists in local store or Booostr
+     */
+    public function ssoCheckIdentity(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+        ]);
+
+        $identity = trim($request->username);
+        $clubTitle = get_option('shop_name') ?: (tenant('id') ?? 'Club');
+
+        // 1. Check if user already exists in local Store DB
+        $localUser = User::where('email', $identity)->first();
+        if (!$localUser) {
+            $allCustomers = User::where('role_id', 4)->whereNotNull('meta')->get();
+            foreach ($allCustomers as $c) {
+                $m = json_decode($c->meta, true);
+                if (!empty($m['username']) && strtolower($m['username']) === strtolower($identity)) {
+                    $localUser = $c;
+                    break;
+                }
+            }
+        }
+
+        if ($localUser) {
+            return response()->json([
+                'status'        => 'already_exists',
+                'club_title'    => $clubTitle,
+                'login_url'     => route('customer.login'),
+                'display_email' => $localUser->email,
+                'message'       => sprintf(__('An account already exists with %s. Please log in.'), $clubTitle),
+            ], 409);
+        }
+
+        // 2. If not found in local DB, check on Booostr (WordPress API)
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-sso-check-user', [
+                'verify' => false,
+                'timeout' => 10,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+                'json' => [
+                    'username_or_email' => $identity,
+                    'club'              => tenant('id'),
+                ],
+            ]);
+
+            $result = json_decode((string) $response->getBody(), true);
+            $isFound = (!empty($result['status']) && $result['status'] === 'success')
+                || (!empty($result['exists']) && $result['exists'] == true);
+
+            if ($isFound) {
+                return response()->json([
+                    'status'        => 'success',
+                    'source'        => 'booostr',
+                    'display_email' => $result['email'] ?? $identity,
+                    'message'       => __('Booostr account verified.'),
+                ]);
+            }
+
+            return response()->json([
+                'status'  => 'not_found',
+                'message' => __("Couldn't find your Booostr account. Please create a Booostr User Account first."),
+            ], 404);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $errorBody = json_decode($e->getResponse()->getBody()->getContents(), true);
+            $msg = $errorBody['message'] ?? __("Couldn't find your Booostr account. Please create a Booostr User Account first.");
+            return response()->json(['status' => 'not_found', 'message' => $msg], 404);
+        } catch (\Throwable $e) {
+            \Log::error('Booostr SSO identity check error: ' . $e->getMessage());
+            return response()->json([
+                'status'        => 'success',
+                'source'        => 'pending',
+                'display_email' => $identity,
+            ]);
+        }
+    }
+
+    /**
+     * Booostr SSO Step 2: Verify Credentials on WordPress and trigger 6-digit OTP
+     */
+    public function ssoVerifyCredentials(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $username = trim($request->username);
+        $password = $request->password;
+        $clubTitle = get_option('shop_name') ?: (tenant('id') ?? 'Club');
+        $clubEmail = get_option('store_email') ?: (get_option('email') ?: null);
+        $clubLogo = get_option('banner_logo') ?: (get_option('logo') ?: asset('uploads/booostr-logo.png'));
+
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-sso-verify-credentials', [
+                'verify' => false,
+                'timeout' => 15,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+                'json' => [
+                    'username_or_email' => $username,
+                    'password'          => $password,
+                    'club'              => tenant('id'),
+                    'club_title'        => $clubTitle,
+                    'club_email'        => $clubEmail,
+                    'club_logo'         => $clubLogo,
+                ],
+            ]);
+
+            $result = json_decode((string) $response->getBody(), true);
+            $isSuccess = (!empty($result['status']) && $result['status'] === 'success')
+                || (!empty($result['success']) && $result['success'] == true);
+
+            if ($isSuccess) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => $result['message'] ?? __('Verification code sent to your email.'),
+                ]);
+            }
+
+            $errorMsg = $result['message'] ?? ($result['data']['msg'] ?? __('Invalid credentials.'));
+            return response()->json(['status' => 'error', 'message' => $errorMsg], 422);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $errorBody = json_decode($e->getResponse()->getBody()->getContents(), true);
+            $msg = $errorBody['message'] ?? ($errorBody['data']['msg'] ?? __('Wrong password. Try again or click Forgot password.'));
+            return response()->json(['status' => 'error', 'message' => $msg], 422);
+        } catch (\Throwable $e) {
+            \Log::error('Booostr SSO credentials verification error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => __('Unable to verify with Booostr right now. Please try again.')], 500);
+        }
+    }
+
+    /**
+     * Booostr SSO Step 3: Verify 6-digit OTP code on WordPress
+     */
+    public function ssoVerifyOtp(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'otp'      => 'required|string|size:6',
+        ]);
+
+        $username = trim($request->username);
+        $otp = trim($request->otp);
+
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-sso-verify-otp', [
+                'verify' => false,
+                'timeout' => 15,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+                'json' => [
+                    'username_or_email' => $username,
+                    'otp_code'          => $otp,
+                    'club'              => tenant('id'),
+                ],
+            ]);
+
+            $result = json_decode((string) $response->getBody(), true);
+            $isSuccess = (!empty($result['status']) && $result['status'] === 'success')
+                || (!empty($result['success']) && $result['success'] == true);
+
+            if ($isSuccess && !empty($result['user'])) {
+                session()->put('booostr_sso_verified_user', $result['user']);
+
+                return response()->json([
+                    'status' => 'success',
+                    'user'   => $result['user'],
+                ]);
+            }
+
+            $errorMsg = $result['message'] ?? ($result['data']['msg'] ?? __('Invalid or expired verification code.'));
+            return response()->json(['status' => 'error', 'message' => $errorMsg], 422);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $errorBody = json_decode($e->getResponse()->getBody()->getContents(), true);
+            $msg = $errorBody['message'] ?? ($errorBody['data']['msg'] ?? __('Invalid or expired verification code.'));
+            return response()->json(['status' => 'error', 'message' => $msg], 422);
+        } catch (\Throwable $e) {
+            \Log::error('Booostr SSO OTP verification error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => __('Unable to verify code right now. Please try again.')], 500);
+        }
+    }
+
+    /**
+     * Booostr SSO Step 3b: Resend 6-digit OTP code via WordPress
+     */
+    public function ssoResendOtp(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+        ]);
+
+        $username = trim($request->username);
+        $clubTitle = get_option('shop_name') ?: (tenant('id') ?? 'Club');
+        $clubEmail = get_option('store_email') ?: (get_option('email') ?: null);
+        $clubLogo = get_option('banner_logo') ?: (get_option('logo') ?: asset('uploads/booostr-logo.png'));
+
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-sso-resend-otp', [
+                'verify' => false,
+                'timeout' => 15,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+                'json' => [
+                    'username_or_email' => $username,
+                    'club'              => tenant('id'),
+                    'club_title'        => $clubTitle,
+                    'club_email'        => $clubEmail,
+                    'club_logo'         => $clubLogo,
+                ],
+            ]);
+
+            $result = json_decode((string) $response->getBody(), true);
+            $isSuccess = (!empty($result['status']) && $result['status'] === 'success')
+                || (!empty($result['success']) && $result['success'] == true);
+
+            if ($isSuccess) {
+                return response()->json([
+                    'status'   => 'success',
+                    'message'  => $result['message'] ?? __('A new verification code has been sent.'),
+                    'cooldown' => $result['cooldown'] ?? 60,
+                ]);
+            }
+
+            $errorMsg = $result['message'] ?? __('Unable to resend code right now.');
+            return response()->json(['status' => 'error', 'message' => $errorMsg], 422);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $errorBody = json_decode($e->getResponse()->getBody()->getContents(), true);
+            $statusCode = $e->getResponse()->getStatusCode();
+            $msg = $errorBody['message'] ?? __('Unable to resend verification code.');
+            return response()->json(['status' => 'error', 'message' => $msg], $statusCode ?: 422);
+        } catch (\Throwable $e) {
+            \Log::error('Booostr SSO OTP resend error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => __('Unable to resend code right now. Please try again.')], 500);
+        }
+    }
+
+    /**
+     * Booostr SSO Step 4: Final Consent -> Sync User, Check Club CRM & Auto Login
+     */
+    public function ssoComplete(Request $request)
+    {
+        $ssoUser = session()->get('booostr_sso_verified_user');
+        $email = trim($ssoUser['user_email'] ?? '');
+
+        if (empty($ssoUser) || empty($email)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => __('Your session has expired. Please restart the sign in process.'),
+            ], 422);
+        }
+
+        $wpuid = (int) ($ssoUser['user_id'] ?? 0);
+        $firstName = trim($ssoUser['first_name'] ?? '');
+        $lastName = trim($ssoUser['last_name'] ?? '');
+        $name = trim($firstName . ' ' . $lastName);
+        if (empty($name)) {
+            $name = $ssoUser['user_nicename'] ?? ($ssoUser['user_login'] ?? 'Booostr User');
+        }
+
+        $username = $ssoUser['user_login'] ?? explode('@', $email)[0];
+        $password = !empty($ssoUser['user_pass']) ? \Hash::make($ssoUser['user_pass']) : \Hash::make(\Str::random(16));
+        $age = $ssoUser['age'] ?? 'adult';
+        $country = $ssoUser['user_country'] ?? 'USA';
+        if (empty($country) || in_array(trim($country), ['United States of America', 'United States', 'US'], true)) {
+            $country = 'USA';
+        }
+        $city = $ssoUser['user_city'] ?? null;
+        $state = $ssoUser['user_state'] ?? null;
+        $address = $ssoUser['user_address'] ?? null;
+        $phone = $ssoUser['user_phone'] ?? null;
+        $avatar = $ssoUser['user_photo'] ?? null;
+
+        // 1. Check if user already exists in local DB
+        $user = User::where('email', $email)->first();
+
+        $userMeta = [
+            'wpuid'    => $wpuid,
+            'username' => $username,
+            'fname'    => $firstName,
+            'lname'    => $lastName,
+            'age'      => $age,
+            'country'  => $country,
+            'city'     => $city,
+            'state'    => $state,
+            'address'  => $address,
+            'avatar'   => $avatar,
+        ];
+
+        if ($user) {
+            $existingMeta = !empty($user->meta) ? json_decode($user->meta, true) : [];
+            $mergedMeta = array_merge($existingMeta, array_filter($userMeta));
+            $user->meta = json_encode($mergedMeta);
+            $user->name = $name ?: $user->name;
+            if ($phone) {
+                $user->phone = $phone;
+            }
+            if (!empty($ssoUser['user_pass']) && $user->role_id != 3) {
+                $user->password = $password;
+            }
+            $user->save();
+        } else {
+            $user = new User();
+            $user->name = $name;
+            $user->email = $email;
+            $user->role_id = 4; // Customer
+            $user->status = 1;
+            $user->password = $password;
+            if ($phone) {
+                $user->phone = $phone;
+            }
+            $user->meta = json_encode($userMeta);
+            $user->save();
+        }
+
+        // 2. Sync Contact to Booostr CRM
+        try {
+            $clubSlug = (string) (tenant('id') ?? '');
+            $crmClient = new \GuzzleHttp\Client();
+            $crmClient->post('https://app.booostr.co/wp-json/webbuilder-api/v1/boostr-sso-sync-contact', [
+                'verify' => false,
+                'timeout' => 10,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+                'json' => [
+                    'club_id'    => $clubSlug,
+                    'user_id'    => $wpuid,
+                    'user_email' => $email,
+                    'first_name' => $firstName,
+                    'last_name'  => $lastName,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \Log::warning('Booostr SSO CRM sync warning: ' . $e->getMessage());
+        }
+
+        // 3. Auto-claim unassigned guest orders
+        $this->claimGuestOrdersByEmail($user);
+
+        // 4. Clean SSO session
+        session()->forget('booostr_sso_verified_user');
+
+        // 5. Authenticate user
+        Auth::login($user, true);
+
+        // 6. Return redirect URL
+        $intended = session()->pull('url.intended');
+        if ($intended && (str_contains($intended, '/checkout') || str_contains($intended, 'checkout'))) {
+            $redirectUrl = $intended;
+        } else {
+            $redirectUrl = url('/customer/dashboard');
+        }
+
+        return response()->json([
+            'status'       => 'success',
+            'redirect_url' => $redirectUrl,
+        ]);
+    }
+
     public function dashboard()
     {
         abort_if(tenant('customer_modules') != 'on',404);

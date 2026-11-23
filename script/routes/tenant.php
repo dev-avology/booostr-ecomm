@@ -80,6 +80,13 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
             Route::post('/login-customer', 'Store\CustomerController@loginCustomer')->name('customer.login')->middleware('guest');
             Route::get('/register', 'Store\CustomerController@register')->middleware('guest');
             Route::post('/register-customer', 'Store\CustomerController@registerCustomer')->name('customer.register')->middleware('guest');
+            
+            // Booostr Custom SSO Routes
+            Route::post('/sso/check-identity', 'Store\CustomerController@ssoCheckIdentity')->name('customer.sso.check')->middleware('guest');
+            Route::post('/sso/verify-credentials', 'Store\CustomerController@ssoVerifyCredentials')->name('customer.sso.credentials')->middleware('guest');
+            Route::post('/sso/verify-otp', 'Store\CustomerController@ssoVerifyOtp')->name('customer.sso.otp')->middleware('guest');
+            Route::post('/sso/resend-otp', 'Store\CustomerController@ssoResendOtp')->name('customer.sso.resend')->middleware('guest');
+            Route::post('/sso/complete', 'Store\CustomerController@ssoComplete')->name('customer.sso.complete')->middleware('guest');
             Route::get('/dashboard', 'Store\CustomerController@dashboard')->name('customer.dashboard')->middleware(['auth','user']);
             Route::get('/orders', 'Store\CustomerController@orders')->name('customer.orders')->middleware(['auth','user']);
             Route::get('/order/{id}', 'Store\CustomerController@orderview')->name('customer.order.view')->middleware(['auth','user']);

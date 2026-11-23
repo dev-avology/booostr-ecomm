@@ -22,17 +22,14 @@
 					<!-- Booostr SSO Split Button matching reference -->
 					<div class="mb-4">
 						<div class="sso-btn-wrapper">
-							<a href="javascript:void(0)" class="booostr-sso-btn" onclick="return false;" title="In progress • Working on it">
+							<a href="javascript:void(0)" class="booostr-sso-btn" id="triggerBooostrSsoBtn" role="button" tabindex="0">
 								<div class="sso-logo-box">
-									<img src="{{ asset('uploads/booostr-logo.png') }}" onerror="this.onerror=null; this.src='https://app.booostr.co/wp-content/themes/booostr-app/assets/images/Header-logo.png';" alt="Booostr">
+									<img src="{{ asset('uploads/booostr-logo.png') }}" onerror="this.onerror=null; this.src='https://booostr.site/assets/Booostr/booostr-logo.png';" alt="Booostr">
 								</div>
 								<div class="sso-text-box">
 									<span>{{ __('Sign up with your Booostr User Account') }}</span>
 								</div>
 							</a>
-							<div class="sso-hover-tooltip">
-								<i class="icofont-info-circle"></i> {{ __('In progress • Working on it') }}
-							</div>
 						</div>
 						<div class="or-separator" style="display: flex; align-items: center; text-align: center; margin: 24px 0 20px;">
 							<hr style="flex: 1; border: none; border-top: 1px solid #e2e8f0; margin: 0;">
@@ -699,7 +696,471 @@ document.addEventListener('DOMContentLoaded', function() {
 			}, 20);
 		});
 	}
+
+	// ==========================================
+	// Booostr SSO Modal UI Controller
+	// ==========================================
+	var $ssoModal = $('#booostrSsoModal');
+
+	function showSsoStep(stepId) {
+		$('.sso-step-pane').hide();
+		$(stepId).fadeIn(200);
+		$('#ssoAlertBox').hide().text('');
+	}
+
+	// Open Modal
+	$('#triggerBooostrSsoBtn').on('click', function(e) {
+		e.preventDefault();
+		$ssoModal.fadeIn(200);
+		$('body').css('overflow', 'hidden');
+		showSsoStep('#ssoStepEmail');
+		$('#ssoEmailInput').focus();
+	});
+
+	// Close Modal
+	$('#booostrSsoCloseBtn, #ssoConsentCancelBtn').on('click', function() {
+		$ssoModal.fadeOut(200);
+		$('body').css('overflow', '');
+	});
+
+	function showSsoInlineError(fieldWrapId, errorContainerId, messageHtml) {
+		$(fieldWrapId).addClass('has-error');
+		$(errorContainerId).find('.sso-inline-error-text').html(messageHtml);
+		$(errorContainerId).show();
+	}
+
+	function clearSsoInlineError(fieldWrapId, errorContainerId) {
+		$(fieldWrapId).removeClass('has-error');
+		$(errorContainerId).hide().find('.sso-inline-error-text').html('');
+	}
+
+	// Clear inline error only when user types
+	$('#ssoEmailInput').on('input', function() {
+		clearSsoInlineError('#ssoEmailFieldWrap', '#ssoEmailError');
+	});
+	$('#ssoPasswordInput').on('input', function() {
+		clearSsoInlineError('#ssoPasswordFieldWrap', '#ssoPasswordError');
+	});
+	$('#ssoOtpInput').on('input', function() {
+		clearSsoInlineError('#ssoOtpFieldWrap', '#ssoOtpError');
+	});
+
+	// Enter key triggers appropriate next button in SSO modal
+	$('#ssoEmailInput').on('keydown', function(e) {
+		if (e.which === 13 || e.key === 'Enter') {
+			e.preventDefault();
+			$('#ssoEmailNextBtn').trigger('click');
+		}
+	});
+	$('#ssoPasswordInput').on('keydown', function(e) {
+		if (e.which === 13 || e.key === 'Enter') {
+			e.preventDefault();
+			$('#ssoPasswordNextBtn').trigger('click');
+		}
+	});
+	$('#ssoOtpInput').on('keydown', function(e) {
+		if (e.which === 13 || e.key === 'Enter') {
+			e.preventDefault();
+			$('#ssoOtpNextBtn').trigger('click');
+		}
+	});
+
+	var currentSsoUsername = '';
+	var currentSsoDisplayEmail = '';
+
+	// Step 1: Email -> Verify Existence before moving to Password
+	$('#ssoEmailNextBtn').on('click', function() {
+		var email = $('#ssoEmailInput').val().trim();
+		if (!email) {
+			showSsoInlineError('#ssoEmailFieldWrap', '#ssoEmailError', 'Enter an email or username');
+			$('#ssoEmailInput').focus();
+			return;
+		}
+		clearSsoInlineError('#ssoEmailFieldWrap', '#ssoEmailError');
+
+		var $btn = $(this);
+		var originalText = $btn.find('span').text();
+		$btn.prop('disabled', true).find('span').text('Checking...');
+
+		$.ajax({
+			url: "{{ route('customer.sso.check') }}",
+			type: "POST",
+			data: {
+				_token: "{{ csrf_token() }}",
+				username: email
+			},
+			success: function(res) {
+				$btn.prop('disabled', false).find('span').text(originalText);
+				currentSsoUsername = email;
+				currentSsoDisplayEmail = res.display_email || email;
+				$('.sso-user-email-text').text(currentSsoDisplayEmail);
+				$('#ssoUserChipEmail').show();
+				showSsoStep('#ssoStepPassword');
+				$('#ssoPasswordInput').val('').focus();
+			},
+			error: function(xhr) {
+				$btn.prop('disabled', false).find('span').text(originalText);
+				var res = xhr.responseJSON || {};
+				var msg = res.message || "Couldn't find your Booostr account. Please create a Booostr User Account first.";
+
+				if (res.status === 'already_exists') {
+					var loginUrl = res.login_url || "{{ route('customer.login') }}";
+					var clubName = res.club_title || 'this store';
+					msg = 'An account already exists with ' + clubName + '. <a href="' + loginUrl + '" style="color:#0084d6;font-weight:600;text-decoration:underline;">Click here to Log In</a>';
+				}
+
+				showSsoInlineError('#ssoEmailFieldWrap', '#ssoEmailError', msg);
+				$('#ssoEmailInput').focus();
+			}
+		});
+	});
+
+	// Step 2: Password Back -> Step 1
+	$('#ssoPasswordBackBtn').on('click', function() {
+		clearSsoInlineError('#ssoPasswordFieldWrap', '#ssoPasswordError');
+		showSsoStep('#ssoStepEmail');
+		$('#ssoEmailInput').focus();
+	});
+
+	// Toggle Password Visibility
+	$('#ssoShowPasswordToggle').on('change', function() {
+		$('#ssoPasswordInput').attr('type', $(this).is(':checked') ? 'text' : 'password');
+	});
+
+	// Step 2: Password Next -> Verify Credentials via Backend
+	$('#ssoPasswordNextBtn').on('click', function() {
+		var pass = $('#ssoPasswordInput').val();
+		if (!pass) {
+			showSsoInlineError('#ssoPasswordFieldWrap', '#ssoPasswordError', 'Enter your password');
+			$('#ssoPasswordInput').focus();
+			return;
+		}
+		clearSsoInlineError('#ssoPasswordFieldWrap', '#ssoPasswordError');
+
+		var $btn = $(this);
+		var originalText = $btn.find('span').text();
+		$btn.prop('disabled', true).find('span').text('Verifying...');
+
+		$.ajax({
+			url: "{{ route('customer.sso.credentials') }}",
+			type: "POST",
+			data: {
+				_token: "{{ csrf_token() }}",
+				username: currentSsoUsername,
+				password: pass
+			},
+			success: function(res) {
+				$btn.prop('disabled', false).find('span').text(originalText);
+
+				var fullEmail = currentSsoDisplayEmail || res.email || currentSsoUsername;
+				$('.sso-user-email-text').text(fullEmail);
+
+				showSsoStep('#ssoStepOtp');
+				$('.sso-otp-digit').val('').removeClass('has-val');
+				$('#ssoOtpInput').val('');
+				clearSsoInlineError('#ssoOtpFieldWrap', '#ssoOtpError');
+				$('.sso-otp-digit[data-index="0"]').focus();
+
+				startResendCooldown(60);
+				startOtpValidityTimer(600);
+			},
+			error: function(xhr) {
+				$btn.prop('disabled', false).find('span').text(originalText);
+				var res = xhr.responseJSON || {};
+				var msg = res.message || "Wrong password. Try again or click Forgot password.";
+				showSsoInlineError('#ssoPasswordFieldWrap', '#ssoPasswordError', msg);
+				$('#ssoPasswordInput').focus();
+			}
+		});
+	});
+
+	// 6-Digit OTP Box Controller
+	function syncOtpValue() {
+		var code = '';
+		$('.sso-otp-digit').each(function() {
+			code += $(this).val();
+		});
+		$('#ssoOtpInput').val(code);
+		return code;
+	}
+
+	$('.sso-otp-digit').on('input', function(e) {
+		var $this = $(this);
+		var val = $this.val().replace(/[^0-9]/g, '');
+		$this.val(val);
+
+		if (val) {
+			$this.addClass('has-val');
+			var nextIndex = parseInt($this.data('index')) + 1;
+			if (nextIndex < 6) {
+				$('.sso-otp-digit[data-index="' + nextIndex + '"]').focus();
+			}
+		} else {
+			$this.removeClass('has-val');
+		}
+
+		var code = syncOtpValue();
+		clearSsoInlineError('#ssoOtpFieldWrap', '#ssoOtpError');
+
+		if (code.length === 6) {
+			$('#ssoOtpNextBtn').trigger('click');
+		}
+	});
+
+	$('.sso-otp-digit').on('keydown', function(e) {
+		var $this = $(this);
+		var index = parseInt($this.data('index'));
+
+		if (e.key === 'Backspace' || e.which === 8) {
+			if (!$this.val() && index > 0) {
+				var prevInput = $('.sso-otp-digit[data-index="' + (index - 1) + '"]');
+				prevInput.val('').removeClass('has-val').focus();
+				syncOtpValue();
+				e.preventDefault();
+			}
+		} else if (e.key === 'ArrowLeft' && index > 0) {
+			$('.sso-otp-digit[data-index="' + (index - 1) + '"]').focus();
+		} else if (e.key === 'ArrowRight' && index < 5) {
+			$('.sso-otp-digit[data-index="' + (index + 1) + '"]').focus();
+		} else if (e.key === 'Enter' || e.which === 13) {
+			e.preventDefault();
+			$('#ssoOtpNextBtn').trigger('click');
+		}
+	});
+
+	// Support paste of 6-digit code
+	$('.sso-otp-digit').on('paste', function(e) {
+		e.preventDefault();
+		var clipboardData = (e.originalEvent || e).clipboardData || window.clipboardData;
+		var pastedData = clipboardData.getData('text').trim().replace(/[^0-9]/g, '').slice(0, 6);
+
+		if (pastedData) {
+			for (var i = 0; i < pastedData.length; i++) {
+				var digitInput = $('.sso-otp-digit[data-index="' + i + '"]');
+				digitInput.val(pastedData[i]).addClass('has-val');
+			}
+			syncOtpValue();
+			clearSsoInlineError('#ssoOtpFieldWrap', '#ssoOtpError');
+
+			var nextFocus = Math.min(pastedData.length, 5);
+			$('.sso-otp-digit[data-index="' + nextFocus + '"]').focus();
+
+			if (pastedData.length === 6) {
+				$('#ssoOtpNextBtn').trigger('click');
+			}
+		}
+	});
+
+	var resendCooldownTimer = null;
+	var otpValidityTimer = null;
+
+	function startResendCooldown(seconds) {
+		var $link = $('#ssoResendOtpLink');
+		$link.addClass('disabled').css({'pointer-events': 'none', 'opacity': '0.6'});
+
+		if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+
+		var remaining = seconds || 60;
+		$link.text('Resend in ' + remaining + 's');
+
+		resendCooldownTimer = setInterval(function() {
+			remaining--;
+			if (remaining > 0) {
+				$link.text('Resend in ' + remaining + 's');
+			} else {
+				clearInterval(resendCooldownTimer);
+				$link.removeClass('disabled').css({'pointer-events': '', 'opacity': ''}).text('Resend code');
+			}
+		}, 1000);
+	}
+
+	function startOtpValidityTimer(seconds) {
+		if (otpValidityTimer) clearInterval(otpValidityTimer);
+
+		var remaining = seconds || 600;
+		otpValidityTimer = setInterval(function() {
+			remaining--;
+			if (remaining <= 0) {
+				clearInterval(otpValidityTimer);
+				showSsoInlineError('#ssoOtpFieldWrap', '#ssoOtpError', 'Your verification code has expired (10 minutes). Please click Resend code to get a new one.');
+				$('.sso-otp-digit').val('').removeClass('has-val');
+				$('#ssoOtpInput').val('');
+
+				if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+				$('#ssoResendOtpLink').removeClass('disabled').css({'pointer-events': '', 'opacity': ''}).text('Resend code');
+			}
+		}, 1000);
+	}
+
+	$('#ssoResendOtpLink').on('click', function(e) {
+		e.preventDefault();
+		var $link = $(this);
+		if ($link.hasClass('disabled')) return;
+
+		var originalText = $link.text();
+		$link.addClass('disabled').css({'pointer-events': 'none', 'opacity': '0.6'}).text('Sending code...');
+
+		$.ajax({
+			url: "{{ route('customer.sso.resend') }}",
+			type: "POST",
+			data: {
+				_token: "{{ csrf_token() }}",
+				username: currentSsoUsername
+			},
+			success: function(res) {
+				$('.sso-otp-digit').val('').removeClass('has-val');
+				$('#ssoOtpInput').val('');
+				clearSsoInlineError('#ssoOtpFieldWrap', '#ssoOtpError');
+				$('.sso-otp-digit[data-index="0"]').focus();
+
+				var cooldown = res.cooldown || 60;
+				startResendCooldown(cooldown);
+				startOtpValidityTimer(600);
+			},
+			error: function(xhr) {
+				var res = xhr.responseJSON || {};
+				var msg = res.message || 'Unable to resend code right now.';
+				var isRateLimited = (xhr.status === 429) || (xhr.status === 400 && msg.toLowerCase().indexOf('wait a moment') !== -1);
+
+				if (isRateLimited) {
+					startResendCooldown(60);
+				} else {
+					$link.removeClass('disabled').css({'pointer-events': '', 'opacity': ''}).text(originalText);
+				}
+				showSsoInlineError('#ssoOtpFieldWrap', '#ssoOtpError', msg);
+			}
+		});
+	});
+
+	// Step 3: OTP Back -> Step 2
+	$('#ssoOtpBackBtn').on('click', function() {
+		if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+		if (otpValidityTimer) clearInterval(otpValidityTimer);
+		clearSsoInlineError('#ssoOtpFieldWrap', '#ssoOtpError');
+		showSsoStep('#ssoStepPassword');
+		$('#ssoPasswordInput').focus();
+	});
+
+	// Step 3: OTP Next -> Verify OTP
+	$('#ssoOtpNextBtn').on('click', function() {
+		var otp = syncOtpValue().trim();
+		if (otp.length < 6) {
+			showSsoInlineError('#ssoOtpFieldWrap', '#ssoOtpError', 'Enter the 6-digit verification code');
+			var firstEmpty = $('.sso-otp-digit').filter(function() { return !$(this).val(); }).first();
+			(firstEmpty.length ? firstEmpty : $('.sso-otp-digit[data-index="0"]')).focus();
+			return;
+		}
+		clearSsoInlineError('#ssoOtpFieldWrap', '#ssoOtpError');
+
+		var $btn = $(this);
+		var originalText = $btn.find('span').text();
+		$btn.prop('disabled', true).find('span').text('Verifying...');
+
+		$.ajax({
+			url: "{{ route('customer.sso.otp') }}",
+			type: "POST",
+			data: {
+				_token: "{{ csrf_token() }}",
+				username: currentSsoUsername,
+				otp: otp
+			},
+			success: function(res) {
+				$btn.prop('disabled', false).find('span').text(originalText);
+
+				if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+				if (otpValidityTimer) clearInterval(otpValidityTimer);
+
+				var user = res.user || {};
+				var firstName = $.trim(user.first_name || '');
+				var lastName = $.trim(user.last_name || '');
+				var fullName = $.trim(firstName + ' ' + lastName);
+				if (!fullName) {
+					fullName = user.user_nicename || user.username || user.user_login || currentSsoUsername;
+				}
+
+				var username = user.user_login || user.username || '';
+				var displayEmail = user.user_email || user.email || currentSsoUsername;
+				var age = user.age || '';
+				var userPhoto = user.user_photo || user.image || '';
+
+				// Populate Step 4 Consent elements
+				$('#ssoConsentDisplayName').text(fullName);
+				if (username) {
+					$('#ssoConsentUsername').text(username).show();
+				} else {
+					$('#ssoConsentUsername').hide();
+				}
+
+				$('.sso-user-email-text').text(displayEmail);
+				var rawAge = $.trim(age).toLowerCase();
+				var ageDisplay = '';
+				if (rawAge === 'adult') {
+					ageDisplay = 'Above 19';
+				} else if (rawAge === 'child') {
+					ageDisplay = 'Above 13 - Under 19';
+				} else if (age) {
+					ageDisplay = age;
+				}
+
+				if (ageDisplay) {
+					$('#ssoConsentAge').text(ageDisplay).show();
+				} else {
+					$('#ssoConsentAge').hide();
+				}
+
+				if (userPhoto) {
+					$('#ssoPermUserAvatarWrap').html('<img src="' + userPhoto + '" alt="' + fullName + '" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">');
+				} else {
+					$('#ssoPermUserAvatarWrap').html('<i class="las la-user"></i>');
+				}
+
+				showSsoStep('#ssoStepConsent');
+			},
+			error: function(xhr) {
+				$btn.prop('disabled', false).find('span').text(originalText);
+				var res = xhr.responseJSON || {};
+				var msg = res.message || "Invalid or expired verification code.";
+
+				if (msg.toLowerCase().indexOf('expired') !== -1) {
+					$('.sso-otp-digit').val('').removeClass('has-val');
+					$('#ssoOtpInput').val('');
+					if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+					$('#ssoResendOtpLink').removeClass('disabled').css({'pointer-events': '', 'opacity': ''}).text('Resend code');
+				}
+
+				showSsoInlineError('#ssoOtpFieldWrap', '#ssoOtpError', msg);
+				$('#ssoOtpInput').focus();
+			}
+		});
+	});
+
+	// Step 4: Continue -> Create User, Sync CRM & Auto-Login
+	$('#ssoConsentContinueBtn').on('click', function() {
+		var $btn = $(this);
+		var originalText = $btn.find('span').text();
+		$btn.prop('disabled', true).find('span').text('Signing in...');
+
+		$.ajax({
+			url: "{{ route('customer.sso.complete') }}",
+			type: "POST",
+			data: {
+				_token: "{{ csrf_token() }}"
+			},
+			success: function(res) {
+				var redirectUrl = res.redirect_url || "{{ url('/customer/dashboard') }}";
+				window.location.href = redirectUrl;
+			},
+			error: function(xhr) {
+				$btn.prop('disabled', false).find('span').text(originalText);
+				var res = xhr.responseJSON || {};
+				var msg = res.message || "Unable to complete sign-in. Please try again.";
+				$('#ssoAlertBox').html(msg).fadeIn(200);
+			}
+		});
+	});
 });
 </script>
 @endpush
+
+@include('theme.resto.customer.partials.sso-modal')
 @endsection
