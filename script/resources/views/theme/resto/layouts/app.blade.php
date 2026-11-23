@@ -700,6 +700,83 @@
             box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.15);
          }
 
+         /* Variation Dropdown & NiceSelect Styling */
+         .variation-select-wrapper {
+            position: relative !important;
+            max-width: 440px !important;
+            width: 100% !important;
+            margin-bottom: 8px !important;
+            z-index: 50 !important;
+         }
+         .variation-select-wrapper .nice-select {
+            width: 100% !important;
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            height: 44px !important;
+            line-height: 44px !important;
+            padding: 0 16px !important;
+            border: 1.5px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            font-size: 14.5px !important;
+            font-weight: 500 !important;
+            color: #334155 !important;
+            background: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+         }
+         .variation-select-wrapper .nice-select:hover {
+            border-color: var(--primary, #0A8CDE) !important;
+         }
+         .variation-select-wrapper .nice-select.open {
+            border-color: var(--primary, #0A8CDE) !important;
+            box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.15) !important;
+            z-index: 100 !important;
+         }
+         .variation-select-wrapper .nice-select .current {
+            display: block !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+            padding-right: 20px !important;
+         }
+         .variation-select-wrapper .nice-select .list {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-height: 250px !important;
+            overflow-y: auto !important;
+            border: 1.5px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
+            background: #ffffff !important;
+            z-index: 99999 !important;
+            padding: 4px 0 !important;
+            margin-top: 4px !important;
+         }
+         .variation-select-wrapper .nice-select .option {
+            padding: 10px 16px !important;
+            min-height: 38px !important;
+            line-height: 20px !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            color: #334155 !important;
+            display: flex !important;
+            align-items: center !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            transition: background 0.15s ease !important;
+         }
+         .variation-select-wrapper .nice-select .option:hover,
+         .variation-select-wrapper .nice-select .option.focus {
+            background: #f0f9ff !important;
+            color: var(--primary, #0A8CDE) !important;
+         }
+         .variation-select-wrapper .nice-select .option.selected {
+            background: #e0f2fe !important;
+            color: var(--primary, #0A8CDE) !important;
+            font-weight: 600 !important;
+         }
+
          /* Product Details Layout & Responsive Actions */
          .single-item-des .product-buy {
             margin-top: 24px !important;

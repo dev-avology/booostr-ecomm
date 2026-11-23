@@ -176,6 +176,9 @@ $(document).on('change', '.pricesvariations', function(){
 
 // Initial variations check on page load
 if (window.booostr_variation_prices && window.booostr_variation_prices.length > 0) {
+	if (typeof $.fn.niceSelect === 'function') {
+		$('select.pricesvariations').niceSelect('update');
+	}
 	matchVariationCombination();
 } else {
 	variations();
