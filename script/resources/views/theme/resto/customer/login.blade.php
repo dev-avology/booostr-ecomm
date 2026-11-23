@@ -57,6 +57,19 @@
 							</div>
 						</div>
 
+						<!-- Google reCAPTCHA Widget -->
+						<div class="form-group mb-4">
+							<div class="recaptcha-wrapper">
+								<div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') ?: env('RECAPTCHA_SITE_KEY') }}" data-callback="onLoginRecaptchaSuccess" data-expired-callback="onLoginRecaptchaExpired"></div>
+							</div>
+							<div id="recaptchaInlineError" class="text-danger small mt-1 font-weight-bold" style="display: none;">
+								<strong>{{ __('Please verify that you are not a robot.') }}</strong>
+							</div>
+							@error('g-recaptcha-response')
+							<span class="text-danger small d-block mt-1"><strong>{{ $message }}</strong></span>
+							@enderror
+						</div>
+
 						<!-- Login Submit Button -->
 						<div class="login-button-wrapper">
 							<button type="submit" id="loginSubmitBtn" class="btn w-100" disabled>
@@ -298,10 +311,53 @@
 		gap: 10px;
 	}
 }
+
+/* reCAPTCHA Styling */
+.recaptcha-wrapper {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+	margin: 8px 0;
+	overflow-x: auto;
+}
+
+@media (max-width: 480px) {
+	.g-recaptcha {
+		transform: scale(0.92);
+		-webkit-transform: scale(0.92);
+		transform-origin: center center;
+		-webkit-transform-origin: center center;
+	}
+}
+
+@media (max-width: 360px) {
+	.g-recaptcha {
+		transform: scale(0.82);
+		-webkit-transform: scale(0.82);
+		transform-origin: center center;
+		-webkit-transform-origin: center center;
+	}
+}
 </style>
 
 @push('js')
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
+// Google reCAPTCHA callbacks for instant client-side validation
+window.onLoginRecaptchaSuccess = function(token) {
+	const errDiv = document.getElementById('recaptchaInlineError');
+	if (errDiv) errDiv.style.display = 'none';
+	if (typeof checkRequiredFields === 'function') {
+		checkRequiredFields();
+	}
+};
+
+window.onLoginRecaptchaExpired = function() {
+	if (typeof checkRequiredFields === 'function') {
+		checkRequiredFields();
+	}
+};
+
 function togglePasswordVisibility(fieldId, iconElem) {
 	const field = document.getElementById(fieldId);
 	if (!field) return;
@@ -321,20 +377,27 @@ function togglePasswordVisibility(fieldId, iconElem) {
 	}
 }
 
+let checkRequiredFields;
+
 document.addEventListener('DOMContentLoaded', function() {
 	const form = document.getElementById('loginForm');
 	const emailInput = document.getElementById('loginEmail');
 	const passwordInput = document.getElementById('loginPassword');
 	const submitBtn = document.getElementById('loginSubmitBtn');
 
-	function checkRequiredFields() {
+	checkRequiredFields = function() {
 		if (!submitBtn || submitBtn.classList.contains('is-processing')) return;
 
 		const hasEmail = emailInput && emailInput.value.trim() !== '';
 		const hasPassword = passwordInput && passwordInput.value.trim() !== '';
+		const hasRecaptcha = Boolean(
+			typeof grecaptcha !== 'undefined' &&
+			grecaptcha.getResponse &&
+			grecaptcha.getResponse().length > 0
+		);
 
-		submitBtn.disabled = !(hasEmail && hasPassword);
-	}
+		submitBtn.disabled = !(hasEmail && hasPassword && hasRecaptcha);
+	};
 
 	if (form) {
 		form.addEventListener('input', checkRequiredFields);
@@ -344,8 +407,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 		// Check on load (handles browser autofill and old input)
 		checkRequiredFields();
-		setTimeout(checkRequiredFields, 200);
-		setTimeout(checkRequiredFields, 600);
+		setTimeout(checkRequiredFields, 300);
+		setTimeout(checkRequiredFields, 800);
 	}
 
 	if (form && submitBtn) {
@@ -359,6 +422,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 			// Validate inputs
 			if (!emailInput.value.trim() || !passwordInput.value.trim()) {
+				checkRequiredFields();
+				return false;
+			}
+
+			// Validate reCAPTCHA client-side before dispatching submission
+			const hasRecaptcha = Boolean(
+				typeof grecaptcha !== 'undefined' &&
+				grecaptcha.getResponse &&
+				grecaptcha.getResponse().length > 0
+			);
+
+			if (!hasRecaptcha) {
+				const errDiv = document.getElementById('recaptchaInlineError');
+				if (errDiv) {
+					errDiv.style.display = 'block';
+				}
 				checkRequiredFields();
 				return false;
 			}
@@ -402,16 +481,21 @@ document.addEventListener('DOMContentLoaded', function() {
 						window.location.href = data.redirect || '{{ url("/customer/dashboard") }}';
 					}, 300);
 				} else {
-					// Handle failed login
+					// Handle failed login or rate-limiting / recaptcha error
 					const errorMsg = data.msg || (data.errors ? Object.values(data.errors)[0] : {!! json_encode(__('User name and password do not match.')) !!});
 					if (alertArea) {
 						alertArea.innerHTML = '<div class="alert alert-danger" role="alert" style="margin-bottom: 24px; border-radius: 8px;"><i class="icofont-warning-alt me-1"></i> ' + errorMsg + '</div>';
 					}
+					// Reset reCAPTCHA on failure
+					if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
+						grecaptcha.reset();
+					}
 					// Reset button state
 					submitBtn.classList.remove('is-processing');
-					submitBtn.disabled = false;
+					submitBtn.disabled = true;
 					submitBtn.style.pointerEvents = 'auto';
 					submitBtn.innerHTML = {!! json_encode(__('Login')) !!};
+					checkRequiredFields();
 				}
 			})
 			.catch(err => {
@@ -419,11 +503,16 @@ document.addEventListener('DOMContentLoaded', function() {
 				if (alertArea) {
 					alertArea.innerHTML = '<div class="alert alert-danger" role="alert" style="margin-bottom: 24px; border-radius: 8px;">An unexpected error occurred. Please try again.</div>';
 				}
+				// Reset reCAPTCHA on failure
+				if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
+					grecaptcha.reset();
+				}
 				// Reset button state
 				submitBtn.classList.remove('is-processing');
-				submitBtn.disabled = false;
+				submitBtn.disabled = true;
 				submitBtn.style.pointerEvents = 'auto';
 				submitBtn.innerHTML = {!! json_encode(__('Login')) !!};
+				checkRequiredFields();
 			});
 		});
 	}

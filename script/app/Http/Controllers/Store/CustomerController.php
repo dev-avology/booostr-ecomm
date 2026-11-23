@@ -77,15 +77,34 @@ class CustomerController extends Controller
     {
         abort_if(tenant('customer_modules') != 'on', 404);
 
+        // Security Protocol: Limit login attempts to 1 attempt per second per IP address
+        $throttleKey = 'customer-login:' . $request->ip();
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 1)) {
+            $rateLimitMsg = __('Too many login attempts. Please wait a second before trying again.');
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'msg' => $rateLimitMsg,
+                ], 429);
+            }
+            return redirect()->back()->withInput($request->only('email'))->with([
+                'error' => $rateLimitMsg,
+                'msg' => $rateLimitMsg,
+            ]);
+        }
+        \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 1);
+
         $rules = [
             'email' => 'required|string',
             'password' => 'required|string|min:6',
+            'g-recaptcha-response' => 'required',
         ];
 
         $messages = [
             'email.required' => __('Username or email is required.'),
             'password.required' => __('Password is required.'),
             'password.min' => __('Password must be at least 6 characters.'),
+            'g-recaptcha-response.required' => __('Please verify that you are not a robot.'),
         ];
 
         // Handle AJAX validation errors gracefully
@@ -99,6 +118,45 @@ class CustomerController extends Controller
             }
         } else {
             $request->validate($rules, $messages);
+        }
+
+        // Verify reCAPTCHA with Google siteverify API
+        $recaptchaSecret = env('RECAPTCHA_SECRET_KEY') ?: config('services.recaptcha.secret_key');
+        if (empty($recaptchaSecret)) {
+            \Log::error('reCAPTCHA secret key is missing from environment (.env).');
+            $errMsg = __('reCAPTCHA configuration error. Please contact site administrator.');
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'msg' => $errMsg], 422);
+            }
+            return redirect()->back()->withErrors(['g-recaptcha-response' => $errMsg])->withInput();
+        }
+
+        try {
+            $verifyClient = new \GuzzleHttp\Client();
+            $verifyRes = $verifyClient->post('https://www.google.com/recaptcha/api/siteverify', [
+                'verify' => false,
+                'timeout' => 10,
+                'form_params' => [
+                    'secret' => $recaptchaSecret,
+                    'response' => $request->input('g-recaptcha-response'),
+                    'remoteip' => $request->ip(),
+                ],
+            ]);
+            $verifyBody = json_decode((string) $verifyRes->getBody(), true);
+            if (empty($verifyBody['success'])) {
+                $errMsg = __('reCAPTCHA verification failed. Please try again.');
+                if ($request->ajax()) {
+                    return response()->json(['status' => 'error', 'msg' => $errMsg], 422);
+                }
+                return redirect()->back()->withErrors(['g-recaptcha-response' => $errMsg])->withInput();
+            }
+        } catch (\Throwable $e) {
+            \Log::error('reCAPTCHA verification error on login', ['error' => $e->getMessage()]);
+            $errMsg = __('Unable to verify reCAPTCHA at this time. Please try again.');
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'msg' => $errMsg], 422);
+            }
+            return redirect()->back()->withErrors(['g-recaptcha-response' => $errMsg])->withInput();
         }
 
         $inputIdentifier = trim($request->input('email'));
@@ -234,6 +292,7 @@ class CustomerController extends Controller
 
         // Step 3: Handle Successful Login
         if ($authenticatedUser) {
+            \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
             Auth::login($authenticatedUser, $remember);
             session(['seller_session_active' => false]);
 
