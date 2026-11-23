@@ -152,10 +152,9 @@
          }
 
          /* Shopping Cart Order Summary Box */
-         .shopping-cart .right,
-         .shopping-cart .total-amount .right {
-            background: var(--primary, #0A8CDE) !important;
-            background-color: var(--primary, #0A8CDE) !important;
+         .shopping-cart .total-amount .right.cart-summary-card {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
          }
 
          /* Global Theme Overrides: All legacy green elements mapped to Booostr Blue */

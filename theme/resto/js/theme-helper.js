@@ -591,6 +591,16 @@ function render_cart(items) {
     }
     $('.cart_item').remove();
     var cartpage=$('.cart_page').length != 0 ? true : false;
+    var itemCount = items ? (Array.isArray(items) ? items.length : Object.keys(items).length) : 0;
+    if (cartpage) {
+        if (itemCount === 0) {
+            $('.cart-filled-view').hide();
+            $('.cart-empty-view').show();
+        } else {
+            $('.cart-empty-view').hide();
+            $('.cart-filled-view').show();
+        }
+    }
     $.each(items, function(key, item) {
          var cart_options='';
               $.each(item.options.options, function (option_key, option) 
