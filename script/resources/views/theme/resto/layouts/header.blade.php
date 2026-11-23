@@ -31,17 +31,17 @@ $bottom_bar=$site_settings->bottom_bar ?? 'yes';
       <!-- Mobile Cart Show -->
       <div class="mobile-cart-show">
          <ul>
-            <li>
-               <div class="single-cart-show"><a href="{{ url('/') }}"><i class="icofont-home"></i><span>{{ __('Home') }}</span></a></div>
+            <li class="{{ Request::is('/') ? 'active' : '' }}">
+               <div class="single-cart-show {{ Request::is('/') ? 'active' : '' }}"><a href="{{ url('/') }}"><i class="icofont-home"></i><span>{{ __('Home') }}</span></a></div>
             </li>
-            <li>
-               <div class="single-cart-show"><a href="{{ url('/wishlist') }}"><i class="icofont-heart"></i><span>{{ __('Wishlist') }}</span></a></div>
+            <li class="{{ Request::is('wishlist*') ? 'active' : '' }}">
+               <div class="single-cart-show {{ Request::is('wishlist*') ? 'active' : '' }}"><a href="{{ url('/wishlist') }}"><i class="icofont-heart"></i><span>{{ __('Wishlist') }}</span></a></div>
             </li>
-            <li>
-               <div class="single-cart-show"><a href="{{ url('/cart') }}"><i class="icofont-cart"></i><span>{{ __('Cart') }}</span></a></div>
+            <li class="{{ Request::is('cart*') ? 'active' : '' }}">
+               <div class="single-cart-show {{ Request::is('cart*') ? 'active' : '' }}"><a href="{{ url('/cart') }}"><i class="icofont-cart"></i><span>{{ __('Cart') }}</span></a></div>
             </li>
-            <li>
-               <div class="single-cart-show"><a href="{{ url('/customer/dashboard') }}"><i class="icofont-ui-user"></i><span>{{ __('Account') }}</span></a></div>
+            <li class="{{ Request::is('customer*') ? 'active' : '' }}">
+               <div class="single-cart-show {{ Request::is('customer*') ? 'active' : '' }}"><a href="{{ url('/customer/dashboard') }}"><i class="icofont-ui-user"></i><span>{{ __('Account') }}</span></a></div>
             </li>
          </ul>
       </div>

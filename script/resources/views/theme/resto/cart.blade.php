@@ -479,34 +479,95 @@
         flex: 0 0 auto !important;
         margin-left: 80px !important;
         margin-top: 8px !important;
+        display: block !important;
     }
     .table.shopping-summery tbody td.qty .sp-quantity {
+        position: relative !important;
         display: inline-flex !important;
+        flex-direction: row !important;
         align-items: center !important;
+        justify-content: space-between !important;
+        width: 104px !important;
+        min-width: 104px !important;
+        max-width: 104px !important;
+        height: 34px !important;
         border: 1px solid #cbd5e1 !important;
         border-radius: 6px !important;
         overflow: hidden !important;
-        background: #f8fafc !important;
-        height: 34px !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
     }
-    .table.shopping-summery tbody td.qty .sp-quantity .arrow {
+    .table.shopping-summery tbody td.qty .sp-quantity button,
+    .table.shopping-summery tbody td.qty .sp-quantity button.arrow,
+    .table.shopping-summery tbody td.qty .sp-quantity button.sp-minus,
+    .table.shopping-summery tbody td.qty .sp-quantity button.sp-plus {
+        position: static !important;
         width: 30px !important;
-        height: 32px !important;
-        line-height: 32px !important;
-        background: transparent !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
+        height: 100% !important;
         border: none !important;
+        background: #f1f5f9 !important;
         color: #475569 !important;
-        font-size: 14px !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        line-height: 1 !important;
+        box-sizing: border-box !important;
+        z-index: 1 !important;
+    }
+    .table.shopping-summery tbody td.qty .sp-quantity button:hover {
+        background: var(--booostr-blue-light, #e8f4fc) !important;
+        color: var(--booostr-blue, #0A8CDE) !important;
+    }
+    .table.shopping-summery tbody td.qty .sp-quantity button a,
+    .table.shopping-summery tbody td.qty .sp-quantity button a.ddd {
+        color: inherit !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        text-decoration: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+    .table.shopping-summery tbody td.qty .sp-quantity .inline.sp-input {
+        width: 44px !important;
+        min-width: 44px !important;
+        max-width: 44px !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        position: static !important;
+        box-sizing: border-box !important;
     }
     .table.shopping-summery tbody td.qty .sp-quantity .quntity-input {
-        width: 36px !important;
-        height: 32px !important;
+        width: 100% !important;
+        height: 100% !important;
         border: none !important;
-        background: #ffffff !important;
         text-align: center !important;
-        font-size: 13px !important;
-        font-weight: 600 !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
         color: #1e293b !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        box-sizing: border-box !important;
     }
     .table.shopping-summery tbody td.total-amount {
         flex: 1 !important;

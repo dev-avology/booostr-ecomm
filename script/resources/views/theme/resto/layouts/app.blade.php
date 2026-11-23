@@ -297,13 +297,51 @@
             color: #ffffff !important;
          }
 
-         /* Mobile Bottom Navigation Bar: Booostr Brand Colors */
+         /* Mobile Bottom Navigation Bar: Booostr Brand Colors & Perfectly Divided */
          @media only screen and (max-width: 767px) {
             .mobile-cart-show {
+               position: fixed !important;
+               bottom: 0 !important;
+               left: 0 !important;
+               right: 0 !important;
+               width: 100% !important;
+               max-width: 100vw !important;
                background: #ffffff !important;
                border-top: 1px solid #e2e8f0 !important;
                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05) !important;
-               padding: 8px 10px !important;
+               padding: 8px 0 !important;
+               margin: 0 !important;
+               box-sizing: border-box !important;
+               z-index: 9999 !important;
+               display: block !important;
+            }
+            .mobile-cart-show ul {
+               display: flex !important;
+               align-items: center !important;
+               justify-content: space-around !important;
+               width: 100% !important;
+               margin: 0 !important;
+               padding: 0 !important;
+               list-style: none !important;
+               box-sizing: border-box !important;
+            }
+            .mobile-cart-show ul li {
+               flex: 1 1 0 !important;
+               width: 25% !important;
+               max-width: 25% !important;
+               text-align: center !important;
+               margin: 0 !important;
+               padding: 0 !important;
+               display: flex !important;
+               justify-content: center !important;
+               align-items: center !important;
+               box-sizing: border-box !important;
+            }
+            .single-cart-show {
+               width: 100% !important;
+               text-align: center !important;
+               display: flex !important;
+               justify-content: center !important;
             }
             .single-cart-show a {
                color: #64748b !important;
@@ -312,7 +350,10 @@
                display: flex !important;
                flex-direction: column !important;
                align-items: center !important;
-               gap: 2px !important;
+               justify-content: center !important;
+               gap: 3px !important;
+               width: 100% !important;
+               text-decoration: none !important;
                transition: color 0.2s ease !important;
             }
             .single-cart-show a i {
@@ -330,13 +371,16 @@
                justify-content: center !important;
             }
             .single-cart-show a:hover i,
-            .single-cart-show.active a i {
+            .single-cart-show.active a i,
+            .mobile-cart-show ul li.active .single-cart-show a i {
                background: var(--primary, #0A8CDE) !important;
                color: #ffffff !important;
             }
             .single-cart-show a:hover,
-            .single-cart-show.active a {
+            .single-cart-show.active a,
+            .mobile-cart-show ul li.active .single-cart-show a {
                color: var(--primary, #0A8CDE) !important;
+               font-weight: 600 !important;
             }
          }
          .food-tab-main .nav li button.active {
