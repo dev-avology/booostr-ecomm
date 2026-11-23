@@ -1,5 +1,15 @@
 "use strict";
 
+window.booostrFormatPrice = function(amount) {
+    if (typeof amount === 'string' && amount.trim().startsWith('$')) {
+        return amount.trim();
+    }
+    var clean = (typeof amount === 'string') ? amount.replace(/[^0-9.-]+/g, '') : amount;
+    var num = parseFloat(clean);
+    if (isNaN(num)) num = 0.00;
+    return '$' + num.toFixed(2);
+};
+
 var currency_name = $('#currency_name').val();
 var cart_link = $('#cart_link').val();
 var clickaudio = $('#click_sound').val();
@@ -502,8 +512,8 @@ $(document).on('click', '.remove_cart', function() {
         dataType: 'json',
         success: function(response) {
             $('.cart_count').html(response.cart_count);
-            $('.cart_subtotal').text(response.cart_subtotal);
-            $('.cart_total').html(response.cart_total);
+            $('.cart_subtotal').html(window.booostrFormatPrice(response.cart_subtotal));
+            $('.cart_total').html(window.booostrFormatPrice(response.cart_total));
             $('.cart_tax').html(response.cart_tax);
 
             if (response.cart_content) {
@@ -646,13 +656,16 @@ function render_cart(items) {
                   </li>`;
 
         if (cartpage == true) {
+            var unit_price = window.booostrFormatPrice(item.price);
+            var line_total = window.booostrFormatPrice(item.price * parseInt(item.qty || 1));
+
             var cart_page_item=`<tr class="cart_item cart_item${item.rowId}">
             <td class="image" data-title="No"><img src="${item.options.preview != null ? item.options.preview : ''}" alt="#"></td>
             <td class="product-desc" data-title="Description">
             <p class="product-name"><a href="${base_url+'/product/'+item.options.slug}">${str_limit(item.name,100)}</a></p>
             <p class="product-des">${cart_options}</p>
             </td>
-            <td class="price" data-title="Price"><span>${amount_format(item.price)} </span></td>
+            <td class="price" data-title="Price"><span>${unit_price}</span></td>
             <td class="qty" data-title="Qty">
             <div class="sp-quantity">
                 <button class="inline arrow sp-minus fff cart_decrement" data-id="${item.rowId}" data-stock="${item.options.stock }" data-isvariation="${item.options.options.length != 0 ? 1 : 0}" data-productid="${item.id}""><a class="ddd" href="${item.options.options.length != 0 ? base_url+'/product/'+item.options.slug : 'javascript:void(0)'}" data-multi="-1">-</a></button>
@@ -663,7 +676,7 @@ function render_cart(items) {
             </div>
 
             </td>
-            <td class="total-amount" data-title="Total"><span>${amount_format(item.price*parseInt(item.qty))}</span></td>
+            <td class="total-amount" data-title="Total"><span>${line_total}</span></td>
             <td class="action" data-title="Remove"><a data-id="${item.rowId}" class="remove remove_cart" href="javascript:void(0)"><i class="icofont-trash remove-icon"></i></a></td>
             </tr>`;
 
@@ -698,10 +711,10 @@ function cartqty(cartId, qty) {
         dataType: 'json',
         success: function(response) {
 
-            $('.cart_subtotal').html(response.cart_subtotal);
+            $('.cart_subtotal').html(window.booostrFormatPrice(response.cart_subtotal));
            
             $('.cart_count').html(response.cart_count);
-            $('.cart_total').html(response.cart_total);
+            $('.cart_total').html(window.booostrFormatPrice(response.cart_total));
             $('.cart_tax').html(response.cart_tax);
             
             if (response.cart_content) {

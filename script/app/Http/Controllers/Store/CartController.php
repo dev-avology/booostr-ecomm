@@ -396,7 +396,7 @@ class CartController extends Controller
         $productcartdata['cart_content']=Cart::content();
         $productcartdata['cart_subtotal']=booostr_price(Cart::subtotal());
         $productcartdata['cart_tax']= Cart::tax();
-        $productcartdata['cart_total']= Cart::total();
+        $productcartdata['cart_total']= booostr_price(Cart::total());
         $productcartdata['cart_count']= Cart::count();
         $productcartdata['ticket_fee_total'] = number_format($ticketFeeTotal, 2);
         $productcartdata['cart_total_with_ticket_fee'] = number_format(((float) str_replace(',', '', Cart::total())) + $ticketFeeTotal, 2);
@@ -437,7 +437,7 @@ class CartController extends Controller
         Cart::remove($id);
         $productcartdata['cart_subtotal']=booostr_price(Cart::subtotal());
         $productcartdata['cart_tax']= Cart::tax();
-        $productcartdata['cart_total']= Cart::total();
+        $productcartdata['cart_total']= booostr_price(Cart::total());
         $productcartdata['cart_count']= Cart::count();
         $productcartdata['cart_content']= Cart::content();
         return response()->json($productcartdata);
@@ -457,7 +457,7 @@ class CartController extends Controller
         Cart::update($request->id, $request->qty);
         $productcartdata['cart_subtotal']=booostr_price(Cart::subtotal());
         $productcartdata['cart_tax']= Cart::tax();
-        $productcartdata['cart_total']= Cart::total();
+        $productcartdata['cart_total']= booostr_price(Cart::total());
         $productcartdata['cart_count']= Cart::count();
         $productcartdata['cart_content']= Cart::content();
         return response()->json($productcartdata);

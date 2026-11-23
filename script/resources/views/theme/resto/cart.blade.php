@@ -75,7 +75,7 @@
 
                                     <div class="summary-row d-flex justify-content-between align-items-center mb-3">
                                         <span class="summary-label">{{ __('Cart Subtotal') }}</span>
-                                        <span class="summary-value cart_subtotal">{{ Cart::instance('default')->subtotal() }}</span>
+                                        <span class="summary-value cart_subtotal">{{ booostr_price(Cart::instance('default')->subtotal()) }}</span>
                                     </div>
 
                                     <!-- Shipping & Tax Calculated in Next Steps Notice -->
@@ -88,7 +88,7 @@
 
                                     <div class="summary-row d-flex justify-content-between align-items-baseline mb-4">
                                         <span class="summary-total-label">{{ __('Total') }}</span>
-                                        <span class="summary-total-value cart_total">{{ Cart::instance('default')->total() }}</span>
+                                        <span class="summary-total-value cart_total">{{ booostr_price(Cart::instance('default')->total()) }}</span>
                                     </div>
 
                                     <div class="summary-actions">
@@ -380,5 +380,22 @@
 
 @push('js')
 <script src="{{ asset('admin/js/sweetalert2.all.min.js') }}"></script>
-<script src="{{ asset('admin/js/form.js') }}"></script>
+<script>
+window.booostrFormatPrice = function(amount) {
+    if (typeof amount === 'string' && amount.trim().startsWith('$')) {
+        return amount.trim();
+    }
+    var clean = (typeof amount === 'string') ? amount.replace(/[^0-9.-]+/g, '') : amount;
+    var num = parseFloat(clean);
+    if (isNaN(num)) num = 0.00;
+    return '$' + num.toFixed(2);
+};
+window.amount_format = function(amount, type) {
+    if (type === 'name') {
+        var num = parseFloat(amount);
+        return ' USD ' + (isNaN(num) ? '0.00' : num.toFixed(2));
+    }
+    return window.booostrFormatPrice(amount);
+};
+</script>
 @endpush
