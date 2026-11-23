@@ -656,6 +656,49 @@
             border-color: #f87171 !important;
             color: #b91c1c !important;
          }
+
+         /* Variation Chips & Selects */
+         .variation-chips-wrapper {
+            gap: 8px;
+         }
+         .variation-chip {
+            display: inline-block;
+         }
+         .variation-chip-label {
+            min-width: 48px;
+            height: 38px;
+            padding: 0 16px;
+            border-radius: 6px;
+            border: 1.5px solid #cbd5e1;
+            background: #ffffff;
+            color: #334155;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            margin: 0;
+            user-select: none;
+         }
+         .variation-chip-label:hover {
+            border-color: var(--primary, #0A8CDE);
+            color: var(--primary, #0A8CDE);
+            background: #f0f9ff;
+         }
+         .variation-radio-input:checked + .variation-chip-label {
+            background: var(--primary, #0A8CDE) !important;
+            background-color: var(--primary, #0A8CDE) !important;
+            border-color: var(--primary, #0A8CDE) !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(10, 140, 222, 0.3);
+         }
+         .variation-select-input:focus {
+            border-color: var(--primary, #0A8CDE) !important;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(10, 140, 222, 0.15);
+         }
       </style>
       @stack('css')
       {{ load_header() }}

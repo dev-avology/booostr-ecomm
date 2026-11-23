@@ -172,7 +172,7 @@ class PageController extends Controller
 
     public function productView($slug)
     {
-        $info=Term::query()->where('type','product')->where('status',1)->webProducts()->with('tags','category','brands','excerpt','description','preview','medias','optionwithcategories','price','seo')->withCount('reviews')->where('slug',$slug)->first();
+        $info=Term::query()->where('type','product')->where('status',1)->webProducts()->with('tags','category','brands','excerpt','description','preview','medias','optionwithcategories','price','prices','seo')->withCount('reviews')->where('slug',$slug)->first();
         abort_if(empty($info),404);
         $seo=json_decode($info->seo->value ?? '');
 

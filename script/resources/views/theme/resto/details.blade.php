@@ -160,6 +160,10 @@
 								<form class="product_option_form" method="post" action="{{ route('add.tocart') }}">
 									@csrf
 									<input type="hidden" name="id" value="{{ $info->id }}">
+									<input type="hidden" name="variation_id" id="selected_variation_id" value="">
+									<script>
+										window.booostr_variation_prices = @json($info->prices ?? []);
+									</script>
 									@if(!$hasVariations)
 									<input
 										class="none pricesvariationshide"

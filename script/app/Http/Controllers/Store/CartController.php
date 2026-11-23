@@ -271,6 +271,60 @@ class CartController extends Controller
         Session::put('cartid', 'default');
         Cart::instance('default');
         if ($info->is_variation == 1) {
+            if ($request->variation_id) {
+                $varPrice = \App\Models\Price::where('term_id', $info->id)->where('id', $request->variation_id)->with('varitions')->first();
+                if (!$varPrice) {
+                    $errors['errors']['error']='Selected variation not found';
+                    return response()->json($errors,404);
+                }
+                if ($varPrice->stock_status == 0) {
+                    $errors['errors']['error']='Selected variation is out of stock';
+                    return response()->json($errors,401);
+                }
+
+                $cart_content = Cart::instance('default')->content();
+                $exist_qty = 0;
+                foreach ($cart_content as $key => $row) {
+                    if ($row->id == $info->id && isset($row->options->variation_id) && $row->options->variation_id == $varPrice->id) {
+                        $exist_qty = (int)($row->qty ?? 0);
+                    }
+                }
+
+                if ($varPrice->stock_manage == 1) {
+                    if (($exist_qty + $request->qty) > $varPrice->qty) {
+                        $errors['errors']['error']='Maximum stock limit is ('.$varPrice->qty.')';
+                        return response()->json($errors,401);
+                    }
+                }
+
+                $price_option = [];
+                foreach ($varPrice->varitions as $sel_val) {
+                    $optGroup = \App\Models\Productoption::with('category')->find($sel_val->pivot->productoption_id);
+                    $groupName = $optGroup->category->name ?? 'Option';
+                    $price_option[$groupName][$sel_val->id] = [
+                        'name' => $sel_val->name,
+                        'price' => $varPrice->price,
+                        'sku' => $varPrice->sku,
+                        'weight' => $varPrice->weight ?? 0,
+                        'price_id' => $varPrice->id
+                    ];
+                }
+
+                $ticketOptions = $this->getTicketOptions($info->id);
+                $data = Cart::instance('default')->add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $varPrice->price, 'weight' => $varPrice->weight ?? 0, 'options' => [
+                    'options' => $price_option,
+                    'variation_id' => $varPrice->id,
+                    'sku' => $varPrice->sku,
+                    'stock' => $varPrice->stock_manage == 1 ? $varPrice->qty : null,
+                    'preview' => asset($info->preview->value ?? 'uploads/default.png'),
+                    'slug' => $info->slug,
+                    'price_id' => [$varPrice->id],
+                    'cartid' => Session::get('cartid', 'default'),
+                    'product_kind' => $ticketOptions['product_kind'],
+                    'ticket_fee' => $ticketOptions['ticket_fee'],
+                ]]);
+            }
+            else {
                 $groups=[];
                 foreach ($request->option ?? [] as $key => $option) {
                     $option_values=[];
@@ -348,6 +402,7 @@ class CartController extends Controller
                 ]]);
              
       
+            }
         }
         else{
             $cart_content=Cart::instance('default')->content();
