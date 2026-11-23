@@ -847,6 +847,46 @@
             width: 100% !important;
             display: block !important;
          }
+
+         /* Choose Options Button Styling for Variation Products */
+         .single-popular-product .single-item-bottom.variation-bottom {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            margin-top: 10px !important;
+         }
+         .single-popular-product .single-item-bottom.variation-bottom .cart-button.cart-button-full {
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
+         }
+         .single-popular-product .single-item-bottom .cart-button a.btn-choose-options,
+         .single-product .button a.btn-choose-options {
+            width: 100% !important;
+            max-width: 100% !important;
+            background: #ffffff !important;
+            color: var(--primary, #0A8CDE) !important;
+            border: 1.5px solid var(--primary, #0A8CDE) !important;
+            font-weight: 600 !important;
+            padding: 8px 16px !important;
+            border-radius: 6px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 1px 2px rgba(10, 140, 222, 0.08) !important;
+         }
+         .single-popular-product .single-item-bottom .cart-button a.btn-choose-options:hover,
+         .single-product .button a.btn-choose-options:hover {
+            background: var(--primary, #0A8CDE) !important;
+            color: #ffffff !important;
+            border-color: var(--primary, #0A8CDE) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 3px 8px rgba(10, 140, 222, 0.25) !important;
+         }
          @media (max-width: 576px) {
             .single-item-des .product-buy {
                flex-direction: column !important;

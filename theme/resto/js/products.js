@@ -291,7 +291,7 @@ function getrandomproducts(ids) {
             price = !isNaN(numPrice) ? ('$' + numPrice.toFixed(2)) : amount_format(price,'icon');
 
             if (product.is_variation == 1) {
-              var cart_html=`<a class="btn btn-alt"  href="${base_url+'/product/'+product.slug}"><i class="icofont-basket"></i>Add to cart</a>`;
+              var cart_html=`<a class="btn btn-alt btn-choose-options" href="${base_url+'/product/'+product.slug}"><i class="icofont-options"></i>Choose Options</a>`;
         } else {
             if (product.firstprice.stock_status == 0) {
                var cart_html=`<a class="btn btn-alt"  href="${base_url+'/product/'+product.slug}"><i class="icofont-basket"></i>Add to cart</a>`;

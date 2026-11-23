@@ -1,5 +1,15 @@
 "use strict";
 
+window.booostrFormatPrice = function(amount) {
+    if (typeof amount === 'string' && amount.trim().startsWith('$')) {
+        return amount.trim();
+    }
+    var clean = (typeof amount === 'string') ? amount.replace(/[^0-9.-]+/g, '') : amount;
+    var num = parseFloat(clean);
+    if (isNaN(num)) num = 0.00;
+    return '$' + num.toFixed(2);
+};
+
 var currency_name = $('#currency_name').val();
 var cart_link = $('#cart_link').val();
 var clickaudio = $('#click_sound').val();
@@ -89,7 +99,9 @@ function update_all_cards_stock_ui() {
                 $card.find('.sp-minus, .sp-plus').prop('disabled', false);
 
                 if (isVariation === 1) {
-                    $card.find('.cart-button').html('<a href="' + currentBaseUrl + '/product/' + productSlug + '"><i class="icofont-basket"></i>Add to cart</a>');
+                    $card.find('.quantity-main').remove();
+                    $card.find('.single-item-bottom').addClass('variation-bottom');
+                    $card.find('.cart-button').addClass('cart-button-full').html('<a class="btn-choose-options" href="' + currentBaseUrl + '/product/' + productSlug + '"><i class="icofont-options"></i>Choose Options</a>');
                 } else {
                     $card.find('.cart-button').html('<a class="add_to_cart cart' + productId + '" href="javascript:void(0)" data-isvariation="0" data-id="' + productId + '" data-stockstatus="' + stockStatus + '" data-stockmanage="' + stockManage + '" data-qty="' + totalStock + '"><i class="icofont-basket"></i>Add to cart</a>');
                 }
@@ -101,7 +113,9 @@ function update_all_cards_stock_ui() {
             $card.find('.quntity-input').prop('disabled', false).attr('data-max', 9999);
             $card.find('.sp-minus, .sp-plus').prop('disabled', false);
             if (isVariation === 1) {
-                $card.find('.cart-button').html('<a href="' + currentBaseUrl + '/product/' + productSlug + '"><i class="icofont-basket"></i>Add to cart</a>');
+                $card.find('.quantity-main').remove();
+                $card.find('.single-item-bottom').addClass('variation-bottom');
+                $card.find('.cart-button').addClass('cart-button-full').html('<a class="btn-choose-options" href="' + currentBaseUrl + '/product/' + productSlug + '"><i class="icofont-options"></i>Choose Options</a>');
             } else {
                 $card.find('.cart-button').html('<a class="add_to_cart cart' + productId + '" href="javascript:void(0)" data-isvariation="0" data-id="' + productId + '" data-stockstatus="' + stockStatus + '" data-stockmanage="' + stockManage + '" data-qty="' + totalStock + '"><i class="icofont-basket"></i>Add to cart</a>');
             }
@@ -190,7 +204,7 @@ function render_primary_product(products, target,additional_class='') {
         } else if (is_max_in_cart) {
             cart_html = `<a class="btn-out-of-stock btn-max-in-cart" href="javascript:void(0)" title="All available stock is in your cart"><i class="icofont-check-circled"></i>Max in cart</a>`;
         } else if (product.is_variation == 1) {
-            cart_html = `<a href="${base_url+'/product/'+product.slug}"><i class="icofont-basket"></i>Add to cart</a>`;
+            cart_html = `<a class="btn-choose-options" href="${base_url+'/product/'+product.slug}"><i class="icofont-options"></i>Choose Options</a>`;
         } else {
             cart_html = `<a class="add_to_cart cart${product.id}" href="javascript:void(0)" data-isvariation="${product.is_variation}" data-id="${product.id}" data-stockstatus="${stock_status}" data-stockmanage="${stock_manage}" data-qty="${total_stock}"><i class="icofont-basket"></i>Add to cart</a>`;
         }
@@ -199,6 +213,7 @@ function render_primary_product(products, target,additional_class='') {
         var max_data_attr = stock_manage == 1 ? remaining_stock : 9999;
         var default_input_val = is_max_in_cart ? 0 : 1;
         var min_input_val = is_max_in_cart ? 0 : 1;
+        var is_var_product = parseInt(product.is_variation) === 1;
 
         var ratings='';
 
@@ -218,6 +233,17 @@ function render_primary_product(products, target,additional_class='') {
         var wishlist_btn_class = in_wishlist ? 'btn wishlist add_to_wishlist in-wishlist activewishlist' : 'btn wishlist add_to_wishlist';
         var wishlist_btn_title = in_wishlist ? 'Remove from Wishlist' : 'Add to Wishlist';
 
+        var quantity_ctrls_html = is_var_product ? '' : `
+            <div class="quantity-main boxed-quantity ${is_disabled_ctrls ? 'disabled-quantity' : ''}">
+                <div class="sp-quantity">
+                  <button class="inline arrow sp-minus fff" ${is_disabled_ctrls ? 'disabled' : ''}><a class="minus" data-multi="-1">-</a></button>
+                  <div class="inline sp-input">
+                    <input type="number" ${is_disabled_ctrls ? 'disabled' : ''}  value="${default_input_val}" min="${min_input_val}" data-max="${max_data_attr}" class="quntity-input cart_qty${is_disabled_ctrls ? '' : product.id}" >
+                  </div>
+                  <button class="inline arrow sp-plus fff" ${is_disabled_ctrls ? 'disabled' : ''}><a class="plus" data-multi="1">+</a></button>
+                </div>
+            </div>`;
+
         var html=`<div class="col-lg-3 col-md-6 col-6 ${additional_class} d-flex align-items-stretch">
                                         <div class="single-popular-product w-100 ${is_out_of_stock ? 'product-out-of-stock' : ''}" data-product-id="${product.id}" data-stock-status="${stock_status}" data-stock-manage="${stock_manage}" data-total-stock="${total_stock}" data-is-variation="${product.is_variation}" data-product-slug="${product.slug}">
                                             <div class="image ${is_out_of_stock ? 'out-of-stock-img-wrap' : ''}">
@@ -234,18 +260,9 @@ function render_primary_product(products, target,additional_class='') {
                                                 <h4 class="single-item-price">${price}</h4>
                                                 <p class="single-item-excerpt">${str_limit(clean_excerpt,50)}</p>
                                             </div>
-                                            <div class="single-item-bottom">
-                                                <div class="quantity-main boxed-quantity ${is_disabled_ctrls ? 'disabled-quantity' : ''}">
-                                                    
-                                                    <div class="sp-quantity">
-                                                      <button class="inline arrow sp-minus fff" ${is_disabled_ctrls ? 'disabled' : ''}><a class="minus" data-multi="-1">-</a></button>
-                                                      <div class="inline sp-input">
-                                                        <input type="number" ${is_disabled_ctrls ? 'disabled' : ''}  value="${default_input_val}" min="${min_input_val}" data-max="${max_data_attr}" class="quntity-input cart_qty${is_disabled_ctrls ? '' : product.id}" >
-                                                      </div>
-                                                      <button class="inline arrow sp-plus fff" ${is_disabled_ctrls ? 'disabled' : ''}><a class="plus" data-multi="1">+</a></button>
-                                                    </div>
-                                                </div>
-                                                <div class="cart-button">
+                                            <div class="single-item-bottom ${is_var_product ? 'variation-bottom' : ''}">
+                                                ${quantity_ctrls_html}
+                                                <div class="cart-button ${is_var_product ? 'cart-button-full' : ''}">
                                                     ${cart_html}
                                                 </div>
                                             </div>
@@ -268,17 +285,9 @@ function render_primary_product(products, target,additional_class='') {
                                                             <h4 class="single-item-price">${price}</h4>
                                                             <p class="single-item-excerpt">${str_limit(clean_excerpt,100)}</p>
                                                         </div>
-                                                        <div class="single-item-bottom">
-                                                            <div class="quantity-main boxed-quantity ${is_disabled_ctrls ? 'disabled-quantity' : ''}">
-                                                            <div class="sp-quantity">
-                                                            <button class="inline arrow sp-minus fff" ${is_disabled_ctrls ? 'disabled' : ''}><a class="minus" data-multi="-1">-</a></button>
-                                                            <div class="inline sp-input">
-                                                            <input type="number" ${is_disabled_ctrls ? 'disabled' : ''}  value="${default_input_val}" min="${min_input_val}" data-max="${max_data_attr}" class="quntity-input cart_qty${is_disabled_ctrls ? '' : product.id}" >
-                                                            </div>
-                                                            <button class="inline arrow sp-plus fff" ${is_disabled_ctrls ? 'disabled' : ''}><a class="plus" data-multi="1">+</a></button>
-                                                            </div>
-                                                            </div>
-                                                            <div class="cart-button">
+                                                        <div class="single-item-bottom ${is_var_product ? 'variation-bottom' : ''}">
+                                                            ${quantity_ctrls_html}
+                                                            <div class="cart-button ${is_var_product ? 'cart-button-full' : ''}">
                                                                 ${cart_html}
                                                             </div>
                                                         </div>
@@ -460,11 +469,7 @@ $(document).on('click', '.add_to_cart', function() {
 
             $('.cart_subtotal').html(response.cart_subtotal);
             $('.cart_count').html(response.cart_count);
-            if ($('.cart_page').length > 0) {
-                $('.cart_total').html(response.cart_subtotal);
-            } else {
-                $('.cart_total').html(response.cart_total);
-            }
+            $('.cart_total').html(response.cart_total);
             $('.cart_tax').html(response.cart_tax);
 
             if (response.cart_content) {
@@ -510,11 +515,11 @@ $(document).on('click', '.remove_cart', function() {
         dataType: 'json',
         success: function(response) {
             $('.cart_count').html(response.cart_count);
-            $('.cart_subtotal').text(response.cart_subtotal);
+            $('.cart_subtotal').html(window.booostrFormatPrice(response.cart_subtotal));
             if ($('.cart_page').length > 0) {
-                $('.cart_total').html(response.cart_subtotal);
+                $('.cart_total').html(window.booostrFormatPrice(response.cart_subtotal));
             } else {
-                $('.cart_total').html(response.cart_total);
+                $('.cart_total').html(window.booostrFormatPrice(response.cart_total));
             }
             $('.cart_tax').html(response.cart_tax);
 
@@ -603,6 +608,16 @@ function render_cart(items) {
     }
     $('.cart_item').remove();
     var cartpage=$('.cart_page').length != 0 ? true : false;
+    var itemCount = items ? (Array.isArray(items) ? items.length : Object.keys(items).length) : 0;
+    if (cartpage) {
+        if (itemCount === 0) {
+            $('.cart-filled-view').hide();
+            $('.cart-empty-view').show();
+        } else {
+            $('.cart-empty-view').hide();
+            $('.cart-filled-view').show();
+        }
+    }
     $.each(items, function(key, item) {
          var cart_options='';
               $.each(item.options.options, function (option_key, option) 
@@ -648,13 +663,16 @@ function render_cart(items) {
                   </li>`;
 
         if (cartpage == true) {
+            var unit_price = window.booostrFormatPrice(item.price);
+            var line_total = window.booostrFormatPrice(item.price * parseInt(item.qty || 1));
+
             var cart_page_item=`<tr class="cart_item cart_item${item.rowId}">
             <td class="image" data-title="No"><img src="${item.options.preview != null ? item.options.preview : ''}" alt="#"></td>
             <td class="product-desc" data-title="Description">
             <p class="product-name"><a href="${base_url+'/product/'+item.options.slug}">${str_limit(item.name,100)}</a></p>
             <p class="product-des">${cart_options}</p>
             </td>
-            <td class="price" data-title="Price"><span>${amount_format(item.price)} </span></td>
+            <td class="price" data-title="Price"><span>${unit_price}</span></td>
             <td class="qty" data-title="Qty">
             <div class="sp-quantity">
                 <button class="inline arrow sp-minus fff cart_decrement" data-id="${item.rowId}" data-stock="${item.options.stock }" data-isvariation="${item.options.options.length != 0 ? 1 : 0}" data-productid="${item.id}""><a class="ddd" href="${item.options.options.length != 0 ? base_url+'/product/'+item.options.slug : 'javascript:void(0)'}" data-multi="-1">-</a></button>
@@ -665,7 +683,7 @@ function render_cart(items) {
             </div>
 
             </td>
-            <td class="total-amount" data-title="Total"><span>${amount_format(item.price*parseInt(item.qty))}</span></td>
+            <td class="total-amount" data-title="Total"><span>${line_total}</span></td>
             <td class="action" data-title="Remove"><a data-id="${item.rowId}" class="remove remove_cart" href="javascript:void(0)"><i class="icofont-trash remove-icon"></i></a></td>
             </tr>`;
 
@@ -700,13 +718,13 @@ function cartqty(cartId, qty) {
         dataType: 'json',
         success: function(response) {
 
-            $('.cart_subtotal').html(response.cart_subtotal);
+            $('.cart_subtotal').html(window.booostrFormatPrice(response.cart_subtotal));
            
             $('.cart_count').html(response.cart_count);
             if ($('.cart_page').length > 0) {
-                $('.cart_total').html(response.cart_subtotal);
+                $('.cart_total').html(window.booostrFormatPrice(response.cart_subtotal));
             } else {
-                $('.cart_total').html(response.cart_total);
+                $('.cart_total').html(window.booostrFormatPrice(response.cart_total));
             }
             $('.cart_tax').html(response.cart_tax);
             
