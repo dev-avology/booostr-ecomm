@@ -47,19 +47,105 @@
             background: var(--primary, #0A8CDE) !important;
             background-color: var(--primary, #0A8CDE) !important;
          }
-         .navbar-nav .nav-item a {
-            color: #ffffff !important;
+         /* Desktop Navbar Links: White on Booostr Blue */
+         @media (min-width: 992px) {
+            .navbar-nav .nav-item a {
+               color: #ffffff !important;
+            }
+            .navbar-nav .nav-item a.active,
+            .navbar-nav .nav-item:hover a,
+            .navbar-nav .nav-item a:hover {
+               color: #ffffff !important;
+               opacity: 1 !important;
+            }
+            .header .navbar .nav-item a:hover .span-dot,
+            .header .navbar .nav-item a.active .span-dot {
+               opacity: 1 !important;
+               visibility: visible !important;
+            }
          }
-         .navbar-nav .nav-item a.active,
-         .navbar-nav .nav-item:hover a,
-         .navbar-nav .nav-item a:hover {
-            color: #ffffff !important;
-            opacity: 1 !important;
-         }
-         .header .navbar .nav-item a:hover .span-dot,
-         .header .navbar .nav-item a.active .span-dot {
-            opacity: 1 !important;
-            visibility: visible !important;
+
+         /* Responsive Mobile & Tablet Navbar Dropdown (Screen <= 991px) */
+         @media (max-width: 991px) {
+            .nav-inner {
+               position: relative !important;
+            }
+            .navbar {
+               position: static !important;
+            }
+            .navbar-collapse {
+               position: absolute !important;
+               top: calc(100% + 8px) !important;
+               left: 0 !important;
+               right: 0 !important;
+               width: 100% !important;
+               max-width: 100% !important;
+               background-color: #ffffff !important;
+               border-radius: 12px !important;
+               box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15) !important;
+               border: 1px solid #e2e8f0 !important;
+               padding: 10px 12px !important;
+               z-index: 99999 !important;
+               overflow-y: auto !important;
+               max-height: 80vh !important;
+            }
+            .navbar-collapse .navbar-nav {
+               margin: 0 !important;
+               padding: 0 !important;
+               width: 100% !important;
+               display: flex !important;
+               flex-direction: column !important;
+               gap: 3px !important;
+            }
+            .navbar-collapse .navbar-nav .nav-item {
+               margin: 0 !important;
+               width: 100% !important;
+            }
+            .navbar-collapse .navbar-nav .nav-item a {
+               color: #1e293b !important;
+               font-size: 15px !important;
+               font-weight: 600 !important;
+               padding: 11px 16px !important;
+               display: flex !important;
+               align-items: center !important;
+               justify-content: space-between !important;
+               border-radius: 8px !important;
+               border-bottom: 1px solid #f1f5f9 !important;
+               text-decoration: none !important;
+               transition: all 0.2s ease !important;
+               background: transparent !important;
+            }
+            .navbar-collapse .navbar-nav .nav-item:last-child a {
+               border-bottom: none !important;
+            }
+            .navbar-collapse .navbar-nav .nav-item a:hover,
+            .navbar-collapse .navbar-nav .nav-item a.active {
+               color: var(--booostr-blue, #0A8CDE) !important;
+               background-color: var(--booostr-blue-light, #e8f4fc) !important;
+            }
+            .navbar-collapse .navbar-nav .nav-item a::before {
+               display: none !important;
+            }
+            .navbar-collapse .navbar-nav .nav-item a .span-dot {
+               display: none !important;
+            }
+            .navbar-collapse .navbar-nav .nav-item .drop-icon i {
+               color: #64748b !important;
+            }
+            .navbar-collapse .navbar-nav .nav-item .sub-menu {
+               position: static !important;
+               box-shadow: none !important;
+               border-top: none !important;
+               padding-left: 15px !important;
+               background: #f8fafc !important;
+               border-radius: 6px !important;
+               margin: 4px 0 !important;
+            }
+            .navbar-collapse .navbar-nav .nav-item .sub-menu .nav-item a {
+               font-size: 14px !important;
+               padding: 8px 12px !important;
+               color: #334155 !important;
+            }
          }
          .cart-list-top a:hover {
             color: #ffffff !important;
