@@ -781,9 +781,11 @@ function cartqty(cartId, qty) {
             var $allWishlistBtns = $('.add_to_wishlist[data-id="' + product_id + '"]');
             if (action === 'added') {
                 $allWishlistBtns.addClass('in-wishlist activewishlist').attr('title', 'Remove from Wishlist');
+                $allWishlistBtns.find('.wishlist-btn-text').text('In Wishlist');
                 Sweet('success', message);
             } else {
                 $allWishlistBtns.removeClass('in-wishlist activewishlist').attr('title', 'Add to Wishlist');
+                $allWishlistBtns.find('.wishlist-btn-text').text('Add to Wishlist');
                 Sweet('info', message);
             }
         },

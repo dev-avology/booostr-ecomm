@@ -191,15 +191,16 @@
 												</div>
 											</div>
 										</div>
-										<div class="add-to-cart button d-flex align-items-center">
+										<div class="add-to-cart button d-flex align-items-center flex-wrap" style="gap: 10px;">
 											<button type="submit" class="btn add_to_cart_form_btn" @if($isOutOfStock) disabled style="background: #94a3b8 !important; border-color: #94a3b8 !important; cursor: not-allowed;" @else style="background: var(--primary, #0A8CDE) !important; border-color: var(--primary, #0A8CDE) !important; color: #ffffff !important;" @endif>
 												{{ $isOutOfStock ? __('Out of Stock') : __('Add to cart') }}
 											</button>
 											@php
 												$isItemInWishlist = Cart::instance('wishlist')->content()->where('id', $info->id)->isNotEmpty();
 											@endphp
-											<a href="javascript:void(0)" data-id="{{ $info->id }}" class="btn wishlist add_to_wishlist {{ $isItemInWishlist ? 'in-wishlist activewishlist' : '' }} ms-2" title="{{ $isItemInWishlist ? __('Remove from Wishlist') : __('Add to Wishlist') }}" style="width: 44px; height: 44px; min-width: 44px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; border: 1.5px solid #e2e8f0; background: #ffffff; color: {{ $isItemInWishlist ? '#ffffff' : '#64748b' }};">
+											<a href="javascript:void(0)" data-id="{{ $info->id }}" class="btn-detail-wishlist add_to_wishlist {{ $isItemInWishlist ? 'in-wishlist activewishlist' : '' }}" title="{{ $isItemInWishlist ? __('Remove from Wishlist') : __('Add to Wishlist') }}">
 												<i class="icofont-heart"></i>
+												<span class="wishlist-btn-text">{{ $isItemInWishlist ? __('In Wishlist') : __('Add to Wishlist') }}</span>
 											</a>
 										</div>
 									</div>
