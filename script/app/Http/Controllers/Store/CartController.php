@@ -315,8 +315,21 @@ class CartController extends Controller
                     ];
                 }
 
+                $price_to_use = (float) $varPrice->price;
+                $write_in_amount_val = null;
+                if ((int)($varPrice->is_write_in_amount_enabled ?? 0) === 1) {
+                    $minAmount = max(0.75, (float)$varPrice->price);
+                    $entered = (float)str_replace([',', '$'], '', $request->write_in_amount ?? 0);
+                    if ($entered < $minAmount) {
+                        $errors['errors']['error'] = __('Amount must be equal to or greater than minimum amount ($:min)', ['min' => number_format($minAmount, 2)]);
+                        return response()->json($errors, 401);
+                    }
+                    $price_to_use = $entered;
+                    $write_in_amount_val = $entered;
+                }
+
                 $ticketOptions = $this->getTicketOptions($info->id);
-                $data = Cart::instance('default')->add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $varPrice->price, 'weight' => $varPrice->weight ?? 0, 'options' => [
+                $data = Cart::instance('default')->add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $price_to_use, 'weight' => $varPrice->weight ?? 0, 'options' => [
                     'options' => $price_option,
                     'variation_id' => $varPrice->id,
                     'sku' => $varPrice->sku,
@@ -327,6 +340,7 @@ class CartController extends Controller
                     'cartid' => Session::get('cartid', 'default'),
                     'product_kind' => $ticketOptions['product_kind'],
                     'ticket_fee' => $ticketOptions['ticket_fee'],
+                    'write_in_amount' => $write_in_amount_val,
                 ]]);
             }
             else {
@@ -475,6 +489,16 @@ class CartController extends Controller
             
             // Ticket products store retail price (base + service fee) in prices.price.
             $cartPrice = (float) $price->price;
+            if ((int)($price->is_write_in_amount_enabled ?? 0) === 1) {
+                $minAmount = max(0.75, (float)$price->price);
+                $entered = (float)str_replace([',', '$'], '', $request->write_in_amount ?? 0);
+                if ($entered < $minAmount) {
+                    $errors['errors']['error'] = __('Amount must be equal to or greater than minimum amount ($:min)', ['min' => number_format($minAmount, 2)]);
+                    return response()->json($errors, 401);
+                }
+                $cartPrice = $entered;
+                $options['write_in_amount'] = $cartPrice;
+            }
 
             Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $cartPrice, 'weight' => $weight, 'options' => $options]);
         }

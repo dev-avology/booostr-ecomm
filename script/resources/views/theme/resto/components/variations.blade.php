@@ -59,6 +59,7 @@
                         data-qty="{{ $price->qty }}"  
                         data-oldprice="{{ $price->old_price }}" 
                         data-price="{{ $price->price }}" 
+                        data-write-in="{{ $price->is_write_in_amount_enabled ?? 0 }}" 
                         id="variation{{ $price->id.$k+$key }}" 
                         name="option[{{ $row->id }}][]" 
                         value="{{ $price->id ?? '' }}"

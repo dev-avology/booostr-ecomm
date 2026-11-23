@@ -55,6 +55,31 @@ $(document).on('click', function(e) {
 	}
 });
 
+$(document).on('input keyup blur change', '#write-in-amount', function() {
+	var minAmount = parseFloat($(this).attr('data-min')) || 0.75;
+	var rawVal = $(this).val();
+	var val = parseFloat(rawVal);
+
+	if (rawVal === '' || isNaN(val) || val < minAmount) {
+		$(this).css('border-color', '#ef4444');
+		$('#write-in-amount-error').show();
+		$('.add_to_cart_form_btn, .add_to_cart_btn').text('Enter Valid Amount').attr('disabled', 'disabled').css({
+			'background': '#94a3b8',
+			'border-color': '#94a3b8',
+			'cursor': 'not-allowed'
+		});
+	} else {
+		$(this).css('border-color', '#cbd5e1');
+		$('#write-in-amount-error').hide();
+		$('.price_area').html('<span class="discount">$' + val.toFixed(2) + '</span>');
+		$('.add_to_cart_form_btn, .add_to_cart_btn').text('Add to cart').removeAttr('disabled').css({
+			'background': '',
+			'border-color': '',
+			'cursor': ''
+		});
+	}
+});
+
 function matchVariationCombination() {
 	if (!window.booostr_variation_prices || window.booostr_variation_prices.length === 0) {
 		return false;
@@ -79,6 +104,9 @@ function matchVariationCombination() {
 
 	if (selectedOptionIds.length < totalGroups) {
 		$('#selected_variation_id').val('');
+		$('#write-in-wrap').hide();
+		$('#write-in-amount').val('');
+		$('#write-in-amount-error').hide();
 		$('.add_to_cart_form_btn').text('Select Options').attr('disabled', 'disabled').css({
 			'background': '#94a3b8',
 			'border-color': '#94a3b8',
@@ -108,9 +136,29 @@ function matchVariationCombination() {
 		totalprice = parseFloat(matchedPrice.price) || 0;
 		totaloldprice = parseFloat(matchedPrice.old_price) || 0;
 
-		var formattedPrice = '$' + totalprice.toFixed(2);
-		var oldPriceHtml = (totaloldprice > 0) ? '<s style="font-size: 16px; color: #94a3b8; font-weight: 400; margin-left: 8px;">$' + totaloldprice.toFixed(2) + '</s>' : '';
-		$('.price_area').html('<span class="discount">' + formattedPrice + '</span>' + oldPriceHtml);
+		var isWriteIn = parseInt(matchedPrice.is_write_in_amount_enabled) === 1;
+		var minAmount = Math.max(0.75, totalprice > 0 ? totalprice : 0.75);
+
+		if (isWriteIn) {
+			$('#write-in-wrap').show();
+			$('#min-amount-text').text(minAmount.toFixed(2));
+			$('#write-in-amount').attr('data-min', minAmount).attr('min', minAmount);
+			var enteredVal = parseFloat($('#write-in-amount').val());
+			if (!isNaN(enteredVal) && enteredVal >= minAmount) {
+				$('.price_area').html('<span class="discount">$' + enteredVal.toFixed(2) + '</span>');
+			} else {
+				$('.price_area').html('<span class="discount">$' + minAmount.toFixed(2) + '</span> <span style="font-size: 13px; color: #64748b; font-weight: 500;">(Minimum)</span>');
+			}
+		} else {
+			$('#write-in-wrap').hide();
+			$('#write-in-amount').val('');
+			$('#write-in-amount-error').hide();
+			$('#write-in-amount').css('border-color', '#cbd5e1');
+
+			var formattedPrice = '$' + totalprice.toFixed(2);
+			var oldPriceHtml = (totaloldprice > 0) ? '<s style="font-size: 16px; color: #94a3b8; font-weight: 400; margin-left: 8px;">$' + totaloldprice.toFixed(2) + '</s>' : '';
+			$('.price_area').html('<span class="discount">' + formattedPrice + '</span>' + oldPriceHtml);
+		}
 
 		if (matchedPrice.sku && matchedPrice.sku !== '' && matchedPrice.sku !== '0' && matchedPrice.sku !== 0) {
 			$('.sku_value').text(matchedPrice.sku);
@@ -138,6 +186,23 @@ function matchVariationCombination() {
 			});
 			$('.product-quantity .sp-quantity').addClass('disabled-quantity');
 			$('.product-quantity input.input_qty').attr('disabled', 'disabled');
+		} else if (isWriteIn) {
+			var currEntered = parseFloat($('#write-in-amount').val());
+			if (isNaN(currEntered) || currEntered < minAmount) {
+				$('.add_to_cart_form_btn').text('Enter Amount').attr('disabled', 'disabled').css({
+					'background': '#94a3b8',
+					'border-color': '#94a3b8',
+					'cursor': 'not-allowed'
+				});
+			} else {
+				$('.add_to_cart_form_btn').text('Add to cart').removeAttr('disabled').css({
+					'background': '',
+					'border-color': '',
+					'cursor': ''
+				});
+			}
+			$('.product-quantity .sp-quantity').removeClass('disabled-quantity');
+			$('.product-quantity input.input_qty').removeAttr('disabled');
 		} else {
 			$('.add_to_cart_form_btn').text('Add to cart').removeAttr('disabled').css({
 				'background': '',
@@ -149,6 +214,9 @@ function matchVariationCombination() {
 		}
 	} else {
 		$('#selected_variation_id').val('');
+		$('#write-in-wrap').hide();
+		$('#write-in-amount').val('');
+		$('#write-in-amount-error').hide();
 		$('.add_to_cart_form_btn').text('Unavailable').attr('disabled', 'disabled').css({
 			'background': '#94a3b8',
 			'border-color': '#94a3b8',
@@ -240,11 +308,10 @@ function variations() {
 	if ($('.pricesvariationshide').length == 1) {
 
 		$('.pricesvariationshide').each(function() {
-
-		
 			var oldprice=$(this).data('oldprice');
 		    var price=$(this).data('price');
 		    var qty=$(this).data('qty');
+		    var isWriteIn = parseInt($(this).data('write-in')) === 1;
 		    totalprice= totalprice+price;
 		    totaloldprice= totaloldprice+oldprice;
 
@@ -252,9 +319,29 @@ function variations() {
 		    	$('.input_qty').attr('data-max',qty);
 		    	$('.input_qty').attr('max',qty);
 		    }
-		    $('.add_to_cart_btn').removeAttr('disabled');
-		       
-			
+
+		    if (isWriteIn) {
+		    	var minAmount = Math.max(0.75, price > 0 ? price : 0.75);
+		    	$('#write-in-wrap').show();
+		    	$('#min-amount-text').text(minAmount.toFixed(2));
+		    	$('#write-in-amount').attr('data-min', minAmount).attr('min', minAmount);
+		    	var entered = parseFloat($('#write-in-amount').val());
+		    	if (isNaN(entered) || entered < minAmount) {
+		    		$('.add_to_cart_form_btn, .add_to_cart_btn').text('Enter Amount').attr('disabled', 'disabled').css({
+						'background': '#94a3b8',
+						'border-color': '#94a3b8',
+						'cursor': 'not-allowed'
+					});
+		    	} else {
+		    		$('.add_to_cart_form_btn, .add_to_cart_btn').removeAttr('disabled').css({
+						'background': '',
+						'border-color': '',
+						'cursor': ''
+					});
+		    	}
+		    } else {
+		    	$('.add_to_cart_btn').removeAttr('disabled');
+		    }
         });
 
 	    $('.pricesvariationshide').each(function() {
@@ -262,10 +349,6 @@ function variations() {
 	    		$('.add_to_cart_btn').attr('disabled','');
 	    	}
 	    });
-
-
-		
-		
 	}
 	else{
 		$('.pricesvariations').each(function() {
@@ -345,6 +428,16 @@ function variations() {
         }
 
         var required=false;
+
+        if ($('#write-in-wrap').is(':visible')) {
+            var minAmount = parseFloat($('#write-in-amount').attr('data-min')) || 0.75;
+            var enteredVal = parseFloat($('#write-in-amount').val());
+            if (isNaN(enteredVal) || enteredVal < minAmount) {
+                Sweet('error', 'Amount must be equal to or greater than minimum amount ($' + minAmount.toFixed(2) + ')');
+                $('#write-in-amount').css('border-color', '#ef4444').focus();
+                return false;
+            }
+        }
         
         if (window.booostr_variation_prices && window.booostr_variation_prices.length > 0) {
             if (!$('#selected_variation_id').val()) {

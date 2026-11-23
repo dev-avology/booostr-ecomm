@@ -65,9 +65,17 @@
 									<!-- Price -->
 									<p class="price price_area" style="font-size: 22px; font-weight: 700; color: var(--primary, #0A8CDE); margin-bottom: 14px;">
 										@if(!$hasVariations && isset($info->price->price))
-											<span class="discount">{{ booostr_price($info->price->price) }}</span>
-											@if(!empty($info->price->old_price) && $info->price->old_price > 0)
-												<s style="font-size: 16px; color: #94a3b8; font-weight: 400; margin-left: 8px;">{{ booostr_price($info->price->old_price) }}</s>
+											@if((int)($info->price->is_write_in_amount_enabled ?? 0) === 1)
+												@php
+													$minSimplePrice = max(0.75, (float)($info->price->price ?? 0.75));
+												@endphp
+												<span class="discount">{{ booostr_price($minSimplePrice) }}</span>
+												<span style="font-size: 13px; color: #64748b; font-weight: 500;">({{ __('Minimum') }})</span>
+											@else
+												<span class="discount">{{ booostr_price($info->price->price) }}</span>
+												@if(!empty($info->price->old_price) && $info->price->old_price > 0)
+													<s style="font-size: 16px; color: #94a3b8; font-weight: 400; margin-left: 8px;">{{ booostr_price($info->price->old_price) }}</s>
+												@endif
 											@endif
 										@endif
 									</p>
@@ -173,6 +181,7 @@
 										data-qty="{{ $info->price->qty }}"
 										data-oldprice="{{ $info->price->old_price }}"
 										data-price="{{ $info->price->price }}"
+										data-write-in="{{ $info->price->is_write_in_amount_enabled ?? 0 }}"
 										type="radio"
 										checked
 									>
@@ -180,6 +189,38 @@
 
 									<!-- Variations -->
 									@include('theme.resto.components.variations', ['info' => $info ?? ''])
+
+									<!-- Write-In Amount (Customer Custom Pricing / Donation Mode) -->
+									@php
+										$isSimpleWriteIn = !$hasVariations && (int)($info->price->is_write_in_amount_enabled ?? 0) === 1;
+										$simpleMinAmount = $isSimpleWriteIn ? max(0.75, (float)($info->price->price ?? 0.75)) : 0.75;
+									@endphp
+									<div class="write-in-amount-wrap" id="write-in-wrap" style="@if(!$isSimpleWriteIn) display: none; @endif margin-top: 18px; margin-bottom: 18px; padding: 14px 16px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+										<label style="font-size: 14px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 4px;">
+											{{ __('Enter Your Price / Donation Amount') }} <span class="text-danger">*</span>
+										</label>
+										<p class="write-in-hint" style="font-size: 13px; color: #64748b; margin-bottom: 8px;">
+											{{ __('Please enter the amount you would like to pay') }} ({{ __('Minimum:') }} $<span id="min-amount-text">{{ number_format($simpleMinAmount, 2) }}</span>)
+										</p>
+										<div class="write-in-row" style="display: flex; align-items: center; max-width: 220px; position: relative;">
+											<span style="position: absolute; left: 14px; font-size: 16px; font-weight: 700; color: #475569;">$</span>
+											<input 
+												type="number" 
+												step="0.01" 
+												min="{{ $simpleMinAmount }}" 
+												id="write-in-amount" 
+												name="write_in_amount" 
+												class="form-control write-in-input" 
+												data-min="{{ $simpleMinAmount }}" 
+												placeholder="0.00" 
+												autocomplete="off" 
+												style="padding-left: 28px; height: 42px; font-size: 16px; font-weight: 600; border-radius: 6px; border: 1.5px solid #cbd5e1; color: #1e293b; background: #ffffff;"
+											/>
+										</div>
+										<p id="write-in-amount-error" style="color: #ef4444; font-size: 12.5px; font-weight: 500; display: none; margin-top: 6px; margin-bottom: 0;">
+											{{ __('Amount must be equal to or greater than minimum amount.') }}
+										</p>
+									</div>
 
 									<!-- Quantity + Add to Cart -->
 									<div class="product-buy" style="margin-top: 24px; clear: both; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;">
