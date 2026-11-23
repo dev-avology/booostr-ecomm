@@ -757,19 +757,26 @@
             padding-right: 20px !important;
          }
          .variation-select-wrapper .nice-select .list {
+            display: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
             width: 100% !important;
             min-width: 100% !important;
             max-height: 250px !important;
             overflow-y: auto !important;
             border: 1.5px solid #e2e8f0 !important;
             border-radius: 8px !important;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
             background: #ffffff !important;
             background-color: #ffffff !important;
-            opacity: 1 !important;
             z-index: 999999 !important;
             padding: 4px 0 !important;
             margin-top: 4px !important;
+         }
+         .variation-select-wrapper .nice-select.open .list {
+            display: block !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
          }
          .variation-select-wrapper .nice-select .option {
             padding: 10px 16px !important;
