@@ -224,6 +224,10 @@ function render_primary_product(products, target,additional_class='') {
         var raw_excerpt = product.excerpt != null ? product.excerpt.value : '';
         var clean_excerpt = raw_excerpt ? raw_excerpt.replace(/<\/?[^>]+(>|$)/g, "").trim() : '';
 
+        var in_wishlist = window.booostr_wishlist_ids && window.booostr_wishlist_ids.indexOf(parseInt(product.id)) !== -1;
+        var wishlist_btn_class = in_wishlist ? 'btn wishlist add_to_wishlist in-wishlist activewishlist' : 'btn wishlist add_to_wishlist';
+        var wishlist_btn_title = in_wishlist ? 'Remove from Wishlist' : 'Add to Wishlist';
+
         var html=`<div class="col-lg-3 col-md-6 col-6 ${additional_class} d-flex align-items-stretch">
                                         <div class="single-popular-product w-100 ${is_out_of_stock ? 'product-out-of-stock' : ''}" data-product-id="${product.id}" data-stock-status="${stock_status}" data-stock-manage="${stock_manage}" data-total-stock="${total_stock}" data-is-variation="${product.is_variation}" data-product-slug="${product.slug}">
                                             <div class="image ${is_out_of_stock ? 'out-of-stock-img-wrap' : ''}">
@@ -231,7 +235,7 @@ function render_primary_product(products, target,additional_class='') {
                                                 <img class="lazy" src="${preloader}" data-src="${preview}" alt="">
                                                 <div class="product-overlay">
                                                     ${is_out_of_stock ? '' : `<a href="${base_url+'/product/'+product.slug}" class="btn add-to-cart" title="add to Cart"><i class="icofont-shopping-cart"></i></a>`}
-                                                    <a href="javascript:void(0)" data-id="${product.id}" class="btn wishlist add_to_wishlist" title="add to Wishlist"><i class="icofont-heart"></i></a>
+                                                    <a href="javascript:void(0)" data-id="${product.id}" class="${wishlist_btn_class}" title="${wishlist_btn_title}"><i class="icofont-heart"></i></a>
                                                     <a href="${base_url+'/product/'+product.slug}"class="btn view"><i class="icofont-link-alt"></i></a>
                                                 </div>
                                             </div>
@@ -265,7 +269,7 @@ function render_primary_product(products, target,additional_class='') {
                                                             <img class="lazy" src="${preloader}" data-src="${preview}" alt="">
                                                             <div class="product-overlay">
                                                             ${is_out_of_stock ? '' : `<a href="${base_url+'/product/'+product.slug}" class="btn add-to-cart" title="add to Cart"><i class="icofont-shopping-cart"></i></a>`}
-                                                            <a href="javascript:void(0)" data-id="${product.id}" class="btn wishlist add_to_wishlist" title="add to Wishlist"><i class="icofont-heart"></i></a>
+                                                            <a href="javascript:void(0)" data-id="${product.id}" class="${wishlist_btn_class}" title="${wishlist_btn_title}"><i class="icofont-heart"></i></a>
                                                             <a href="${base_url+'/product/'+product.slug}"class="btn view"><i class="icofont-link-alt"></i></a>
                                                             </div>
                                                         </div>
@@ -755,12 +759,12 @@ function cartqty(cartId, qty) {
   });
 
   /*-------------------------
-		add_to_wishlist
+		add_to_wishlist (Smart Toggle: Add / Remove)
 	--------------------------*/
- $(document).on('click','.add_to_wishlist',function(){
-    var product_id=$(this).data('id');
-    $(this).addClass('activewishlist');
-    $(this).removeClass('add_to_wishlist');
+ $(document).on('click','.add_to_wishlist',function(e){
+    e.preventDefault();
+    var $btn = $(this);
+    var product_id = parseInt($btn.data('id'));
     var url = base_url+'/add-to-wishlist';
     $.ajaxSetup({
         headers: {
@@ -775,13 +779,41 @@ function cartqty(cartId, qty) {
         },
         dataType: 'json',
         success: function(response) {
-            $('.wishlist_count').html(response);
+            var count = typeof response === 'object' ? response.count : response;
+            var action = typeof response === 'object' ? response.action : 'added';
+            var message = (typeof response === 'object' && response.message) ? response.message : (action === 'added' ? 'Added to Wishlist' : 'Removed from Wishlist');
+
+            $('.wishlist_count').html(count);
+
+            if (typeof response === 'object' && response.wishlist_ids) {
+                window.booostr_wishlist_ids = response.wishlist_ids;
+            } else {
+                window.booostr_wishlist_ids = window.booostr_wishlist_ids || [];
+                var idx = window.booostr_wishlist_ids.indexOf(product_id);
+                if (action === 'added' && idx === -1) {
+                    window.booostr_wishlist_ids.push(product_id);
+                } else if (action === 'removed' && idx !== -1) {
+                    window.booostr_wishlist_ids.splice(idx, 1);
+                }
+            }
+
+            var $allWishlistBtns = $('.add_to_wishlist[data-id="' + product_id + '"]');
+            if (action === 'added') {
+                $allWishlistBtns.addClass('in-wishlist activewishlist').attr('title', 'Remove from Wishlist');
+                Sweet('success', message);
+            } else {
+                $allWishlistBtns.removeClass('in-wishlist activewishlist').attr('title', 'Add to Wishlist');
+                Sweet('info', message);
+            }
         },
         error: function(xhr, status, error) {
-            $.each(xhr.responseJSON.errors, function(key, item) {
-                Sweet('error', item)
-            });
-
+            if (xhr.responseJSON && xhr.responseJSON.errors) {
+                $.each(xhr.responseJSON.errors, function(key, item) {
+                    Sweet('error', item);
+                });
+            } else {
+                Sweet('error', 'Unable to update wishlist');
+            }
         }
     });
 

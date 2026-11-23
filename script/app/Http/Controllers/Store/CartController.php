@@ -21,38 +21,61 @@ class CartController extends Controller
         $getrowid=$request->getrowid ?? false;
 
         $info=Term::query()->where('type','product')->where('status',1)->webProducts()->with('preview','firstprice')->findOrFail($request->id);
-        $price=$info->firstprice;
-        $weight=$price->weight ?? 0;
-        $options=[
-                
+
+        $wishlist = Cart::instance('wishlist')->content();
+        $existingRow = $wishlist->firstWhere('id', $info->id);
+
+        if ($existingRow) {
+            Cart::instance('wishlist')->remove($existingRow->rowId);
+            $action = 'removed';
+            $message = __('Removed from Wishlist');
+            $rowId = $existingRow->rowId;
+        } else {
+            $price=$info->firstprice;
+            $weight=$price->weight ?? 0;
+            $options=[
                 'sku'=>$price->sku,
                 'stock'=>$price->qty,
                 'options'=>[],
                 'preview'=>asset($info->preview->value ?? 'uploads/default.png'),
                 'slug'=>$info->slug
-               
             ];
 
-            
+            if ($price->stock_manage == 1 && $price->stock_status == 1) {
+               $options['stock']=$price->qty;
+            } else {
+               $options['stock']=null;
+            }
 
-        if ($price->stock_manage == 1 && $price->stock_status == 1) {
-           $options['stock']=$price->qty;
+            $cart=Cart::instance('wishlist')->add(['id' => $info->id, 'name' => $info->title, 'qty' => 1, 'price' => $price->price, 'weight' => 0, 'options' => $options]);
+            $action = 'added';
+            $message = __('Added to Wishlist');
+            $rowId = $cart->rowId ?? '';
         }
-        else{
-           $options['stock']=null;
-        }
 
-
-        $cart=Cart::instance('wishlist')->add(['id' => $info->id, 'name' => $info->title, 'qty' => 1, 'price' => $price->price, 'weight' => 0, 'options' => $options]);
         $count=Cart::instance('wishlist')->count();
+        $wishlist_ids = Cart::instance('wishlist')->content()->pluck('id')->map(function($id){ return (int)$id; })->values()->all();
 
         if ($getrowid != false) {
-           $data['rowid']=$cart->rowId ?? '';
+           $data['rowid']=$rowId;
            $data['count']=$count ?? 0;
+           $data['action']=$action;
+           $data['message']=$message;
+           $data['wishlist_ids']=$wishlist_ids;
 
            return $data;
         }
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'action' => $action,
+                'message' => $message,
+                'count' => $count,
+                'product_id' => (int)$info->id,
+                'wishlist_ids' => $wishlist_ids,
+                'status' => true
+            ]);
+        }
 
         return $count;
     }

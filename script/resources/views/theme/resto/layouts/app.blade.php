@@ -383,6 +383,37 @@
                font-weight: 600 !important;
             }
          }
+         /* Wishlist Button: Clear Toggle & Vibrant Active States */
+         .product-overlay .btn.wishlist {
+            transition: all 0.25s ease !important;
+         }
+         .single-popular-product .btn.wishlist.in-wishlist,
+         .single-popular-product .btn.wishlist.activewishlist,
+         .product-overlay .btn.wishlist.in-wishlist,
+         .product-overlay .btn.wishlist.activewishlist {
+            background: #ef4444 !important;
+            background-color: #ef4444 !important;
+            color: #ffffff !important;
+            border-color: #ef4444 !important;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4) !important;
+         }
+         .single-popular-product .btn.wishlist.in-wishlist:hover,
+         .single-popular-product .btn.wishlist.activewishlist:hover,
+         .product-overlay .btn.wishlist.in-wishlist:hover,
+         .product-overlay .btn.wishlist.activewishlist:hover {
+            background: #dc2626 !important;
+            background-color: #dc2626 !important;
+            color: #ffffff !important;
+            border-color: #dc2626 !important;
+            transform: scale(1.08) !important;
+         }
+         .single-popular-product .btn.wishlist.in-wishlist i,
+         .single-popular-product .btn.wishlist.activewishlist i,
+         .product-overlay .btn.wishlist.in-wishlist i,
+         .product-overlay .btn.wishlist.activewishlist i {
+            color: #ffffff !important;
+         }
+
          .food-tab-main .nav li button.active {
             background-color: var(--booostr-blue, #0A8CDE) !important;
             border-color: var(--booostr-blue, #0A8CDE) !important;
@@ -634,6 +665,10 @@
 <input type="hidden" class="total_amount" value="{{ str_replace(',','',Cart::total()) }}">
 <input type="hidden" id="preloader" value="{{ asset('uploads/preload.webp') }}">
 <input type="hidden" id="currency_settings" value="{{ $autoload_data['currency_data'] ?? '' }}">
+<input type="hidden" id="wishlist_ids" value="{{ json_encode(Cart::instance('wishlist')->content()->pluck('id')->map(function($id){ return (int)$id; })->values()->all()) }}">
+<script>
+    window.booostr_wishlist_ids = {!! json_encode(Cart::instance('wishlist')->content()->pluck('id')->map(function($id){ return (int)$id; })->values()->all()) !!};
+</script>
 <!--  JS Files  -->
 <script src="{{ asset('theme/resto/js/jquery.min.js') }}"></script>
 <script src="{{ asset('theme/resto/js/jquery-ui.min.js') }}"></script>
