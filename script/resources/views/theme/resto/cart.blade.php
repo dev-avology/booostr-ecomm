@@ -60,28 +60,16 @@
             <div class="row mt-4">
                 <div class="col-12">
                     <div class="total-amount">
-                        <div class="row align-items-start">
-                            <!-- Left: Coupon Code & Continue Shopping -->
-                            <div class="col-lg-7 col-md-6 col-12 mb-4 mb-md-0">
-                                <div class="coupon-section-box">
-                                    <h5 class="coupon-box-title">{{ __('Have a Coupon Code?') }}</h5>
-                                    <div class="coupon">
-                                        <form method="post" action="{{ route('makediscount') }}" class="ajaxform_with_reload d-flex">
-                                            @csrf
-                                            <input name="coupon" required="" placeholder="{{ __('Enter coupon code') }}" class="coupon-input">
-                                            <button class="btn btn-coupon-apply basicbtn" type="submit">{{ __('Apply') }}</button>
-                                        </form>
-                                    </div>
-                                    <div class="continue-shopping-wrap mt-4">
-                                        <a href="{{ url('/products') }}" class="btn-continue-shopping">
-                                            <i class="icofont-arrow-left"></i> {{ __('Continue Shopping') }}
-                                        </a>
-                                    </div>
-                                </div>
+                        <div class="row align-items-start justify-content-between">
+                            <!-- Left: Continue Shopping Button (Desktop left, Mobile under summary) -->
+                            <div class="col-lg-6 col-md-5 col-12 order-2 order-md-1 mt-4 mt-md-0">
+                                <a href="{{ url('/products') }}" class="btn-continue-shopping">
+                                    <i class="icofont-arrow-left"></i> {{ __('Continue Shopping') }}
+                                </a>
                             </div>
 
                             <!-- Right: Order Summary Card -->
-                            <div class="col-lg-5 col-md-6 col-12">
+                            <div class="col-lg-5 col-md-7 col-12 order-1 order-md-2 ms-auto">
                                 <div class="right cart-summary-card">
                                     <h4 class="summary-card-title">{{ __('Order Summary') }}</h4>
 
@@ -197,7 +185,8 @@
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    overflow: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 .table.shopping-summery {
@@ -262,62 +251,28 @@
     color: #ef4444;
 }
 
-/* Coupon Box */
-.coupon-section-box {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 24px 28px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-}
-.coupon-box-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 14px;
-}
-.coupon-input {
-    flex: 1;
-    height: 48px;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px 0 0 8px !important;
-    padding: 0 16px;
-    font-size: 14px;
-    color: #1e293b;
-    outline: none;
-    transition: border-color 0.2s ease;
-}
-.coupon-input:focus {
-    border-color: #0A8CDE !important;
-}
-.btn-coupon-apply {
-    background: #0A8CDE !important;
-    background-color: #0A8CDE !important;
-    color: #ffffff !important;
-    border: 1px solid #0A8CDE !important;
-    border-radius: 0 8px 8px 0 !important;
-    padding: 0 24px;
-    font-weight: 600;
-    font-size: 14px;
-    height: 48px;
-    transition: all 0.2s ease;
-}
-.btn-coupon-apply:hover {
-    background: #0870b2 !important;
-    background-color: #0870b2 !important;
-    border-color: #0870b2 !important;
-}
+/* Continue Shopping Action */
 .btn-continue-shopping {
     color: #475569;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 14.5px;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    transition: color 0.2s ease;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    text-decoration: none !important;
 }
 .btn-continue-shopping:hover {
     color: #0A8CDE;
+    border-color: #0A8CDE;
+    background: #f8fafc;
+    transform: translateX(-3px);
+    box-shadow: 0 3px 8px rgba(10, 140, 222, 0.12);
 }
 
 /* Order Summary Card */
@@ -401,6 +356,24 @@
     color: #64748b;
     font-size: 12.5px;
     font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .cart-summary-card {
+        padding: 20px 18px !important;
+    }
+    .btn-continue-shopping {
+        width: 100%;
+        justify-content: center;
+        margin-top: 10px;
+    }
+    .empty-cart-card {
+        padding: 40px 20px;
+    }
+    .table.shopping-summery tbody td {
+        padding: 12px 10px;
+    }
 }
 </style>
 @endpush
