@@ -176,18 +176,6 @@ $(document).on('change', '.pricesvariations', function(){
 
 // Initial variations check on page load
 if (window.booostr_variation_prices && window.booostr_variation_prices.length > 0) {
-	var firstVar = window.booostr_variation_prices[0];
-	if (firstVar && firstVar.varitions) {
-		firstVar.varitions.forEach(function(v) {
-			var catId = (v.pivot && v.pivot.category_id) ? v.pivot.category_id : v.id;
-			$('input[type="radio"].pricesvariations[value="' + catId + '"]').prop('checked', true);
-			$('select.pricesvariations').each(function() {
-				if ($(this).find('option[value="' + catId + '"]').length > 0) {
-					$(this).val(catId);
-				}
-			});
-		});
-	}
 	matchVariationCombination();
 } else {
 	variations();

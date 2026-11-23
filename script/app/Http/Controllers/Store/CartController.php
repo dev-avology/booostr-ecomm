@@ -271,15 +271,20 @@ class CartController extends Controller
         Session::put('cartid', 'default');
         Cart::instance('default');
         if ($info->is_variation == 1) {
-            if ($request->variation_id) {
+            $hasCombinationPrices = \App\Models\Price::where('term_id', $info->id)->whereHas('varitions')->exists();
+            if ($hasCombinationPrices) {
+                if (empty($request->variation_id)) {
+                    $errors['errors']['error'] = __('Please select all required options');
+                    return response()->json($errors, 401);
+                }
                 $varPrice = \App\Models\Price::where('term_id', $info->id)->where('id', $request->variation_id)->with('varitions')->first();
                 if (!$varPrice) {
-                    $errors['errors']['error']='Selected variation not found';
-                    return response()->json($errors,404);
+                    $errors['errors']['error'] = __('Selected variation not found');
+                    return response()->json($errors, 404);
                 }
                 if ($varPrice->stock_status == 0) {
-                    $errors['errors']['error']='Selected variation is out of stock';
-                    return response()->json($errors,401);
+                    $errors['errors']['error'] = __('Selected variation is out of stock');
+                    return response()->json($errors, 401);
                 }
 
                 $cart_content = Cart::instance('default')->content();
@@ -292,8 +297,8 @@ class CartController extends Controller
 
                 if ($varPrice->stock_manage == 1) {
                     if (($exist_qty + $request->qty) > $varPrice->qty) {
-                        $errors['errors']['error']='Maximum stock limit is ('.$varPrice->qty.')';
-                        return response()->json($errors,401);
+                        $errors['errors']['error'] = __('Maximum stock limit is ('.$varPrice->qty.')');
+                        return response()->json($errors, 401);
                     }
                 }
 
@@ -325,6 +330,13 @@ class CartController extends Controller
                 ]]);
             }
             else {
+                $required_groups = \App\Models\Productoption::where('term_id', $info->id)->where('is_required', 1)->pluck('id')->toArray();
+                foreach ($required_groups as $req_gid) {
+                    if (!isset($request->option[$req_gid]) || empty($request->option[$req_gid])) {
+                        $errors['errors']['error'] = __('Please select all required options');
+                        return response()->json($errors, 401);
+                    }
+                }
                 $groups=[];
                 foreach ($request->option ?? [] as $key => $option) {
                     $option_values=[];

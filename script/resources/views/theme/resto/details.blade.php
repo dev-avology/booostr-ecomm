@@ -196,8 +196,14 @@
 											</div>
 										</div>
 										<div class="add-to-cart button d-flex align-items-center flex-wrap" style="gap: 10px; margin: 0;">
-											<button type="submit" class="btn add_to_cart_form_btn" @if($isOutOfStock) disabled style="background: #94a3b8 !important; border-color: #94a3b8 !important; cursor: not-allowed;" @else style="background: var(--primary, #0A8CDE) !important; border-color: var(--primary, #0A8CDE) !important; color: #ffffff !important;" @endif>
-												{{ $isOutOfStock ? __('Out of Stock') : __('Add to cart') }}
+											<button type="submit" class="btn add_to_cart_form_btn" @if($isOutOfStock || $hasVariations) disabled style="background: #94a3b8 !important; border-color: #94a3b8 !important; cursor: not-allowed;" @else style="background: var(--primary, #0A8CDE) !important; border-color: var(--primary, #0A8CDE) !important; color: #ffffff !important;" @endif>
+												@if($isOutOfStock)
+													{{ __('Out of Stock') }}
+												@elseif($hasVariations)
+													{{ __('Select Options') }}
+												@else
+													{{ __('Add to cart') }}
+												@endif
 											</button>
 											@php
 												$isItemInWishlist = Cart::instance('wishlist')->content()->where('id', $info->id)->isNotEmpty();
@@ -260,5 +266,5 @@
 <script src="{{ asset('admin/js/sweetalert2.all.min.js') }}"></script>
 <script src="{{ asset('admin/js/form.js') }}"></script>
 <script src="{{ asset('theme/jquery.unveil.js') }}"></script>
-<script src="{{ asset('theme/resto/js/product-details.js?v='.(tenant('cache_version') ?: '2.9')) }}"></script>
+<script src="{{ asset('theme/resto/js/product-details.js?v='.(tenant('cache_version') ? tenant('cache_version').'_'.time() : time())) }}"></script>
 @endpush
