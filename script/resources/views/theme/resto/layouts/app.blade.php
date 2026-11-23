@@ -172,6 +172,45 @@
          .main__title {
             color: #1e293b !important;
          }
+
+         /* Sidebar Headings & Widgets: Consistent Dark Black (#1e293b) */
+         .category-sidebar .single-widget .wd-title,
+         .sidebar-accordion-header {
+            color: #1e293b !important;
+         }
+         .category-sidebar .single-widget .wd-title:hover,
+         .sidebar-accordion-header:hover {
+            color: var(--booostr-blue, #0A8CDE) !important;
+         }
+         .category-sidebar .single-widget .wd-title::before {
+            background: var(--booostr-blue, #0A8CDE) !important;
+         }
+
+         /* Category & Brand Sidebar Items and Modern Neutral Count Badges (Option 1) */
+         .categories-widget ul li a {
+            color: #334155 !important;
+         }
+         .categories-widget ul li a span {
+            background-color: #e2e8f0 !important;
+            color: #475569 !important;
+            font-weight: 600 !important;
+            transition: all 0.2s ease-in-out !important;
+         }
+         .categories-widget ul li a:hover {
+            background-color: var(--booostr-blue, #0A8CDE) !important;
+            color: #ffffff !important;
+         }
+         .categories-widget ul li a:hover span,
+         .categories-widget ul li a.active span,
+         .categories-widget ul li .active span {
+            background-color: rgba(255, 255, 255, 0.28) !important;
+            color: #ffffff !important;
+         }
+         .categories-widget ul li a.active,
+         .categories-widget ul li .active {
+            background-color: var(--booostr-blue, #0A8CDE) !important;
+            color: #ffffff !important;
+         }
          .food-tab-main .nav li button.active {
             background-color: var(--booostr-blue, #0A8CDE) !important;
             border-color: var(--booostr-blue, #0A8CDE) !important;

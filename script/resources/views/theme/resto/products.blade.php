@@ -111,6 +111,7 @@
 	cursor: pointer;
 	user-select: none;
 	position: relative;
+	color: #1e293b;
 	transition: color 0.2s ease;
 }
 .sidebar-accordion-header:hover {
