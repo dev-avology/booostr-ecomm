@@ -312,10 +312,10 @@
 	}
 }
 
-/* reCAPTCHA Styling */
+/* reCAPTCHA Left Aligned */
 .recaptcha-wrapper {
 	display: flex;
-	justify-content: center;
+	justify-content: flex-start;
 	width: 100%;
 	margin: 8px 0;
 	overflow-x: auto;
@@ -325,8 +325,8 @@
 	.g-recaptcha {
 		transform: scale(0.92);
 		-webkit-transform: scale(0.92);
-		transform-origin: center center;
-		-webkit-transform-origin: center center;
+		transform-origin: left center;
+		-webkit-transform-origin: left center;
 	}
 }
 
@@ -334,8 +334,8 @@
 	.g-recaptcha {
 		transform: scale(0.82);
 		-webkit-transform: scale(0.82);
-		transform-origin: center center;
-		-webkit-transform-origin: center center;
+		transform-origin: left center;
+		-webkit-transform-origin: left center;
 	}
 }
 </style>
