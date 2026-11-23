@@ -126,7 +126,7 @@ Version:	1.0
 	right: 4px;
 	top: 8px;
 }
-.nice-select .list {
+.topbar-language .nice-select .list {
 	opacity: 0;
 	overflow: hidden;
 	padding: 0;
@@ -3776,7 +3776,7 @@ Version:	1.0
 	background: #fff;
 	border: none;
 	border-right: 1px solid #cccccc8c;
-	z-index: 333;
+	z-index: 2;
 	width: 34px;
 	font-size: 20px;
 }

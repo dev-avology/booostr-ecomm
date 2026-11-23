@@ -332,7 +332,11 @@ class CartController extends Controller
             else {
                 $required_groups = \App\Models\Productoption::where('term_id', $info->id)->where('is_required', 1)->pluck('id')->toArray();
                 foreach ($required_groups as $req_gid) {
-                    if (!isset($request->option[$req_gid]) || empty($request->option[$req_gid])) {
+                    $submitted = $request->option[$req_gid] ?? [];
+                    $valid_values = is_array($submitted) ? array_filter($submitted, function($v) {
+                        return !is_null($v) && $v !== '';
+                    }) : (!empty($submitted) ? [$submitted] : []);
+                    if (empty($valid_values)) {
                         $errors['errors']['error'] = __('Please select all required options');
                         return response()->json($errors, 401);
                     }
