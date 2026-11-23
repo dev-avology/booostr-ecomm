@@ -210,6 +210,49 @@
             background-color: var(--booostr-blue, #0A8CDE) !important;
             color: #ffffff !important;
          }
+
+         /* Mobile Bottom Navigation Bar: Booostr Brand Colors */
+         @media only screen and (max-width: 767px) {
+            .mobile-cart-show {
+               background: #ffffff !important;
+               border-top: 1px solid #e2e8f0 !important;
+               box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05) !important;
+               padding: 8px 10px !important;
+            }
+            .single-cart-show a {
+               color: #64748b !important;
+               font-size: 11px !important;
+               font-weight: 500 !important;
+               display: flex !important;
+               flex-direction: column !important;
+               align-items: center !important;
+               gap: 2px !important;
+               transition: color 0.2s ease !important;
+            }
+            .single-cart-show a i {
+               background: #e8f4fc !important;
+               color: var(--primary, #0A8CDE) !important;
+               border-radius: 50% !important;
+               width: 32px !important;
+               height: 32px !important;
+               line-height: 32px !important;
+               font-size: 16px !important;
+               margin-right: 0 !important;
+               transition: all 0.2s ease !important;
+               display: inline-flex !important;
+               align-items: center !important;
+               justify-content: center !important;
+            }
+            .single-cart-show a:hover i,
+            .single-cart-show.active a i {
+               background: var(--primary, #0A8CDE) !important;
+               color: #ffffff !important;
+            }
+            .single-cart-show a:hover,
+            .single-cart-show.active a {
+               color: var(--primary, #0A8CDE) !important;
+            }
+         }
          .food-tab-main .nav li button.active {
             background-color: var(--booostr-blue, #0A8CDE) !important;
             border-color: var(--booostr-blue, #0A8CDE) !important;

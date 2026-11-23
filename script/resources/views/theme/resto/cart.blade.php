@@ -358,10 +358,182 @@
     font-weight: 500;
 }
 
+/* Hide floating cart widget on cart page */
+.cart-sidebar {
+    display: none !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 767px) {
+    /* Hide the orange table header pseudo elements completely */
+    .shopping-cart .table td::before,
+    .single-item-inner::before {
+        display: none !important;
+        content: none !important;
+    }
+    .shopping-cart .table thead {
+        display: none !important;
+    }
+    .cart-table-wrapper {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+    .table.shopping-summery {
+        display: block !important;
+        width: 100% !important;
+    }
+    .table.shopping-summery tbody {
+        display: block !important;
+        width: 100% !important;
+    }
+    .table.shopping-summery tbody tr.cart_item {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        position: relative !important;
+        padding: 16px !important;
+        margin-bottom: 14px !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+        width: 100% !important;
+    }
+    .table.shopping-summery tbody td {
+        border: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+        margin: 0 !important;
+        width: auto !important;
+        height: auto !important;
+    }
+    .table.shopping-summery tbody td.image {
+        flex: 0 0 68px !important;
+        width: 68px !important;
+        height: 68px !important;
+        margin-right: 12px !important;
+    }
+    .table.shopping-summery tbody td.image img {
+        width: 68px !important;
+        height: 68px !important;
+        object-fit: contain !important;
+        border-radius: 8px !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 4px !important;
+    }
+    .table.shopping-summery tbody td.product-desc {
+        flex: 1 1 calc(100% - 110px) !important;
+        padding-right: 28px !important;
+    }
+    .table.shopping-summery tbody td.product-desc .product-name a {
+        font-size: 15px !important;
+        font-weight: 600 !important;
+        color: #1e293b !important;
+        line-height: 1.35 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+    }
+    .table.shopping-summery tbody td.product-desc .product-des {
+        font-size: 12px !important;
+        color: #64748b !important;
+        margin-top: 2px !important;
+    }
+    .table.shopping-summery tbody td.action {
+        position: absolute !important;
+        right: 12px !important;
+        top: 14px !important;
+        text-align: right !important;
+    }
+    .table.shopping-summery tbody td.action .remove-icon {
+        font-size: 18px !important;
+        color: #94a3b8 !important;
+        padding: 4px !important;
+    }
+    .table.shopping-summery tbody td.price {
+        flex: 0 0 100% !important;
+        margin-left: 80px !important;
+        margin-top: 2px !important;
+        text-align: left !important;
+        font-size: 13.5px !important;
+        color: #64748b !important;
+    }
+    .table.shopping-summery tbody td.price::before {
+        display: inline !important;
+        content: "Price: " !important;
+        background: transparent !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+        position: static !important;
+        padding: 0 !important;
+        width: auto !important;
+        height: auto !important;
+    }
+    .table.shopping-summery tbody td.price span {
+        font-weight: 600 !important;
+        color: #1e293b !important;
+    }
+    .table.shopping-summery tbody td.qty {
+        flex: 0 0 auto !important;
+        margin-left: 80px !important;
+        margin-top: 8px !important;
+    }
+    .table.shopping-summery tbody td.qty .sp-quantity {
+        display: inline-flex !important;
+        align-items: center !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: hidden !important;
+        background: #f8fafc !important;
+        height: 34px !important;
+    }
+    .table.shopping-summery tbody td.qty .sp-quantity .arrow {
+        width: 30px !important;
+        height: 32px !important;
+        line-height: 32px !important;
+        background: transparent !important;
+        border: none !important;
+        color: #475569 !important;
+        font-size: 14px !important;
+    }
+    .table.shopping-summery tbody td.qty .sp-quantity .quntity-input {
+        width: 36px !important;
+        height: 32px !important;
+        border: none !important;
+        background: #ffffff !important;
+        text-align: center !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        color: #1e293b !important;
+    }
+    .table.shopping-summery tbody td.total-amount {
+        flex: 1 !important;
+        text-align: right !important;
+        align-self: center !important;
+        margin-top: 8px !important;
+    }
+    .table.shopping-summery tbody td.total-amount::before {
+        display: inline !important;
+        content: "Total: " !important;
+        background: transparent !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+        position: static !important;
+        padding: 0 !important;
+        font-size: 13px !important;
+        width: auto !important;
+        height: auto !important;
+    }
+    .table.shopping-summery tbody td.total-amount span {
+        font-size: 17px !important;
+        font-weight: 800 !important;
+        color: #0A8CDE !important;
+    }
     .cart-summary-card {
         padding: 20px 18px !important;
+        margin-top: 6px !important;
     }
     .btn-continue-shopping {
         width: 100%;
@@ -370,9 +542,6 @@
     }
     .empty-cart-card {
         padding: 40px 20px;
-    }
-    .table.shopping-summery tbody td {
-        padding: 12px 10px;
     }
 }
 </style>
