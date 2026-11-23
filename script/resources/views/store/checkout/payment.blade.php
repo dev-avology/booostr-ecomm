@@ -451,15 +451,33 @@ input#cover_fee_checkbox {
 
                                     {{-- Options like in checkout --}}
                                     @php
-                                    if(count($item->options ?? [])){
+                                    $rawOptions = $item->options ?? [];
+                                    if(!empty($rawOptions) && count($rawOptions)){
                                         echo "<span class='product-description' style='font-size:9px; display:flow;'>";
-                                        foreach($item->options as $option => $selected_option){
-                                            $product_options = $selected_option->varitionOptions ?? [];
-                                            foreach($selected_option->varitions ?? [] as $sel_val){
-                                                $cur_opt_name = collect($product_options)->filter(function($x) use($sel_val){
-                                                    return $x->id == $sel_val->pivot->productoption_id;
-                                                });
-                                                echo "<strong class='attr-variation-style'>".$sel_val->name."</strong>";
+                                        foreach($rawOptions as $option => $selected_option){
+                                            if (is_object($selected_option)) {
+                                                $product_options = $selected_option->varitionOptions ?? collect([]);
+                                                if (isset($selected_option->varitions) && is_iterable($selected_option->varitions)) {
+                                                    foreach($selected_option->varitions as $sel_val){
+                                                        echo "<strong class='attr-variation-style'>".e($sel_val->name ?? '')."</strong> ";
+                                                    }
+                                                } elseif (isset($selected_option->name)) {
+                                                    echo "<strong class='attr-variation-style'>".e($selected_option->name)."</strong> ";
+                                                }
+                                            } elseif (is_array($selected_option)) {
+                                                if (isset($selected_option['name'])) {
+                                                    echo "<strong class='attr-variation-style'>".e($selected_option['name'])."</strong> ";
+                                                } else {
+                                                    foreach ($selected_option as $sub_opt) {
+                                                        if (is_array($sub_opt) && isset($sub_opt['name'])) {
+                                                            echo "<strong class='attr-variation-style'>".e($sub_opt['name'])."</strong> ";
+                                                        } elseif (is_object($sub_opt) && isset($sub_opt->name)) {
+                                                            echo "<strong class='attr-variation-style'>".e($sub_opt->name)."</strong> ";
+                                                        } elseif (is_scalar($sub_opt)) {
+                                                            echo "<strong class='attr-variation-style'>".e($sub_opt)."</strong> ";
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                         echo "</span>";

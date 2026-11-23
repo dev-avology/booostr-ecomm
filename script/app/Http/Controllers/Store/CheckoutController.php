@@ -1575,11 +1575,18 @@ class CheckoutController extends Controller
             //     array_push($priceids, ['order_id' => $order->id, 'price_id' => $row->options->price_id, 'qty' => $row->qty]);
             //    }
 
-                if($row->options->options == []){
-                        array_push($priceids, ['order_id' => $order->id, 'price_id' => $row->options->price_id[0], 'qty' => $row->qty]);
-                }else{
+                if (!empty($row->options->price_id) && is_array($row->options->price_id)) {
+                    foreach ($row->options->price_id as $pId) {
+                        if (!empty($pId)) {
+                            array_push($priceids, ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty]);
+                        }
+                    }
+                } elseif (!empty($row->options->options) && is_iterable($row->options->options)) {
                     foreach ($row->options->options as $optionVal) {
-                        array_push($priceids, ['order_id' => $order->id, 'price_id' => $optionVal->id, 'qty' => (int)$row->qty]);
+                        $pId = is_object($optionVal) ? ($optionVal->id ?? null) : (is_array($optionVal) ? ($optionVal['id'] ?? ($optionVal['price_id'] ?? null)) : null);
+                        if ($pId) {
+                            array_push($priceids, ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty]);
+                        }
                     }
                 }
 
@@ -2581,11 +2588,18 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             //     array_push($priceids, ['order_id' => $order->id, 'price_id' => $row->options->price_id, 'qty' => $row->qty]);
             //    }
 
-                if($row->options->options == []){
-                        array_push($priceids, ['order_id' => $order->id, 'price_id' => $row->options->price_id[0], 'qty' => $row->qty]);
-                }else{
+                if (!empty($row->options->price_id) && is_array($row->options->price_id)) {
+                    foreach ($row->options->price_id as $pId) {
+                        if (!empty($pId)) {
+                            array_push($priceids, ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty]);
+                        }
+                    }
+                } elseif (!empty($row->options->options) && is_iterable($row->options->options)) {
                     foreach ($row->options->options as $optionVal) {
-                        array_push($priceids, ['order_id' => $order->id, 'price_id' => $optionVal->id, 'qty' => (int)$row->qty]);
+                        $pId = is_object($optionVal) ? ($optionVal->id ?? null) : (is_array($optionVal) ? ($optionVal['id'] ?? ($optionVal['price_id'] ?? null)) : null);
+                        if ($pId) {
+                            array_push($priceids, ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty]);
+                        }
                     }
                 }
 
