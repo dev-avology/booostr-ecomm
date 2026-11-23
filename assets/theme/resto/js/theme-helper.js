@@ -456,7 +456,11 @@ $(document).on('click', '.add_to_cart', function() {
 
             $('.cart_subtotal').html(response.cart_subtotal);
             $('.cart_count').html(response.cart_count);
-            $('.cart_total').html(response.cart_total);
+            if ($('.cart_page').length > 0) {
+                $('.cart_total').html(response.cart_subtotal);
+            } else {
+                $('.cart_total').html(response.cart_total);
+            }
             $('.cart_tax').html(response.cart_tax);
 
             if (response.cart_content) {
@@ -503,7 +507,11 @@ $(document).on('click', '.remove_cart', function() {
         success: function(response) {
             $('.cart_count').html(response.cart_count);
             $('.cart_subtotal').text(response.cart_subtotal);
-            $('.cart_total').html(response.cart_total);
+            if ($('.cart_page').length > 0) {
+                $('.cart_total').html(response.cart_subtotal);
+            } else {
+                $('.cart_total').html(response.cart_total);
+            }
             $('.cart_tax').html(response.cart_tax);
 
             if (response.cart_content) {
@@ -691,7 +699,11 @@ function cartqty(cartId, qty) {
             $('.cart_subtotal').html(response.cart_subtotal);
            
             $('.cart_count').html(response.cart_count);
-            $('.cart_total').html(response.cart_total);
+            if ($('.cart_page').length > 0) {
+                $('.cart_total').html(response.cart_subtotal);
+            } else {
+                $('.cart_total').html(response.cart_total);
+            }
             $('.cart_tax').html(response.cart_tax);
             
             if (response.cart_content) {

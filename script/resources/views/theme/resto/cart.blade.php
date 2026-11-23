@@ -87,8 +87,8 @@
                                     <hr class="summary-divider">
 
                                     <div class="summary-row d-flex justify-content-between align-items-baseline mb-4">
-                                        <span class="summary-total-label">{{ __('Total') }}</span>
-                                        <span class="summary-total-value cart_total">{{ booostr_price(Cart::instance('default')->total()) }}</span>
+                                        <span class="summary-total-label">{{ __('Estimated Total') }}</span>
+                                        <span class="summary-total-value cart_total">{{ booostr_price(Cart::instance('default')->subtotal()) }}</span>
                                     </div>
 
                                     <div class="summary-actions">
@@ -627,5 +627,16 @@ window.amount_format = function(amount, type) {
     }
     return window.booostrFormatPrice(amount);
 };
+// Ensure Estimated Total on Cart page matches Subtotal (taxes/shipping calculated at checkout)
+$(document).ajaxSuccess(function(event, xhr, settings) {
+    if (settings.url && (settings.url.indexOf('/cart-qty') !== -1 || settings.url.indexOf('/remove-cart') !== -1 || settings.url.indexOf('/addtocart') !== -1)) {
+        try {
+            var res = typeof xhr.responseJSON === 'object' ? xhr.responseJSON : JSON.parse(xhr.responseText);
+            if (res && res.cart_subtotal !== undefined) {
+                $('.cart_total').html(window.booostrFormatPrice(res.cart_subtotal));
+            }
+        } catch(e) {}
+    }
+});
 </script>
 @endpush
