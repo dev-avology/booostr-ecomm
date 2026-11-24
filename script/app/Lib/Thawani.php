@@ -92,7 +92,6 @@ class Thawani
         ]);
         $response = curl_exec($curl);
         $err = curl_error($curl);
-        curl_close($curl);
         
         $response = json_decode($response, true);
 
@@ -174,8 +173,6 @@ class Thawani
         
         $response = curl_exec($curl);
         $err = curl_error($curl);
-
-        curl_close($curl);
         
         if ($err) {
           return $err;
@@ -216,8 +213,6 @@ class Thawani
         
         $response = curl_exec($curl);
         $err = curl_error($curl);
-
-        curl_close($curl);
         
         $arr = json_decode($response, true);
         if (array_key_exists('success', $arr) && $arr['success'] == true) {

@@ -438,7 +438,7 @@ class DataController extends Controller
     public function getproducts(Request $request)
     {
        
-        $with_paginate = (boolean)$request->with_paginate ?? false;
+        $with_paginate = (bool) $request->with_paginate ?? false;
         $limit = $request->limit ?? 12;
         $with=$request->with ?? '';
         $orderby=$request->orderby ?? 'DESC';
@@ -495,7 +495,7 @@ class DataController extends Controller
 
     public function getdiscountbleproducts($types=[])
     {
-        $with_paginate = (boolean)$types['with_paginate'] ?? false;
+        $with_paginate = (bool) $types['with_paginate'] ?? false;
         $limit = $types['limit'] ?? 12;
         $with=$types['with'] ?? '';
         $orderby=$types['orderby'] ?? 'DESC';
@@ -535,7 +535,7 @@ class DataController extends Controller
     public function getreviews($types=[])
     {
 
-        $with_paginate = (boolean)$types['with_paginate'] ?? false;
+        $with_paginate = (bool) $types['with_paginate'] ?? false;
         $limit = $types['limit'] ?? 12;
         $with=$types['with'] ?? '';
         $orderby=$types['orderby'] ?? 'DESC';

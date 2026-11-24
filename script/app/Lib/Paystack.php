@@ -113,7 +113,6 @@ class Paystack {
         $response = curl_exec($curl);
 
 		$err = curl_error($curl);
-        curl_close($curl);
         
 
 		if ($err) {
@@ -173,7 +172,6 @@ class Paystack {
         
         $response = curl_exec($curl);
         $err = curl_error($curl);
-        curl_close($curl);
         $arr = json_decode($response, true);
         if (array_key_exists('data', $arr)) {
             return $arr['data']['status'] === "success" ? 1 : 0;

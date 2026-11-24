@@ -212,7 +212,6 @@ class TenantSyncService
                 if (curl_errno($ch)) {
                     echo 'cURL error: ' . curl_error($ch);
                 }
-                curl_close($ch);
             }
 
            // dump("======Order Metadata=======");

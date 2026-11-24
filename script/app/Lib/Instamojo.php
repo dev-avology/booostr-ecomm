@@ -171,8 +171,7 @@ class Instamojo {
                             "Content-Type: application/json",
                             "X-Api-Key:".$api,
                             "X-Auth-Token:".$auth_token]);
-            $response = curl_exec($ch);
-            curl_close($ch); 
+            $response = curl_exec($ch); 
             $arr = json_decode($response, true);
             return $arr['success'] === true ? 1 : 0;
         } catch (\Throwable) {

@@ -19,7 +19,6 @@ class Resmushit
 		if (curl_errno($ch)) {
 			$result = curl_error($ch);
 		}
-		curl_close ($ch);
 
 		$arr_result = json_decode($result);
 		if ($arr_result == null) {

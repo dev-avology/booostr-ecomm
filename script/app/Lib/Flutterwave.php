@@ -174,8 +174,6 @@ class Flutterwave {
             ]);
 
             $response = curl_exec($curl);
-
-            curl_close($curl);
             $arr = json_decode($response, true);
             return $arr['status'] === "success" ? 1 : 0;
         } catch (\Throwable) {

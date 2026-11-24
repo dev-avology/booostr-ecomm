@@ -1046,8 +1046,6 @@ if (!function_exists('tenant_club_logo')) {
 
             $response = curl_exec($curl);
 
-            curl_close($curl);
-
             $result = json_decode($response, true);
 
             return $result['data'] ?? null;
@@ -1951,7 +1949,6 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
                 'error' => curl_error($ch),
             ]);
         }
-        curl_close($ch);
 
         return is_string($response) ? $response : null;
     }
@@ -2019,13 +2016,11 @@ if (!function_exists('ticket_email_qr_apply_logo_overlay')) {
 
             $logoData = @file_get_contents($clubLogo);
             if ($logoData === false) {
-                imagedestroy($qrImg);
                 return $pngBinary;
             }
 
             $logoSrc = @imagecreatefromstring($logoData);
             if ($logoSrc === false) {
-                imagedestroy($qrImg);
                 return $pngBinary;
             }
 
@@ -2056,12 +2051,9 @@ if (!function_exists('ticket_email_qr_apply_logo_overlay')) {
                 $crop
             );
 
-            imagedestroy($logoSrc);
-
             ob_start();
             imagepng($qrImg);
             $merged = ob_get_clean();
-            imagedestroy($qrImg);
 
             return $merged ?: $pngBinary;
         } catch (\Throwable $e) {

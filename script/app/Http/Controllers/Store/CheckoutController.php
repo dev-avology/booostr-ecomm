@@ -2815,8 +2815,6 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         
             $server_output[] = curl_exec($ch);
-        
-            curl_close($ch);
 
             ProductForm::find($form->id)->delete();
 
@@ -2860,7 +2858,6 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
         if (curl_errno($ch)) {
             \Log::error('cURL error in send_order_recipt: ' . curl_error($ch), ['url' => $url]);
         }
-        curl_close($ch);
         return $response;
     }
     

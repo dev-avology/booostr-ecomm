@@ -103,7 +103,6 @@ class ProductController extends Controller
                 echo 'JSON decoding error: ' . json_last_error_msg();
             }
         }
-        curl_close($ch);
 
         $forms = is_array($forms) ? []: json_decode($forms);
         return $forms; 

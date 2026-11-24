@@ -1104,7 +1104,6 @@ class OrderController extends Controller
         } elseif ($post_type === 'capture') {
             mark_financial_manager_capture_synced((int) $order->id);
         }
-        curl_close($ch);
         //Log::info($response);
       //  dump("=========ONLINE=============");
       //  dd($response);
@@ -1213,7 +1212,6 @@ class OrderController extends Controller
             } elseif ($post_type === 'capture') {
                 mark_financial_manager_capture_synced((int) $order->id);
             }
-            curl_close($ch);
             //Log::info($response);
         // dump("=========POS=============");
         // dd($response);

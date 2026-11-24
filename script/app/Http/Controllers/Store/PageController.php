@@ -347,7 +347,6 @@ class PageController extends Controller
             curl_setopt($ch, CURLOPT_TIMEOUT, 6);
             $response = curl_exec($ch);
             $hasError = curl_errno($ch);
-            curl_close($ch);
 
             if (!$hasError && !empty($response)) {
                 $responseData = json_decode($response, true);
@@ -414,7 +413,6 @@ class PageController extends Controller
                 $syncResponse = curl_exec($ch);
                 $curlError = curl_errno($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_close($ch);
 
                 if ($curlError || ($httpCode >= 400 && $httpCode < 600)) {
                     \Log::warning('Booostr contact sync HTTP warning: ' . $httpCode . ' Response: ' . $syncResponse);

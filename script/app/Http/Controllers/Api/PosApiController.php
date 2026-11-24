@@ -1059,7 +1059,6 @@ class PosApiController extends Controller
         } elseif ($post_type === 'capture') {
             mark_financial_manager_capture_synced((int) $order->id);
         }
-        curl_close($ch);
         //Log::info($response);
         // dd($response);
         return $response;
@@ -1248,7 +1247,6 @@ class PosApiController extends Controller
         if (curl_errno($ch)) {
             echo 'cURL error: ' . curl_error($ch);
         }
-        curl_close($ch);
         return $response;
     }
 
@@ -2513,7 +2511,6 @@ private function send_order_recipts($data){
     if (curl_errno($ch)) {
         echo 'cURL error: ' . curl_error($ch);
     }
-    curl_close($ch);
     return $response;
 }
 
