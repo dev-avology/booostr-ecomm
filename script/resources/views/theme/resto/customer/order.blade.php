@@ -177,49 +177,6 @@
 		text-align: right !important;
 		margin: 0 !important;
 	}
-
-	/* Item List Row & Content Layout */
-	.order-view-list .item-image {
-		display: flex !important;
-		align-items: flex-start !important;
-		gap: 14px !important;
-	}
-	.order-view-list .item-image img {
-		width: 52px !important;
-		height: 52px !important;
-		object-fit: cover !important;
-		border-radius: 6px !important;
-		border: 1px solid #e2e8f0 !important;
-		flex-shrink: 0 !important;
-	}
-	.order-view-list .item-image .content {
-		flex: 1 !important;
-		min-width: 0 !important;
-		top: 0 !important;
-	}
-	.order-view-list .item-image .content .title a {
-		font-size: 14.5px !important;
-		font-weight: 600 !important;
-		color: #0f172a !important;
-		line-height: 1.4 !important;
-	}
-	.order-view-list .item-image .content .title a:hover {
-		color: var(--primary, #0A8CDE) !important;
-	}
-	.order-view-list .order-item-variations {
-		margin-top: 4px !important;
-	}
-	.order-view-list .variation-item-row {
-		font-size: 12.5px !important;
-		line-height: 1.4 !important;
-		color: #64748b !important;
-		margin-top: 2px !important;
-	}
-	.order-view-list .variation-item-row strong {
-		color: #334155 !important;
-		font-weight: 600 !important;
-		text-transform: capitalize !important;
-	}
 </style>
 @endpush
 @section('content')
@@ -393,34 +350,23 @@ if ($info->payment_status == 1) {
 								<div class="row align-items-center">
 									<div class="col-lg-5 col-md-5 col-12">
 										<div class="item-image">
-											<img src="{{ asset($row->termwithpreview->preview->value ?? 'uploads/default.png') }}" alt="{{ $row->term->title ?? '' }}"/>
+											<img height="40" src="{{ asset($row->termwithpreview->preview->value ?? 'uploads/default.png') }}" alt="{{ $row->term->title ?? '' }}"/>
 											<div class="content">
 												<h3 class="title"><a href="{{ url('/product/'.$row->term->slug ?? '') }}">{{ $row->term->title ?? '' }}</a> </h3>
 
-												@if(!empty($options) && (is_array($options) || is_object($options)) && count((array)$options) > 0)
-													<div class="order-item-variations">
-														@foreach ($options as $key => $item)
-															@php
-																$optValues = [];
-																if (is_array($item) || is_object($item)) {
-																	foreach ($item as $r) {
-																		$valName = is_object($r) ? ($r->name ?? '') : (is_array($r) ? ($r['name'] ?? '') : (string)$r);
-																		if (!empty($valName)) {
-																			$optValues[] = $valName;
-																		}
-																	}
-																} elseif (is_scalar($item)) {
-																	$optValues[] = (string)$item;
-																}
-															@endphp
-															@if(count($optValues) > 0)
-																<div class="variation-item-row">
-																	<strong>{{ $key }}:</strong> {{ implode(', ', $optValues) }}
-																</div>
-															@endif
-														@endforeach
-													</div>
+												@foreach ($options ?? [] as $key => $item)
+
+												<span>{{ $key }}:</span><br>
+
+												@foreach($item ?? [] as $r)
+												<span>{{ __('Name:') }} {{ $r->name ?? '' }}</span><br>
+												@if($r->price > 0)
+												<span class="render_currency">{{ __('Price:') }} <span class="render_currency"> {{ number_format($r->price ?? 0,2) }}</span></span><br>
 												@endif
+
+												@endforeach
+												<hr>
+												@endforeach
 												<div class="rating-main" style="display: none !important;">
 													@php
 													$stars=0;

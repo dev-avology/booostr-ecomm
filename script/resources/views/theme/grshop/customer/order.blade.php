@@ -47,30 +47,19 @@ $ordermeta=json_decode($info->ordermeta->value ?? '');
 									<div class="content">
 										<h3 class="title"><a href="{{ url('/product/'.$row->term->slug ?? '') }}">{{ $row->term->title ?? '' }}</a> </h3>
 
-										@if(!empty($options) && (is_array($options) || is_object($options)) && count((array)$options) > 0)
-											<div class="order-item-variations">
-												@foreach ($options as $key => $item)
-													@php
-														$optValues = [];
-														if (is_array($item) || is_object($item)) {
-															foreach ($item as $r) {
-																$valName = is_object($r) ? ($r->name ?? '') : (is_array($r) ? ($r['name'] ?? '') : (string)$r);
-																if (!empty($valName)) {
-																	$optValues[] = $valName;
-																}
-															}
-														} elseif (is_scalar($item)) {
-															$optValues[] = (string)$item;
-														}
-													@endphp
-													@if(count($optValues) > 0)
-														<div class="variation-item-row" style="font-size: 13px; color: #64748b; margin-top: 2px;">
-															<strong style="color: #334155; text-transform: capitalize;">{{ $key }}:</strong> {{ implode(', ', $optValues) }}
-														</div>
-													@endif
-												@endforeach
-											</div>
+										@foreach ($options ?? [] as $key => $item)
+
+										<span>{{ $key }}:</span><br>
+
+										@foreach($item ?? [] as $r)
+										<span>{{ __('Name:') }} {{ $r->name ?? '' }}</span><br>
+										@if($r->price > 0)
+										<span class="render_currency">{{ __('Price:') }} <span class="render_currency"> {{ number_format($r->price ?? 0,2) }}</span></span><br>
 										@endif
+
+										@endforeach
+										<hr>
+										@endforeach
 										<div class="rating-main">
 											@php
 											$stars=0;
