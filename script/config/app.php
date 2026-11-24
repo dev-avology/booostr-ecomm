@@ -177,11 +177,12 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\TenancyServiceProvider::class,
-        Spatie\Permission\PermissionServiceProvider::class,
-        Barryvdh\DomPDF\ServiceProvider::class,
-        Intervention\Image\ImageServiceProvider::class,
-        Milon\Barcode\BarcodeServiceProvider::class,
-        Artesaos\SEOTools\Providers\SEOToolsServiceProvider::class,
+        // Package Service Providers (auto-discovered by Laravel 11)
+        // Spatie\Permission\PermissionServiceProvider::class,
+        // Barryvdh\DomPDF\ServiceProvider::class,
+        // Intervention\Image\Laravel\ServiceProvider::class,
+        // Milon\Barcode\BarcodeServiceProvider::class,
+        // Artesaos\SEOTools\Providers\SEOToolsServiceProvider::class,
         
        
         
