@@ -11,6 +11,6 @@ class PageController extends Controller
     {
         $page = Term::with('pagecontent')->where('slug',$slug)->first();
         abort_if(empty($page),404);
-        return view('page',compact('page'));
+        return view('page',['page' => $page]);
     }
 }

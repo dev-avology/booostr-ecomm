@@ -51,7 +51,7 @@ class ProductImport implements ToCollection
            $posts_count++;
 
               DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
             
         }  

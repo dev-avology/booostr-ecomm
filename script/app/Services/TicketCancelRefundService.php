@@ -39,7 +39,7 @@ class TicketCancelRefundService
         }
 
         $gateway = Getway::where('status', '!=', 0)
-            ->where('namespace', 'App\Lib\Stripe')
+            ->where('namespace', \App\Lib\Stripe::class)
             ->first();
 
         if (!$gateway) {
@@ -109,7 +109,7 @@ class TicketCancelRefundService
         ?array $amounts = null,
         array $overrides = []
     ): void {
-        $amounts = $amounts ?? $this->resolveTicketAmounts($orderItem);
+        $amounts ??= $this->resolveTicketAmounts($orderItem);
 
         if (isset($overrides['refund_amount'])) {
             $amounts['refund_amount'] = (float) $overrides['refund_amount'];

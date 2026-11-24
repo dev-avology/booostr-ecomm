@@ -21,7 +21,7 @@ class OrderController extends Controller
     public function makeOrder(Request $request)
     {
        
-        if (count(Cart::content()) == 0) {
+        if (count(Cart::content()) === 0) {
             return redirect('/checkout');
         } 
 
@@ -105,7 +105,7 @@ class OrderController extends Controller
 
        $total_amount=str_replace(',','',Cart::total());
        $total_discount=str_replace(',','',Cart::discount());
-       $total_amount=$total_amount+$shipping_price;
+       $total_amount += $shipping_price;
 
        $gateway=Getway::where('status',1)->findOrFail($request->payment_method);
 
@@ -149,13 +149,13 @@ class OrderController extends Controller
 
             foreach ($row->options->price_id ?? [] as $key => $r) {
 
-                array_push($priceids,['order_id'=>$order->id,'price_id'=>$r,'qty'=>$row->qty]);
+                $priceids[] = ['order_id'=>$order->id,'price_id'=>$r,'qty'=>$row->qty];
             }
 
             $data['qty']=$row->qty;
             $data['amount']=$row->price;
-            $total_weight=$total_weight+$row->weight;
-            array_push($oder_items,$data);
+            $total_weight += $row->weight;
+            $oder_items[] = $data;
         }
 
 
@@ -197,14 +197,14 @@ class OrderController extends Controller
         }
 
         
-        if (count($priceids) != 0) {
+        if (count($priceids) !== 0) {
             $order->orderstockitems()->insert($priceids);
         }
 
             DB::commit();
 
             trigger_product_sales_crm_sync_after_order($order->id);
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
             
             $errors['errors']['error']='Oops something wrong';

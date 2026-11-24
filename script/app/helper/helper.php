@@ -48,11 +48,9 @@ function getCouponCode(){
     ]);
 
 	if($response->successful()){
-		$info = $response->json();
-	}else{
-		$info = [];
+		return $response->json();
 	}
-	return $info;
+	return [];
  }
 
 
@@ -109,15 +107,11 @@ function getautoloadquery()
 			return $data ?? [];
 		});
 	}
-	else{
-		$queries=Option::where('autoload',1)->get();
-
-		foreach ($queries as $key => $row) {
+    $queries=Option::where('autoload',1)->get();
+    foreach ($queries as $key => $row) {
 			$data[$row->key]=$row->value;
 		}
-
-		return $data ?? [];
-	}
+    return $data ?? [];
 	 
 	 
 }
@@ -131,10 +125,8 @@ function optionfromcache($key)
 		});
 		
 	}
-	else{
-		$option=\App\Models\Option::where('key',$key)->first();
-		return json_decode($option->value ?? '');
-	}
+    $option=\App\Models\Option::where('key',$key)->first();
+    return json_decode($option->value ?? '');
 	
 	
 }
@@ -225,7 +217,7 @@ function get_product_purchase_warnings($product): array
 
     try {
         $product->loadMissing(['price', 'prices']);
-    } catch (\Throwable $e) {
+    } catch (\Throwable) {
         // Keep warnings limited to draft if price relations cannot load.
     }
 
@@ -234,18 +226,12 @@ function get_product_purchase_warnings($product): array
     if ($isVariation) {
         $prices = $product->prices ?? collect();
         if ($prices && $prices->isNotEmpty()) {
-            $isOutOfStock = $prices->every(function ($price) {
-                return (int) ($price->stock_status ?? 1) === 0;
-            });
+            $isOutOfStock = $prices->every(fn($price) => (int) ($price->stock_status ?? 1) === 0);
 
-            $managedPrices = $prices->filter(function ($price) {
-                return (int) ($price->stock_manage ?? 0) === 1;
-            });
+            $managedPrices = $prices->filter(fn($price) => (int) ($price->stock_manage ?? 0) === 1);
 
             if ($managedPrices->isNotEmpty()) {
-                $isZeroInventory = $managedPrices->every(function ($price) {
-                    return (int) ($price->qty ?? 0) <= 0;
-                });
+                $isZeroInventory = $managedPrices->every(fn($price) => (int) ($price->qty ?? 0) <= 0);
             }
         }
     } else {
@@ -307,7 +293,7 @@ function ThemeMenu($position,$path){
 			return $data;
 		});
 	
-	return view($path.'.parent',compact('menus'));
+	return view($path.'.parent',['menus' => $menus]);
 }
 function ThemeFooterMenu($position,$path){
 	
@@ -321,7 +307,7 @@ function ThemeFooterMenu($position,$path){
 			$data['name'] = $menus->name ?? '';
 			return $data;
 		});
-	return view($path.'.parent',compact('menus'));
+	return view($path.'.parent',['menus' => $menus]);
 }
 
 function getpermission($role)
@@ -332,14 +318,9 @@ function getpermission($role)
 	$arr=[];
 
 	foreach($permissions as $row){
-		array_push($arr,$row);
+		$arr[] = $row;
 	}
-	
-
-	if (in_array($role,$arr)) {
-		return true;
-	}
-	return false;
+    return in_array($role,$arr);
 
 
 
@@ -487,7 +468,7 @@ function input($array = [])
 	else{
 		$required = false;
 	}
-	return view('components.input',compact('title','step','max_input','min_input','type','placeholder','name','id','value','required'));
+	return view('components.input',['title' => $title, 'step' => $step, 'max_input' => $max_input, 'min_input' => $min_input, 'type' => $type, 'placeholder' => $placeholder, 'name' => $name, 'id' => $id, 'value' => $value, 'required' => $required]);
 }
 
 function textarea($array = [])
@@ -502,7 +483,7 @@ function textarea($array = [])
 	$class=$array['class'] ?? '';
 	$value=$array['value'] ?? '';
 	$is_required=$array['is_required'] ?? false;
-	return view('components.textarea',compact('title','placeholder','name','id','value','is_required','class','cols','rows','maxlength'));
+	return view('components.textarea',['title' => $title, 'placeholder' => $placeholder, 'name' => $name, 'id' => $id, 'value' => $value, 'is_required' => $is_required, 'class' => $class, 'cols' => $cols, 'rows' => $rows, 'maxlength' => $maxlength]);
 }
 
 function editor($array = [])
@@ -515,7 +496,7 @@ function editor($array = [])
 	$class=$array['class'] ?? '';
 	$value=$array['value'] ?? '';
 
-	return view('components.editor',compact('title','name','id','value','class','cols','rows'));
+	return view('components.editor',['title' => $title, 'name' => $name, 'id' => $id, 'value' => $value, 'class' => $class, 'cols' => $cols, 'rows' => $rows]);
 }
 
 function publish($array = [])
@@ -524,7 +505,7 @@ function publish($array = [])
 	$button_text=$array['button_text'] ?? 'Save';
 	$class=$array['class'] ?? '';
 	$id=$array['id'] ?? '';
-	return view('components.publish',compact('title','button_text','class','id'));
+	return view('components.publish',['title' => $title, 'button_text' => $button_text, 'class' => $class, 'id' => $id]);
 }
 
 function mediasection($array = [],$blade_name="section1")
@@ -536,7 +517,7 @@ function mediasection($array = [],$blade_name="section1")
 	$input_class=$array['input_class'] ?? 'input_image';
 	$input_name=$array['input_name'] ?? 'preview';
 	$value=$array['value'] ?? '';
-	return view('components.media.'.$blade_name,compact('title','preview_class','preview','input_id','input_class','input_name','value'));
+	return view('components.media.'.$blade_name,['title' => $title, 'preview_class' => $preview_class, 'preview' => $preview, 'input_id' => $input_id, 'input_class' => $input_class, 'input_name' => $input_name, 'value' => $value]);
 }
 
 function mediasectionmulti($array = [],$blade_name="multimediasection1")
@@ -550,7 +531,7 @@ function mediasectionmulti($array = [],$blade_name="multimediasection1")
 	$area_id=$array['area_id'] ?? 'gallary-img';
 	$value=$array['value'] ?? [];
 	$preview_class=$array['preview_class'] ?? 'multi_gallery';
-	return view('components.media.'.$blade_name,compact('title','preview_class','preview_id','preview','input_id','input_class','input_name','value','area_id'));
+	return view('components.media.'.$blade_name,['title' => $title, 'preview_class' => $preview_class, 'preview_id' => $preview_id, 'preview' => $preview, 'input_id' => $input_id, 'input_class' => $input_class, 'input_name' => $input_name, 'value' => $value, 'area_id' => $area_id]);
 }
 
 
@@ -585,7 +566,7 @@ function AdminCategoryUpdate($type,$arr = []){
 
 
 function content_format($data){
-	return view('components.content',compact('data'));
+	return view('components.content',['data' => $data]);
 }
 
 
@@ -756,9 +737,10 @@ function credit_card_fee($total){
 function credit_card_fee_for_pos($total,$payment_identifiers){
 	if($payment_identifiers == 'card'){
 		return number_format($total * 0.029 + 0.30,2);
-	}else{
-		return number_format($total * 0.027 + 0.05,2); // 2.7% + $0.05 for POS/terminal
 	}
+    return number_format($total * 0.027 + 0.05,2);
+    // 2.7% + $0.05 for POS/terminal
+
 }
 
 
@@ -774,12 +756,10 @@ function tenant_club_is_pro(){
 
 	if ($response->successful()) {
 	    $result = $response->json();
-		$club_info = isset($result['data']['is_pro']) ? $result['data']['is_pro']: false;
-	} else {
-		$club_info = false;
+		return $result['data']['is_pro'] ?? false;
 	}
 
-	return $club_info;
+	return false;
 }
 
 
@@ -795,12 +775,10 @@ function tenant_club_pro_live_info(){
 
 	if ($response->successful()) {
 	    $result = $response->json();
-		$club_info = $result['data'];
-	} else {
-		$club_info = false;
+		return $result['data'];
 	}
 
-	return $club_info;
+	return false;
 }
 
 
@@ -819,19 +797,19 @@ function booster_club_chagre($total){
 
 function postlimitcheck($type = true){
 	if ($type == true) {
-		if ((int)tenant('post_limit') != -1) {
+		if ((int)tenant('post_limit') !== -1) {
 			$category=Category::count();
 		    $term=Term::count();
 		    $total_count=$category+$term;
 
-		    (int)tenant('post_limit') <= $total_count ? $status= false : $status= true;
+		    $status = (int)tenant('post_limit') > $total_count;
 
 		    return $status;
 		}
 		return true;
    }
 	
-   	if ((int)tenant('post_limit') == -1) {
+   	if ((int)tenant('post_limit') === -1) {
    		return 99999999;
    	}
 
@@ -841,6 +819,7 @@ function postlimitcheck($type = true){
 		$total_count=$category+$term;
 		return $total_count;
 	}
+    return null;
 
 }
 
@@ -862,11 +841,7 @@ function postlimitcheck($type = true){
 	$address['post_code'] = $decode_address->post_code ?? '';
 	$address['store_legal_email'] = $decode_address->store_legal_email ?? '';
 
-	if(empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) ||empty($address['post_code'])){
-		return true;
-	}else{
-		return false;
-	}
+	return empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) ||empty($address['post_code']);
 }
 
 function showAddressTaxError(){
@@ -890,14 +865,8 @@ function showAddressTaxError(){
 	$tax=Option::where('key','tax')->first();
     $tax = $tax->value ?? '';
 
-	if (
-		(empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) || empty($address['post_code']) || empty($address['store_legal_phone']))
-		|| ((empty($tax) || ($tax=='0') || ($tax == '0.000%') || ($tax == '0.') || $tax == null))
-	) {
-		return true;
-	} else {
-		return false;
-	}
+	return (empty($address['store_legal_address']) || empty($address['store_legal_city']) || empty($address['country']) || empty($address['state']) || empty($address['post_code']) || empty($address['store_legal_phone']))
+		|| ((empty($tax) || ($tax=='0') || ($tax == '0.000%') || ($tax == '0.') || $tax == null));
 
 	// && (empty($tax) || ($tax == '0.000%') || ($tax == null)
 }
@@ -972,7 +941,7 @@ function userChecklist(){
 	}
 
 	$free_shipping=Option::where('key','free_shipping')->first() ;
-    $free_shipping = $free_shipping ?? '';
+    $free_shipping ??= '';
 
 	if (empty($shipping_method)) {
 		$checkList['free_shipping'] = 0;
@@ -1314,12 +1283,12 @@ if (!function_exists('get_order_payment_intent_id')) {
             if ($dedicatedMeta && !empty($dedicatedMeta->value)) {
                 return (string) $dedicatedMeta->value;
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Table/connection safeguard
         }
 
         // 4. From transaction_id if it is a Stripe PaymentIntent ID (pi_...)
-        if (!empty($order->transaction_id) && strpos($order->transaction_id, 'pi_') === 0) {
+        if (!empty($order->transaction_id) && str_starts_with($order->transaction_id, 'pi_')) {
             return (string) $order->transaction_id;
         }
 
@@ -1331,14 +1300,14 @@ if (!function_exists('get_order_payment_intent_id')) {
                 ->first();
             if ($transMeta && !empty($transMeta->value)) {
                 $transVal = is_array($transMeta->value) ? $transMeta->value : (json_decode((string) $transMeta->value, true) ?: []);
-                if (!empty($transVal['payment_intent']) && is_string($transVal['payment_intent']) && strpos($transVal['payment_intent'], 'pi_') === 0) {
+                if (!empty($transVal['payment_intent']) && is_string($transVal['payment_intent']) && str_starts_with($transVal['payment_intent'], 'pi_')) {
                     return (string) $transVal['payment_intent'];
                 }
-                if (!empty($transVal['id']) && is_string($transVal['id']) && strpos($transVal['id'], 'pi_') === 0) {
+                if (!empty($transVal['id']) && is_string($transVal['id']) && str_starts_with($transVal['id'], 'pi_')) {
                     return (string) $transVal['id'];
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Table/connection safeguard
         }
 
@@ -1453,7 +1422,7 @@ if (!function_exists('resolve_order_fee_breakdown')) {
             }
         }
 
-        if ($creditCardFee == 0 && $boosterPlatformFee == 0 && !empty($ordermeta)) {
+        if ($creditCardFee == 0 && $boosterPlatformFee == 0 && $ordermeta !== []) {
             $creditCardFee = (float) ($ordermeta['credit_card_fee'] ?? 0);
             $boosterPlatformFee = (float) ($ordermeta['booster_platform_fee'] ?? 0);
             $coverFee = (float) ($ordermeta['cover_fee'] ?? 0);
@@ -1736,7 +1705,7 @@ if (!function_exists('financial_manager_partial_refund_detail')) {
 
         // Match order-details UI: item refunds wrap labels as "(1 x Product)", dollar refunds show plain title(s).
         $displayLabels = $labels;
-        if (!$isDollar && !empty($labels)) {
+        if (!$isDollar && $labels !== []) {
             $displayLabels = ['(' . implode(', ', $labels) . ')'];
         }
 
@@ -2001,7 +1970,7 @@ if (!function_exists('sync_order_partial_refunds_to_financial_manager')) {
         }
 
         $entries = get_order_partial_refund_log_entries($orderId);
-        if (empty($entries)) {
+        if ($entries === []) {
             return 0;
         }
 
@@ -2229,7 +2198,7 @@ if (!function_exists('is_ticket_product_term')) {
 if (!function_exists('ticket_stored_price_to_seller_base')) {
     function ticket_stored_price_to_seller_base(float $storedPrice, ?float $fee = null): float
     {
-        $fee = $fee ?? default_ticket_service_fee();
+        $fee ??= default_ticket_service_fee();
         $base = $storedPrice - $fee;
 
         return $base < 0 ? 0.0 : round($base, 2);
@@ -2240,7 +2209,7 @@ if (!function_exists('ticket_stored_price_to_seller_base')) {
 if (!function_exists('ticket_seller_base_to_stored_price')) {
     function ticket_seller_base_to_stored_price(float $basePrice, ?float $fee = null): float
     {
-        $fee = $fee ?? default_ticket_service_fee();
+        $fee ??= default_ticket_service_fee();
 
         return round($basePrice + $fee, 2);
     }
@@ -2266,7 +2235,7 @@ if (!function_exists('get_tenant_timezone')) {
                     $selectedTimezone = trim((string) $option->value);
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Safe fallback if tenant DB is not reachable
         }
 
@@ -2298,7 +2267,7 @@ if (!function_exists('get_tenant_timezone')) {
             try {
                 new \DateTimeZone($selectedTimezone);
                 return $selectedTimezone;
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 // Invalid timezone string
             }
         }
@@ -2307,7 +2276,7 @@ if (!function_exists('get_tenant_timezone')) {
             try {
                 new \DateTimeZone($fallback);
                 return $fallback;
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
             }
         }
 
@@ -2336,7 +2305,7 @@ if (!function_exists('tenant_time')) {
         $tz = $timezone ?: get_tenant_timezone();
 
         try {
-            if ($date === null || $date === '' || $date === 'now') {
+            if (in_array($date, [null, '', 'now'], true)) {
                 $carbon = \Carbon\Carbon::now($tz);
             } elseif ($date instanceof \Carbon\Carbon) {
                 $carbon = $date->copy()->setTimezone($tz);
@@ -2347,7 +2316,7 @@ if (!function_exists('tenant_time')) {
             } else {
                 $carbon = \Carbon\Carbon::parse($date)->setTimezone($tz);
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             $carbon = \Carbon\Carbon::now($tz);
         }
 

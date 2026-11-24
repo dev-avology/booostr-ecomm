@@ -24,7 +24,7 @@ class LocationController extends Controller
           $posts=  $posts->where('name','LIKE','%'.$request->src.'%');
         }
         $posts=$posts->paginate(20);
-        return view("seller.location.index",compact('posts','request'));
+        return view("seller.location.index",['posts' => $posts, 'request' => $request]);
     }
 
     /**
@@ -48,10 +48,10 @@ class LocationController extends Controller
     {
          abort_if(!getpermission('website_settings'),401);
         
-        if ((int)tenant('post_limit') != -1) {
+        if ((int)tenant('post_limit') !== -1) {
              $count=postlimitcheck(false);
              $locations=Location::count();
-             $count=$count+$locations;
+             $count += $locations;
              if ((int)tenant('post_limit') <= $count) {
                 $errors['errors']['error']='Maximum post limit exceeded';
                 return response()->json($errors,401);
@@ -103,7 +103,7 @@ class LocationController extends Controller
     {
          abort_if(!getpermission('website_settings'),401);
         $info=Location::findorFail($id);
-        return view("seller.location.edit",compact('info'));
+        return view("seller.location.edit",['info' => $info]);
     }
 
     /**

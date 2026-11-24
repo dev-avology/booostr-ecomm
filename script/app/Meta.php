@@ -10,7 +10,7 @@ class Meta extends Model
     public $timestamps = false;
     public function term()
     {
-    	return $this->hasOne('App\Terms','id','term_id');
+    	return $this->hasOne(\App\Terms::class,'id','term_id');
     }
 
 

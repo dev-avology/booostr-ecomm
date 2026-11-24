@@ -61,10 +61,9 @@ class BarcodeController extends Controller
             
 
             return response()->json(['barcodes'=>$barcodes,'currency'=>$currency]);
-        }else{
-            $error['errors']['barcode']='Oops! Please Add Some Product.';
-            return response()->json($error,422);
         }
+        $error['errors']['barcode']='Oops! Please Add Some Product.';
+        return response()->json($error,422);
     }
 
     

@@ -28,10 +28,9 @@ class AdminController extends Controller
             $domains=Domain::where('status',2)->latest()->take(20)->get();
             $orders=Order::with('plan', 'getway', 'user','orderlog')->latest()->take(20)->get();
             $funds = Deposit::with('user')->latest()->paginate(20);
-            return view('admin.dashboard',compact('recent_expired','domains','orders','funds'));
-        }else{
-            abort(401);
+            return view('admin.dashboard',['recent_expired' => $recent_expired, 'domains' => $domains, 'orders' => $orders, 'funds' => $funds]);
         }
+        abort(401);
     }
     /**
      * Display a listing of the resource.
@@ -42,7 +41,7 @@ class AdminController extends Controller
     {
         if (Auth()->user()->can('admin.list')) {
             $users = User::where('role_id',1)->where('id','!=',1)->latest()->get();
-            return view('admin.admin.index', compact('users'));
+            return view('admin.admin.index', ['users' => $users]);
         }
     }
 
@@ -59,7 +58,7 @@ class AdminController extends Controller
     {
         if (Auth()->user()->can('admin.create')) {
             $roles  = Role::all();
-            return view('admin.admin.create', compact('roles'));
+            return view('admin.admin.create', ['roles' => $roles]);
         }
     }
 
@@ -117,7 +116,7 @@ class AdminController extends Controller
         if (Auth()->user()->can('admin.edit')) {
             $user = User::find($id);
             $roles  = Role::all();
-            return view('admin.admin.edit', compact('user', 'roles'));
+            return view('admin.admin.edit', ['user' => $user, 'roles' => $roles]);
         }
     }
 

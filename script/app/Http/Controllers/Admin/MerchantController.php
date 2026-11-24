@@ -54,7 +54,7 @@ class MerchantController extends Controller
         }
 
         $data=$data->paginate(20);
-        return view('admin.merchant.index', compact('data', 'active', 'inactive', 'all','request'));
+        return view('admin.merchant.index', ['data' => $data, 'active' => $active, 'inactive' => $inactive, 'all' => $all, 'request' => $request]);
     }
 
     /**
@@ -90,13 +90,13 @@ class MerchantController extends Controller
             $obj->password = Hash::make($request->password);
             $obj->name = $request->name;
             $obj->email = $request->email;
-            $obj->status = isset($request->status) ? $request->status : 1;
+            $obj->status = $request->status ?? 1;
             $obj->role_id = 2;
             $obj->save();
            
             DB::commit();
             return response()->json('Partner Created Successfully');
-        } catch (Exception $e) {
+        } catch (Exception) {
             DB::rollback();
         }
 
@@ -117,7 +117,7 @@ class MerchantController extends Controller
         $data = User::withCount('tenant','orders','supports','active_orders')->withSum('orders','price')->where('role_id',2)->findOrFail($id);
         $orders = Order::with('plan', 'getway','orderlog')->where('user_id',$id)->latest()->paginate(30);
         $tenants=[];//Tenant::where('user_id',$id)->withCount('domains')->latest()->get();
-        return view('admin.merchant.show', compact('data','orders','tenants'));
+        return view('admin.merchant.show', ['data' => $data, 'orders' => $orders, 'tenants' => $tenants]);
     }
 
     /**
@@ -130,7 +130,7 @@ class MerchantController extends Controller
     {
         abort_if(!Auth()->user()->can('merchant.edit'), 401);
         $data = User::where('role_id',2)->findOrFail($id);
-        return view('admin.merchant.edit', compact('data'));
+        return view('admin.merchant.edit', ['data' => $data]);
     }
 
     /**
@@ -160,9 +160,8 @@ class MerchantController extends Controller
         $success = $obj->save();
         if ($success) {
             return response()->json('Partner Info Updated Successfully');
-        } else {
-            return response()->json('System Error');
         }
+        return response()->json('System Error');
     }
 
     public function login($id)
@@ -211,7 +210,7 @@ class MerchantController extends Controller
     }
 
 
-    function uniqkeyuser($column){  
+    public function uniqkeyuser($column){  
         $str = Str::random(16);
         $check = User::where($column, $str)->first();
         if($check == true){

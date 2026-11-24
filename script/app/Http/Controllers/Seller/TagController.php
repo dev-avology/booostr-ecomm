@@ -23,7 +23,7 @@ class TagController extends Controller
           $posts=  $posts->where('name','LIKE','%'.$request->src.'%');
         }
         $posts=$posts->paginate(20);
-        return view("seller.tag.index",compact('posts','request'));
+        return view("seller.tag.index",['posts' => $posts, 'request' => $request]);
 
     }
 
@@ -130,7 +130,7 @@ class TagController extends Controller
     {
         abort_if(!getpermission('products'),401);
         $info=Category::where('type','tag')->findorFail($id);
-        return view("seller.tag.edit",compact('info'));
+        return view("seller.tag.edit",['info' => $info]);
     }
 
     /**

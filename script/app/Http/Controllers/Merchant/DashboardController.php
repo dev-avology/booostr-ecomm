@@ -18,7 +18,7 @@ class DashboardController extends Controller
     public function index()
     {
         $orders = Order::where([['user_id', Auth::id()],['price','>',0]])->with('plan','orderlog')->latest()->take(5)->get();
-        return view('merchant.dashboard',compact('orders'));
+        return view('merchant.dashboard',['orders' => $orders]);
     }
 
     public function staticData()
@@ -35,15 +35,7 @@ class DashboardController extends Controller
         $data['fund']=number_format(Auth::user()->amount,2);
 
         $date= Carbon::now()->addDays(15)->format('Y-m-d');
-        $data['upcoming_renewals']=Tenant::where([['status',1],['will_expire','<=',$date]])->where('user_id',Auth::id())->latest()->take(5)->with('orderwithplan')->get()->map(function($q){
-            $data['id']=$q->id;
-            $data['will_expire']=$q->will_expire;
-            $data['invoice_no']=$q->orderwithplan->invoice_no ?? '';
-            $data['plan']=$q->orderwithplan->plan->name ?? '';
-            $data['renew_plan']=$q->orderwithplan->plan_id ?? '';
-
-            return $data;
-        });
+        $data['upcoming_renewals']=Tenant::where([['status',1],['will_expire','<=',$date]])->where('user_id',Auth::id())->latest()->take(5)->with('orderwithplan')->get()->map(fn($q) => ['id' => $q->id, 'will_expire' => $q->will_expire, 'invoice_no' => $q->orderwithplan->invoice_no ?? '', 'plan' => $q->orderwithplan->plan->name ?? '', 'renew_plan' => $q->orderwithplan->plan_id ?? '']);
         $data['upcoming_renewal_count']=Tenant::where([['status',1],['will_expire','<=',$date]])->where('user_id',Auth::id())->latest()->count();
 
         return response()->json($data);

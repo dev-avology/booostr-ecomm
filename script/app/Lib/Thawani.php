@@ -15,18 +15,16 @@ class Thawani
     {
         if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['success_url']);
-        }else{
-            return url('partner/payment/success');
         }
+        return url('partner/payment/success');
     }
 
     public static function redirect_if_payment_faild()
     {
        if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['cancel_url']);
-        }else{
-            return url('partner/payment/failed');
         }
+       return url('partner/payment/failed');
     }
 
     public static function fallback()
@@ -101,7 +99,7 @@ class Thawani
         if (array_key_exists('success', $response) && $response['success'] == true) {
             $session_id = $response['data']['session_id'];
             $data['response'] = $response;
-            if ($test_mode == true) {
+            if ($test_mode === true) {
                 $url = "https://uatcheckout.thawani.om/pay/" . $session_id . "?key=" . $array['publishable_key'];
             } else {
                 $url = "https://checkout.thawani.om/pay/" . $session_id . "?key=" . $array['publishable_key'];
@@ -144,12 +142,11 @@ class Thawani
             Session::forget('thawani_credentials');
             Session::put('payment_info', $data);
             return redirect(thawani::redirect_if_payment_success());
-        } else {
-            $data['payment_status'] = 0;  
-            Session::put('payment_info',$data); 
-            Session::forget('thawani_credentials');
-            return redirect(thawani::redirect_if_payment_faild());
         }
+        $data['payment_status'] = 0;
+        Session::put('payment_info',$data);
+        Session::forget('thawani_credentials');
+        return redirect(thawani::redirect_if_payment_faild());
     }
 
     private function getResponse($test_mode, $invoice_id, $api_key){
@@ -182,9 +179,8 @@ class Thawani
         
         if ($err) {
           return $err;
-        } else {
-          return $response;
         }
+        return $response;
     }
 
 
@@ -226,11 +222,10 @@ class Thawani
         $arr = json_decode($response, true);
         if (array_key_exists('success', $arr) && $arr['success'] == true) {
             return 1;
-        }else{
-            return 0;
         }
+        return 0;
                  
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             return 0;
         }
         

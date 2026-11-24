@@ -35,12 +35,9 @@ class Usermiddleware
 
             return $next($request);
         }
-        else{
-           \Session::flash('error','Oops your account is disabled please contact with support');
-
-           Auth::logout();
-           return redirect('/login');
-        }
+        \Session::flash('error','Oops your account is disabled please contact with support');
+        Auth::logout();
+        return redirect('/login');
         
     }
 }

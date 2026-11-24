@@ -28,7 +28,7 @@ class MenuController extends Controller
         $menus = Menu::latest()->get();
         $langs = get_option('active_languages',true);
 
-        return view('admin.menu.create', compact('menus', 'langs'));
+        return view('admin.menu.create', ['menus' => $menus, 'langs' => $langs]);
     }
 
     /**
@@ -79,7 +79,7 @@ class MenuController extends Controller
         }
         $info = Menu::findOrFail($id);
 
-        return view('admin.menu.index', compact('info'));
+        return view('admin.menu.index', ['info' => $info]);
     }
     /*
     update menus json row in  menus table
@@ -106,7 +106,7 @@ class MenuController extends Controller
 
         $langs = Language::get();
         $info = Menu::find($id);
-        return view('admin.menu.edit', compact('info', 'langs'));
+        return view('admin.menu.edit', ['info' => $info, 'langs' => $langs]);
     }
 
     /**

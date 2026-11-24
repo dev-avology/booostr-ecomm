@@ -20,7 +20,7 @@ class PlanController extends Controller
        abort_if(!Auth()->user()->can('plan.index'),401);
        
        $posts=Plan::query()->withCount('active_users')->withCount('orders')->latest()->get();
-       return view('admin.plan.index',compact('posts'));
+       return view('admin.plan.index',['posts' => $posts]);
     }
 
     /**
@@ -33,7 +33,7 @@ class PlanController extends Controller
         abort_if(!Auth()->user()->can('plan.create'),401);
         $plan_object= new  Plan;
         $features=$plan_object->plandata;
-        return view('admin.plan.create',compact('features'));
+        return view('admin.plan.create',['features' => $features]);
     }
 
     public function settings()
@@ -51,7 +51,7 @@ class PlanController extends Controller
         $currency_symbol=Option::where('key','currency_symbol')->first();
 
        
-        return view('admin.plan.settings',compact('currency','plan_renewal_massege','cron_option','currency_symbol','tax'));
+        return view('admin.plan.settings',['currency' => $currency, 'plan_renewal_massege' => $plan_renewal_massege, 'cron_option' => $cron_option, 'currency_symbol' => $currency_symbol, 'tax' => $tax]);
     }
 
     public function settingsUpdate(Request $request, $type)
@@ -146,7 +146,7 @@ class PlanController extends Controller
     public function show($id)
     {
         $orders = Order::with('plan', 'getway', 'user','orderlog')->where('plan_id',$id)->latest()->paginate(30);
-        return view('admin.plan.show',compact('orders'));
+        return view('admin.plan.show',['orders' => $orders]);
 
     }
 
@@ -163,7 +163,7 @@ class PlanController extends Controller
         $data=json_decode($info->data ?? '');
         $plan_object= new  Plan;
         $features=$plan_object->plandata;
-        return view('admin.plan.edit',compact('info','data','features'));
+        return view('admin.plan.edit',['info' => $info, 'data' => $data, 'features' => $features]);
     }
 
     /**

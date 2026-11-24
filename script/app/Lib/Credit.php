@@ -47,7 +47,7 @@ class Credit {
         
         $user=User::findorFail(Auth::id());
         if ($user->amount >= $info['main_amount']) {
-            $user->amount=$user->amount-$info['main_amount'];
+            $user->amount -= $info['main_amount'];
             $user->save();
             $data['payment_id'] = Credit::generateString();           
             $data['payment_method'] = "credit";
@@ -82,7 +82,7 @@ class Credit {
         if ($payment == 0) {
             return $str;
         }
-        return $this->generateString();
+        return static::generateString();
     }
 
 }

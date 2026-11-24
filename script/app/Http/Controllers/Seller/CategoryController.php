@@ -24,7 +24,7 @@ class CategoryController extends Controller
           $posts=  $posts->where('name','LIKE','%'.$request->src.'%');
         }
         $posts=$posts->latest()->paginate(20);
-        return view("seller.category.index",compact('posts','request'));
+        return view("seller.category.index",['posts' => $posts, 'request' => $request]);
     }
 
     /**
@@ -96,7 +96,7 @@ class CategoryController extends Controller
             DB::commit();
             bust_pos_api_cache();
             bust_store_product_api_cache();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
             
             $errors['errors']['error']='Oops something wrong';
@@ -132,7 +132,7 @@ class CategoryController extends Controller
          abort_if(!getpermission('products'),401);
         $info=Category::with('description','preview','icon','show_on')->findorFail($id);
 
-        return view("seller.category.edit",compact('info'));
+        return view("seller.category.edit",['info' => $info]);
     }
 
     /**
@@ -230,7 +230,7 @@ class CategoryController extends Controller
             DB::commit();
             bust_pos_api_cache();
             bust_store_product_api_cache();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
 
             $errors['errors']['error']='Oops something wrong';

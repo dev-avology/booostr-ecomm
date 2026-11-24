@@ -58,17 +58,11 @@ class PosRefundApiController extends OrderController
             $refundType = $this->determinePosRefundType($request);
             $reason = (string) $request->input('reason', '');
 
-            switch ($refundType) {
-                case 'item':
-                    $payload = $this->executePosPartialItemRefund($order, $request, $reason);
-                    break;
-                case 'dollar':
-                    $payload = $this->executePosPartialDollarRefund($order, $request, $reason);
-                    break;
-                default:
-                    $payload = $this->executePosFullRefund($order, $request, $reason);
-                    break;
-            }
+            $payload = match ($refundType) {
+                'item' => $this->executePosPartialItemRefund($order, $request, $reason),
+                'dollar' => $this->executePosPartialDollarRefund($order, $request, $reason),
+                default => $this->executePosFullRefund($order, $request, $reason),
+            };
 
             return response()->json($payload);
         } catch (\Throwable $e) {
@@ -116,7 +110,7 @@ class PosRefundApiController extends OrderController
             throw new \Exception('This POS order has already been fully refunded.');
         }
 
-        if (!in_array((int) $order->payment_status, [1], true)) {
+        if ((int) $order->payment_status !== 1) {
             throw new \Exception('Only captured/paid POS orders can be refunded.');
         }
     }
@@ -130,7 +124,7 @@ class PosRefundApiController extends OrderController
         }
 
         $items = $this->normalizePosRefundItems($request);
-        if (!empty($items)) {
+        if ($items !== []) {
             foreach ($items as $item) {
                 if (array_key_exists('amount', $item)) {
                     return 'dollar';
@@ -200,7 +194,7 @@ class PosRefundApiController extends OrderController
             $selectedItems[$index]['qty'] = (int) $item['qty'];
         }
 
-        if (empty($selectedItems)) {
+        if ($selectedItems === []) {
             throw new \Exception('Please provide items with order_item_id and qty for item refunds.');
         }
 
@@ -239,7 +233,7 @@ class PosRefundApiController extends OrderController
     {
         $selectedItems = $this->normalizePosRefundItems($request);
 
-        if (empty($selectedItems) && $request->filled('refundAmount')) {
+        if ($selectedItems === [] && $request->filled('refundAmount')) {
             $singleItemId = (int) $request->input('order_item_id', 0);
             if ($singleItemId <= 0 && $order->orderitems->count() === 1) {
                 $singleItemId = (int) $order->orderitems->first()->id;
@@ -255,7 +249,7 @@ class PosRefundApiController extends OrderController
             ];
         }
 
-        if (empty($selectedItems)) {
+        if ($selectedItems === []) {
             throw new \Exception('Please provide items with order_item_id and amount for dollar refunds.');
         }
 
@@ -433,7 +427,7 @@ class PosRefundApiController extends OrderController
     protected function resolveStripeGateway(): Getway
     {
         $gateway = Getway::where('status', '!=', 0)
-            ->where('namespace', '=', 'App\Lib\Stripe')
+            ->where('namespace', '=', \App\Lib\Stripe::class)
             ->first();
 
         if (!$gateway) {

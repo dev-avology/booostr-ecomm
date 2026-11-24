@@ -33,9 +33,7 @@ class ReportController extends Controller
 
         } elseif ($request->type == 'getway_name') {
             $q = $request->value;
-            $data = $data->whereHas('getway', function ($query) use ($q) {
-                return $query->where('name', 'LIKE', "%$q%");
-            })->paginate(10);
+            $data = $data->whereHas('getway', fn($query) => $query->where('name', 'LIKE', "%$q%"))->paginate(10);
            
         } elseif ($request->type == 'trx') {
             $q = $request->value;
@@ -43,9 +41,7 @@ class ReportController extends Controller
             
         }elseif ($request->type == 'plan') {
             $q = $request->value;
-            $data = $data->whereHas('plan', function ($query) use ($q) {
-                return $query->where('name', 'LIKE', "%$q%");
-            })->paginate(10);
+            $data = $data->whereHas('plan', fn($query) => $query->where('name', 'LIKE', "%$q%"))->paginate(10);
            
         } elseif ($request->type == 'price') {
             $q = $request->value;
@@ -54,7 +50,7 @@ class ReportController extends Controller
         } 
 
         $data = $data->latest()->paginate(15);
-        return view('merchant.report.index', compact('data'));
+        return view('merchant.report.index', ['data' => $data]);
     }
 
     
@@ -69,7 +65,7 @@ class ReportController extends Controller
     {
         $data = Order::with('getway', 'user','plan','ordermeta')->where('user_id',Auth::id())->findOrFail($id);
         
-        return view('merchant.report.show', compact('data'));
+        return view('merchant.report.show', ['data' => $data]);
     }
 
     

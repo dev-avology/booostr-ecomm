@@ -21,7 +21,7 @@ class CronController extends Controller
 
         $automatic_renew_plan_mail = Option::where('key', 'automatic_renew_plan_mail')->first();
         $automatic_renew_plan_mail = json_decode($automatic_renew_plan_mail->value ?? '');
-        return view('admin.option.cron', compact('option','automatic_renew_plan_mail'));
+        return view('admin.option.cron', ['option' => $option, 'automatic_renew_plan_mail' => $automatic_renew_plan_mail]);
     }
 
     /**

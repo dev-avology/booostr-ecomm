@@ -48,17 +48,17 @@ class Order extends Model
 
     public function tenant()
     {
-        return $this->hasOne('App\Models\Tenant');
+        return $this->hasOne(\App\Models\Tenant::class);
     }
 
     public function ordermeta()
     {
-        return $this->hasOne('App\Models\Ordermeta')->where('key','orderinfo');
+        return $this->hasOne(\App\Models\Ordermeta::class)->where('key','orderinfo');
     }
 
     public function orderlasttrans()
     {
-        return $this->hasOne('App\Models\Ordermeta')->where('key','last_transcation_log');
+        return $this->hasOne(\App\Models\Ordermeta::class)->where('key','last_transcation_log');
     }
 
     
@@ -69,17 +69,17 @@ class Order extends Model
 
     public function orderlog()
     {
-       return $this->hasOne('App\Models\Tenantorder');
+       return $this->hasOne(\App\Models\Tenantorder::class);
    }
 
    public function schedule()
    {
-       return $this->hasOne('App\Models\Orderschedule');
+       return $this->hasOne(\App\Models\Orderschedule::class);
    }
 
    public function orderitems()
    {
-       return $this->hasMany('App\Models\Orderitem')->with('term');
+       return $this->hasMany(\App\Models\Orderitem::class)->with('term');
    }
 
    public function quickSaleOrderItems()
@@ -90,12 +90,12 @@ class Order extends Model
 
    public function orderitemswithpreview()
    {
-       return $this->hasMany('App\Models\Orderitem')->with('termwithpreview');
+       return $this->hasMany(\App\Models\Orderitem::class)->with('termwithpreview');
    }
 
    public function reviews()
    {
-       return $this->hasMany('App\Models\Review');
+       return $this->hasMany(\App\Models\Review::class);
    }   
   
    public function ordertable()

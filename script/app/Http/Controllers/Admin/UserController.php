@@ -13,7 +13,7 @@ class UserController extends Controller
     public function index()
     {
         $info=User::find(Auth::id());
-        return view('admin.settings.my_settings',compact('info'));
+        return view('admin.settings.my_settings',['info' => $info]);
     }
 
     public function genUpdate(Request $request)
@@ -47,12 +47,8 @@ class UserController extends Controller
             return response()->json(['Password Changed']); 
 
         }
-        else{
-         
-          return Response()->json(array(
-            'message'   =>  "Enter Valid Password"
-        ), 401);
-
-      }
+        return Response()->json([
+          'message'   =>  "Enter Valid Password"
+      ], 401);
   }
 }

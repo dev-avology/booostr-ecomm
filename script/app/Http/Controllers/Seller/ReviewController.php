@@ -15,7 +15,7 @@ class ReviewController extends Controller
     {
         abort_if(!getpermission('reviews'),401);
         $reviews = Review::whereHas('order')->whereHas('user')->with('order','user')->latest()->paginate(20);
-        return view('seller.review.index',compact('reviews'));
+        return view('seller.review.index',['reviews' => $reviews]);
     }
 
     public function destroy(Request $request)
@@ -35,13 +35,11 @@ class ReviewController extends Controller
                 }
 
                 return response()->json('Review Successfully Deleted!');
-            }else{
-                $errors['errors']['error']='Please Select Any Review.';
-                return response()->json($errors,401);
             }
-        }else{
-            $errors['errors']['error']='Please Select Any Status.';
+            $errors['errors']['error']='Please Select Any Review.';
             return response()->json($errors,401);
         }
+        $errors['errors']['error']='Please Select Any Status.';
+        return response()->json($errors,401);
     }
 }

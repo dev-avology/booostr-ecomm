@@ -41,7 +41,7 @@ class FundController extends Controller
         }else{
             $funds = Deposit::where('user_id',Auth::User()->id)->latest()->paginate(20);
         }
-        return view('merchant.fund.history',compact('funds'));
+        return view('merchant.fund.history',['funds' => $funds]);
     }
 
     public function payment()
@@ -50,7 +50,7 @@ class FundController extends Controller
 
         $gateways = Getway::where('status', 1)->where('name','!=', 'free')->where('id','!=',14)->get(); 
         $tax = Option::where('key','tax')->first();
-        return view('merchant.fund.gateway',compact('gateways','tax'));
+        return view('merchant.fund.gateway',['gateways' => $gateways, 'tax' => $tax]);
         
     }
 
@@ -149,7 +149,7 @@ class FundController extends Controller
         {
             $user->amount = $user->amount;
         }else{
-            $user->amount = $user->amount + Session::get('payment_info')['amount'];
+            $user->amount += Session::get('payment_info')['amount'];
         }
         $user->save();
 
@@ -160,7 +160,7 @@ class FundController extends Controller
         Session::flash('message', 'Transaction Successfully Complete!');
         Session::flash('type', 'success');
 
-        return view('merchant.fund.success',compact('payment_info'));
+        return view('merchant.fund.success',['payment_info' => $payment_info]);
     }
 
 
@@ -213,7 +213,7 @@ class FundController extends Controller
     public function show($id)
     {
         $fund = Deposit::find($id);
-        return view('merchant.fund.view',compact('fund'));
+        return view('merchant.fund.view',['fund' => $fund]);
     }
 
     /**

@@ -22,7 +22,7 @@ class DomainController extends Controller
         $inactive=Domain::where('status',0)->count();
         $all=Domain::count();
 
-        $status=$request->status === 0 ? 0 : $request->status; 
+        $status=$request->status; 
         $domains=Domain::latest();
         if ($status != '') {
           $domains=$domains->where('status',$status);  
@@ -33,7 +33,7 @@ class DomainController extends Controller
 
 
         $domains=$domains->paginate(30);
-        return view('admin.domain.domain_list',compact('domains','active','pending','inactive','all','status','request'));
+        return view('admin.domain.domain_list',['domains' => $domains, 'active' => $active, 'pending' => $pending, 'inactive' => $inactive, 'all' => $all, 'status' => $status, 'request' => $request]);
     }
 
     /**
@@ -128,7 +128,7 @@ class DomainController extends Controller
     {
         abort_if(!Auth()->user()->can('domain.edit'),401);
         $info= Domain::findorFail($id);
-        return view('admin.domain.edit_domain',compact('info'));
+        return view('admin.domain.edit_domain',['info' => $info]);
     }
 
     /**

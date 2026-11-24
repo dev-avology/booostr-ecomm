@@ -14,17 +14,15 @@ use App\Models\Category;
 class Orderstatusmail extends Mailable
 {
     use Queueable, SerializesModels;
-    public $data;
     public $subject;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($data, $subject = null)
+    public function __construct(public $data, $subject = null)
     {
-        $this->data = $data;
-        $this->subject = $subject ?: ($data['subject'] ?? 'Order Status');
+        $this->subject = $subject ?: ($this->data['subject'] ?? 'Order Status');
     }
 
     /**

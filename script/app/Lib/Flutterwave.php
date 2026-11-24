@@ -11,9 +11,8 @@ class Flutterwave {
         if(Session::has('fund_callback'))
             {
                 return url(Session::get('fund_callback')['success_url']);
-            }else{
-                return url('partner/payment/success');
             }
+        return url('partner/payment/success');
     }
 
     public static function redirect_if_payment_faild()
@@ -21,9 +20,8 @@ class Flutterwave {
         if(Session::has('fund_callback'))
             {
                 return url(Session::get('fund_callback')['cancel_url']);
-            }else{
-                return url('partner/payment/failed');
             }
+        return url('partner/payment/failed');
     }
 
     public static function fallback()
@@ -73,7 +71,7 @@ class Flutterwave {
 
         Session::put('flutterwave_credentials',$data);
 
-        if ($test_mode == true) {
+        if ($test_mode === true) {
             $url='https://api.flutterwave.com/v3/payments';
         }
         else{
@@ -110,11 +108,9 @@ class Flutterwave {
             $url= $response['data']['link'];
             return redirect($url);
         }
-       else{
-            Session::forget('flutterwave_credentials');
-            return redirect(Flutterwave::redirect_if_payment_faild());
-        }
-        } catch (\Throwable $th) {
+        Session::forget('flutterwave_credentials');
+        return redirect(Flutterwave::redirect_if_payment_faild());
+        } catch (\Throwable) {
             Session::forget('flutterwave_credentials');
             return redirect(Flutterwave::redirect_if_payment_faild());
         }
@@ -149,13 +145,11 @@ class Flutterwave {
              Session::forget('flutterwave_credentials');
              Session::put('payment_info',$data); 
              return redirect(Flutterwave::redirect_if_payment_success());
-        }      
-        else{
-            $data['payment_status'] = 0;  
-            Session::put('payment_info',$data); 
-            Session::forget('flutterwave_credentials');
-            return redirect(Flutterwave::redirect_if_payment_faild());
         }
+        $data['payment_status'] = 0;
+        Session::put('payment_info',$data);
+        Session::forget('flutterwave_credentials');
+        return redirect(Flutterwave::redirect_if_payment_faild());
     }
 
 
@@ -164,7 +158,7 @@ class Flutterwave {
         $payment_id = $cred['payment_id'];
         try {
             $curl = curl_init();
-            curl_setopt_array($curl, array(
+            curl_setopt_array($curl, [
             CURLOPT_URL => "https://api.flutterwave.com/v3/transactions/".$payment_id."/verify",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
@@ -173,18 +167,18 @@ class Flutterwave {
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "GET",
-            CURLOPT_HTTPHEADER => array(
+            CURLOPT_HTTPHEADER => [
                 "Content-Type: application/json",
                 "Authorization: Bearer ". $secret_key
-            ),
-            ));
+            ],
+            ]);
 
             $response = curl_exec($curl);
 
             curl_close($curl);
             $arr = json_decode($response, true);
             return $arr['status'] === "success" ? 1 : 0;
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             return  0;
         }
     }

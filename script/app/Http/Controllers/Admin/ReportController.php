@@ -34,7 +34,7 @@ class ReportController extends Controller
     public function invoicePdf($id)
     {
         $data = Order::with('plan', 'getway', 'user')->findOrFail($id);
-        $pdf = PDF::loadView('admin.report.invoice-pdf', compact('data'));
+        $pdf = PDF::loadView('admin.report.invoice-pdf', ['data' => $data]);
         return $pdf->download('order-invoice.pdf');
     }
     /**
@@ -74,20 +74,14 @@ class ReportController extends Controller
             }
         } elseif ($request->type == 'customer_name') {
             $q = $request->value;
-            $data = Order::with('plan', 'getway', 'user','tenant')->whereHas('user', function ($query) use ($q) {
-                return $query->where('name', 'LIKE', "%$q%");
-            })->latest()->paginate(10);
+            $data = Order::with('plan', 'getway', 'user','tenant')->whereHas('user', fn($query) => $query->where('name', 'LIKE', "%$q%"))->latest()->paginate(10);
 
         } elseif ($request->type == 'plan_name') {
             $q = $request->value;
-            $data = Order::with('plan', 'getway', 'user','tenant')->whereHas('plan', function ($query) use ($q) {
-                return $query->where('name', 'LIKE', "%$q%");
-            })->latest()->paginate(10);
+            $data = Order::with('plan', 'getway', 'user','tenant')->whereHas('plan', fn($query) => $query->where('name', 'LIKE', "%$q%"))->latest()->paginate(10);
         } elseif ($request->type == 'getway_name') {
             $q = $request->value;
-            $data = Order::with('plan', 'getway', 'user','tenant')->whereHas('getway', function ($query) use ($q) {
-                return $query->where('name', 'LIKE', "%$q%");
-            })->latest()->paginate(10);
+            $data = Order::with('plan', 'getway', 'user','tenant')->whereHas('getway', fn($query) => $query->where('name', 'LIKE', "%$q%"))->latest()->paginate(10);
         } elseif ($request->type == 'exp_date') {
             $q = $request->value;
             $data = Order::with('plan', 'getway', 'user','tenant')->where('exp_date', 'LIKE', "%$q%")->latest()->paginate(10);
@@ -98,7 +92,7 @@ class ReportController extends Controller
             $data = Order::with('plan', 'getway', 'user','tenant')->latest()->paginate(10);
         }
 
-        return view('admin.report.index', compact('data','total_orders','total_earning','total_pending','total_expired'));
+        return view('admin.report.index', ['data' => $data, 'total_orders' => $total_orders, 'total_earning' => $total_earning, 'total_pending' => $total_pending, 'total_expired' => $total_expired]);
     }
 
     /**
@@ -131,7 +125,7 @@ class ReportController extends Controller
     public function show($id)
     {
         $data = Order::with('plan', 'getway', 'user','tenant')->findOrFail($id);
-        return view('admin.report.show', compact('data'));
+        return view('admin.report.show', ['data' => $data]);
     }
 
     /**

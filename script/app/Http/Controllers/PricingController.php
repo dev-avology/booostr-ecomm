@@ -34,6 +34,6 @@ class PricingController extends Controller
         SEOTools::jsonLd()->addImage(asset('uploads/logo.png'));
 
         $plans = Plan::where('status',1)->latest()->get();
-        return view('pricing',compact('plans'));
+        return view('pricing',['plans' => $plans]);
     }
 }

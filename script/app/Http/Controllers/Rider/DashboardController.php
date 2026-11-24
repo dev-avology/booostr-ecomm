@@ -18,21 +18,12 @@ class DashboardController extends Controller
 
         $orders = Ordershipping::where('user_id',Auth::User()->id)->paginate(20);
 
-        return view('rider.dashboard',compact('total_orders','approve_orders','failed_orders','orders'));
+        return view('rider.dashboard',['total_orders' => $total_orders, 'approve_orders' => $approve_orders, 'failed_orders' => $failed_orders, 'orders' => $orders]);
     }
 
     public function live_orders()
     {
-        $orders = Ordershipping::where('status_id',3)->whereHas('orderdata')->with('orderdata')->where('user_id',Auth::User()->id)->take(10)->orderBy('id', 'DESC')->get()->map(function($q){
-            $data['id']=$q->id;
-            $data['invoice_no']=$q->orderdata->invoice_no;
-            $data['total']=number_format($q->orderdata->total,2);
-            $data['order_id']=$q->order_id;
-            $data['created_at']=$q->orderdata->created_at->diffForhumans();
-
-            return $data;
-
-        });
+        $orders = Ordershipping::where('status_id',3)->whereHas('orderdata')->with('orderdata')->where('user_id',Auth::User()->id)->take(10)->orderBy('id', 'DESC')->get()->map(fn($q) => ['id' => $q->id, 'invoice_no' => $q->orderdata->invoice_no, 'total' => number_format($q->orderdata->total,2), 'order_id' => $q->order_id, 'created_at' => $q->orderdata->created_at->diffForhumans()]);
 
         return response()->json($orders);
     }

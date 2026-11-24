@@ -25,7 +25,7 @@ class UserController extends Controller
         }
         $users=$users->paginate(30);
 
-        return view('seller.user.index',compact('users'));
+        return view('seller.user.index',['users' => $users]);
     }
 
     /**
@@ -96,7 +96,7 @@ class UserController extends Controller
          abort_if(tenant('customer_modules') != 'on',404);
        abort_if(!getpermission('users'),401);
         $user = User::find($id);
-        return view('seller.user.edit',compact('user'));
+        return view('seller.user.edit',['user' => $user]);
     }
 
     public function show($id)
@@ -113,7 +113,7 @@ class UserController extends Controller
 
         
 
-        return view('seller.user.profile',compact('user','completed_orders','pending_orders','cancalled_orders'));
+        return view('seller.user.profile',['user' => $user, 'completed_orders' => $completed_orders, 'pending_orders' => $pending_orders, 'cancalled_orders' => $cancalled_orders]);
     }
 
     /**

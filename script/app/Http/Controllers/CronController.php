@@ -24,8 +24,8 @@ class CronController extends Controller
     public function alertUserAfterExpiredOrder(){
          
          $tenants=Tenant::where('will_expire','<=' ,Carbon::today())->where('auto_renew',0)->where('status',1)->with('orderwithplan','user')->get();
-         Order::where('will_expire','<=' ,Carbon::today())->where('status',1)->update(array('status' => 3)); //expired
-         Tenant::where('will_expire','<=' ,Carbon::today())->where('auto_renew',0)->where('status',1)->update(array('status' => 3));
+         Order::where('will_expire','<=' ,Carbon::today())->where('status',1)->update(['status' => 3]); //expired
+         Tenant::where('will_expire','<=' ,Carbon::today())->where('auto_renew',0)->where('status',1)->update(['status' => 3]);
 
          $option = Option::where('key','cron_option')->first();
          $cron_option = json_decode($option->value);
@@ -42,7 +42,7 @@ class CronController extends Controller
                    $order_info['plan_name']=$plan->name;
                    $order_info['tenant_id']=$row->id;
                    $order_info['will_expire']=$row->will_expire;
-                   array_push($trial_tenants, $order_info);
+                   $trial_tenants[] = $order_info;
                   
                }
                else{
@@ -54,7 +54,7 @@ class CronController extends Controller
                    $order_info['will_expire']=$row->will_expire;
                    $order_info['amount']=$plan->price;
                    $order_info['plan_name']=$plan->name;
-                   array_push($expireable_tenants, $order_info);
+                   $expireable_tenants[] = $order_info;
                }
             }
          }
@@ -149,7 +149,7 @@ class CronController extends Controller
                    $order_info['will_expire']=$row->will_expire;
                    $order_info['amount']=$plan->price;
                    $order_info['plan_name']=$plan->name;
-                   array_push($expireable_tenants, $order_info);
+                   $expireable_tenants[] = $order_info;
                   
                }
                
@@ -231,7 +231,7 @@ class CronController extends Controller
                     $domain->order_id=$order->id;
                     $domain->save();
 
-                    array_push($order_completes, $order_info);
+                    $order_completes[] = $order_info;
                  }
                  else{
                     $order_info['email']=$row->user->email;
@@ -239,8 +239,8 @@ class CronController extends Controller
                     $order_info['amount']=$total_amount;
                     $order_info['plan_name']=$plan->name;
                     $order_info['tenant_id']=$row->id;
-                    array_push($balance_low_tenants, $order_info);
-                    array_push($failed_tenants, $row->id);
+                    $balance_low_tenants[] = $order_info;
+                    $failed_tenants[] = $row->id;
                  }
 
                }
@@ -249,8 +249,8 @@ class CronController extends Controller
                    $order_info['name']=$row->user->name;
                    $order_info['plan_name']=$plan->name;
                    $order_info['tenant_id']=$row->id;
-                   array_push($plan_disabled_tenants, $order_info);
-                   array_push($failed_tenants, $row->id);
+                   $plan_disabled_tenants[] = $order_info;
+                   $failed_tenants[] = $row->id;
                   
                }
 
@@ -259,12 +259,12 @@ class CronController extends Controller
 
         }
         DB::commit();
-         } catch (\Throwable $th) {
+         } catch (\Throwable) {
         DB::rollback();
 
         }
 
-        Tenant::whereIn('id',$failed_tenants)->update(array('status' => 3));
+        Tenant::whereIn('id',$failed_tenants)->update(['status' => 3]);
 
         $alert_msg= Option::where('key','automatic_renew_plan_mail')->first()->value;
         $alert_msg=json_decode($alert_msg);
@@ -408,7 +408,7 @@ class CronController extends Controller
           if (!empty($value->tenancy_db_name)) {
             try {
                 echo Http::accept('application/json')->get(env('APP_URL').'/api/store/'.$value->id.'/cron/product-price-reset');
-            } catch (Exception $e) {
+            } catch (Exception) {
                 
             }
              

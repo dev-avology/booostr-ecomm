@@ -15,9 +15,8 @@ class Razorpay {
         if(Session::has('fund_callback'))
         {
             return url(Session::get('fund_callback')['success_url']);
-        }else{
-            return url('partner/payment/success');
         }
+        return url('partner/payment/success');
     }
 
     public static function redirect_if_payment_faild()
@@ -25,9 +24,8 @@ class Razorpay {
         if(Session::has('fund_callback'))
         {
             return url(Session::get('fund_callback')['cancel_url']);
-        }else{
-            return url('partner/payment/failed');
         }
+        return url('partner/payment/failed');
     }
 
     public function view(){
@@ -36,9 +34,9 @@ class Razorpay {
             $gateway = Getway::where('status',1)->findOrFail($Info['getway_id']);
             $response=Session::get('razorpay_response');
             if (tenant() != null) {
-              return view(baseview('payments/razorpay'),compact('response','Info','gateway'));
+              return view(baseview('payments/razorpay'),['response' => $response, 'Info' => $Info, 'gateway' => $gateway]);
             }
-            return view('merchant.plan.payment.razorpay',compact('response','Info','gateway'));
+            return view('merchant.plan.payment.razorpay',['response' => $response, 'Info' => $Info, 'gateway' => $gateway]);
         }
         abort(404);
     }
@@ -111,11 +109,11 @@ class Razorpay {
 
         $api = new Api($razorpay_credentials['key_id'], $razorpay_credentials['key_secret']);
         $referance_id=Str::random(12);
-        $order = $api->order->create(array(
+        $order = $api->order->create([
             'receipt' => $referance_id,
             'amount' => $amount*100,
             'currency' => $razorpay_credentials['currency'],
-        )
+        ]
         );
 
          // Return response on payment page
@@ -169,12 +167,10 @@ class Razorpay {
             Session::forget('razorpay_credentials');
             return redirect(Razorpay::redirect_if_payment_success());
         }
-        else{
-            $data['payment_status'] = 0;  
-            Session::put('payment_info',$data); 
-            Session::forget('razorpay_credentials');
-            return redirect(Razorpay::redirect_if_payment_faild());
-        }
+        $data['payment_status'] = 0;
+        Session::put('payment_info',$data);
+        Session::forget('razorpay_credentials');
+        return redirect(Razorpay::redirect_if_payment_faild());
 
       }
     }
@@ -187,12 +183,12 @@ class Razorpay {
             $razorpay_credentials=Session::get('razorpay_credentials');
             // Create an object of razorpay class
             $api = new Api($razorpay_credentials['key_id'], $razorpay_credentials['key_secret']);
-            $attributes  = array('razorpay_signature'  => $_signature,  'razorpay_payment_id'  => $_paymentId ,  'razorpay_order_id' => $_orderId);
+            $attributes  = ['razorpay_signature'  => $_signature,  'razorpay_payment_id'  => $_paymentId ,  'razorpay_order_id' => $_orderId];
             $order  = $api->utility->verifyPaymentSignature($attributes);
             Razorpay::$payment_id=$_paymentId;
             return true;
         }
-        catch(\Exception $e)
+        catch(\Exception)
         {
             // If Signature is not correct its give a excetption so we use try catch
             return false;
@@ -209,9 +205,10 @@ class Razorpay {
             if ($payment) {
                return $payment['status'] === "captured" ? 1 : 0;
             }
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             return 0;
         }
+        return null;
         
     }
 

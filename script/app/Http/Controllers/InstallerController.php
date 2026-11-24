@@ -18,7 +18,7 @@ class InstallerController extends Controller
          try {
            DB::select('SHOW TABLES');
           return redirect('/404');         
-        } catch (\Exception $e) {
+        } catch (\Exception) {
                     
         }
 
@@ -26,31 +26,29 @@ class InstallerController extends Controller
           DB::connection()->getPdo();
           if(DB::connection()->getDatabaseName()){
             return abort(404);
-          }else{
-            $phpversion = phpversion();
-            $mbstring = extension_loaded('mbstring');
-            $bcmath = extension_loaded('bcmath');
-            $ctype = extension_loaded('ctype');
-            $json = extension_loaded('json');
-            $openssl = extension_loaded('openssl');
-            $pdo = extension_loaded('pdo');
-            $tokenizer = extension_loaded('tokenizer');
-            $xml = extension_loaded('xml');
-
-            $info = [
-                'phpversion' => $phpversion,
-                'mbstring' => $mbstring,
-                'bcmath' => $bcmath,
-                'ctype' => $ctype,
-                'json' => $json,
-                'openssl' => $openssl,
-                'pdo' => $pdo,
-                'tokenizer' => $tokenizer,
-                'xml' => $xml,
-            ];
-            return view('installer.requirments',compact('info'));
           }
-        } catch (\Exception $e) {
+          $phpversion = phpversion();
+          $mbstring = extension_loaded('mbstring');
+          $bcmath = extension_loaded('bcmath');
+          $ctype = extension_loaded('ctype');
+          $json = extension_loaded('json');
+          $openssl = extension_loaded('openssl');
+          $pdo = extension_loaded('pdo');
+          $tokenizer = extension_loaded('tokenizer');
+          $xml = extension_loaded('xml');
+          $info = [
+              'phpversion' => $phpversion,
+              'mbstring' => $mbstring,
+              'bcmath' => $bcmath,
+              'ctype' => $ctype,
+              'json' => $json,
+              'openssl' => $openssl,
+              'pdo' => $pdo,
+              'tokenizer' => $tokenizer,
+              'xml' => $xml,
+          ];
+          return view('installer.requirments',['info' => $info]);
+        } catch (\Exception) {
             $phpversion = phpversion();
             $mbstring = extension_loaded('mbstring');
             $bcmath = extension_loaded('bcmath');
@@ -72,7 +70,7 @@ class InstallerController extends Controller
                 'tokenizer' => $tokenizer,
                 'xml' => $xml,
             ];
-            return view('installer.requirments',compact('info'));
+            return view('installer.requirments',['info' => $info]);
         }
   
         

@@ -60,7 +60,7 @@ class MediaController extends Controller
         abort_if(!getpermission('website_settings'),401);
 
        $sum=Media::sum('size');
-       if ((int)tenant('storage_limit') != -1) {
+       if ((int)tenant('storage_limit') !== -1) {
            if ((int)tenant('storage_limit') <= $sum) {
                $errors='Maximum Storage Limit exceeded';
                return response()->json($errors,401);
@@ -119,7 +119,7 @@ class MediaController extends Controller
             $total_file_size=Storage::disk($driver)->size($path.$name);
         }
 
-        array_push($images, $path.$name);
+        $images[] = $path.$name;
 
 
 
@@ -134,7 +134,7 @@ class MediaController extends Controller
 
                 $file_size=$img->filesize();
                 $total_file_size=10000+$total_file_size;
-                array_push($images, $imgname);
+                $images[] = $imgname;
 
              }
              else{
@@ -142,7 +142,7 @@ class MediaController extends Controller
                 Storage::disk($driver)->put($imgname, $img);
                 $file_size=Storage::disk($driver)->size($imgname);
                 $total_file_size=10000+$total_file_size;
-                array_push($images, $imgname);
+                $images[] = $imgname;
              }
 
 
@@ -264,7 +264,7 @@ class MediaController extends Controller
 
 
 
-     function getMb($set_bytes)
+     public function getMb($set_bytes)
      {
 
      $set_kb = 1000;

@@ -10,18 +10,15 @@ class Mollie {
         if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['success_url']);
         }
-        else{
-            return url('partner/payment/success');
-        }
+        return url('partner/payment/success');
     }
 
     public static function redirect_if_payment_faild()
     {
         if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['cancel_url']);
-        }else{
-            return url('partner/payment/failed');
         }
+        return url('partner/payment/failed');
     }
 
     public static function fallback()
@@ -80,7 +77,7 @@ class Mollie {
             
             return redirect($payment->getCheckoutUrl()) ;
         }
-        catch (\Exception $e) {
+        catch (\Exception) {
             return redirect(Mollie::redirect_if_payment_faild());  
         }
         

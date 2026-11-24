@@ -17,18 +17,16 @@ class Mercado
     {
         if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['success_url']);
-        }else{
-            return url('partner/payment/success');
         }
+        return url('partner/payment/success');
     }
 
     public static function redirect_if_payment_faild()
     {
         if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['cancel_url']);
-        }else{
-            return url('partner/payment/failed');
         }
+        return url('partner/payment/failed');
     }
 
 
@@ -83,11 +81,11 @@ class Mercado
                 $url = route('merchant.mercadopago.status');
             }
              
-            $preference->back_urls = array(
+            $preference->back_urls = [
                 "success" => $url,
                 "failure" => Mercado::redirect_if_payment_faild(),
                 "pending" => $url,
-            );
+            ];
 
             $preference->auto_return = "approved";
 
@@ -96,7 +94,7 @@ class Mercado
             $item->title = $billName;
             $item->quantity = 1;
             $item->unit_price = $amount;
-            $preference->items = array($item);
+            $preference->items = [$item];
             $preference->payer = $payer;
             $preference->save();
 
@@ -107,7 +105,7 @@ class Mercado
             Session::put('mercadopago_credentials', $data);
             return redirect($redirectUrl);
 
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             Mercado::redirect_if_payment_success();
         }   
     }
@@ -139,12 +137,11 @@ class Mercado
             Session::forget('mercadopago_credentials');
             Session::put('payment_info', $data);
             return redirect(Mercado::redirect_if_payment_success());
-        }else{
-            $data['payment_status'] = 0;  
-            Session::put('payment_info',$data); 
-            Session::forget('flutterwave_credentials');
-            return redirect(Mercado::redirect_if_payment_faild());
         }
+        $data['payment_status'] = 0;
+        Session::put('payment_info',$data);
+        Session::forget('flutterwave_credentials');
+        return redirect(Mercado::redirect_if_payment_faild());
     }
 
 }

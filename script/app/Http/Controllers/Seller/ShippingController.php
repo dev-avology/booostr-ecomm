@@ -25,7 +25,7 @@ class ShippingController extends Controller
             $posts=$posts->where('name','LIKE','%'.$request->src.'%');
         }
          $posts=$posts->latest()->paginate(30); 
-        return view("seller.shipping.index",compact('posts','request'));
+        return view("seller.shipping.index",['posts' => $posts, 'request' => $request]);
     }
 
     /**
@@ -62,12 +62,12 @@ class ShippingController extends Controller
             return response()->json($errors,401);
         }
 
-        $shipping_price = array(
+        $shipping_price = [
             'weight_based'=> 'perlb',
             'per_item'=> 'per_item',
             'flat_rate'=> 'flatrate_range',
             'free_shipping' => 'free_shipping'
-        );
+        ];
 
 
         DB::beginTransaction();
@@ -84,10 +84,10 @@ class ShippingController extends Controller
         }
 
          if ($request->shipping_type) {
-               $shipping_details = array(
+               $shipping_details = [
                                        'method_type' => $request->shipping_type,
                                        'pricing'=> $request->type_price["'".$shipping_price[$request->shipping_type]."'"]
-                                    );
+                                    ];
                 $shipping->meta()->create(['type'=>'shipping_method','content'=>json_encode($shipping_details)]);     
          }
 
@@ -120,11 +120,11 @@ class ShippingController extends Controller
         $location_array=[];
 
         foreach ($info->shippingcategoryrelations as $key => $value) {
-           array_push($location_array, $value->location_id);
+           $location_array[] = $value->location_id;
         }
 
         //return view("seller.shipping.edit",compact('info','posts','location_array'));
-        return view("seller.shipping.edit",compact('info','location_array'));
+        return view("seller.shipping.edit",['info' => $info, 'location_array' => $location_array]);
     }
 
     /**
@@ -145,12 +145,12 @@ class ShippingController extends Controller
          ]);
 
 
-         $shipping_price = array(
+         $shipping_price = [
             'weight_based'=> 'perlb',
             'per_item'=> 'per_item',
             'flat_rate'=> 'flatrate_range',
             'free_shipping' => 'free_shipping'
-        );
+        ];
 
         DB::beginTransaction();
         try {  
@@ -181,10 +181,10 @@ class ShippingController extends Controller
 
         if ($request->shipping_type) {
 
-            $shipping_details = array(
+            $shipping_details = [
                 'method_type' => $request->shipping_type,
                 'pricing'=> $request->type_price["'".$shipping_price[$request->shipping_type]."'"]
-            );
+            ];
     
             if (empty($shipping->shippingMethod)) {
 

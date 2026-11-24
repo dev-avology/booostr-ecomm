@@ -20,7 +20,7 @@ class PageController extends Controller
     {
         abort_if(!getpermission('website_settings'),401);
         $posts = Term::where('type', 'page')->paginate(20);
-        return view('seller.page.index', compact('posts'));
+        return view('seller.page.index', ['posts' => $posts]);
     }
 
     /**
@@ -73,7 +73,7 @@ class PageController extends Controller
 
         $page->meta()->create(['key'=>'meta','value'=>json_encode($data)]);
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
             
             $errors['errors']['error']='Oops something wrong';
@@ -98,7 +98,7 @@ class PageController extends Controller
         $info = Term::where('type','page')->with('meta')->findOrFail($id);
         
         $meta=json_decode($info->meta->value ?? '');
-        return view('seller.page.edit', compact('info','meta'));
+        return view('seller.page.edit', ['info' => $info, 'meta' => $meta]);
     }
 
     /**

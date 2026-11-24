@@ -28,7 +28,7 @@ class BannerController extends Controller
     {
         abort_if(!getpermission('website_settings'),401);
         $type= $request->type == 'short_banner' ? 'short_banner' : 'large_banner';
-        return view('seller.banner.create',compact('type'));
+        return view('seller.banner.create',['type' => $type]);
     }
 
     /**
@@ -55,10 +55,10 @@ class BannerController extends Controller
             $category=new Category;
             $category->name=$request->name;
             $category->type=$request->type;
-            $category->slug=json_encode(array(
+            $category->slug=json_encode([
                 'link'=>$request->link,
                 'button_text'=>$request->button_text
-            ));
+            ]);
             
             
             $category->save();
@@ -75,7 +75,7 @@ class BannerController extends Controller
 
             
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
             
             $errors['errors']['error']='Oops something wrong';
@@ -99,7 +99,7 @@ class BannerController extends Controller
        $type= $type == 'short-banner' ? 'short_banner' : 'large_banner';
        $posts=Category::where('type',$type)->with('preview')->latest()->get();
 
-       return view('seller.banner.index',compact('posts','type'));
+       return view('seller.banner.index',['posts' => $posts, 'type' => $type]);
     }
 
     /**
@@ -115,7 +115,7 @@ class BannerController extends Controller
         if ($info->type == 'short_banner' || $info->type == 'large_banner') {
              $link=json_decode($info->slug ?? '');
              $type=$info->type;
-             return view('seller.banner.edit',compact('info','link','type'));
+             return view('seller.banner.edit',['info' => $info, 'link' => $link, 'type' => $type]);
         }
 
         abort(404);
@@ -144,10 +144,10 @@ class BannerController extends Controller
             
 
             $category->name=$request->name;
-            $category->slug=json_encode(array(
+            $category->slug=json_encode([
                 'link'=>$request->link,
                 'button_text'=>$request->button_text
-            ));
+            ]);
             $category->save();
 
             if ($request->description) {
@@ -188,7 +188,7 @@ class BannerController extends Controller
 
             
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
 
             $errors['errors']['error']='Oops something wrong';

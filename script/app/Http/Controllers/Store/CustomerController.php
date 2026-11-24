@@ -961,12 +961,7 @@ class CustomerController extends Controller
                 ->toArray();
 
             store_set_seo('Dashboard');
-            return view(baseview('customer/dashboard'), compact(
-                'total_orders',
-                'total_pending_orders',
-                'orders',
-                'pendingStatusIds'
-            ));
+            return view(baseview('customer/dashboard'), ['total_orders' => $total_orders, 'total_pending_orders' => $total_pending_orders, 'orders' => $orders, 'pendingStatusIds' => $pendingStatusIds]);
         } catch (\Throwable $e) {
             \Log::error('Customer dashboard error: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
@@ -980,12 +975,7 @@ class CustomerController extends Controller
             $pendingStatusIds = [];
 
             store_set_seo('Dashboard');
-            return view(baseview('customer/dashboard'), compact(
-                'total_orders',
-                'total_pending_orders',
-                'orders',
-                'pendingStatusIds'
-            ));
+            return view(baseview('customer/dashboard'), ['total_orders' => $total_orders, 'total_pending_orders' => $total_pending_orders, 'orders' => $orders, 'pendingStatusIds' => $pendingStatusIds]);
         }
     }
 
@@ -1024,13 +1014,13 @@ class CustomerController extends Controller
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'html' => view(baseview('customer/orders_table'), compact('orders'))->render(),
+                    'html' => view(baseview('customer/orders_table'), ['orders' => $orders])->render(),
                     'total' => $orders->total(),
                 ]);
             }
 
             store_set_seo('Purchase History');
-            return view(baseview('customer/orders'), compact('orders', 'orderStatuses'));
+            return view(baseview('customer/orders'), ['orders' => $orders, 'orderStatuses' => $orderStatuses]);
         } catch (\Throwable $e) {
             \Log::error('Customer orders error: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
@@ -1050,7 +1040,7 @@ class CustomerController extends Controller
             $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
             $orderStatuses = collect();
             store_set_seo('Purchase History');
-            return view(baseview('customer/orders'), compact('orders', 'orderStatuses'))->with('error', __('Unable to load orders at this time. Please try again.'));
+            return view(baseview('customer/orders'), ['orders' => $orders, 'orderStatuses' => $orderStatuses])->with('error', __('Unable to load orders at this time. Please try again.'));
         }
     }
 
@@ -1066,7 +1056,7 @@ class CustomerController extends Controller
             $reviews[$row->term_id]['comment']=$row->comment;
         }
        
-        return view(baseview('customer/order'),compact('info','reviews'));
+        return view(baseview('customer/order'),['info' => $info, 'reviews' => $reviews]);
     }
 
     public function settings()
@@ -1109,7 +1099,7 @@ class CustomerController extends Controller
         ];
 
         store_set_seo('Settings');
-        return view(baseview('customer/settings'), compact('meta', 'order_settings', 'fname', 'lname', 'country', 'usStates'));
+        return view(baseview('customer/settings'), ['meta' => $meta, 'order_settings' => $order_settings, 'fname' => $fname, 'lname' => $lname, 'country' => $country, 'usStates' => $usStates]);
     }
 
     public function profileUpdate(Request $request)
@@ -1176,7 +1166,7 @@ class CustomerController extends Controller
                             @unlink(public_path($oldFile));
                         }
                     }
-                } catch (\Throwable $e) {}
+                } catch (\Throwable) {}
                 $existingMeta['avatar'] = null;
             } elseif ($request->hasFile('image')) {
                 try {
@@ -1204,7 +1194,7 @@ class CustomerController extends Controller
                     $file->move($avatarDir, $imageName);
 
                     $existingMeta['avatar'] = $avatarDir . $imageName;
-                } catch (\Throwable $e) {
+                } catch (\Throwable) {
                     // Safeguarded against file system exceptions
                 }
             }
@@ -1363,7 +1353,7 @@ class CustomerController extends Controller
     {
         abort_if(tenant('customer_modules') != 'on',404);
         $posts=Review::where('user_id',Auth::id())->whereHas('order')->with('order')->latest()->paginate(20);
-        return view(baseview('customer/reviews'),compact('posts'));
+        return view(baseview('customer/reviews'),['posts' => $posts]);
     }
 
     public function makeReview(Request $request,$orderid,$termid,$optionid)
@@ -1374,9 +1364,7 @@ class CustomerController extends Controller
             'feedback' => 'required|max:200',
         ]);
 
-        $order_info=Order::where('user_id',Auth::id())->whereHas('orderitems',function($q) use ($termid) {
-            return $q->where('term_id',$termid);
-        })->find($orderid);
+        $order_info=Order::where('user_id',Auth::id())->whereHas('orderitems',fn($q) => $q->where('term_id',$termid))->find($orderid);
 
         abort_if(empty($order_info) || $request->rating == 0,404);
 
@@ -1815,7 +1803,7 @@ class CustomerController extends Controller
                 }
             }
 
-            if (!empty($claimedIds)) {
+            if ($claimedIds !== []) {
                 $claimedIds = array_unique($claimedIds);
                 Order::whereIn('id', $claimedIds)
                     ->where(function ($q) {

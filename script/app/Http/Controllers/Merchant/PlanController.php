@@ -36,7 +36,7 @@ class PlanController extends Controller
     {
         $plans = Plan::where([['status', 1], ['is_default', 0]])->get();
         $orders = Order::where('user_id', Auth::id())->with('plan', 'getway')->latest()->paginate(25);
-        return view('merchant.plan.index', compact('plans', 'orders'));
+        return view('merchant.plan.index', ['plans' => $plans, 'orders' => $orders]);
     }
 
     public function gateways($planid)
@@ -74,9 +74,8 @@ class PlanController extends Controller
             Session::put('plan',$plan->id);            
 
             return redirect()->route('merchant.plan.enroll');
-        }else{
-            return view('merchant.plan.gateways', compact('gateways', 'plan','plan_data','tax'));
         }
+        return view('merchant.plan.gateways', ['gateways' => $gateways, 'plan' => $plan, 'plan_data' => $plan_data, 'tax' => $tax]);
     }
     
     public function deposit(Request $request)
@@ -95,9 +94,8 @@ class PlanController extends Controller
                 Session::put('payment_info', $data);
                 Session::put('plan', $request->plan_id);
                 return redirect()->route('merchant.payment.success');
-            }else{
-                return redirect()->route('merchant.plan.index')->with('message','Already enrolled in Trial Plan! Select Other Plan')->with('type','danger');
             }
+            return redirect()->route('merchant.plan.index')->with('message','Already enrolled in Trial Plan! Select Other Plan')->with('type','danger');
         }
 
         $gateway = Getway::where([['status',1],['id','!=',13]])->findOrFail($request->id);
@@ -213,7 +211,7 @@ class PlanController extends Controller
 
          DB::commit();
 
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
           DB::rollback();
            Session::forget('payment_info');
            Session::flash('message', 'Something wrong please contact with support..!');
@@ -232,9 +230,8 @@ class PlanController extends Controller
        
         if ($status != 0) {
             return redirect()->route('merchant.plan.enroll');
-        }else{
-            return redirect()->route('merchant.plan.index');
         }
+        return redirect()->route('merchant.plan.index');
     }
 
     public function enroll()
@@ -408,9 +405,8 @@ class PlanController extends Controller
         if(env('AUTO_DB_CREATE') == true && $tenant->status == 1)
         {
             return response()->json(['data' => ['redirect_url'=>$redirect_url,'store_status'=>$tenant->status,'response'=>'success']]);
-        }else{
-            return response()->json(['data' => ['redirect_url'=>$redirect_url,'store_status'=>$tenant->status,'response'=>'success_redirect']]);
         }
+        return response()->json(['data' => ['redirect_url'=>$redirect_url,'store_status'=>$tenant->status,'response'=>'success_redirect']]);
 
     }
 
@@ -457,14 +453,14 @@ class PlanController extends Controller
     public function show($id)
     {
          $order = Order::with('plan', 'getway', 'user','ordermeta','orderlog')->where('user_id',Auth::id())->findOrFail($id);
-        return view('merchant.plan.show', compact('order'));
+        return view('merchant.plan.show', ['order' => $order]);
 
     }
 
     public function invoicePdf($id)
     {
         $data = Order::with('plan', 'getway', 'user')->where('user_id',Auth::id())->findOrFail($id);
-        $pdf = PDF::loadView('merchant.plan.invoice-pdf', compact('data'));
+        $pdf = PDF::loadView('merchant.plan.invoice-pdf', ['data' => $data]);
         return $pdf->download('order-invoice.pdf');
     }
 
@@ -495,7 +491,7 @@ class PlanController extends Controller
       $info=Tenant::where('user_id',Auth::id())->with('orderwithplan')->findorFail($id);
       $plans = Plan::where([['status', 1], ['is_default', 0],['is_trial', 0],['price','>',0]])->latest()->get();
       $symbol=Option::where('key','currency_symbol')->first()->value ?? 'USD'; 
-      return view('merchant.plan.changeplan',compact('plans','info','symbol'));
+      return view('merchant.plan.changeplan',['plans' => $plans, 'info' => $info, 'symbol' => $symbol]);
 
    }
 
@@ -516,7 +512,7 @@ class PlanController extends Controller
         $tax = Option::where('key','tax')->first();
         $plan_data = json_decode($plan->data);
                 
-        return view('merchant.plan.gateways', compact('gateways', 'plan','plan_data','tax','info'));
+        return view('merchant.plan.gateways', ['gateways' => $gateways, 'plan' => $plan, 'plan_data' => $plan_data, 'tax' => $tax, 'info' => $info]);
    }
 
    public function renewCharge(Request $request,$id)
@@ -657,7 +653,7 @@ class PlanController extends Controller
            Session::forget('fund_callback');
             
 
-         } catch (\Throwable $th) {
+         } catch (\Throwable) {
           DB::rollback();
 
           
@@ -707,7 +703,7 @@ class PlanController extends Controller
     }
 
 
-    function uniquetrx(){  
+    public function uniquetrx(){  
         $str = Str::random(40);
         $check = Order::where('trx', $str)->first();
         if($check == true){
@@ -733,8 +729,7 @@ class PlanController extends Controller
         if($request->type == 'unlock')
         {
             return response()->json('Store Unlocked!');
-        }else{
-            return response()->json('Store Locked!');
         }
+        return response()->json('Store Locked!');
     }
 }

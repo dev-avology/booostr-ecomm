@@ -23,7 +23,7 @@ class PaymentGatewayController extends Controller
        
         abort_if(!Auth()->user()->can('getway.index'), 401);
         $gateways = Getway::all();
-        return view('admin.gateway.index', compact('gateways'));
+        return view('admin.gateway.index', ['gateways' => $gateways]);
     }
 
     /**
@@ -71,7 +71,7 @@ class PaymentGatewayController extends Controller
         $gateway->name = $request->name;
         $gateway->rate = $request->rate;
         $gateway->charge = $request->charge;
-        $gateway->namespace = 'App\Lib\CustomGetway';
+        $gateway->namespace = \App\Lib\CustomGetway::class;
         $gateway->currency_name = $request->currency_name;
         $gateway->is_auto = 0;
         $gateway->image_accept = $request->image_accept;
@@ -106,7 +106,7 @@ class PaymentGatewayController extends Controller
     {
         abort_if(!Auth()->user()->can('getway.edit'), 401);
         $gateway = Getway::findOrFail($id);
-        return view('admin.gateway.edit', compact('gateway'));
+        return view('admin.gateway.edit', ['gateway' => $gateway]);
     }
 
 
@@ -141,7 +141,7 @@ class PaymentGatewayController extends Controller
             if (!empty($gateway->logo)) {
                 $file=$gateway->logo;
                 $arr=explode('uploads',$file);
-                if (count($arr ?? []) != 0) {
+                if (count($arr ?? []) !== 0) {
                     if (isset($arr[1])) {
                        Storage::disk(env('STORAGE_TYPE'))->delete('uploads'.$arr[1]);
                     }

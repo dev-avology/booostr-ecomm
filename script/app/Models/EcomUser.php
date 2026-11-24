@@ -95,35 +95,35 @@ class EcomUser extends Authenticatable
     }
 
     public function active_orders(){
-        return $this->hasMany('App\Models\Order','user_id', 'id')->where('status', 1);
+        return $this->hasMany(\App\Models\Order::class,'user_id', 'id')->where('status', 1);
     }
 
     public function orders(){
-        return $this->hasMany('App\Models\Order','user_id', 'id');
+        return $this->hasMany(\App\Models\Order::class,'user_id', 'id');
     }
 
     public function tenant()
     {
-        return $this->hasMany('App\Models\Tenant');
+        return $this->hasMany(\App\Models\Tenant::class);
     }
     public function supports()
     {
-        return $this->hasMany('App\Models\Support');
+        return $this->hasMany(\App\Models\Support::class);
     }
 
     public function fmctoken()
     {
-       return $this->hasOne('App\Models\Devicetoken')->where('type','firebase');
+       return $this->hasOne(\App\Models\Devicetoken::class)->where('type','firebase');
     }
 
     public function rider_orders()
     {
-        return $this->hasMany('App\Models\Ordershipping','user_id')->with('order');
+        return $this->hasMany(\App\Models\Ordershipping::class,'user_id')->with('order');
     }
 
     public function order()
     {
-        return $this->belongsTo('App\Models\Order','order_id');
+        return $this->belongsTo(\App\Models\Order::class,'order_id');
     }
 
     // public function complete_order()
@@ -143,7 +143,7 @@ class EcomUser extends Authenticatable
 
     public function user_orders()
     {
-        return $this->hasMany('App\Models\Order')->with('orderstatus');
+        return $this->hasMany(\App\Models\Order::class)->with('orderstatus');
     }
 
     

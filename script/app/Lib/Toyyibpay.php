@@ -11,9 +11,8 @@ class Toyyibpay {
     {
         if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['success_url']);
-        }else{
-            return url('partner/payment/success');
         }
+        return url('partner/payment/success');
     }
 
     public static function redirect_if_payment_faild()
@@ -21,9 +20,8 @@ class Toyyibpay {
   
         if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['cancel_url']);
-        }else{
-            return url('partner/payment/failed');
         }
+        return url('partner/payment/failed');
     }
 
     public static function fallback()
@@ -71,14 +69,14 @@ class Toyyibpay {
         
         Session::put('toyyibpay_credentials',$data);
 
-        if ($test_mode == false) {
+        if ($test_mode === false) {
 			$url='https://toyyibpay.com/';
 		}
 		else{
 			$url='https://dev.toyyibpay.com/';
 		}
 
-		$data = array(
+		$data = [
 			'userSecretKey'=>$array['user_secret_key'],
 			'categoryCode'=>$array['cateogry_code'],
 			'billName'=>$billName,
@@ -88,7 +86,7 @@ class Toyyibpay {
 			'billAmount'=>$amount*100,
 			'billReturnUrl'=>Toyyibpay::fallback(),
 			'billCallbackUrl'=>Toyyibpay::fallback(),
-			'billExternalReferenceNo' => Str::random(5).rand(100,200),
+			'billExternalReferenceNo' => Str::random(5).random_int(100,200),
 			'billTo'=>$name,
 			'billEmail'=>$email,
 			'billPhone'=> $array['phone'],
@@ -98,16 +96,16 @@ class Toyyibpay {
 			'billDisplayMerchant'=>1,
 			'billContentEmail'=>"",
 			'billChargeToCustomer'=>2
-		);  
+		];  
 		$f_url= $url.'index.php/api/createBill';
 
         
 		try {
             $response = Http::asForm()->post($f_url,$data);
 		    $billcode=$response[0]['BillCode'];
-            $url=$url.$billcode;
+            $url .= $billcode;
             return redirect($url);
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             return redirect(Toyyibpay::redirect_if_payment_faild());
         }
        
@@ -141,13 +139,11 @@ class Toyyibpay {
              Session::put('payment_info',$data); 
              
              return redirect(Toyyibpay::redirect_if_payment_success());
-        }      
-        else{
-            $data['payment_status'] = 0;  
-            Session::put('payment_info',$data); 
-            Session::forget('toyyibpay_credentials');
-            return redirect(Toyyibpay::redirect_if_payment_faild());
         }
+        $data['payment_status'] = 0;
+        Session::put('payment_info',$data);
+        Session::forget('toyyibpay_credentials');
+        return redirect(Toyyibpay::redirect_if_payment_faild());
     }
 
 }

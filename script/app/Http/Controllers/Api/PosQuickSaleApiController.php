@@ -52,14 +52,12 @@ class PosQuickSaleApiController extends Controller
         }
 
         try {
-            $descriptor = DB::transaction(function () use ($request) {
-                return $this->createDescriptorFromPayload([
-                    'name' => $request->input('name'),
-                    'price' => $request->input('price', 0),
-                    'is_default' => $request->boolean('is_default'),
-                    'sort_order' => $request->filled('sort_order') ? (int) $request->input('sort_order') : null,
-                ], true);
-            });
+            $descriptor = DB::transaction(fn() => $this->createDescriptorFromPayload([
+                'name' => $request->input('name'),
+                'price' => $request->input('price', 0),
+                'is_default' => $request->boolean('is_default'),
+                'sort_order' => $request->filled('sort_order') ? (int) $request->input('sort_order') : null,
+            ], true));
 
             return response()->json([
                 'error' => false,
@@ -266,14 +264,12 @@ class PosQuickSaleApiController extends Controller
         }
 
         try {
-            $descriptor = DB::transaction(function () use ($request, $descriptor) {
-                return $this->updateDescriptorFromPayload($descriptor, [
-                    'name' => $request->input('name'),
-                    'price' => $request->input('price', $descriptor->price ?? 0),
-                    'is_default' => $request->has('is_default') ? $request->boolean('is_default') : (bool) $descriptor->is_default,
-                    'sort_order' => $request->filled('sort_order') ? (int) $request->input('sort_order') : null,
-                ]);
-            });
+            $descriptor = DB::transaction(fn() => $this->updateDescriptorFromPayload($descriptor, [
+                'name' => $request->input('name'),
+                'price' => $request->input('price', $descriptor->price ?? 0),
+                'is_default' => $request->has('is_default') ? $request->boolean('is_default') : (bool) $descriptor->is_default,
+                'sort_order' => $request->filled('sort_order') ? (int) $request->input('sort_order') : null,
+            ]));
 
             return response()->json([
                 'error' => false,
@@ -663,7 +659,7 @@ class PosQuickSaleApiController extends Controller
                 $request->input('ids', [])
             ), fn ($id) => $id > 0)));
 
-            return $ids === [] ? [] : $ids;
+            return $ids;
         }
 
         if ($request->has('descriptors') && is_array($request->input('descriptors'))) {

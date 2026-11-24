@@ -24,20 +24,16 @@ class StoreSettingCheckMiddleware
                 'message' => 'Sorry, you seems spam, and we blocked you',
             ];
             return response()->json($response, 413);
-        }else{
-
-            if($request->hasHeader('X-Tenant')){
-                if(get_option('tax') == "" || showAddressError()){
-                    $response = [
-                        'status' => 'error',
-                        'message' => 'Oops the store is temporary disabled. Complete your store setting in store manager.',
-                    ];
-                    return response()->json($response, 413);
-               }
-           }
-
-
-            return $next($request);
         }
+        if($request->hasHeader('X-Tenant')){
+            if(get_option('tax') == "" || showAddressError()){
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Oops the store is temporary disabled. Complete your store setting in store manager.',
+                ];
+                return response()->json($response, 413);
+           }
+       }
+        return $next($request);
     }
 }

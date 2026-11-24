@@ -22,16 +22,16 @@ class PaymentgatewayController extends Controller
         $namespaces=[];
 
         foreach ($installed_payments as $key => $row) {
-           array_push($namespaces,$row->namespace);
+           $namespaces[] = $row->namespace;
         }
-        return view('seller.paymentgateway.index',compact('payments_gateways','installed_payments','namespaces'));
+        return view('seller.paymentgateway.index',['payments_gateways' => $payments_gateways, 'installed_payments' => $installed_payments, 'namespaces' => $namespaces]);
     }
 
     public function payment_edit($payment)
     {
         abort_if(!getpermission('payment_gateway'),401);
         $gateway = Getway::findOrFail($payment);
-        return view('seller.paymentgateway.edit',compact('gateway'));
+        return view('seller.paymentgateway.edit',['gateway' => $gateway]);
     }
 
 
@@ -133,7 +133,7 @@ class PaymentgatewayController extends Controller
 
         $gateway = new Getway();
         $gateway->logo = $request->preview;
-        $gateway->namespace = 'App\Lib\CustomGetway';
+        $gateway->namespace = \App\Lib\CustomGetway::class;
         $gateway->name = $request->name;
         $gateway->rate = $request->rate;
         $gateway->charge = $request->charge;

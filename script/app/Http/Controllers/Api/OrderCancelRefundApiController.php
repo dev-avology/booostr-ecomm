@@ -216,7 +216,7 @@ class OrderCancelRefundApiController extends OrderController
     protected function executeStripeFullRefundAndCancel(Order $order, string $reason = '', ?string $customReceiptEmail = null): array
     {
         $gateway = Getway::where('status', '!=', 0)
-            ->where('namespace', '=', 'App\Lib\Stripe')
+            ->where('namespace', '=', \App\Lib\Stripe::class)
             ->first();
 
         if (!$gateway) {

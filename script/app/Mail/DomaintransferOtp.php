@@ -10,17 +10,14 @@ use Illuminate\Queue\SerializesModels;
 class DomaintransferOtp extends Mailable
 {
     use Queueable, SerializesModels;
-
-    public $data;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-     public function __construct($data)
-    {
-        $this->data = $data;
-    }
+     public function __construct(public $data)
+     {
+     }
 
     /**
      * Build the message.

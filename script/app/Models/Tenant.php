@@ -43,51 +43,51 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     public function user()
     {
-        return $this->belongsTo('App\Models\User','user_id');
+        return $this->belongsTo(\App\Models\User::class,'user_id');
     }
 
     public function order()
     {
-        return $this->belongsTo('App\Models\Order','order_id');
+        return $this->belongsTo(\App\Models\Order::class,'order_id');
     }
 
     public function orderwithplan()
     {
-        return $this->belongsTo('App\Models\Order','order_id')->with('plan');
+        return $this->belongsTo(\App\Models\Order::class,'order_id')->with('plan');
     }
 
     public function domain()
     {
-        return $this->hasOne('App\Models\Domain');
+        return $this->hasOne(\App\Models\Domain::class);
     }
 
     public function domains()
     {
-        return $this->hasMany('App\Models\Domain');
+        return $this->hasMany(\App\Models\Domain::class);
     }
     public function active_domains()
     {
-        return $this->hasMany('App\Models\Domain')->where('status',1);
+        return $this->hasMany(\App\Models\Domain::class)->where('status',1);
     }
 
     public function subdomain()
     {
-        return $this->hasOne('App\Models\Domain')->where('type',2);
+        return $this->hasOne(\App\Models\Domain::class)->where('type',2);
     }
 
     public function customdomain()
     {
-        return $this->hasOne('App\Models\Domain')->where('type',3);
+        return $this->hasOne(\App\Models\Domain::class)->where('type',3);
     }
 
     public function tenantorderlog()
     {
-        return $this->hasMany('App\Models\Tenantorder');
+        return $this->hasMany(\App\Models\Tenantorder::class);
     }
 
     public function tenantmeta()
     {
-        return $this->hasOne('App\Models\Tenantmeta','tenant_id');
+        return $this->hasOne(\App\Models\Tenantmeta::class,'tenant_id');
     }
 
 }

@@ -1,16 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use RuntimeException;
 
 class PartnerCreateStoreStepException extends RuntimeException
 {
-    protected string $step;
-
-    public function __construct(string $step, \Throwable $previous)
+    public function __construct(protected string $step, \Throwable $previous)
     {
-        $this->step = $step;
         parent::__construct($previous->getMessage(), 0, $previous);
     }
 

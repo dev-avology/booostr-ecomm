@@ -46,7 +46,7 @@ class ProductController extends Controller
 
         $type = $request->type ?? '';
 
-        return view("seller.product.index", compact('posts', 'request', 'type'));
+        return view("seller.product.index", ['posts' => $posts, 'request' => $request, 'type' => $type]);
     }
 
     /**
@@ -66,7 +66,7 @@ class ProductController extends Controller
         $features = Category::query()->where('type', 'product_feature')->orderBy('menu_status', 'ASC')->get();
         $product_type = Category::query()->where('type', 'product_type')->orderBy('id', 'ASC')->get();
 
-        return view("seller.product.create", compact('attributes', 'features', 'product_type','formApiData'));
+        return view("seller.product.create", ['attributes' => $attributes, 'features' => $features, 'product_type' => $product_type, 'formApiData' => $formApiData]);
     }
 
     /**
@@ -98,7 +98,7 @@ class ProductController extends Controller
         } else {
             $responseData = json_decode($response, true);
             if (json_last_error() === JSON_ERROR_NONE) {
-                $forms = isset($responseData['forms'])?$responseData['forms']: [];
+                $forms = $responseData['forms'] ?? [];
             } else {
                 echo 'JSON decoding error: ' . json_last_error_msg();
             }
@@ -267,7 +267,7 @@ class ProductController extends Controller
                               }
                               $varition->varitions()->sync($varitions_data);
                               
-                              array_push($product_varitions, $varition->id);
+                              $product_varitions[] = $varition->id;
                           }
                   }
             }
@@ -275,7 +275,7 @@ class ProductController extends Controller
             DB::commit();
             bust_pos_api_cache();
             bust_store_product_api_cache();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
 
             $errors['errors']['error'] = 'Oops something wrong';
@@ -317,11 +317,11 @@ class ProductController extends Controller
             $product_type = Category::query()->where('type', 'product_type')->select('id', 'name')->orderBy('id', 'ASC')->get();
 
             foreach ($info->termcategories as $key => $value) {
-                array_push($selected_categories, $value->category_id);
+                $selected_categories[] = $value->category_id;
             }
             $features = Category::query()->where('type', 'product_feature')->orderBy('menu_status', 'ASC')->get();
 
-            return view("seller.product.edit", compact('info','product_type', 'selected_categories', 'features', 'id','formApiData'));
+            return view("seller.product.edit", ['info' => $info, 'product_type' => $product_type, 'selected_categories' => $selected_categories, 'features' => $features, 'id' => $id, 'formApiData' => $formApiData]);
         }
 
         if ($type == 'price') {
@@ -338,7 +338,7 @@ class ProductController extends Controller
 
             $selected_categories = [];
             foreach ($info->termcategories as $key => $value) {
-                array_push($selected_categories, $value->category_id);
+                $selected_categories[] = $value->category_id;
             }
             $selected_product_type = '';
             foreach($product_type as $val){
@@ -354,36 +354,36 @@ class ProductController extends Controller
                 );
             }
 
-            return view("seller.product.price", compact('info', 'id', 'attributes', 'selected_product_type'));
+            return view("seller.product.price", ['info' => $info, 'id' => $id, 'attributes' => $attributes, 'selected_product_type' => $selected_product_type]);
         }
 
         if ($type == 'image') {
             $info = Term::query()->where('type', 'product')->with('media', 'medias')->findorFail($id);
             $medias = json_decode($info->medias->value ?? '');
 
-            return view("seller.product.image", compact('info', 'id', 'medias'));
+            return view("seller.product.image", ['info' => $info, 'id' => $id, 'medias' => $medias]);
         }
 
         if ($type == "seo") {
             $info = Term::query()->where('type', 'product')->with('seo')->findorFail($id);
             $seo = json_decode($info->seo->value ?? '');
 
-            return view("seller.product.seo", compact('info', 'id', 'seo'));
+            return view("seller.product.seo", ['info' => $info, 'id' => $id, 'seo' => $seo]);
         }
 
         if ($type == "discount") {
             $info = Term::query()->where('type', 'product')->with('discount')->findorFail($id);
-            return view("seller.product.discount", compact('info', 'id'));
+            return view("seller.product.discount", ['info' => $info, 'id' => $id]);
         }
         if ($type == "barcode") {
             abort_if(tenant('barcode') != 'on', 401);
             $info = Term::query()->where('type', 'product')->with('preview')->findorFail($id);
-            return view("seller.product.product_based_barcode", compact('info', 'id'));
+            return view("seller.product.product_based_barcode", ['info' => $info, 'id' => $id]);
         }
 
         if ($type == "express-checkout") {
             $info = Term::query()->where('type', 'product')->with('price', 'productoptionwithcategories')->findorFail($id);
-            return view("seller.product.express_checkout", compact('info', 'id'));
+            return view("seller.product.express_checkout", ['info' => $info, 'id' => $id]);
         }
     }
 
@@ -488,7 +488,7 @@ class ProductController extends Controller
                 $cats = [];
                 foreach ($request->categories ?? [] as $r) {
                     if (!empty($r)) {
-                        array_push($cats, $r);
+                        $cats[] = $r;
                     }
                 }
 
@@ -590,7 +590,7 @@ class ProductController extends Controller
                                 }
                                 $varition->varitions()->sync($varitions_data);
                                 
-                                array_push($product_varitions, $varition->id);
+                                $product_varitions[] = $varition->id;
                             }
                     }
 
@@ -615,7 +615,7 @@ class ProductController extends Controller
                             }
                             $varition->varitions()->sync($varitions_data);
 
-                            array_push($product_varitions, $varition->id);
+                            $product_varitions[] = $varition->id;
                             //array_push($productoptions, $data);
                         }
                     }
@@ -640,7 +640,7 @@ class ProductController extends Controller
                             }
                             $varition->varitions()->sync($varitions_data);
 
-                            array_push($product_varitions, $varition->id);
+                            $product_varitions[] = $varition->id;
                             //array_push($productoptions, $data);
                         }
                     }
@@ -652,15 +652,15 @@ class ProductController extends Controller
                     $deleteable_option = [];
                     $deleteable_prices = [];
                     foreach ($term->productoption ?? [] as $row) {
-                        if (in_array($row->id, $product_options) == false) {
-                            array_push($deleteable_option, $row->id);
+                        if (in_array($row->id, $product_options) === false) {
+                            $deleteable_option[] = $row->id;
                         }
                     }
 
 
                     foreach ($term->prices ?? [] as $row) {
-                        if (in_array($row->id, $product_varitions) == false) {
-                            array_push($deleteable_prices, $row->id);
+                        if (in_array($row->id, $product_varitions) === false) {
+                            $deleteable_prices[] = $row->id;
                         }
                     }
 
@@ -679,7 +679,7 @@ class ProductController extends Controller
                 DB::commit();
                 bust_pos_api_cache();
                 bust_store_product_api_cache();
-            } catch (\Throwable $th) {
+            } catch (\Throwable) {
                 DB::rollback();
                 $errors['errors']['error'] = 'Oops something wrong';
                 //dd($th);
@@ -717,7 +717,7 @@ class ProductController extends Controller
                 DB::commit();
                 bust_pos_api_cache();
                 bust_store_product_api_cache();
-            } catch (\Throwable $th) {
+            } catch (\Throwable) {
                 DB::rollback();
                 $errors['errors']['error'] = 'Oops something wrong';
                 return response()->json($errors, 401);
@@ -741,7 +741,7 @@ class ProductController extends Controller
                     $term->seo()->update(['value' => json_encode($data)]);
                 }
                 DB::commit();
-            } catch (\Throwable $th) {
+            } catch (\Throwable) {
                 DB::rollback();
                 $errors['errors']['error'] = 'Oops something wrong';
                 return response()->json($errors, 401);
@@ -777,7 +777,7 @@ class ProductController extends Controller
                 DB::commit();
                 bust_pos_api_cache();
                 bust_store_product_api_cache();
-            } catch (\Throwable $th) {
+            } catch (\Throwable) {
                 DB::rollback();
                 $errors['errors']['error'] = 'Oops something wrong';
                 return response()->json($errors, 401);
@@ -813,53 +813,48 @@ class ProductController extends Controller
             $ids = is_array($request->ids) ? $request->ids : explode(',', (string) $request->ids);
             $ids = array_values(array_filter(array_map('intval', $ids)));
 
-            if (empty($ids)) {
+            if ($ids === []) {
                 return response()->json('Select Some product...!!!');
             }
-
             if ($request->method == 'delete') {
                 try {
                     \DB::connection()->getPdo()->setAttribute(\PDO::ATTR_EMULATE_PREPARES, true);
-                } catch (\Throwable $th) {}
-
+                } catch (\Throwable) {}
                 foreach ($ids as $id) {
                     try {
                         Term::query()->where('type', 'product')->where('id', $id)->delete();
-                    } catch (\Throwable $th) {
+                    } catch (\Throwable) {
                         try {
                             \DB::statement("DELETE FROM `terms` WHERE `type` = 'product' AND `id` = ?", [$id]);
-                        } catch (\Throwable $e) {}
+                        } catch (\Throwable) {}
                     }
                 }
-
                 try {
                     \App\Models\ProductSalesCrmSync::whereIn('product_id', $ids)->delete();
-                } catch (\Throwable $th) {}
-
+                } catch (\Throwable) {}
                 bust_pos_api_cache();
                 bust_store_product_api_cache();
-
                 return response()->json('Successfully Product Deleted...!!!');
-            } elseif ($request->method == 'duplicate') {
+            }
+
+            if ($request->method == 'duplicate') {
                 foreach ($ids as $id) {
                     $this->duplicateProduct($id);
                 }
                 bust_pos_api_cache();
                 bust_store_product_api_cache();
-
                 return response()->json('Successfully Product duplicated...!!!');
-            } else {
-                foreach ($ids as $id) {
-                    $product = Term::where('type', 'product')->find($id);
-                    if (!empty($product)) {
-                        $product->status = $request->method;
-                        $product->save();
-                    }
-                }
-                bust_pos_api_cache();
-                bust_store_product_api_cache();
-                return response()->json('Successfully Product Deleted...!!!');
             }
+            foreach ($ids as $id) {
+                $product = Term::where('type', 'product')->find($id);
+                if (!empty($product)) {
+                    $product->status = $request->method;
+                    $product->save();
+                }
+            }
+            bust_pos_api_cache();
+            bust_store_product_api_cache();
+            return response()->json('Successfully Product Deleted...!!!');
         }
 
         return response()->json('Select Some product...!!!');
@@ -932,9 +927,8 @@ class ProductController extends Controller
       $new = $this->duplicateProduct($id);
       if($new != 0){
         return redirect()->route('seller.product.edit', $new);
-      }else{
-        return redirect()->back()->with('error','Oops somthing went wrong');
       }
+      return redirect()->back()->with('error','Oops somthing went wrong');
     }
 
     private function duplicateProduct($id){
@@ -1019,9 +1013,7 @@ class ProductController extends Controller
                     $varitions_data = [];
                     foreach($price->varitions as $old_varition){
 
-                        $filteredvarition = array_filter($product_options, function($option) use($old_varition){
-                            return $option['old'] == $old_varition->pivot->productoption_id;
-                        });
+                        $filteredvarition = array_filter($product_options, fn($option) => $option['old'] == $old_varition->pivot->productoption_id);
 
                          $filteredvarition = reset($filteredvarition);
                          if(isset($filteredvarition['new'])){
@@ -1037,7 +1029,7 @@ class ProductController extends Controller
             DB::commit();
             bust_pos_api_cache();
             bust_store_product_api_cache();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
             return 0;
         }
@@ -1106,7 +1098,7 @@ class ProductController extends Controller
 
             $sales = $sales->orderBy('id', 'desc')->paginate(20);
 
-            return view('seller.product.sales-history', compact('product', 'sales', 'crmSyncStatus', 'crmContactGroupOptions'));
+            return view('seller.product.sales-history', ['product' => $product, 'sales' => $sales, 'crmSyncStatus' => $crmSyncStatus, 'crmContactGroupOptions' => $crmContactGroupOptions]);
         }
 
         $sales = Orderitem::with(['order.ordermeta', 'eventTicket'])
@@ -1141,7 +1133,7 @@ class ProductController extends Controller
         
         $sales = $sales->orderBy('id', 'desc')->paginate(20);
     
-        return view('seller.product.sales-history', compact('product', 'sales', 'crmSyncStatus', 'crmContactGroupOptions'));
+        return view('seller.product.sales-history', ['product' => $product, 'sales' => $sales, 'crmSyncStatus' => $crmSyncStatus, 'crmContactGroupOptions' => $crmContactGroupOptions]);
     }
 
     protected function getCrmContactGroupOptions(string $productTitle): array
@@ -1156,7 +1148,7 @@ class ProductController extends Controller
                 ->orderBy('name')
                 ->get(['name', 'group_id'])
                 ->toArray();
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             $groups = [];
         }
 
@@ -1292,7 +1284,7 @@ class ProductController extends Controller
                 }
 
                 $staleGroupsQuery = DB::table('contact_groups')->where('club_id', $clubId);
-                if (!empty($keptLocalIds)) {
+                if ($keptLocalIds !== []) {
                     $staleGroupsQuery->whereNotIn('id', $keptLocalIds);
                 }
 
@@ -1303,7 +1295,7 @@ class ProductController extends Controller
                 'success' => true,
                 'groups' => $this->getCrmContactGroupOptions($productTitle),
             ];
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return [
                 'success' => false,
                 'message' => 'Unable to sync contact groups right now.',
@@ -1517,7 +1509,7 @@ class ProductController extends Controller
                     'group_id' => $remoteGroupId,
                 ],
             ]);
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return response()->json([
                 'success' => false,
                 'message' => 'Contact group was created in CRM but could not be saved locally.',

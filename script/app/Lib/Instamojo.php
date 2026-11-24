@@ -9,9 +9,8 @@ class Instamojo {
     {
         if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['success_url']);
-        }else{
-            return url('partner/payment/success');
         }
+        return url('partner/payment/success');
     }
 
     public static function redirect_if_payment_faild()
@@ -19,9 +18,8 @@ class Instamojo {
         if(Session::has('fund_callback'))
         {
             return url(Session::get('fund_callback')['cancel_url']);
-        }else{
-            return url('partner/payment/failed');
         }
+        return url('partner/payment/failed');
        
     }
 
@@ -81,7 +79,7 @@ class Instamojo {
         Session::put('instamojo_credentials',$data);
 
 
-        if ($test_mode == true) {
+        if ($test_mode === true) {
             $url='https://test.instamojo.com/api/1.1/payment-requests/';
         }
         else{
@@ -109,11 +107,9 @@ class Instamojo {
             $url= $response['payment_request']['longurl'];
             return redirect($url);
         }
-       else{
-            Session::forget('instamojo_credentials');
-            return redirect(Instamojo::redirect_if_payment_faild());
-        }
-        } catch (\Throwable $th) {
+        Session::forget('instamojo_credentials');
+        return redirect(Instamojo::redirect_if_payment_faild());
+        } catch (\Throwable) {
             Session::forget('instamojo_credentials');
             return redirect(Instamojo::redirect_if_payment_faild());
         }
@@ -145,13 +141,11 @@ class Instamojo {
              Session::put('payment_info',$data); 
              
              return redirect(Instamojo::redirect_if_payment_success());
-        }      
-        else{
-            $data['payment_status'] = 0;  
-            Session::put('payment_info',$data); 
-            Session::forget('instamojo_credentials');
-            return redirect(Instamojo::redirect_if_payment_faild());
         }
+        $data['payment_status'] = 0;
+        Session::put('payment_info',$data);
+        Session::forget('instamojo_credentials');
+        return redirect(Instamojo::redirect_if_payment_faild());
     }
 
     public static function isfraud($creds){
@@ -173,15 +167,15 @@ class Instamojo {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
             curl_setopt($ch, CURLOPT_HTTPHEADER,
-                        array(
+                        [
                             "Content-Type: application/json",
                             "X-Api-Key:".$api,
-                            "X-Auth-Token:".$auth_token));
+                            "X-Auth-Token:".$auth_token]);
             $response = curl_exec($ch);
             curl_close($ch); 
             $arr = json_decode($response, true);
             return $arr['success'] === true ? 1 : 0;
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
            return 0;
         }
 

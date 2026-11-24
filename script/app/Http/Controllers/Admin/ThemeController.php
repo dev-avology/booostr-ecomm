@@ -20,7 +20,7 @@ class ThemeController extends Controller
         abort_if(!Auth()->user()->can('store.theme'), 401);
         $file=file_get_contents('theme/themes.json');
         $themes = json_decode($file);
-        return view('admin.template.index', compact('themes'));
+        return view('admin.template.index', ['themes' => $themes]);
     }
 
 
@@ -82,7 +82,7 @@ class ThemeController extends Controller
                     $data['view_path']=$theme_view_path;
                     $data['asset_path']=$assets_link_path;
 
-                    array_push($posts,$data);
+                    $posts[] = $data;
 
                     File::put('theme/themes.json',json_encode($posts,JSON_PRETTY_PRINT));
 

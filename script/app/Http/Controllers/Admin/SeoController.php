@@ -19,14 +19,14 @@ class SeoController extends Controller
       $data = Option::where('key', 'seo_home')->orWhere('key', "seo_blog")->orWhere('key', "seo_service")->orWhere('key', "seo_contract")->orWhere('key', "seo_pricing")->get();
 
 
-       return view('admin.seo.index',compact('data'));
+       return view('admin.seo.index',['data' => $data]);
     }
 
     public function edit($id)
     {
          abort_if(!Auth()->user()->can('seo.settings'), 401);
        $data = Option::where('id', $id)->first();
-       return view('admin.seo.edit', compact('data'));
+       return view('admin.seo.edit', ['data' => $data]);
     }
 
     public function update(Request $request, $id)

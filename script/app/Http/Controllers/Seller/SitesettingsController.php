@@ -165,10 +165,7 @@ class SitesettingsController extends Controller
             $subdomainHost = $subdomainRecord ? $subdomainRecord->domain : (tenant('id') . '.' . env('APP_PROTOCOLESS_URL'));
             $subdomainUrl = 'https://' . preg_replace('#^https?://#', '', $subdomainHost);
 
-           return view('seller.settings.general',compact('languages','lat_lang','address','store_name','measurment_type','tax','free_shipping','min_cart_total','shipping_method','store_sender_email','invoice_data','timezone','default_language','weight_type','currency_info','average_times','order_method','order_settings','whatsapp_no','whatsapp_settings',
-           'banner_logo','bannerUrlValue','credit_card_processing_method',
-           'inperson_pickup', 'pickup_details', 'allow_in_person_pickup',
-           'standalone_store_status', 'subdomainUrl'));
+           return view('seller.settings.general',['languages' => $languages, 'lat_lang' => $lat_lang, 'address' => $address, 'store_name' => $store_name, 'measurment_type' => $measurment_type, 'tax' => $tax, 'free_shipping' => $free_shipping, 'min_cart_total' => $min_cart_total, 'shipping_method' => $shipping_method, 'store_sender_email' => $store_sender_email, 'invoice_data' => $invoice_data, 'timezone' => $timezone, 'default_language' => $default_language, 'weight_type' => $weight_type, 'currency_info' => $currency_info, 'average_times' => $average_times, 'order_method' => $order_method, 'order_settings' => $order_settings, 'whatsapp_no' => $whatsapp_no, 'whatsapp_settings' => $whatsapp_settings, 'banner_logo' => $banner_logo, 'bannerUrlValue' => $bannerUrlValue, 'credit_card_processing_method' => $credit_card_processing_method, 'inperson_pickup' => $inperson_pickup, 'pickup_details' => $pickup_details, 'allow_in_person_pickup' => $allow_in_person_pickup, 'standalone_store_status' => $standalone_store_status, 'subdomainUrl' => $subdomainUrl]);
        }
       
     }
@@ -451,11 +448,11 @@ class SitesettingsController extends Controller
               $currency_info->key='currency_data';
               $currency_info->autoload=1;
            }
-           $currency_info->value=json_encode(array(
+           $currency_info->value=json_encode([
                 'currency_name'=>$request->currency_name??'USD',
                 'currency_position'=>$request->currency_position??'left',
                 'currency_icon'=>$request->currency_icon??'$'
-           ));
+           ]);
 
            $currency_info->save();
 
@@ -467,10 +464,10 @@ class SitesettingsController extends Controller
               $average_times->key='average_times';
               $average_times->autoload=1;
            }
-           $average_times->value=json_encode(array(
+           $average_times->value=json_encode([
                 'delivery_time'=>$request->delivery_time,
                 'pickup_time'=>$request->pickup_time
-           ));
+           ]);
            $average_times->save();
 
            $order_settings=Option::where('key','order_settings')->first();
@@ -479,7 +476,7 @@ class SitesettingsController extends Controller
               $order_settings->key='order_settings';
              
            }
-           $order_settings->value=json_encode(array(
+           $order_settings->value=json_encode([
                 'order_method'=>$request->order_method,
                 'shipping_amount_type'=>$request->shipping_amount_type,
                 'google_api'=>$request->google_api,
@@ -489,7 +486,7 @@ class SitesettingsController extends Controller
                 'pre_order'=>$request->pre_order,
                 'source_code'=> $request->source_code
 
-           ));
+           ]);
            $order_settings->save();
 
            $whatsapp_settings=Option::where('key','whatsapp_settings')->first();
@@ -499,13 +496,13 @@ class SitesettingsController extends Controller
               $whatsapp_settings->autoload=1;
              
            }
-           $whatsapp_settings->value=json_encode(array(
+           $whatsapp_settings->value=json_encode([
                 'whatsapp_no'=>$request->whatsapp_no,
                 'shop_page_pretext'=>$request->shop_page_pretext,
                 'other_page_pretext'=>$request->other_page_pretext,
                 'whatsapp_status'=>$request->whatsapp_status,
 
-           ));
+           ]);
            $whatsapp_settings->save();
 
 
@@ -522,11 +519,11 @@ class SitesettingsController extends Controller
             $tax_data->save();
 
 
-           $shipping_price = array(
+           $shipping_price = [
             'weight_based'=> 'perlb',
             'per_item'=> 'per_item',
             'flat_rate'=> 'flatrate_range',
-           );
+           ];
 
            $shipping_method=Option::where('key','shipping_method')->first();
            // $shipping_method=$shipping_method ?? '';
@@ -537,13 +534,13 @@ class SitesettingsController extends Controller
          
                if($request->shipping_method != ''){
 
-               $shipping_method->value=json_encode(array(
+               $shipping_method->value=json_encode([
                'method_type'=>$request->shipping_method,
                'label'=>$request->shipping_method_label??'',
                'pricing'=>$request->type_price["'".$shipping_price[$request->shipping_method]."'"],
                'base_pricing'=>$request->base_price["'".$shipping_price[$request->shipping_method]."'"]??0,
 
-                  ));
+                  ]);
                }else{
                   Option::where('key','shipping_method')->delete();
                }
@@ -708,7 +705,7 @@ class SitesettingsController extends Controller
         try {
             new \DateTimeZone($timezone);
             return $timezone;
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return '';
         }
     }

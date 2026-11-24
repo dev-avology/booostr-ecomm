@@ -102,9 +102,7 @@ class ProductController extends Controller
        ->whereIn('list_type', [0,1])->with('media','category','firstprice', 'lastprice','formType','optionwithcategories','price','prices')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
 
         if (!empty($request->category)) {
-            $posts = $posts->whereHas('termcategories', function ($query) use ($request) {
-                return $query->where('category_id', $request->category);
-            });
+            $posts = $posts->whereHas('termcategories', fn($query) => $query->where('category_id', $request->category));
         }
         $posts = $posts->orderBy('order','asc')->paginate(50);
         
@@ -207,10 +205,10 @@ class ProductController extends Controller
         $medias=json_decode($info->medias->value ?? '');
         $preview=asset($info->preview->value ?? 'uploads/default.png');
         $galleries=[];
-        array_push($galleries,$preview);
+        $galleries[] = $preview;
 
         foreach($medias ?? [] as $row){
-            array_push($galleries,asset($row));
+            $galleries[] = asset($row);
         }
         unset($info->medias);
         unset($info->preview);
@@ -257,10 +255,10 @@ class ProductController extends Controller
         $medias=json_decode($info->medias->value ?? '');
         $preview=asset($info->preview->value ?? 'uploads/default.png');
         $galleries=[];
-        array_push($galleries,$preview);
+        $galleries[] = $preview;
 
         foreach($medias ?? [] as $row){
-            array_push($galleries,asset($row));
+            $galleries[] = asset($row);
         }
         unset($info->medias);
         unset($info->preview);
@@ -350,7 +348,7 @@ class ProductController extends Controller
                }
             }
 
-            $exist_qty=$exist_qty+$request->qty;
+            $exist_qty += $request->qty;
 
             $weight=$price->weight ?? 0;
 
@@ -359,9 +357,7 @@ class ProductController extends Controller
                 return $stockCheck;
             }
 
-            $existingCartItem = Cart::search(function ($cartItem, $rowId) use ($info, $price) {
-                return $cartItem->id == $info->id;
-            });
+            $existingCartItem = Cart::search(fn($cartItem, $rowId) => $cartItem->id == $info->id);
             
             if ($existingCartItem->isNotEmpty() && (int)$request->variation_id == $existingCartItem->first()->options->options->first()->id && !$FormFlag && $this->shouldMergeWriteInCartItem($existingCartItem->first(), $writeInAmount)) {
 
@@ -377,7 +373,7 @@ class ProductController extends Controller
                 if ($writeInAmount !== null) {
                     $variationOptions['write_in_amount'] = $writeInAmount;
                 }
-                $linePrice = $writeInAmount !== null ? $writeInAmount : $info->prices[0]['price'];
+                $linePrice = $writeInAmount ?? $info->prices[0]['price'];
                 $cart_item = Cart::add(
                         ['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $linePrice, 'weight' => $info->prices[0]['weight'], 
                         'options' => $variationOptions,
@@ -416,7 +412,7 @@ class ProductController extends Controller
                }
             }
 
-            $exist_qty=$exist_qty+$request->qty;
+            $exist_qty += $request->qty;
 
             $price=$info->firstprice;
             $writeInAmount = $this->resolvedWriteInCartAmount($request, $price);
@@ -427,9 +423,7 @@ class ProductController extends Controller
                 return $stockCheck;
             }
 
-            $existingCartItem = Cart::search(function ($cartItem, $rowId) use ($info, $price) {
-                return $cartItem->id == $info->id ? $rowId:false;
-            });
+            $existingCartItem = Cart::search(fn($cartItem, $rowId) => $cartItem->id == $info->id ? $rowId:false);
 
             if ($existingCartItem->isNotEmpty() && !$FormFlag && $this->shouldMergeWriteInCartItem($existingCartItem->first(), $writeInAmount)) {
            
@@ -457,7 +451,7 @@ class ProductController extends Controller
                     $options['stock'] = null;
                 }
           
-              $linePrice = $writeInAmount !== null ? $writeInAmount : $price->price;
+              $linePrice = $writeInAmount ?? $price->price;
               $cart_item =  Cart::add(['id' => $info->id, 'name' => $info->title, 'qty' => $request->qty, 'price' => $linePrice, 'weight' => $weight, 'options' => $options,'formData'=>($FormFlag)?$fdata:'']);          
               $this->persistCartItemWriteInAmount($cartid, $cart_item->rowId, $info->id, $writeInAmount);
 
@@ -485,7 +479,7 @@ class ProductController extends Controller
       //  dd($cart_item->rowId);
         try {
             Cart::store($cartid);
-        } catch (Exception $e) {
+        } catch (Exception) {
             Cart::updatestore($cartid);
         }
         $productcartdata['cartid'] = $cartid;
@@ -559,7 +553,7 @@ class ProductController extends Controller
         //resave cart
         try{
             Cart::store($cartid);
-        }catch(Exception $e){
+        }catch(Exception){
             Cart::updatestore($cartid);
         }
         $productcartdata['cartid'] = $cartid;
@@ -585,9 +579,7 @@ class ProductController extends Controller
         if(Cart::content()->isEmpty()){
             return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
         }
-        $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
-            return $cartItem->rowId == $id?$rowId:false;
-        });
+        $rowid=Cart::content()->filter(fn($cartItem, $rowId) => $cartItem->rowId == $id?$rowId:false);
 
         if($rowid->isNotEmpty()){
             Cart::remove($rowid->first()->rowId);//remove
@@ -597,7 +589,7 @@ class ProductController extends Controller
         }
         try{
             Cart::store($cartid);
-        }catch(Exception $e){
+        }catch(Exception){
             Cart::updatestore($cartid);
         }
         $productcartdata['cartid'] = $cartid;
@@ -625,9 +617,7 @@ class ProductController extends Controller
             return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
         }
 
-        $cartFilter=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
-            return $cartItem->rowId == $id?$rowId:false;
-        });
+        $cartFilter=Cart::content()->filter(fn($cartItem, $rowId) => $cartItem->rowId == $id?$rowId:false);
 
         $pId = '';
 
@@ -651,9 +641,7 @@ class ProductController extends Controller
             }
         }
 
-        $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
-            return $cartItem->rowId == $id?$rowId:false;
-        });
+        $rowid=Cart::content()->filter(fn($cartItem, $rowId) => $cartItem->rowId == $id?$rowId:false);
         
         if($rowid->isNotEmpty()){
             Cart::update($rowid->first()->rowId, $request->qty);//QTY update
@@ -661,7 +649,7 @@ class ProductController extends Controller
 
         try{
             Cart::store($cartid);
-        }catch(Exception $e){
+        }catch(Exception){
             Cart::updatestore($cartid);
         }
 
@@ -754,7 +742,7 @@ class ProductController extends Controller
             }
 
             if ($coupon->is_percentage == 0) {
-                $total_amount = $total_amount - $coupon->value;
+                $total_amount -= $coupon->value;
                 $total_discount = $coupon->value;
             } else {
                 Cart::setGlobalDiscount($coupon->value);
@@ -819,11 +807,11 @@ class ProductController extends Controller
                 ]);
                 $data['qty'] = $row->qty;
                 $data['amount'] = $row->price;
-                $total_weight = $total_weight + $row->weight;
-                array_push($oder_items, $data);
+                $total_weight += $row->weight;
+                $oder_items[] = $data;
 
                 foreach ($row->options->price_id ?? [] as $key => $r) {
-                    array_push($priceids, ['order_id' => $order->id, 'price_id' => $r, 'qty' => $row->qty]);
+                    $priceids[] = ['order_id' => $order->id, 'price_id' => $r, 'qty' => $row->qty];
                 }
             }
 
@@ -859,7 +847,7 @@ class ProductController extends Controller
                     'value' => json_encode($customer_info)
                 ]);
             }
-            if (count($priceids) != 0) {
+            if (count($priceids) !== 0) {
                 $order->orderstockitems()->insert($priceids);
             }
 
@@ -885,9 +873,8 @@ class ProductController extends Controller
             $email_to = $order->user->email;
             \App\Lib\NotifyToUser::customermail($order,$email_to);
             return response()->json(["status" => 'true', "message" => 'Order Placed']);
-        }else{
-            return response()->json(["status" => 'false', "message" => 'Order Placed failed']);
         }
+        return response()->json(["status" => 'false', "message" => 'Order Placed failed']);
     }
 
     public function getInvoiceInfo(Request $request){
@@ -978,9 +965,7 @@ class ProductController extends Controller
                         $product_options = $item->varition_options;
                         foreach($item->varitions as $sel_val){
                         
-                        $cur_opt_name = array_filter($product_options,function ($x) use ($sel_val) {
-                                return $x->id == $sel_val->pivot->productoption_id;
-                            } );
+                        $cur_opt_name = array_filter($product_options,fn($x) => $x->id == $sel_val->pivot->productoption_id );
 
 
                             $product_name['name'] .= '<br><strong>'.reset($cur_opt_name)->category->name.': </strong>'.$sel_val->name;
@@ -992,7 +977,7 @@ class ProductController extends Controller
                     $product_name['qty'] = $row->qty ;
                 
                     $product_name['total'] =  currency_formate($row->amount * $row->qty) ;
-                $subtotal = $subtotal + $row->amount*$row->qty; 
+                $subtotal += $row->amount*$row->qty; 
                 $items[] = $product_name;
             }
 
@@ -1039,9 +1024,8 @@ class ProductController extends Controller
                 
         
                 return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$order_data]);
-            }else{
-                return response()->json(["status" => 'false', "message" => 'Something went wrong']);
             }
+        return response()->json(["status" => 'false', "message" => 'Something went wrong']);
     }
 
     public function getBannerImage(Request $request){
@@ -1055,9 +1039,8 @@ class ProductController extends Controller
       $banner['banner_url'] = $banner_button_url->value ?? '';
       if($banner){
           return response()->json(["status" => 'true', "message" => 'Order data fetched successfully','data' =>$banner]);
-        }else{
-            return response()->json(["status" => 'false', "message" => 'Something went wrong']);
         }
+      return response()->json(["status" => 'false', "message" => 'Something went wrong']);
       }
 
     public function getFooterLinks(){
@@ -1068,9 +1051,8 @@ class ProductController extends Controller
 
         if($footerLink){
             return response()->json(["status" => 'true', "message" => 'Footer link get successfully','data' =>$footerLink]);
-          }else{
-            return response()->json(["status" => 'false', "message" => 'Something went wrong']);
-        }
+          }
+        return response()->json(["status" => 'false', "message" => 'Something went wrong']);
     }
 
     public function addProductForm(Request $request)
@@ -1184,11 +1166,9 @@ public function registerPaymentMethodDomain(Request $request)
     $tenantId = $request->tenant_id;
 
     // 1) Get domain from CENTRAL
-    $domainRow = tenancy()->central(function () use ($tenantId) {
-        return \Stancl\Tenancy\Database\Models\Domain::where('tenant_id', $tenantId)
-            ->latest('id')
-            ->first();
-    });
+    $domainRow = tenancy()->central(fn() => \Stancl\Tenancy\Database\Models\Domain::where('tenant_id', $tenantId)
+        ->latest('id')
+        ->first());
 
     if (!$domainRow?->domain) {
         return response()->json([
@@ -1205,7 +1185,7 @@ public function registerPaymentMethodDomain(Request $request)
 
     // 3) Get Stripe secret key (Platform/Admin)
     $gateway = \App\Models\Getway::where('status', '!=', 0)
-        ->where('namespace', '=', 'App\Lib\Stripe')
+        ->where('namespace', '=', \App\Lib\Stripe::class)
         ->first();
 
     $gwData = json_decode($gateway->data ?? '{}', true);
@@ -1228,20 +1208,16 @@ public function registerPaymentMethodDomain(Request $request)
         $existing = PaymentMethodDomain::all(['limit' => 100]);
 
         // helper: map to clean list
-        $mapDomains = function ($collection) {
-            return collect($collection->data ?? [])->map(function ($d) {
-                return [
-                    'id' => $d->id,
-                    'domain_name' => $d->domain_name,
-                    'enabled' => $d->enabled,
-                    'apple_pay' => $d->apple_pay->status ?? null,
-                    'google_pay' => $d->google_pay->status ?? null,
-                    'paypal' => $d->paypal->status ?? null,
-                    'livemode' => $d->livemode,
-                    'created' => $d->created,
-                ];
-            })->values();
-        };
+        $mapDomains = (fn($collection) => collect($collection->data ?? [])->map(fn($d) => [
+            'id' => $d->id,
+            'domain_name' => $d->domain_name,
+            'enabled' => $d->enabled,
+            'apple_pay' => $d->apple_pay->status ?? null,
+            'google_pay' => $d->google_pay->status ?? null,
+            'paypal' => $d->paypal->status ?? null,
+            'livemode' => $d->livemode,
+            'created' => $d->created,
+        ])->values());
 
         // 5) If already exists, return immediately
         foreach ($existing->data as $row) {

@@ -238,7 +238,7 @@ class RefundReceiptEmailService
                 ];
             }
 
-            if (empty($items)) {
+            if ($items === []) {
                 foreach ($order->quickSaleOrderItems ?? [] as $line) {
                     $qty = max(1, (int) $line->qty);
                     $items[] = [

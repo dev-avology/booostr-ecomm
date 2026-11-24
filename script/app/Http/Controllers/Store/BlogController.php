@@ -25,7 +25,7 @@ class BlogController extends Controller
              $posts=$posts->where('title','LIKE','%'.$request->src.'%');
          }
          $posts=$posts->latest()->paginate(12);
-         return  view(baseview('blog/index'),compact('posts','page_data'));
+         return  view(baseview('blog/index'),['posts' => $posts, 'page_data' => $page_data]);
     }
 
     public function show($slug)
@@ -37,6 +37,6 @@ class BlogController extends Controller
         $previewImg = !empty($info->preview->value) ? asset($info->preview->value) : null;
         store_set_seo($info->title ?? 'Blog', $info->excerpt->value ?? null, $previewImg, 'article');
         
-        return  view(baseview('blog/show'),compact('info','recent_posts'));
+        return  view(baseview('blog/show'),['info' => $info, 'recent_posts' => $recent_posts]);
     }
 }

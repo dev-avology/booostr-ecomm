@@ -31,14 +31,7 @@ class DashboardController extends Controller
         		  ->where('status','!=',0)
         		  ->orderBy('id', 'ASC')
         		  ->selectRaw('year(created_at) year, monthname(created_at) month, sum(price) total')
-        		  ->groupBy('year', 'month')->get()->map(function($q)
-        		  {
-        		  	 $data['year']=$q->year;
-        		  	 $data['month']=$q->month;
-        		  	 $data['total']=(float)number_format($q->total,2);
-
-        		  	 return $data;
-        		  });
+        		  ->groupBy('year', 'month')->get()->map(fn($q) => ['year' => $q->year, 'month' => $q->month, 'total' => (float)number_format($q->total,2)]);
 
 
 
@@ -144,13 +137,7 @@ class DashboardController extends Controller
     public function fetchTotalVisitorsAndPageViews($period)
     {
 
-        return \Analytics::fetchTotalVisitorsAndPageViews(Period::days($period))->map(function($data)
-        {
-            $row['date']=$data['date']->format('Y-m-d');
-            $row['visitors']=$data['visitors'];
-            $row['pageViews']=$data['pageViews'];
-            return $row;
-        });
+        return \Analytics::fetchTotalVisitorsAndPageViews(Period::days($period))->map(fn($data) => ['date' => $data['date']->format('Y-m-d'), 'visitors' => $data['visitors'], 'pageViews' => $data['pageViews']]);
         
     }
     public function fetchMostVisitedPages($period)

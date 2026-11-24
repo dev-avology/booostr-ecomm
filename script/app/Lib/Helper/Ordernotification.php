@@ -11,9 +11,7 @@ class Ordernotification
 			if (tenant('push_notification') != 'on') {
 				 return redirect('/thanks');
 			}
-			$tokens=Devicetoken::whereHas('user',function($q){
-				return $q->where([['status',1],['role_id',3]]);
-			})->pluck('token')->all();
+			$tokens=Devicetoken::whereHas('user',fn($q) => $q->where([['status',1],['role_id',3]]))->pluck('token')->all();
 			
 			\App\Lib\NotifyToUser::fmc($order->invoice_no,'You have received a new order',url('/seller/order/'.$order->id),asset('uploads/'.tenant('uid').'/notification.png'),$tokens);
 

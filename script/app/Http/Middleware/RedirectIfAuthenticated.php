@@ -19,29 +19,26 @@ class RedirectIfAuthenticated
      */
     public function handle(Request $request, Closure $next, ...$guards)
     {
-         $guards = empty($guards) ? [null] : $guards;
+         $guards = $guards === [] ? [null] : $guards;
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                if(Auth::check() && Auth::user()->role_id == 1) {
+                if (Auth::check() && Auth::user()->role_id == 1) {
                     return redirect()->route('admin.dashboard');
-                } 
-                elseif(Auth::check() && Auth::User()->role_id == 2) {
-
+                }
+                if (Auth::check() && Auth::User()->role_id == 2) {
                     return redirect()->route('merchant.dashboard');
-                    
-                }elseif(Auth::check() && Auth::User()->role_id == 3) {
+                }
+                if (Auth::check() && Auth::User()->role_id == 3) {
                     return redirect('/seller/dashboard');
-                }elseif(Auth::check() && Auth::User()->role_id == 4)
-                {
+                }
+                if (Auth::check() && Auth::User()->role_id == 4) {
                     return redirect('/customer/dashboard');
                 }
-                elseif(Auth::check() && Auth::User()->role_id == 5) {
+                if (Auth::check() && Auth::User()->role_id == 5) {
                     return redirect('/rider/dashboard');
                 }
-                else {
-                    return redirect()->route('login');
-                }
+                return redirect()->route('login');
             }
         }
 

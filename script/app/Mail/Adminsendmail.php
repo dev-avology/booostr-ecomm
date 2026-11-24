@@ -10,20 +10,14 @@ use Illuminate\Queue\SerializesModels;
 class Adminsendmail extends Mailable
 {
     use Queueable, SerializesModels;
-    public $data;
-    public $subject;
-    public $mailType;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($data, $subject, $mailType = null)
+    public function __construct(public $data, public $subject, public $mailType = null)
     {
-        $this->data = $data;
-        $this->subject = $subject;
-        $this->mailType = $mailType;
     }
 
     /**

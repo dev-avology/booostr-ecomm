@@ -54,7 +54,7 @@ class MerchantController extends Controller
       $obj->password = Hash::make($request->password);
       $obj->name = $request->name;
       $obj->email = $request->email;
-      $obj->status = isset($request->status) ? $request->status : 1;
+      $obj->status = $request->status ?? 1;
       $obj->role_id = 2;
       $token =  Str::random(60);
       $obj->api_token=$token;
@@ -76,9 +76,8 @@ class MerchantController extends Controller
         $user->api_token= $token;
         $user->save();
         return response()->json(["status"=>1,"message"=>'login success',"result"=>["token"=>$token]]);
-    }else{
-      return response()->json(["status"=>0,"message"=>'Sorry, email or password is wrong'],422);
     }
+    return response()->json(["status"=>0,"message"=>'Sorry, email or password is wrong'],422);
 }
 
   public function createstore(Request $request)
@@ -126,7 +125,7 @@ class MerchantController extends Controller
     $plan_id = Session::get('plan');
     $name = Str::slug(Session::get('store_data')['store_name']);
     $store_data=Session::get('store_data');
-    $club_id = isset($store_data['club_id'])?$store_data['club_id']:0;
+    $club_id = $store_data['club_id'] ?? 0;
 
     $order_id = Session::get('order_id');
     abort_if(empty($order_id), 404);
@@ -162,8 +161,8 @@ class MerchantController extends Controller
     $tenant->user_id = 2;//Auth::id();
     $tenant->will_expire = $expiry_date;
     $tenant->club_id=$club_id;
-    $tenant->logo=isset($store_data['logo'])?$store_data['logo']:'';
-    $tenant->club_info=isset($store_data['club_info'])?$store_data['club_info']:'';
+    $tenant->logo=$store_data['logo'] ?? '';
+    $tenant->club_info=$store_data['club_info'] ?? '';
     $tenant->save();
     DB::beginTransaction();
     try {
@@ -232,9 +231,8 @@ class MerchantController extends Controller
     Session::forget('plan');
     if (env('AUTO_DB_CREATE') == true && $tenant->status == 1) {
       return response()->json(["status"=>1,"message"=>"","result"=>['redirect_url' => $redirect_url, 'store_status' => $tenant->status, 'response' => 'success',"store_id"=>$tenant_id]]);
-    } else {
-      return response()->json(["status"=>1,"message"=>"","result"=>['redirect_url' => $redirect_url, 'store_status' => $tenant->status, 'response' => 'success_redirect',"store_id"=>$tenant_id]]);
     }
+    return response()->json(["status"=>1,"message"=>"","result"=>['redirect_url' => $redirect_url, 'store_status' => $tenant->status, 'response' => 'success_redirect',"store_id"=>$tenant_id]]);
   }
 
 

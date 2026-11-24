@@ -24,7 +24,7 @@ class RiderController extends Controller
         }
         $users=$users->paginate(30);
 
-        return view('seller.rider.index',compact('users','request'));
+        return view('seller.rider.index',['users' => $users, 'request' => $request]);
     }
 
     /**
@@ -101,7 +101,7 @@ class RiderController extends Controller
         }
 
        $orders=Ordershipping::whereHas('order')->with('order')->where('user_id',$id)->orderBy('id','DESC')->paginate(20);
-        return view('seller.rider.profile',compact('rider','completed_orders','pending_orders','cancalled_orders','orders'));
+        return view('seller.rider.profile',['rider' => $rider, 'completed_orders' => $completed_orders, 'pending_orders' => $pending_orders, 'cancalled_orders' => $cancalled_orders, 'orders' => $orders]);
     }
 
     /**
@@ -114,7 +114,7 @@ class RiderController extends Controller
     {
           abort_if(!getpermission('rider'),401);
         $user = User::find($id);
-        return view('seller.rider.edit',compact('user'));
+        return view('seller.rider.edit',['user' => $user]);
     }
 
     /**

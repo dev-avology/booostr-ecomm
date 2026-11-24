@@ -22,7 +22,7 @@ class BlogController extends Controller
      
         abort_if(!getpermission('website_settings'),401);
         $posts = Term::with('preview')->where('type', 'blog')->paginate(20);
-        return view('seller.blog.index', compact('posts'));
+        return view('seller.blog.index', ['posts' => $posts]);
     }
 
     /**
@@ -83,7 +83,7 @@ class BlogController extends Controller
         ]);
 
            DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
             
             $errors['errors']['error']='Oops something wrong';
@@ -107,7 +107,7 @@ class BlogController extends Controller
     {
          abort_if(!getpermission('website_settings'),401);
         $info = Term::with('preview','excerpt','description')->findOrFail($id);
-        return view('seller.blog.edit', compact('info'));
+        return view('seller.blog.edit', ['info' => $info]);
     }
 
     /**

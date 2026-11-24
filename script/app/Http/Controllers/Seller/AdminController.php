@@ -23,7 +23,7 @@ class AdminController extends Controller
        
         abort_if(!getpermission('admins'),401);
         $users = User::where('role_id',3)->where('id','!=',1)->latest()->get();
-        return view('seller.admin.index', compact('users'));
+        return view('seller.admin.index', ['users' => $users]);
        
     }
 
@@ -37,7 +37,7 @@ class AdminController extends Controller
         abort_if(!getpermission('admins'),401);
       
         $roles  = User::$seller_roles;
-        return view('seller.admin.create', compact('roles'));
+        return view('seller.admin.create', ['roles' => $roles]);
        
     }
 
@@ -111,7 +111,7 @@ class AdminController extends Controller
         $user = User::where('role_id',3)->findOrFail($id);
         $roles  = User::$seller_roles;
 
-        return view('seller.admin.edit', compact('user', 'roles'));
+        return view('seller.admin.edit', ['user' => $user, 'roles' => $roles]);
         
     }
 
@@ -161,7 +161,7 @@ class AdminController extends Controller
     {
        abort_if(!getpermission('admins'),401);
        
-                if (count($request->ids ?? []) == 0) {
+                if (count($request->ids ?? []) === 0) {
                     return response()->json('Success');
                 }
                 if ($request->status == 'delete') {

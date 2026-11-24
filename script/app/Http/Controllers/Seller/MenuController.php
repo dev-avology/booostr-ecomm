@@ -27,7 +27,7 @@ class MenuController extends Controller
         include($functions);
           
         $positions=$menu_types;
-        return view('seller.menu.create', compact('menus', 'langs','positions'));
+        return view('seller.menu.create', ['menus' => $menus, 'langs' => $langs, 'positions' => $positions]);
     }
 
     /**
@@ -89,7 +89,7 @@ class MenuController extends Controller
         abort_if(!getpermission('website_settings'),401);
         $info = Menu::findOrFail($id);
 
-        return view('seller.menu.index', compact('info'));
+        return view('seller.menu.index', ['info' => $info]);
     }
 
     /**
@@ -113,7 +113,7 @@ class MenuController extends Controller
         include($functions);
           
         $positions=$menu_types;
-        return view('seller.menu.edit', compact('info', 'langs','menu_types','positions'));
+        return view('seller.menu.edit', ['info' => $info, 'langs' => $langs, 'menu_types' => $menu_types, 'positions' => $positions]);
     }
 
     /**

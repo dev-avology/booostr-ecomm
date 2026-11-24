@@ -12,14 +12,14 @@ class OptionController extends Controller
     {
         abort_if(!Auth()->user()->can('option'), 401);
         $data = Option::where('key', 'seo_home')->orWhere('key', "seo_blog")->orWhere('key', "seo_service")->orWhere('key', "seo_contract")->orWhere('key', "seo_pricing")->get();
-        return view('admin.option.seo-index', compact('data'));
+        return view('admin.option.seo-index', ['data' => $data]);
     }
 
     public function seoEdit($id)
     {
         abort_if(!Auth()->user()->can('option'), 401);
         $data = Option::where('id', $id)->first();
-        return view('admin.option.seo-edit', compact('data'));
+        return view('admin.option.seo-edit', ['data' => $data]);
     }
 
     public function seoUpdate(Request $request, $id)
@@ -54,17 +54,15 @@ class OptionController extends Controller
 
             $automatic_renew_plan_mail = Option::where('key', 'automatic_renew_plan_mail')->first();
             $automatic_renew_plan_mail = json_decode($automatic_renew_plan_mail->value ?? '');
-            return view('admin.option.cron', compact('option','automatic_renew_plan_mail'));
-        } else {
-            $auto_enroll_after_payment = Option::where('key', 'auto_enroll_after_payment')->first();
-            $tawk_to_property_id = Option::where('key', 'tawk_to_property_id')->first();
-            $currency = Option::where('key', 'currency')->first();
-            $tax = Option::where('key', 'tax')->first();
-            $invoice_prefix = Option::where('key', 'invoice_prefix')->first();
-            $support_email = Option::where('key', 'support_email')->first();
-
-            return view('admin.option.option', compact('auto_enroll_after_payment', 'tawk_to_property_id', 'currency', 'tax', 'invoice_prefix', 'support_email'));
+            return view('admin.option.cron', ['option' => $option, 'automatic_renew_plan_mail' => $automatic_renew_plan_mail]);
         }
+        $auto_enroll_after_payment = Option::where('key', 'auto_enroll_after_payment')->first();
+        $tawk_to_property_id = Option::where('key', 'tawk_to_property_id')->first();
+        $currency = Option::where('key', 'currency')->first();
+        $tax = Option::where('key', 'tax')->first();
+        $invoice_prefix = Option::where('key', 'invoice_prefix')->first();
+        $support_email = Option::where('key', 'support_email')->first();
+        return view('admin.option.option', ['auto_enroll_after_payment' => $auto_enroll_after_payment, 'tawk_to_property_id' => $tawk_to_property_id, 'currency' => $currency, 'tax' => $tax, 'invoice_prefix' => $invoice_prefix, 'support_email' => $support_email]);
         abort(404);
 
     }
@@ -130,7 +128,7 @@ class OptionController extends Controller
         abort_if(!Auth()->user()->can('option'), 401);
         $theme = Option::where('key', 'theme_settings')->first();
         $currency_symbol = Option::where('key','currency_symbol')->first();
-        return view('admin.option.theme', compact('theme','currency_symbol'));
+        return view('admin.option.theme', ['theme' => $theme, 'currency_symbol' => $currency_symbol]);
     }
 
     public function settingsUpdate($id, Request $request)

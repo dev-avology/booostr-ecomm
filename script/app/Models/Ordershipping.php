@@ -35,7 +35,7 @@ class Ordershipping extends Model
         parent::boot();
         static::creating(function($model){
           
-            $model->tracking_no=rand(1000,10000);
+            $model->tracking_no=random_int(1000,10000);
         });
     }
 

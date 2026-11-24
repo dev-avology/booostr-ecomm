@@ -37,7 +37,7 @@ class FundController extends Controller
 
         $gateways = Getway::where('status',1)->get();
 
-        return view('admin.fund.history',compact('funds','status','all_deposits_count','pending_deposits_count','expired_deposits_count','failed_deposits_count','gateways','request'));
+        return view('admin.fund.history',['funds' => $funds, 'status' => $status, 'all_deposits_count' => $all_deposits_count, 'pending_deposits_count' => $pending_deposits_count, 'expired_deposits_count' => $expired_deposits_count, 'failed_deposits_count' => $failed_deposits_count, 'gateways' => $gateways, 'request' => $request]);
     }
 
     public function approved(Request $request)
@@ -69,22 +69,20 @@ class FundController extends Controller
             $deposit->save();
 
             $user=User::findorFail($deposit->user_id);
-            $user->amount=$user->amount+$deposit->amount;
+            $user->amount += $deposit->amount;
             $user->save();
         }else{
             $error['errors']['domain']='Oops! Please select any row.';
     		return response()->json($error,422);
         }
-
-        if($request->status == 5)
-        {
-            return response()->json('Fund Approved!');
-        }elseif($request->status == 2)
-        {
-            return response()->json('Fund Move To Pending!');
-        }else{
+        if ($request->status == 5) {
             return response()->json('Fund Approved!');
         }
+
+        if ($request->status == 2) {
+            return response()->json('Fund Move To Pending!');
+        }
+        return response()->json('Fund Approved!');
     }
 
     public function store(Request $request)
@@ -121,7 +119,7 @@ class FundController extends Controller
         $deposit->payment_status = 1;
         $deposit->save();
 
-        $user->amount = $user->amount + $request->amount;
+        $user->amount += $request->amount;
         $user->save();
 
         return response()->json('Fund Created');

@@ -21,7 +21,7 @@ class BlogController extends Controller
      
         abort_if(!Auth()->user()->can('blog.index'), 401);
         $all_blogs = Term::with('excerpt')->where('type', 'blog')->paginate(20);
-        return view('admin.blog.index', compact('all_blogs'));
+        return view('admin.blog.index', ['all_blogs' => $all_blogs]);
     }
 
     /**
@@ -90,7 +90,7 @@ class BlogController extends Controller
         ]);
 
            DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
             
             $errors['errors']['error']='Oops something wrong';
@@ -121,7 +121,7 @@ class BlogController extends Controller
     {
         abort_if(!Auth()->user()->can('blog.edit'), 401);
         $blog_edit = Term::findOrFail($id);
-        return view('admin.blog.edit', compact('blog_edit'));
+        return view('admin.blog.edit', ['blog_edit' => $blog_edit]);
     }
 
     /**
@@ -166,7 +166,7 @@ class BlogController extends Controller
             if (!empty($blog_update->preview)) {
                 $file=$blog_update->preview->value;
                 $arr=explode('uploads',$file);
-                if (count($arr ?? []) != 0) {
+                if (count($arr ?? []) !== 0) {
                     if (isset($arr[1])) {
                        Storage::disk(env('STORAGE_TYPE'))->delete('uploads'.$arr[1]);
                     }
@@ -207,7 +207,7 @@ class BlogController extends Controller
         if (!empty($blog_destory->preview)) {
             $file=$blog_destory->preview->value;
             $arr=explode('uploads',$file);
-            if (count($arr ?? []) != 0) {
+            if (count($arr ?? []) !== 0) {
                 if (isset($arr[1])) {
                  Storage::disk(env('STORAGE_TYPE'))->delete('uploads'.$arr[1]);
               }

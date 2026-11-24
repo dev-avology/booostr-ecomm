@@ -21,18 +21,17 @@ class SiteController extends Controller
          $data['term'] = Term::where('type','product')->get();
          $data['type'] = "product";
          return response()->json($data);
-      }else if($type == 'category'){
+      }
+      if($type == 'category'){
          $data['term'] = Category::where('type','category')->get();
          $data['type'] = "category";
         
          return response()->json($data);
-      }else{
-         // return 'ahish';
-         $data['term'] = Category::where('type','category')->get();;
-         $data['type'] = "custom";
-        
-         return response()->json($data);
       }
+      // return 'ahish';
+      $data['term'] = Category::where('type','category')->get();
+      $data['type'] = "custom";
+      return response()->json($data);
   }
 
     public function updatethemesettings(Request $request,$page_name)

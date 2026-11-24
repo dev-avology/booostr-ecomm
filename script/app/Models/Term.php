@@ -46,7 +46,7 @@ class Term extends Model
     // Relation To TermsMeta
     public function user()
     {
-        return $this->belongsTo("App\Models\User", "featured", 'id');
+        return $this->belongsTo(\App\Models\User::class, "featured", 'id');
     }
 
     public function termMeta()
@@ -213,7 +213,7 @@ class Term extends Model
 
     public function servicemeta()
     {
-        return $this->hasOne('App\Models\Termmeta')->where('key','service')->select('id','term_id','value');
+        return $this->hasOne(\App\Models\Termmeta::class)->where('key','service')->select('id','term_id','value');
     }
 
     public function features()
@@ -223,7 +223,7 @@ class Term extends Model
 
     public function pagecontent()
     {
-        return $this->hasOne('App\Models\Termmeta')->where('key','page')->select('id','term_id','value');
+        return $this->hasOne(\App\Models\Termmeta::class)->where('key','page')->select('id','term_id','value');
     }
     
     

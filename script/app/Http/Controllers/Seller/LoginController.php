@@ -24,9 +24,8 @@ class LoginController extends Controller
             session(['seller_session_active' => true]);
 
             return redirect('/seller/dashboard');
-        } else {
-            return redirect()->away('https://app.booostr.co');
         }
+        return redirect()->away('https://app.booostr.co');
     }
 
     public function tokenBasedLogin($token)
@@ -46,7 +45,7 @@ class LoginController extends Controller
                 session(['seller_session_active' => true]);
                 return redirect('/seller/dashboard');
             }
-        } catch (DecryptException $e) {
+        } catch (DecryptException) {
             abort(404);
         }
         abort(404);

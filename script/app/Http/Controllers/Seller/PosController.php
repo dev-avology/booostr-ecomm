@@ -29,7 +29,7 @@ class PosController extends Controller
         $tables=Category::where([['type','table'],['status',1]])->get();
         $locations=Location::where([['status',1]])->with('shipping')->get();
         $order_status=Category::where([['type','status']])->orderBy('featured','ASC')->get();
-        return view('seller.pos.pos',compact('categories','getways','tables','locations','order_status'));
+        return view('seller.pos.pos',['categories' => $categories, 'getways' => $getways, 'tables' => $tables, 'locations' => $locations, 'order_status' => $order_status]);
     }
 
     public function productList(Request $request)
@@ -38,9 +38,7 @@ class PosController extends Controller
         $posts=Term::query()->where('type','product')->with('media','firstprice','lastprice')->whereHas('firstprice')->whereHas('lastprice');
 
         if (!empty($request->category)) {
-            $posts=$posts->whereHas('termcategories',function ($query) use ($request){
-                return $query->where('category_id',$request->category);
-            });
+            $posts=$posts->whereHas('termcategories',fn($query) => $query->where('category_id',$request->category));
         }
 
         $posts=$posts->latest()->paginate(50);
@@ -79,12 +77,10 @@ class PosController extends Controller
 
                  return response()->json($productcartdata);
               }
-              else{
-                $price=$info->firstprice;
-                if ($price->stock_status == 0) {
-                   $errors['errors']['error']='Stock Out';
-                   return response()->json($errors,401);
-                }
+              $price=$info->firstprice;
+              if ($price->stock_status == 0) {
+                 $errors['errors']['error']='Stock Out';
+                 return response()->json($errors,401);
               }
             }
             else{
@@ -98,14 +94,12 @@ class PosController extends Controller
                 foreach ($request->option ?? [] as $key => $option) {
                     $option_values=[];
                     foreach ($option as $k => $value) {
-                    array_push($option_values,$value);
+                    $option_values[] = $value;
                     }
                     
-                    $group=Productoption::with(array('priceswithcategories'=>function($query) use ($option_values){
-                            return $query->whereIn('id',$option_values);
-                    }))->with('category')->where('id',$key)->first();
+                    $group=Productoption::with(['priceswithcategories'=>fn($query) => $query->whereIn('id',$option_values)])->with('category')->where('id',$key)->first();
 
-                    array_push($groups,$group);
+                    $groups[] = $group;
                      
                  }
                    
@@ -118,10 +112,10 @@ class PosController extends Controller
                     
                     foreach ($row->priceswithcategories as $key => $value) {
                          if ($value->stock_manage == 1) {
-                            array_push($priceids,$value->id);
+                            $priceids[] = $value->id;
                          }
-                       $final_price=$final_price+$value->price;
-                       $final_weight=$final_weight+$value->weight;
+                       $final_price += $value->price;
+                       $final_weight += $value->weight;
 
                         $price_option[$row->category->name][$value->id]['price']=$value->price;
                         $price_option[$row->category->name][$value->id]['sku']=$value->sku;
@@ -274,7 +268,7 @@ class PosController extends Controller
             }
 
             if ($coupon->is_percentage == 0) {
-               $total_amount=$total_amount-$coupon->value;
+               $total_amount -= $coupon->value;
                $total_discount=$coupon->value;
             }
             else{
@@ -344,11 +338,11 @@ class PosController extends Controller
             ]);
             $data['qty']=$row->qty;
             $data['amount']=$row->price;
-            $total_weight=$total_weight+$row->weight;
-            array_push($oder_items,$data);
+            $total_weight += $row->weight;
+            $oder_items[] = $data;
 
              foreach ($row->options->price_id ?? [] as $key => $r) {
-                array_push($priceids,['order_id'=>$order->id,'price_id'=>$r,'qty'=>$row->qty]);
+                $priceids[] = ['order_id'=>$order->id,'price_id'=>$r,'qty'=>$row->qty];
              }
              $cartid = $row->instance;
         }
@@ -385,7 +379,7 @@ class PosController extends Controller
             'value'=>json_encode($customer_info)
            ]);
         }
-         if (count($priceids) != 0) {
+         if (count($priceids) !== 0) {
             $order->orderstockitems()->insert($priceids);
         }
         
@@ -401,10 +395,10 @@ class PosController extends Controller
            $subtotal = 0;
             
            foreach ($order->orderitems ?? [] as $row){
-               $subtotal = $subtotal + $row->amount*$row->qty;
+               $subtotal += $row->amount*$row->qty;
            }
 
-           $contact_manager_data = array(
+           $contact_manager_data = [
             'first_name' => $name[0],
             'last_name' => $name[1]??'',
             'user_id' =>  0,
@@ -421,7 +415,7 @@ class PosController extends Controller
             'booster_level_id' => 1,
             'customer_tag' => 'POS store customer',
             'addedsource' => 'storetool',
-        );	
+        ];	
 
 
            $user_recipt = [
@@ -472,7 +466,7 @@ class PosController extends Controller
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']); // Set content type header
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     
         $response = curl_exec($ch);

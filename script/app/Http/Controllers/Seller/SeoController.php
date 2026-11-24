@@ -19,7 +19,7 @@ class SeoController extends Controller
         include($functions);
 
         
-        return view('seller.seo.index',compact(['pages']));
+        return view('seller.seo.index',['pages' => $pages]);
     }
 
     public function update(Request $request,$page)

@@ -81,12 +81,12 @@ class OrderController extends Controller
        }
 
        $orderTypeFilters = $this->normalizeCheckboxFilterValues($request->input('order_type'));
-       if (!empty($orderTypeFilters)) {
+       if ($orderTypeFilters !== []) {
            $orders = $this->applyOrderTypeFilter($orders, $orderTypeFilters, $product_type);
        }
 
        $orderChannelFilters = $this->normalizeCheckboxFilterValues($request->input('order_channel'));
-       if (!empty($orderChannelFilters)) {
+       if ($orderChannelFilters !== []) {
            $orders = $this->applyOrderChannelFilter($orders, $orderChannelFilters);
        }
 
@@ -125,37 +125,21 @@ class OrderController extends Controller
        $orders = $orders->where('payment_status','!=',0)->paginate($selected_per_page);
        $orders->appends($request->query());
        
-       return view('seller.order.index',compact(
-           'request',
-           'status',
-           'product_type',
-           'request_status',
-           'orders',
-           'per_page_options',
-           'selected_per_page',
-           'sortColumn',
-           'sortDirection'
-       ));
+       return view('seller.order.index',['request' => $request, 'status' => $status, 'product_type' => $product_type, 'request_status' => $request_status, 'orders' => $orders, 'per_page_options' => $per_page_options, 'selected_per_page' => $selected_per_page, 'sortColumn' => $sortColumn, 'sortDirection' => $sortDirection]);
     }
 
     protected function applyOrderListSorting($query, string $sortColumn, string $sortDirection)
     {
-        switch ($sortColumn) {
-            case 'order':
-                return $query->orderByRaw(
-                    'CAST(orders.invoice_no AS UNSIGNED) ' . ($sortDirection === 'asc' ? 'ASC' : 'DESC')
-                );
-            case 'date':
-                return $query->orderBy('orders.created_at', $sortDirection);
-            case 'customer':
-                return $this->applyCustomerNameSort($query, $sortDirection);
-            case 'total':
-                return $query->orderBy('orders.total', $sortDirection);
-            case 'items':
-                return $query->orderBy('orderitems_count', $sortDirection);
-            default:
-                return $query->latest('orders.created_at');
-        }
+        return match ($sortColumn) {
+            'order' => $query->orderByRaw(
+                'CAST(orders.invoice_no AS UNSIGNED) ' . ($sortDirection === 'asc' ? 'ASC' : 'DESC')
+            ),
+            'date' => $query->orderBy('orders.created_at', $sortDirection),
+            'customer' => $this->applyCustomerNameSort($query, $sortDirection),
+            'total' => $query->orderBy('orders.total', $sortDirection),
+            'items' => $query->orderBy('orderitems_count', $sortDirection),
+            default => $query->latest('orders.created_at'),
+        };
     }
 
     protected function applyCustomerNameSort($query, string $sortDirection)
@@ -175,11 +159,7 @@ class OrderController extends Controller
 
     protected function normalizeCheckboxFilterValues($values): array
     {
-        $normalized = array_values(array_filter(array_map(function ($value) {
-            return strtolower(trim((string) $value));
-        }, (array) $values), function ($value) {
-            return $value !== '' && $value !== 'all';
-        }));
+        $normalized = array_values(array_filter(array_map(fn($value) => strtolower(trim((string) $value)), (array) $values), fn($value) => $value !== '' && $value !== 'all'));
 
         return array_values(array_unique($normalized));
     }
@@ -319,7 +299,7 @@ class OrderController extends Controller
 
         // dd($info);
         
-        return view('seller.order.show',compact('info','ordermeta','order_status','riders','product_type'));
+        return view('seller.order.show',['info' => $info, 'ordermeta' => $ordermeta, 'order_status' => $order_status, 'riders' => $riders, 'product_type' => $product_type]);
     }
 
     /**
@@ -370,7 +350,7 @@ class OrderController extends Controller
             $riders=[];
         }
 
-        return view('seller.order.invoice_print',compact('order','ordermeta','order_status','riders','order_type'));
+        return view('seller.order.invoice_print',['order' => $order, 'ordermeta' => $ordermeta, 'order_status' => $order_status, 'riders' => $riders, 'order_type' => $order_type]);
     }
 
     /**
@@ -386,7 +366,7 @@ class OrderController extends Controller
     {
         
         abort_if(!getpermission('order'), 401);
-        list($id, $user_id) = explode('_', $order_user_id);
+        [$id, $user_id] = explode('_', $order_user_id);
     
         $admin_details = User::where('role_id', 3)->first();
         $to = $admin_details->email;
@@ -430,7 +410,7 @@ class OrderController extends Controller
         }
             
         // Check if status is set to Complete (1) and order type is Digital
-        if ($request->status == 1 && $order_type == 'Digital') {
+        if ($request->status == 1 && $order_type === 'Digital') {
             $order->status_id = 1; // Set to Complete
             // Post order data logic
             if (in_array($order->order_from, [0, 4, 5])) {
@@ -608,7 +588,7 @@ class OrderController extends Controller
         else{
             $riders=[];
         }
-        return view('seller.order.invoice_print',compact('order','ordermeta','order_status','riders','product_type','order_type'));
+        return view('seller.order.invoice_print',['order' => $order, 'ordermeta' => $ordermeta, 'order_status' => $order_status, 'riders' => $riders, 'product_type' => $product_type, 'order_type' => $order_type]);
     }
     
 //     public function capture($id)
@@ -727,7 +707,7 @@ class OrderController extends Controller
         }
     
         $gateway = Getway::where('status', '!=', 0)
-            ->where('namespace', '=', 'App\Lib\Stripe')
+            ->where('namespace', '=', \App\Lib\Stripe::class)
             ->firstOrFail();
     
         $ordermeta = json_decode($order->ordermeta->value ?? '{}');
@@ -802,7 +782,7 @@ class OrderController extends Controller
     
         } catch (\Stripe\Exception\InvalidRequestException $e) {
             \Log::error("Stripe InvalidRequest for order {$id}: " . $e->getMessage());
-            throw new \Exception('Stripe capture error: ' . $e->getMessage());
+            throw new \Exception('Stripe capture error: ' . $e->getMessage(), $e->getCode(), $e);
         } catch (\Exception $e) {
             \Log::error("Capture failed for order {$id}: " . $e->getMessage());
             throw $e;
@@ -1014,7 +994,7 @@ class OrderController extends Controller
 
         $gateway=Getway::find($order->getway_id);
 
-         $contact_manager_data = array(
+         $contact_manager_data = [
 									'first_name' => $name[0] ?? '',
 									'last_name' => $name[1]??'',
 									'user_id' =>  $ordermeta['wpuid']??0,
@@ -1035,7 +1015,7 @@ class OrderController extends Controller
                                     // Additive: from /api/storedata/order/create payload (ordermeta).
                                     'contact_typealias' => $ordermeta['contact_typealias'] ?? '',
                                     'formemailreal' => $ordermeta['formemailreal'] ?? '',
-								);	 
+								];	 
 
         $fees = $this->resolveOrderProcessingFees($order, $ordermeta);
         $credit_card_fee = $fees['credit_card_fee'];
@@ -1113,7 +1093,7 @@ class OrderController extends Controller
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']); // Set content type header
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $response = curl_exec($ch);
@@ -1177,7 +1157,7 @@ class OrderController extends Controller
             'category_type'=> 'Booostr Ecommerce',
             'booster_id' =>Tenant('club_id'),
             'coaid'=>41,
-            'contactname'=>isset($ordermeta['name'])?$ordermeta['name']:'Guest User',
+            'contactname'=>$ordermeta['name'] ?? 'Guest User',
             //'memo'=>'Booostr Ecommerce',
             'user_id' => 0,
             'revenue_name'=>'4-850 Booostr Ecommerce',
@@ -1222,7 +1202,7 @@ class OrderController extends Controller
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']); // Set content type header
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
             $response = curl_exec($ch);
@@ -1463,7 +1443,7 @@ class OrderController extends Controller
         }
 
         $gateway = Getway::where('status', '!=', 0)
-            ->where('namespace', '=', 'App\Lib\Stripe')
+            ->where('namespace', '=', \App\Lib\Stripe::class)
             ->first();
 
         if (!$gateway) {
@@ -1782,7 +1762,7 @@ class OrderController extends Controller
 
     protected function refundResponse(bool $silent, bool $success, string $message, ?Order $order = null, ?string $adminEmail = null, ?float $refundAmount = null, ?string $stripeRefundId = null, ?Collection $cancelledTickets = null, string $successSessionKey = 'refund_success', bool $isCashCheck = false)
     {
-        if ($success && $order) {
+        if ($success && $order instanceof \App\Models\Order) {
             $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
 
             try {
@@ -1887,7 +1867,7 @@ class OrderController extends Controller
         }
 
         $selectedItems = json_decode(request()->input('partial_refund_items', '[]'), true);
-        if (!is_array($selectedItems) || empty($selectedItems)) {
+        if (!is_array($selectedItems) || $selectedItems === []) {
             return $this->partialRefundResponse(false, 'Please select at least one item to refund.');
         }
 
@@ -1907,7 +1887,7 @@ class OrderController extends Controller
         }
 
         $gateway = Getway::where('status', '!=', 0)
-            ->where('namespace', '=', 'App\Lib\Stripe')
+            ->where('namespace', '=', \App\Lib\Stripe::class)
             ->first();
 
         if (!$gateway) {
@@ -1987,13 +1967,12 @@ class OrderController extends Controller
     {
         $variations = json_decode($orderItem->info ?? '');
         $options = $variations->options ?? [];
-        $amount = (float) $orderItem->amount;
 
         if (!is_array($options) && is_object($options) && isset($options->varition_options)) {
-            $amount = (float) $options->price;
+            return (float) $options->price;
         }
 
-        return $amount;
+        return (float) $orderItem->amount;
     }
 
     protected function getOrderItemsSubtotal(Order $order): float
@@ -2019,9 +1998,7 @@ class OrderController extends Controller
         $meta = Ordermeta::where('order_id', $order->id)->where('key', 'partial_refund_logs')->first();
         $logs = json_decode($meta->value ?? '[]', true) ?: [];
 
-        return (float) array_sum(array_map(function ($log) {
-            return (float) ($log['amount'] ?? 0);
-        }, $logs));
+        return (float) array_sum(array_map(fn($log) => (float) ($log['amount'] ?? 0), $logs));
     }
 
     protected function buildPartialRefundDetails(Order $order, array $selectedItems): array
@@ -2073,7 +2050,7 @@ class OrderController extends Controller
             $taxTotal += $refundLineTax;
         }
 
-        if (empty($items)) {
+        if ($items === []) {
             throw new \Exception('Please select at least one item to refund.');
         }
 
@@ -2099,7 +2076,7 @@ class OrderController extends Controller
         }
 
         $selectedItems = json_decode(request()->input('partial_dollar_refund_items', '[]'), true);
-        if (!is_array($selectedItems) || empty($selectedItems)) {
+        if (!is_array($selectedItems) || $selectedItems === []) {
             return $this->partialDollarRefundResponse(false, 'Please enter a refund amount for at least one item.');
         }
 
@@ -2119,7 +2096,7 @@ class OrderController extends Controller
         }
 
         $gateway = Getway::where('status', '!=', 0)
-            ->where('namespace', '=', 'App\Lib\Stripe')
+            ->where('namespace', '=', \App\Lib\Stripe::class)
             ->first();
 
         if (!$gateway) {
@@ -2262,7 +2239,7 @@ class OrderController extends Controller
             $taxTotal += $refundLineTax;
         }
 
-        if (empty($items)) {
+        if ($items === []) {
             throw new \Exception('Please enter a refund amount for at least one item.');
         }
 
@@ -2344,7 +2321,7 @@ class OrderController extends Controller
 
     protected function partialDollarRefundResponse(bool $success, string $message, ?Order $order = null, ?array $refundDetails = null, ?string $stripeRefundId = null, ?string $adminEmail = null, ?Collection $cancelledTickets = null, bool $isCashCheck = false)
     {
-        if ($success && $order && $refundDetails) {
+        if ($success && $order instanceof \App\Models\Order && $refundDetails) {
             $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
 
             try {
@@ -2475,7 +2452,7 @@ class OrderController extends Controller
 
     protected function partialRefundResponse(bool $success, string $message, ?Order $order = null, ?array $refundDetails = null, ?string $stripeRefundId = null, ?string $adminEmail = null, ?Collection $cancelledTickets = null, bool $isCashCheck = false)
     {
-        if ($success && $order && $refundDetails) {
+        if ($success && $order instanceof \App\Models\Order && $refundDetails) {
             $order = Order::with('orderstatus', 'orderlasttrans', 'orderitems', 'getway', 'user', 'shippingwithinfo', 'ordermeta', 'schedule')->findOrFail($order->id);
 
             try {
@@ -2557,7 +2534,7 @@ class OrderController extends Controller
         $ids = array_filter(array_map('intval', (array) $ids), fn($id) => $id > 0);
         $ids = array_unique(array_values($ids));
 
-        if (empty($ids)) {
+        if ($ids === []) {
             return response()->json(['error' => 'No valid orders selected'], 400);
         }
         // Always get method as string to avoid numeric/string issues
@@ -2567,32 +2544,25 @@ class OrderController extends Controller
         $adminEmail = User::where('role_id', 3)->value('email');
 
         $updated = [];
-
         // 1️⃣ DELETE UNCAPPED ORDERS
         if ($request->method == 'delete') {
             Order::whereIn('id', $ids)->delete();
             return response()->json(['message' => 'Orders Deleted']);
         }
-
         // 2️⃣ CAPTURE AUTHORIZED LOW RISK
         // elseif ($method === 'capture_authorized') {
         //     $admin_details = User::where('role_id', 3)->first();
         //     $adminEmail = $admin_details->email ?? '';
-
         //     $gateway = Getway::where('status', '!=', 0)
         //         ->where('namespace', '=', 'App\Lib\Stripe')->first();
-
         //     if (!$gateway) {
         //         return response()->json(['error' => 'Stripe gateway not found'], 400);
         //     }
-
         //     $gateway_data_info = json_decode($gateway->data);
-
         //     foreach ($orders as $order) {
         //         if (in_array($order->risk_level, ['normal', 'low']) && in_array($order->payment_status, [4, 5])) {
         //             $paymentstatus = 1; // Default to complete
         //             $status = 3; // Default to pending fulfillment
-
         //             if ($order->payment_status == 5) {
         //                 // Already refunded, just update status
         //                 $order->status_id = $status;
@@ -2609,14 +2579,11 @@ class OrderController extends Controller
         //                     'application_fee_amount' => $ordermeta->booster_platform_fee ?? 0,
         //                     'card_fee_amount' => $ordermeta->credit_card_fee ?? 0,
         //                 ];
-
         //                 Stripe::setApiKey($gateway->test_mode == 1 
         //                     ? $gateway_data_info->test_secret_key 
         //                     : $gateway_data_info->secret_key);
-
         //                 $transactionId = $payment_data['transaction_id'] ?? null;
         //                 if (!$transactionId) continue;
-
         //                 try {
         //                     if (str_starts_with($transactionId, 'pi_')) {
         //                         $paymentIntent = \Stripe\PaymentIntent::retrieve($transactionId);
@@ -2626,7 +2593,6 @@ class OrderController extends Controller
         //                     } else {
         //                         throw new \Exception('Invalid transaction ID format');
         //                     }
-
         //                     if ($paymentIntent->status === 'requires_capture') {
         //                         $captured = $paymentIntent->capture();
         //                         $paymentstatus = $captured->status === 'succeeded' ? 1 : 0;
@@ -2635,13 +2601,11 @@ class OrderController extends Controller
         //                         $paymentstatus = $paymentIntent->status === 'succeeded' ? 1 : 0;
         //                         $transaction_log = $paymentIntent;
         //                     }
-
         //                     if ($paymentstatus == 1) {
         //                         $order->payment_status = $paymentstatus;
         //                         $order->status_id = $status;
         //                         $order->captured_at = now();
         //                         $order->save();
-
         //                         $transcation_log = new Ordermeta;
         //                         $transcation_log->order_id = $order->id;
         //                         $transcation_log->key = 'transcation_log';
@@ -2651,7 +2615,6 @@ class OrderController extends Controller
         //                             'transaction_log' => $transaction_log,
         //                         ]);
         //                         $transcation_log->save();
-
         //                         $order->orderlasttrans()->update([
         //                             'key' => 'last_transcation_log',
         //                             'value' => json_encode([
@@ -2660,7 +2623,6 @@ class OrderController extends Controller
         //                                 'transaction_log' => $transaction_log,
         //                             ])
         //                         ]);
-
         //                         $post_type = 'capture';
         //                         if (in_array($order->order_from, [0, 4, 5])) {
         //                             $this->post_order_data_POS($order, $post_type);
@@ -2672,7 +2634,6 @@ class OrderController extends Controller
         //                     continue;
         //                 }
         //             }
-
         //             // Notifications
         //             if ($adminEmail) {
         //                 \App\Lib\NotifyToUser::sendEmail($order, $adminEmail, 'admin');
@@ -2684,25 +2645,20 @@ class OrderController extends Controller
         //             $updated[] = $order->id;
         //         }
         //     }
-
         //     return response()->json([
         //         'message' => 'Captured authorized low-risk orders.',
         //         'captured_orders' => $updated
         //     ]);
         // }
-        elseif ($method === 'capture_authorized') {
+        if ($method === 'capture_authorized') {
             $admin_details = User::where('role_id', 3)->first();
             $adminEmail = $admin_details->email ?? '';
-        
             $gateway = Getway::where('status', '!=', 0)
-                ->where('namespace', '=', 'App\Lib\Stripe')->first();
-        
+                ->where('namespace', '=', \App\Lib\Stripe::class)->first();
             if (!$gateway) {
                 return response()->json(['error' => 'Stripe gateway not found'], 400);
             }
-        
             $gateway_data_info = json_decode($gateway->data);
-        
             foreach ($orders as $order) {
                 if ((count($orders) === 1 || in_array($order->risk_level, ['normal', 'low'])) && in_array($order->payment_status, [4, 5])) {
                     $status = 3; // Default to pending fulfillment
@@ -2806,7 +2762,7 @@ class OrderController extends Controller
                             throw new \Exception('Invalid transaction ID format');
                         }
         
-                        if ($paymentstatus == 1) {
+                        if ($paymentstatus === 1) {
 
                             $order->payment_status = $paymentstatus;
                             $order->status_id = $status;
@@ -2854,22 +2810,18 @@ class OrderController extends Controller
                     $updated[] = $order->id;
                 }
             }
-        
-        $message = empty($updated) 
-                ? (count($orders) === 1 ? 'Order could not be captured (check payment status or credentials).' : 'No eligible low-risk orders.')
-                : (count($orders) === 1 ? 'Payment captured successfully.' : 'Captured authorized low-risk orders.');
-        
+            $message = $updated === [] 
+                    ? (count($orders) === 1 ? 'Order could not be captured (check payment status or credentials).' : 'No eligible low-risk orders.')
+                    : (count($orders) === 1 ? 'Payment captured successfully.' : 'Captured authorized low-risk orders.');
             return response()->json([
                 'message' => $message,
                 'captured_orders' => $updated
             ]);
         }
-
         // Additive: set capture payment — cash/check API orders only (DB capture + FM + user-recipt, no Stripe).
-        elseif ($method === 'set_capture_payment') {
+        if ($method === 'set_capture_payment') {
             $updated = [];
             $invalid = [];
-
             foreach ($orders as $order) {
                 $meta = json_decode(optional($order->ordermeta)->value ?? '', true) ?: [];
                 $isCashCheck = ($meta['payment_method_label'] ?? '') === 'cash/check';
@@ -2879,8 +2831,7 @@ class OrderController extends Controller
                     continue;
                 }
             }
-
-            if (!empty($invalid)) {
+            if ($invalid !== []) {
                 $label = count($invalid) === 1
                     ? 'Order ' . $invalid[0] . ' is not a cash/check order.'
                     : 'These orders are not cash/check orders: ' . implode(', ', $invalid);
@@ -2889,7 +2840,6 @@ class OrderController extends Controller
                     'error' => $label . ' This action only works for cash/check orders.',
                 ], 400);
             }
-
             foreach ($orders as $order) {
                 if ((int) $order->payment_status === 5) {
                     continue;
@@ -2898,85 +2848,75 @@ class OrderController extends Controller
                 $this->captureCashCheckOrderWithoutStripe($order);
                 $updated[] = $order->id;
             }
-
             return response()->json([
-                'message' => empty($updated)
+                'message' => $updated === []
                     ? 'No eligible cash/check orders to capture.'
                     : 'Capture payment set for cash/check order(s).',
                 'captured_orders' => $updated,
             ]);
         }
-
         // 3️⃣ COMPLETE FULFILLMENT
-        elseif ($method === 'complete_fulfillment') {
-
-        $completeStatusId = 1; // Complete
-    
-        // product_type categories
-        $product_type = Category::where('type', 'product_type')->select('id','slug')->get();
-        $p_types = $product_type->pluck('id')->all();
-    
-        // load nested relations (important)
-        $orders = Order::with(['orderitems.term.termcategories'])
-            ->whereIn('id', $ids)
-            ->get();
-    
-        $updated = [];
-    
-        foreach ($orders as $order) {
-    
-            // ✅ Paid only
-            if ((int)$order->payment_status !== 1) continue;
-    
-            // ❌ Skip refunded before fulfillment
-            if ((int)$order->payment_status === 5 && (int)$order->status_id !== 1) continue;
-    
-            // ✅ Decide Digital/Goods/Mixed from items (same as blade)
-            $selected_product_type = collect($order->orderitems ?? [])
-                ->flatMap(fn($item) => $item->term?->termcategories?->pluck('category_id') ?? [])
-                ->filter(fn($id) => in_array($id, $p_types))
-                ->unique()
-                ->values()
-                ->all();
-    
-            // Must be exactly one product_type and it must be digital_product
-            if (count($selected_product_type) !== 1) continue;
-    
-            $pt = $product_type->firstWhere('id', $selected_product_type[0]);
-            if (!$pt || $pt->slug !== 'digital_product') continue;
-    
-            // ✅ Now mark complete
-            $order->status_id = $completeStatusId;
-            $order->save();
-    
-            if (in_array($order->order_from, [0, 4, 5])) {
-                $this->post_order_data_POS($order, 'capture');
-            } else {
-                $this->post_order_data($order, 'capture');
+        if ($method === 'complete_fulfillment') {
+            $completeStatusId = 1;
+            // Complete
+            // product_type categories
+            $product_type = Category::where('type', 'product_type')->select('id','slug')->get();
+            $p_types = $product_type->pluck('id')->all();
+            // load nested relations (important)
+            $orders = Order::with(['orderitems.term.termcategories'])
+                ->whereIn('id', $ids)
+                ->get();
+            $updated = [];
+            foreach ($orders as $order) {
+        
+                // ✅ Paid only
+                if ((int)$order->payment_status !== 1) continue;
+        
+                // ❌ Skip refunded before fulfillment
+                if ((int)$order->payment_status === 5 && (int)$order->status_id !== 1) continue;
+        
+                // ✅ Decide Digital/Goods/Mixed from items (same as blade)
+                $selected_product_type = collect($order->orderitems ?? [])
+                    ->flatMap(fn($item) => $item->term?->termcategories?->pluck('category_id') ?? [])
+                    ->filter(fn($id) => in_array($id, $p_types))
+                    ->unique()
+                    ->values()
+                    ->all();
+        
+                // Must be exactly one product_type and it must be digital_product
+                if (count($selected_product_type) !== 1) continue;
+        
+                $pt = $product_type->firstWhere('id', $selected_product_type[0]);
+                if (!$pt || $pt->slug !== 'digital_product') continue;
+        
+                // ✅ Now mark complete
+                $order->status_id = $completeStatusId;
+                $order->save();
+        
+                if (in_array($order->order_from, [0, 4, 5])) {
+                    $this->post_order_data_POS($order, 'capture');
+                } else {
+                    $this->post_order_data($order, 'capture');
+                }
+        
+                $updated[] = [
+                    'id' => $order->id,
+                    'status_id' => $order->status_id,
+                    'order_method' => $order->order_method,
+                ];
             }
-    
-            $updated[] = [
-                'id' => $order->id,
-                'status_id' => $order->status_id,
-                'order_method' => $order->order_method,
-            ];
+            if ($updated === []) {
+                return response()->json(['message' => 'No eligible orders to complete'], 200);
+            }
+            return response()->json([
+                'message' => 'Completed fulfillment for eligible orders',
+                'completed_orders' => $updated
+            ]);
         }
-    
-        if (empty($updated)) {
-            return response()->json(['message' => 'No eligible orders to complete'], 200);
-        }
-    
-        return response()->json([
-            'message' => 'Completed fulfillment for eligible orders',
-            'completed_orders' => $updated
-        ]);
-    }
-
-        elseif ($method === 'cancel_order') {
+        if ($method === 'cancel_order') {
             $updated = [];
             $admin_details = User::where('role_id', 3)->first();
             $adminEmail = $admin_details->email ?? '';
-        
             foreach ($orders as $order) {
                 if (!$order) continue;
         
@@ -3000,43 +2940,35 @@ class OrderController extends Controller
                     \Log::error('Refund failed for order '.$order->id.': '.$e->getMessage());
                 }
             }
-        
             return response()->json([
                 'message' => 'Cancelled and refunded eligible orders',
                 'cancelled_orders' => $updated
             ]);
         }
-
-
-            // 5️⃣ PENDING
-            elseif ($method === 'mark_pending') {
-                $pendingStatusId = 3; // Assuming 3 is pending fulfillment
-                foreach ($orders as $order) {
-                    $order->status_id = $pendingStatusId;
-                    $order->save();
-                    $updated[] = $order->id;
-                }
-
-                return response()->json([
-                    'message' => 'Marked orders as pending',
-                    'updated_orders' => $updated
-                ]);
+        // 5️⃣ PENDING
+        if ($method === 'mark_pending') {
+            $pendingStatusId = 3;
+            // Assuming 3 is pending fulfillment
+            foreach ($orders as $order) {
+                $order->status_id = $pendingStatusId;
+                $order->save();
+                $updated[] = $order->id;
             }
-
+            return response()->json([
+                'message' => 'Marked orders as pending',
+                'updated_orders' => $updated
+            ]);
+        }
 
         // 4️⃣ NUMERIC STATUS CHANGE
-        elseif (is_numeric($method)) {
+        if (is_numeric($method)) {
             foreach ($orders as $order) {
                 $order->update(['status_id' => $method]);
                 $updated[] = $order->id;
             }
             return response()->json(['message' => 'Orders updated', 'updated_orders' => $updated]);
         }
-
-        // 5️⃣ INVALID ACTION
-        else {
-            return response()->json(['error' => 'Invalid action'], 400);
-        }
+        return response()->json(['error' => 'Invalid action'], 400);
     }
 
 }

@@ -61,22 +61,20 @@ class LoginController extends Controller
     public function redirectTo()
     {
         if (Auth::user()->role_id==1) {
-          return $this->redirectTo=route('admin.dashboard');
+            return $this->redirectTo=route('admin.dashboard');
         }
-        elseif (Auth::user()->role_id==2) {
-                  
-           return $this->redirectTo=route('merchant.dashboard');
-       }
-       elseif (Auth::user()->role_id==3) {
-                  
-           return $this->redirectTo=url('/seller/dashboard');
-       }elseif(Auth::user()->role_id==4)
-       {
+        if (Auth::user()->role_id==2) {
+            return $this->redirectTo=route('merchant.dashboard');
+        }
+        if (Auth::user()->role_id==3) {
+            return $this->redirectTo=url('/seller/dashboard');
+        }
+        if (Auth::user()->role_id==4) {
             return $this->redirectTo=url('/customer/dashboard');
-       }elseif(Auth::user()->role_id==5)
-       {
+        }
+        if (Auth::user()->role_id==5) {
             return $this->redirectTo=url('/rider/dashboard');
-       }
+        }
       
        $this->middleware('guest')->except('logout');
     }

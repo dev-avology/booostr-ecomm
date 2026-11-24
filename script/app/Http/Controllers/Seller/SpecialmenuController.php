@@ -19,7 +19,7 @@ class SpecialmenuController extends Controller
          abort_if(!getpermission('website_settings'),401);
         $posts=Category::where('type','special_menu')->with('preview')->orderBy('featured','ASC')->get();
 
-        return view('seller.specialmenu.index',compact('posts'));
+        return view('seller.specialmenu.index',['posts' => $posts]);
     }
 
     /**
@@ -69,12 +69,12 @@ class SpecialmenuController extends Controller
 
             $category->name=$request->name;
             $category->type='special_menu';
-            $category->slug=json_encode(array(
+            $category->slug=json_encode([
                 'days'=>$request->days ?? '',
                 'time'=>$request->time ?? '',
                 'link'=>$request->link ?? '',
 
-            ));
+            ]);
             $category->featured=$request->short ?? 0;
            
             $category->save();
@@ -89,7 +89,7 @@ class SpecialmenuController extends Controller
 
             
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
           
             $errors['errors']['error']='Oops something wrong';
@@ -113,7 +113,7 @@ class SpecialmenuController extends Controller
         abort_if(!getpermission('website_settings'),401);
         $info=Category::where('type','special_menu')->with('preview')->findorFail($id);
         $data=json_decode($info->slug ?? '');
-        return view('seller.specialmenu.edit',compact('info','data'));
+        return view('seller.specialmenu.edit',['info' => $info, 'data' => $data]);
     }
 
     /**
@@ -140,12 +140,12 @@ class SpecialmenuController extends Controller
            
 
             $category->name=$request->name;
-            $category->slug=json_encode(array(
+            $category->slug=json_encode([
                 'days'=>$request->days ?? '',
                 'time'=>$request->time ?? '',
                 'link'=>$request->link ?? '',
 
-            ));
+            ]);
             $category->featured=$request->short ?? 0;
             $category->save();
 
@@ -168,7 +168,7 @@ class SpecialmenuController extends Controller
 
             
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
           
             $errors['errors']['error']='Oops something wrong';

@@ -61,24 +61,18 @@ class OrderController extends Controller
             $orders = Order::with('plan', 'getway', 'user','orderlog')->latest();
         }
         if ($request->type == 'customer_email') {
-            $orders=$orders->whereHas('user',function($q) use ($request)
-            {
-                return $q->where('email',$request->src);
-            });
+            $orders=$orders->whereHas('user',fn($q) => $q->where('email',$request->src));
         }
         if ($request->type == 'trx') {
            $orders=$orders->where('trx',$request->src);
         }
 
         if ($request->type == 'tenant_id') {
-           $orders=$orders->whereHas('orderlog',function($q) use ($request)
-            {
-                return $q->where('tenant_id',$request->src);
-            });
+           $orders=$orders->whereHas('orderlog',fn($q) => $q->where('tenant_id',$request->src));
         }
 
         $orders=$orders->paginate(30);
-        return view('admin.order.index', compact('orders','active','inactive','all','pending','expired','st','request'));
+        return view('admin.order.index', ['orders' => $orders, 'active' => $active, 'inactive' => $inactive, 'all' => $all, 'pending' => $pending, 'expired' => $expired, 'st' => $st, 'request' => $request]);
     }
 
     /**
@@ -90,7 +84,7 @@ class OrderController extends Controller
     {
         $plans = Plan::where('status', 1)->get();
         $getways = Getway::where('id','!=',14)->get();
-        return view('admin.order.create', compact('plans','getways'));
+        return view('admin.order.create', ['plans' => $plans, 'getways' => $getways]);
     }
 
     /**
@@ -153,7 +147,7 @@ class OrderController extends Controller
             $tenantupdate->save();
         }
         DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
               DB::rollback();
 
               $errors['errors']['error']='Oops something wrong';
@@ -196,7 +190,7 @@ class OrderController extends Controller
     public function show($id)
     {
         $order = Order::with('tenant')->findOrFail($id);
-        return view('admin.order.show',compact('order'));
+        return view('admin.order.show',['order' => $order]);
     }
 
     /**
@@ -211,7 +205,7 @@ class OrderController extends Controller
         $plans = Plan::where('status', 1)->get();
         $getways = Getway::all();
         $order = Order::with('tenant')->findOrFail($id);
-        return view('admin.order.edit',compact('order','plans','getways'));
+        return view('admin.order.edit',['order' => $order, 'plans' => $plans, 'getways' => $getways]);
     }
 
     /**

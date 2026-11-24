@@ -20,7 +20,7 @@ class SupportController extends Controller
     {
         abort_if(!Auth()->user()->can('support'), 401);
         $supports = Support::with(['meta'])->latest()->paginate(5);
-        return view('admin.support.index', compact('supports'));
+        return view('admin.support.index', ['supports' => $supports]);
     }
 
     /**
@@ -92,7 +92,7 @@ class SupportController extends Controller
     {
         abort_if(!Auth()->user()->can('support'), 401);
         $support = Support::with(['meta'])->where('id', $id)->get();
-        return view('admin.support.edit' , compact('support','id'));
+        return view('admin.support.edit' , ['support' => $support, 'id' => $id]);
     }
 
     /**

@@ -1,19 +1,19 @@
 <?php 
 
-$data[]=array(
+$data[]=[
    "name"=> 'Dashboard',
    "url"=>route('admin.dashboard'),
    "permission"=>'dashboard.index'
-);
-$data[]=array(
+];
+$data[]=[
    "name"=> 'Dashboard',
    "url"=>route('admin.dashboard'),
    "permission"=>'dashboard.index'
-);
-$data[]=array(
+];
+$data[]=[
    "name"=> 'Dashboard',
    "url"=>route('admin.dashboard'),
    "permission"=>'dashboard.index'
-);
+];
 
 ?>

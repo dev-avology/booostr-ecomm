@@ -16,17 +16,7 @@ class CalenderController extends Controller
 
     public function upcoming_orders()
     {
-        $orders = Order::with('orderstatus','schedule')->whereHas('schedule')->where('status_id',3)->latest()->get()->map(function ($res) {
-
-            $order['title'] = $res->invoice_no;
-            $order['start'] = $res->schedule->date;
-            $order['end'] = $res->schedule->date;
-            $order['url'] = route('seller.order.show',$res->id);
-            $order['color'] = $res->orderstatus->slug ?? '';
-        
-            return $order;
-        
-        });
+        $orders = Order::with('orderstatus','schedule')->whereHas('schedule')->where('status_id',3)->latest()->get()->map(fn($res) => ['title' => $res->invoice_no, 'start' => $res->schedule->date, 'end' => $res->schedule->date, 'url' => route('seller.order.show',$res->id), 'color' => $res->orderstatus->slug ?? '']);
 
         return response()->json($orders);
     }

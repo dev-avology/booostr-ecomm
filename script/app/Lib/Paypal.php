@@ -11,9 +11,8 @@ class Paypal {
          if(Session::has('fund_callback'))
          {
             return url(Session::get('fund_callback')['success_url']);
-         }else{
-            return url('partner/payment/success');
          }
+         return url('partner/payment/success');
         
     }
 
@@ -22,9 +21,8 @@ class Paypal {
         if(Session::has('fund_callback'))
         {
             return url(Session::get('fund_callback')['cancel_url']);
-        }else{
-            return url('partner/payment/failed');
         }
+        return url('partner/payment/failed');
     }
 
     public static function fallback()
@@ -78,12 +76,12 @@ class Paypal {
         $gateway->setTestMode($test_mode); 
 
         
-        $response = $gateway->purchase(array(
+        $response = $gateway->purchase([
             'amount' => $final,
             'currency' => strtoupper($currency),
             'returnUrl' => Paypal::fallback(),
             'cancelUrl' => Paypal::redirect_if_payment_faild(),
-        ))->send();
+        ])->send();
 
 
         if ($response->isRedirect()) {
@@ -108,10 +106,10 @@ class Paypal {
         
         $request= $request->all();
         
-        $transaction = $gateway->completePurchase(array(
+        $transaction = $gateway->completePurchase([
             'payer_id'             => $request['PayerID'],
             'transactionReference' => $request['paymentId'],
-        ));
+        ]);
 
         
         $response = $transaction->send();
@@ -131,12 +129,10 @@ class Paypal {
             
             return redirect(Paypal::redirect_if_payment_success());
         }
-        else{
-            $data['payment_status'] = 0;  
-            Session::put('payment_info',$data); 
-           Session::forget('paypal_credentials');
-           return redirect(Paypal::redirect_if_payment_faild());
-        }
+        $data['payment_status'] = 0;
+        Session::put('payment_info',$data);
+        Session::forget('paypal_credentials');
+        return redirect(Paypal::redirect_if_payment_faild());
     }
 
 

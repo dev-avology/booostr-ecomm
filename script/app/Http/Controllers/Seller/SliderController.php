@@ -19,7 +19,7 @@ class SliderController extends Controller
          abort_if(!getpermission('website_settings'),401);
         $posts=Category::where('type','slider')->with('preview')->latest()->get();
 
-        return view('seller.slider.index',compact('posts'));
+        return view('seller.slider.index',['posts' => $posts]);
     }
 
     /**
@@ -62,10 +62,10 @@ class SliderController extends Controller
 
             $category->name=$request->name;
             $category->type=$request->type;
-            $category->slug=json_encode(array(
+            $category->slug=json_encode([
                 'link'=>$request->link,
                 'button_text'=>$request->button_text
-            ));
+            ]);
             
             
             $category->save();
@@ -82,7 +82,7 @@ class SliderController extends Controller
 
             
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
             
             $errors['errors']['error']='Oops something wrong';
@@ -116,7 +116,7 @@ class SliderController extends Controller
         abort_if(!getpermission('website_settings'),401);
         $info=Category::where('type','slider')->with('preview','description')->findorFail($id);
         $link=json_decode($info->slug ?? '');
-        return view('seller.slider.edit',compact('info','link'));
+        return view('seller.slider.edit',['info' => $info, 'link' => $link]);
     }
 
     /**
@@ -141,10 +141,10 @@ class SliderController extends Controller
             
 
             $category->name=$request->name;
-            $category->slug=json_encode(array(
+            $category->slug=json_encode([
                 'link'=>$request->link,
                 'button_text'=>$request->button_text
-            ));
+            ]);
             $category->save();
 
             if ($request->description) {
@@ -185,7 +185,7 @@ class SliderController extends Controller
 
             
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
 
             $errors['errors']['error']='Oops something wrong';

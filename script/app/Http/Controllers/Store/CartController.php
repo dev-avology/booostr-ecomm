@@ -54,7 +54,7 @@ class CartController extends Controller
         }
 
         $count=Cart::instance('wishlist')->count();
-        $wishlist_ids = Cart::instance('wishlist')->content()->pluck('id')->map(function($id){ return (int)$id; })->values()->all();
+        $wishlist_ids = Cart::instance('wishlist')->content()->pluck('id')->map(fn($id) => (int)$id)->values()->all();
 
         if ($getrowid != false) {
            $data['rowid']=$rowId;
@@ -114,7 +114,7 @@ class CartController extends Controller
         }
 
         if ($coupon->is_percentage == 0) {
-            $total_amount=$total_amount-$coupon->value;
+            $total_amount -= $coupon->value;
             $total_discount=$coupon->value;
 
             $total=str_replace(',','',Cart::total());
@@ -150,14 +150,12 @@ class CartController extends Controller
                 foreach ($request->option ?? [] as $key => $option) {
                     $option_values=[];
                     foreach ($option as $k => $value) {
-                    array_push($option_values,$value);
+                    $option_values[] = $value;
                     }
                     
-                    $group=Productoption::with(array('priceswithcategories'=>function($query) use ($option_values){
-                            return $query->whereIn('id',$option_values);
-                    }))->with('category')->where('id',$key)->first();
+                    $group=Productoption::with(['priceswithcategories'=>fn($query) => $query->whereIn('id',$option_values)])->with('category')->where('id',$key)->first();
 
-                    array_push($groups,$group);
+                    $groups[] = $group;
                      
                  }
                    
@@ -179,10 +177,10 @@ class CartController extends Controller
                                $stock_limit=false;
                             }
 
-                            array_push($priceids,$value->id);
+                            $priceids[] = $value->id;
                         }
-                        $final_price=$final_price+$value->price;
-                        $final_weight=$final_weight+$value->weight;
+                        $final_price += $value->price;
+                        $final_weight += $value->weight;
 
                         $price_option[$row->category->name][$value->id]['price']=$value->price;
                         $price_option[$row->category->name][$value->id]['sku']=$value->sku;
@@ -199,12 +197,12 @@ class CartController extends Controller
                     return response()->json($errors,401);
                 }
 
-                if ($stock_status == false) {
+                if ($stock_status === false) {
                     $errors['errors']['error']='Stock Out';
                     return response()->json($errors,401);
                 }
 
-                 if ($stock_limit == false) {
+                 if ($stock_limit === false) {
                     $errors['errors']['error']='Maximum stock limit exceeded';
                     return response()->json($errors,401);
                 }
@@ -347,10 +345,8 @@ class CartController extends Controller
                 $required_groups = \App\Models\Productoption::where('term_id', $info->id)->where('is_required', 1)->pluck('id')->toArray();
                 foreach ($required_groups as $req_gid) {
                     $submitted = $request->option[$req_gid] ?? [];
-                    $valid_values = is_array($submitted) ? array_filter($submitted, function($v) {
-                        return !is_null($v) && $v !== '';
-                    }) : (!empty($submitted) ? [$submitted] : []);
-                    if (empty($valid_values)) {
+                    $valid_values = is_array($submitted) ? array_filter($submitted, fn($v) => !is_null($v) && $v !== '') : (!empty($submitted) ? [$submitted] : []);
+                    if ($valid_values === []) {
                         $errors['errors']['error'] = __('Please select all required options');
                         return response()->json($errors, 401);
                     }
@@ -359,14 +355,12 @@ class CartController extends Controller
                 foreach ($request->option ?? [] as $key => $option) {
                     $option_values=[];
                     foreach ($option as $k => $value) {
-                    array_push($option_values,$value);
+                    $option_values[] = $value;
                     }
                     
-                    $group=Productoption::with(array('priceswithcategories'=>function($query) use ($option_values){
-                            return $query->whereIn('id',$option_values);
-                    }))->with('category')->where('id',$key)->first();
+                    $group=Productoption::with(['priceswithcategories'=>fn($query) => $query->whereIn('id',$option_values)])->with('category')->where('id',$key)->first();
 
-                    array_push($groups,$group);
+                    $groups[] = $group;
                      
                  }
                    
@@ -388,10 +382,10 @@ class CartController extends Controller
                                $stock_limit=false;
                             }
 
-                            array_push($priceids,$value->id);
+                            $priceids[] = $value->id;
                         }
-                        $final_price=$final_price+$value->price;
-                        $final_weight=$final_weight+$value->weight;
+                        $final_price += $value->price;
+                        $final_weight += $value->weight;
 
                         $price_option[$row->category->name][$value->id]['price']=$value->price;
                         $price_option[$row->category->name][$value->id]['sku']=$value->sku;
@@ -408,12 +402,12 @@ class CartController extends Controller
                     return response()->json($errors,401);
                 }
 
-                if ($stock_status == false) {
+                if ($stock_status === false) {
                     $errors['errors']['error']='Stock Out';
                     return response()->json($errors,401);
                 }
 
-                 if ($stock_limit == false) {
+                 if ($stock_limit === false) {
                     $errors['errors']['error']='Maximum stock limit exceeded';
                     return response()->json($errors,401);
                 }
@@ -446,7 +440,7 @@ class CartController extends Controller
                }
             }
 
-            $exist_qty=$exist_qty+$request->qty;
+            $exist_qty += $request->qty;
 
             
 
@@ -565,7 +559,7 @@ class CartController extends Controller
     {
        Cart::instance('wishlist')->remove($id);
        $count = Cart::instance('wishlist')->count();
-       $wishlist_ids = Cart::instance('wishlist')->content()->pluck('id')->map(function($id){ return (int)$id; })->values()->all();
+       $wishlist_ids = Cart::instance('wishlist')->content()->pluck('id')->map(fn($id) => (int)$id)->values()->all();
        if ($request->ajax()) {
            return response()->json([
                'count' => $count,

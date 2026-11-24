@@ -12,70 +12,70 @@ class Plan extends Model
 
    //if you want to add more plan data just add new value in array
    public $plandata=[
-      'sub_domain'=>array(
+      'sub_domain'=>[
          'type' => 'option',
          'value'=>['Yes'=>'on','No'=>'off']
-      ),
-      'custom_domain'=>array(
+      ],
+      'custom_domain'=>[
          'type' => 'option',
          'value'=>['Yes'=>'on','No'=>'off']
-      ),
+      ],
      
-      'barcode'=>array(
+      'barcode'=>[
          'type' => 'option',
          'value'=>['Yes'=>'on','No'=>'off']
-      ),
-      'qr_code'=>array(
+      ],
+      'qr_code'=>[
          'type' => 'option',
          'value'=>['Yes'=>'on','No'=>'off']
-      ),
+      ],
       
-      'customer_modules'=>array(
+      'customer_modules'=>[
           'type' => 'option',
           'value'=>['Yes'=>'on','No'=>'off']
-      ),
-      'pos'=>array(
+      ],
+      'pos'=>[
           'type' => 'option',
           'value'=>['Yes'=>'on','No'=>'off']
-      ),
-      'push_notification'=>array(
+      ],
+      'push_notification'=>[
           'type' => 'option',
           'value'=>['Yes'=>'on','No'=>'off']
-      ),
-      'image_optimization'=>array(
+      ],
+      'image_optimization'=>[
           'type' => 'option',
           'value'=>['Yes'=>'on','No'=>'off']
-      ),
-      'custom_css_js'=>array(
+      ],
+      'custom_css_js'=>[
           'type' => 'option',
           'value'=>['Yes'=>'on','No'=>'off']
-      ),
-      'pwa'=>array(
+      ],
+      'pwa'=>[
           'type' => 'option',
           'value'=>['Yes'=>'on','No'=>'off']
-      ),
-       'storage_limit'=>array(
+      ],
+       'storage_limit'=>[
          'type' => 'number',
          'value'=> 0
-      ),
-      'post_limit'=>array(
+      ],
+      'post_limit'=>[
          'type' => 'number',
          'value'=> 0
-      ),
-      'staff_limit'=>array(
+      ],
+      'staff_limit'=>[
          'type' => 'number',
          'value'=> 0
-      ),
+      ],
       
     ];
 
     public function active_users()
     {
-    	return $this->hasMany('App\Models\Order')->where('status',1);
+    	return $this->hasMany(\App\Models\Order::class)->where('status',1);
     }
     public function orders()
     {
-    	return $this->hasMany('App\Models\Order');
+    	return $this->hasMany(\App\Models\Order::class);
     }
 
    

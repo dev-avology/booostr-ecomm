@@ -23,7 +23,7 @@ class SupportController extends Controller
     public function index()
     {
         $supports = Support::with('meta')->where('user_id',Auth::id())->latest()->paginate(15);
-        return view('merchant.support.index', compact('supports'));
+        return view('merchant.support.index', ['supports' => $supports]);
     }
 
     /**
@@ -91,7 +91,7 @@ class SupportController extends Controller
     public function show($id)
     {
         $support = Support::with('user')->with('meta')->where('user_id',Auth::id())->findorFail($id);
-        return view('merchant.support.view', compact('support'));
+        return view('merchant.support.view', ['support' => $support]);
     }
 
     /**
@@ -147,7 +147,7 @@ class SupportController extends Controller
 
     
     public function generateAccNo(){
-        $rend = rand(10000000, 99999999). rand(10000000, 99999999);
+        $rend = random_int(10000000, 99999999). random_int(10000000, 99999999);
         $check = Support::where('ticket_no', $rend)->first();
 
         if($check == true){

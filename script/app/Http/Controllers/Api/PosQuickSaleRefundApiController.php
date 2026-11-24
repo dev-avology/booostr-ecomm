@@ -52,17 +52,11 @@ class PosQuickSaleRefundApiController extends PosRefundApiController
             $refundType = $this->determinePosRefundType($request);
             $reason = (string) $request->input('reason', '');
 
-            switch ($refundType) {
-                case 'item':
-                    $payload = $this->executePosQuickSalePartialItemRefund($order, $request, $reason);
-                    break;
-                case 'dollar':
-                    $payload = $this->executePosQuickSalePartialDollarRefund($order, $request, $reason);
-                    break;
-                default:
-                    $payload = $this->executePosQuickSaleFullRefund($order, $request, $reason);
-                    break;
-            }
+            $payload = match ($refundType) {
+                'item' => $this->executePosQuickSalePartialItemRefund($order, $request, $reason),
+                'dollar' => $this->executePosQuickSalePartialDollarRefund($order, $request, $reason),
+                default => $this->executePosQuickSaleFullRefund($order, $request, $reason),
+            };
 
             return response()->json($payload);
         } catch (\Throwable $e) {
@@ -100,7 +94,7 @@ class PosQuickSaleRefundApiController extends PosRefundApiController
             return;
         }
 
-        if (!in_array((int) $order->payment_status, [1], true)) {
+        if ((int) $order->payment_status !== 1) {
             throw new \Exception('Only captured/paid POS orders can be refunded.');
         }
     }
@@ -131,7 +125,7 @@ class PosQuickSaleRefundApiController extends PosRefundApiController
             $selectedItems[$index]['qty'] = (int) $item['qty'];
         }
 
-        if (empty($selectedItems)) {
+        if ($selectedItems === []) {
             throw new \Exception('Please provide items with order_item_id and qty for item refunds.');
         }
 
@@ -144,7 +138,7 @@ class PosQuickSaleRefundApiController extends PosRefundApiController
     {
         $selectedItems = $this->normalizePosRefundItems($request);
 
-        if (empty($selectedItems) && $request->filled('refundAmount')) {
+        if ($selectedItems === [] && $request->filled('refundAmount')) {
             $singleItemId = (int) $request->input('order_item_id', 0);
             if ($singleItemId <= 0 && $order->quickSaleOrderItems->count() === 1) {
                 $singleItemId = (int) $order->quickSaleOrderItems->first()->id;
@@ -160,7 +154,7 @@ class PosQuickSaleRefundApiController extends PosRefundApiController
             ];
         }
 
-        if (empty($selectedItems)) {
+        if ($selectedItems === []) {
             throw new \Exception('Please provide items with order_item_id and amount for dollar refunds.');
         }
 
@@ -262,7 +256,7 @@ class PosQuickSaleRefundApiController extends PosRefundApiController
             $taxTotal += $refundLineTax;
         }
 
-        if (empty($items)) {
+        if ($items === []) {
             throw new \Exception('Please select at least one item to refund.');
         }
 
@@ -316,7 +310,7 @@ class PosQuickSaleRefundApiController extends PosRefundApiController
             $taxTotal += $refundLineTax;
         }
 
-        if (empty($items)) {
+        if ($items === []) {
             throw new \Exception('Please enter a refund amount for at least one item.');
         }
 
@@ -344,7 +338,7 @@ class PosQuickSaleRefundApiController extends PosRefundApiController
             ];
         }
 
-        if (empty($selectedItems)) {
+        if ($selectedItems === []) {
             throw new \Exception('Quick Sale items on this order have already been fully refunded.');
         }
 

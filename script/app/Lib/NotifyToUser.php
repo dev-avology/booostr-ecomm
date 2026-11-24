@@ -165,7 +165,7 @@ class NotifyToUser
 				$data['currency_info']=$currency;
 				$data['invoice_data']=$invoice_info;
 				$data['data']=$info;
-				if (!empty($receiptViewOptions)) {
+				if ($receiptViewOptions !== []) {
 					$data['receipt_view_options'] = $receiptViewOptions;
 				}
 
@@ -446,7 +446,7 @@ class NotifyToUser
         	
         	return true;
 
-        } catch (Exception $e) {
+        } catch (Exception) {
         	return false;
         }
 

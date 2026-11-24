@@ -13,9 +13,8 @@ class CustomGetway {
          if(Session::has('fund_callback'))
          {
             return url(Session::get('fund_callback')['success_url']);
-        }else{
-            return url('partner/payment/success');
         }
+         return url('partner/payment/success');
     }
 
     public static function redirect_if_payment_faild()
@@ -84,7 +83,7 @@ class CustomGetway {
             $data['status'] = 2;   
             $data['payment_status'] = 2;  
             
-            $data['meta']=array('screenshot'=>$info['screenshot'] ?? '','comment'=>$info['comment'] ?? '');
+            $data['meta']=['screenshot'=>$info['screenshot'] ?? '','comment'=>$info['comment'] ?? ''];
          
                
             Session::forget('manual_credentials');
@@ -96,7 +95,7 @@ class CustomGetway {
 
     public function generateString()
     {
-       return Str::random(15).rand(100,200);
+       return Str::random(15).random_int(100,200);
        
     }
 

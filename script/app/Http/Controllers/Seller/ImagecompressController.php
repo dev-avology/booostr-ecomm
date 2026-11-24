@@ -21,7 +21,7 @@ class ImagecompressController extends Controller
         abort_if(!getpermission('website_settings'),401);
         abort_if(tenant('image_optimization') != 'on',404);
         $posts=Media::latest()->select('id','url','created_at')->where('is_optimized',0)->paginate(12);
-        return view('seller.media.compress',compact('posts','request'));
+        return view('seller.media.compress',['posts' => $posts, 'request' => $request]);
     }
 
     
@@ -36,7 +36,7 @@ class ImagecompressController extends Controller
     {
         abort_if(!getpermission('website_settings'),401);
          abort_if(tenant('image_optimization') != 'on',404);
-        if (count($request->id ?? []) == 0) {
+        if (count($request->id ?? []) === 0) {
             $errors['errors']['error']='Select some images';
             return response()->json($errors,401);
         }
@@ -82,7 +82,7 @@ class ImagecompressController extends Controller
                     }
                    
                  }
-                 if ($is_compress == true) {
+                 if ($is_compress === true) {
                     $compressed=$this->fileupload($output['src'],$pathwithfile,$file->driver,$ready_file_content);
                     if ($compressed == true) {
                        $newsize=$this->size;
@@ -117,13 +117,13 @@ class ImagecompressController extends Controller
             $size=Storage::disk('public')->size($name);
             $this->size=$this->getMb($size+10000);
             return true;
-        } catch (Exception $e) {
+        } catch (Exception) {
             return false;
         }
 
     }
 
-    function getMb($set_bytes){
+    public function getMb($set_bytes){
          $set_kb = 1000;
          $set_mb = $set_kb * 1024;
          

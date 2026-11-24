@@ -50,7 +50,7 @@ class DashboardController extends Controller
 
          }
 
-    	return view('seller.dashboard', compact('tax'));
+    	return view('seller.dashboard', ['tax' => $tax]);
     }
 
     public function getCurrentOrders()
@@ -60,18 +60,7 @@ class DashboardController extends Controller
                 ->whereDate('created_at', $today)
                 ->latest()
                 ->with('orderstatus')
-                ->get()->map(function($query){
-
-                    $data['orderid']=$query->invoice_no;
-                    $data['url']=route('seller.order.show',$query->id);
-                    $data['id']=$query->id;
-                    $data['amount']=number_format($query->total,2);
-                    $data['time']=$query->created_at->diffForhumans();
-                    $data['status']=$query->orderstatus->name ?? 'Pending';
-                    $data['status_color']=$query->orderstatus->slug ?? '#FFFF00';
-
-                    return $data;
-                });
+                ->get()->map(fn($query) => ['orderid' => $query->invoice_no, 'url' => route('seller.order.show',$query->id), 'id' => $query->id, 'amount' => number_format($query->total,2), 'time' => $query->created_at->diffForhumans(), 'status' => $query->orderstatus->name ?? 'Pending', 'status_color' => $query->orderstatus->slug ?? '#FFFF00']);
 
         return response()->json(['orders'=>$orders]);
     }
@@ -82,7 +71,7 @@ class DashboardController extends Controller
           \Config::set('app.env', 'local');
           \Artisan::call('cache:clear --tags='.tenant('id'));
      }
-     $info->cache_version=rand(10,20);
+     $info->cache_version=random_int(10,20);
      $info->save();
 
      return response()->json('Store cache cleared');
@@ -117,7 +106,7 @@ class DashboardController extends Controller
 
          foreach($features as $key => $value){
             if ($key=='storage_limit') {
-                if ((int)tenant($key) == -1) {
+                if ((int)tenant($key) === -1) {
                     $data[ucfirst(str_replace('_',' ',$key))]='Unlimited';
                 }
                 else{
@@ -126,7 +115,7 @@ class DashboardController extends Controller
 
             }
             elseif($key=='post_limit'){
-                if ((int)tenant($key) == -1) {
+                if ((int)tenant($key) === -1) {
                     $data[ucfirst(str_replace('_',' ',$key))]='Unlimited';
                 }
                 else{
@@ -135,7 +124,7 @@ class DashboardController extends Controller
             }
 
             elseif($key=='staff_limit'){
-                if ((int)tenant($key) == -1) {
+                if ((int)tenant($key) === -1) {
                     $data[$key]='Unlimited';
                 }
                 else{
@@ -170,13 +159,13 @@ class DashboardController extends Controller
 
 
         $today_sale_amount = Order::where('status_id','!=',2)->whereDate('created_at', $today)->sum('total');
-        $today_sale_amount=amount_format($today_sale_amount,'sign');
+        $today_sale_amount=amount_format($today_sale_amount);
 
         $today_orders = Order::whereDate('created_at', $today)->count();
 
 
         $yesterday_sale_amount = Order::where('status_id','!=',2)->whereDate('created_at', Carbon::yesterday())->sum('total');
-        $yesterday_sale_amount=amount_format($yesterday_sale_amount,'sign');
+        $yesterday_sale_amount=amount_format($yesterday_sale_amount);
 
 
         $previous_week = strtotime("-1 week +1 day");
@@ -187,14 +176,14 @@ class DashboardController extends Controller
 
 
         $lastweek_sale_amount = Order::where('status_id','=',1)->whereDate('created_at', '>', Carbon::now()->subDays(7))->sum('total');
-        $lastweek_sale_amount=amount_format($lastweek_sale_amount,'sign');
+        $lastweek_sale_amount=amount_format($lastweek_sale_amount);
 
         $lastmonth_sale_amount = Order::where('status_id','=',1)->whereMonth('created_at', '=', Carbon::now()->subMonth()->month)->sum('total');
-        $lastmonth_sale_amount=amount_format($lastmonth_sale_amount,'sign');
+        $lastmonth_sale_amount=amount_format($lastmonth_sale_amount);
 
         $thismonth_sale_amount = Order::where('status_id','=',1)->whereMonth('created_at', date('m'))
         ->whereYear('created_at', date('Y'))->sum('total');
-        $thismonth_sale_amount=amount_format($thismonth_sale_amount,'sign');
+        $thismonth_sale_amount=amount_format($thismonth_sale_amount);
 
         $orders=Order::whereYear('created_at', '=',$year)->orderBy('id', 'asc')->selectRaw('year(created_at) year, monthname(created_at) month, count(*) sales')
                 ->groupBy('year', 'month')
@@ -209,33 +198,11 @@ class DashboardController extends Controller
                 ->whereDate('created_at', $today)
                 ->latest()
                 ->with('orderstatus')
-                ->get()->map(function($query){
-
-                    $data['orderid']=$query->invoice_no;
-                    $data['url']=route('seller.order.show',$query->id);
-                    $data['id']=$query->id;
-                    $data['amount']=number_format($query->total,2);
-                    $data['time']=$query->created_at->diffForhumans();
-                    $data['status']=$query->orderstatus->name ?? 'Pending';
-                    $data['status_color']=$query->orderstatus->slug ?? '#FFFF00';
-
-                    return $data;
-                });
+                ->get()->map(fn($query) => ['orderid' => $query->invoice_no, 'url' => route('seller.order.show',$query->id), 'id' => $query->id, 'amount' => number_format($query->total,2), 'time' => $query->created_at->diffForhumans(), 'status' => $query->orderstatus->name ?? 'Pending', 'status_color' => $query->orderstatus->slug ?? '#FFFF00']);
         $today_orders_list=Order::whereDate('created_at', $today)
                 ->latest()
                 ->with('orderstatus')
-                ->get()->map(function($query){
-
-                    $data['orderid']=$query->invoice_no;
-                    $data['url']=route('seller.order.show',$query->id);
-                    $data['id']=$query->id;
-                    $data['amount']=number_format($query->total,2);
-                    $data['time']=$query->created_at->diffForhumans();
-                    $data['status']=$query->orderstatus->name ?? 'Pending';
-                    $data['status_color']=$query->orderstatus->slug ?? '#FFFF00';
-
-                    return $data;
-                });
+                ->get()->map(fn($query) => ['orderid' => $query->invoice_no, 'url' => route('seller.order.show',$query->id), 'id' => $query->id, 'amount' => number_format($query->total,2), 'time' => $query->created_at->diffForhumans(), 'status' => $query->orderstatus->name ?? 'Pending', 'status_color' => $query->orderstatus->slug ?? '#FFFF00']);
 
 
         $data['totalEarnings']=number_format(str_replace(',', '', $totalEarnings), 2);
@@ -253,13 +220,7 @@ class DashboardController extends Controller
         $data['earnings']=$earnings;
         $data['maxrated_products']=Term::with('preview')->whereHas('reviews')->withCount('reviews')->orderBy('reviews_count','DESC')->take(10)->get();
         $data['top_sell_products']=Term::with('preview')->whereHas('orders')->withCount('orders')->orderBy('orders_count','DESC')->take(10)->get();
-        $data['top_customers']=User::whereHas('orders')->withCount('orders')->orderBy('orders_count','DESC')->take(10)->get()->map(function ($q){
-            $userdata['id']=$q->id;
-            $userdata['name']=$q->name;
-            $userdata['orders_count']=$q->orders_count;
-
-            return $userdata;
-        });
+        $data['top_customers']=User::whereHas('orders')->withCount('orders')->orderBy('orders_count','DESC')->take(10)->get()->map(fn($q) => ['id' => $q->id, 'name' => $q->name, 'orders_count' => $q->orders_count]);
 
 
         return response()->json($data);
@@ -292,11 +253,11 @@ class DashboardController extends Controller
 
             $count= Order::whereDate('created_at', '>', Carbon::now()->subDays($period))->where('status_id',$value->id)->count();
 
-            array_push($data,$value->name);
-            array_push($data,$count);
+            $data[] = $value->name;
+            $data[] = $count;
 
             $counters=$data;
-            array_push($counters,$data);
+            $counters[] = $data;
 
         }
 

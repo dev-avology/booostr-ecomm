@@ -27,9 +27,7 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
 
     Auth::routes(['register' => false, 'reset' => false]);
 
-    Route::get('/pwa',function(){
-        return redirect('/'); 
-    });
+    Route::get('/pwa',fn() => redirect('/'));
 
     // Ticket routes
     Route::get('/ticket/scan/{uuid}', [TicketScanController::class, 'scan']);
@@ -109,24 +107,14 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
         Route::post('/customer/reset-password', 'Store\CustomerController@UserResetPassword')->name('customer.reset.password.post')->middleware('guest');
 
         // Clean Redirects for root /login and /register to customer storefront
-        Route::get('/login', function () {
-            return redirect('/customer/login');
-        })->name('login');
+        Route::get('/login', fn() => redirect('/customer/login'))->name('login');
 
-        Route::get('/register', function () {
-            return redirect('/customer/register');
-        })->name('register');
+        Route::get('/register', fn() => redirect('/customer/register'))->name('register');
 
         // Backward-compatible aliases for legacy / email reset links
-        Route::get('/login/forget-password', function () {
-            return redirect()->route('customer.forget.password');
-        })->middleware('guest');
-        Route::get('/login/reset-password/{username}/{token}', function ($username, $token) {
-            return redirect()->route('customer.reset.password', ['username' => $username, 'token' => $token]);
-        })->middleware('guest');
-        Route::get('/reset-password/{user}/{token}', function ($user, $token) {
-            return redirect()->route('customer.reset.password', ['username' => $user, 'token' => $token]);
-        })->name('tenant.user.reset.password')->middleware('guest');
+        Route::get('/login/forget-password', fn() => redirect()->route('customer.forget.password'))->middleware('guest');
+        Route::get('/login/reset-password/{username}/{token}', fn($username, $token) => redirect()->route('customer.reset.password', ['username' => $username, 'token' => $token]))->middleware('guest');
+        Route::get('/reset-password/{user}/{token}', fn($user, $token) => redirect()->route('customer.reset.password', ['username' => $user, 'token' => $token]))->name('tenant.user.reset.password')->middleware('guest');
     });
 
     // Direct / Embed Checkout Routes (Bypasses standalone_store check so Website Builder and Club Profiles always work)
@@ -173,9 +161,7 @@ Route::group(['middleware' => ['Isinstalled','InitializeTenancyByDomain','Preven
 
     Route::post('save-token','Seller\FirebaseController@saveToken')->name('save-token')->middleware(['auth','user']);
 
-    Route::get('/oops', function () {
-        return "this modules not support for this request";
-    });
+    Route::get('/oops', fn() => "this modules not support for this request");
     Route::get('/reset/product-price','CronController@ProductPriceReset');
 
     Route::get('/mysettings', 'Admin\UserController@index')->middleware(['auth','user']);

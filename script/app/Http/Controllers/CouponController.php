@@ -65,17 +65,11 @@ class CouponController extends Controller
             $couponType = $coupon->coupon_for_name;
             // return $couponType;
 
-            switch ($couponType) {
-                case 'product':
-                    $discount = $this->DiscountCartProduct($coupon);
-                    break;
-                case 'category':
-                    $discount = $this->DiscountCartCategoryProduct($coupon);
-                    break;
-                default:
-                    $discount = $this->DiscountCart($coupon);
-                    break;
-            }
+            $discount = match ($couponType) {
+                'product' => $this->DiscountCartProduct($coupon),
+                'category' => $this->DiscountCartCategoryProduct($coupon),
+                default => $this->DiscountCart($coupon),
+            };
         
         if($discount['status'] == 422){
             $error = true;
@@ -111,9 +105,8 @@ class CouponController extends Controller
         if($error){
             $res['data'] = $data;
             return response()->json($res); 
-        }else{
-            return response()->json(['status'=>200,'result'=>$data]); 
         }
+        return response()->json(['status'=>200,'result'=>$data]);
     }
 
    
@@ -161,22 +154,16 @@ class CouponController extends Controller
             
             $product_ids = json_decode($coupon->coupon_for_id);
                 
-            $filteredCart = $cartContent->filter(function ($item) use ($product_ids) {
-                return in_array($item->id, $product_ids);
-            });
+            $filteredCart = $cartContent->filter(fn($item) => in_array($item->id, $product_ids));
 
             $filteredCartCount = $filteredCart->count();
 
 
            
 
-            $filteredSubTotal = $filteredCart->sum(function ($item) {
-                return $item->price * (int)$item->qty;
-            });
+            $filteredSubTotal = $filteredCart->sum(fn($item) => $item->price * (int)$item->qty);
         
-            $filteredCount = $filteredCart->sum(function ($item) {
-                return (int)$item->qty;
-            });
+            $filteredCount = $filteredCart->sum(fn($item) => (int)$item->qty);
 
             if ($filteredCartCount == 0) {
                 return ['status'=>422,'error' => 'count_error', 'msg' => "Coupon code is not valid for your cart"];
@@ -231,19 +218,13 @@ class CouponController extends Controller
                  })->pluck('id')->toArray();
 
 
-            $filteredCart = $cartContent->filter(function ($item) use ($termData) {
-                return in_array($item->id, $termData);
-            });
+            $filteredCart = $cartContent->filter(fn($item) => in_array($item->id, $termData));
 
             $filteredCartCount = $filteredCart->count();
 
-            $filteredSubTotal = $filteredCart->sum(function ($item) {
-               return $item->price * $item->qty;
-            });
+            $filteredSubTotal = $filteredCart->sum(fn($item) => $item->price * $item->qty);
 
-            $filteredCount = $filteredCart->sum(function ($item) {
-                return (int)$item->qty;
-            });
+            $filteredCount = $filteredCart->sum(fn($item) => (int)$item->qty);
 
 
             if ($coupon->min_amount_option == 1) {
@@ -282,7 +263,8 @@ class CouponController extends Controller
            $data['term'] = Term::where('type','product')->get();
            $data['type'] = "product";
            return response()->json($data);
-        }else if($type == 'category'){
+        }
+        if($type == 'category'){
            $data['term'] = Category::where('type','category')->get();
            $data['type'] = "category";
           

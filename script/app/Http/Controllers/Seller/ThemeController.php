@@ -13,7 +13,7 @@ class ThemeController extends Controller
         $file=file_get_contents('theme/themes.json');
         $themes = json_decode($file);
 
-        return view('seller.theme.index',compact('themes'));
+        return view('seller.theme.index',['themes' => $themes]);
     }
 
     public function install($theme)

@@ -10,13 +10,8 @@ class RefundReceiptMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public array $data;
-    public string $subjectLine;
-
-    public function __construct(array $data, string $subjectLine)
+    public function __construct(public array $data, public string $subjectLine)
     {
-        $this->data = $data;
-        $this->subjectLine = $subjectLine;
     }
 
     public function build()

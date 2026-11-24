@@ -19,7 +19,7 @@ class LanguageController extends Controller
         abort_if(!getpermission('website_settings'),401);
         $languages=Option::where('key','languages')->first();
         $languages = json_decode($languages->value ?? '');
-        return view('seller.language.index',compact('languages'));
+        return view('seller.language.index',['languages' => $languages]);
     }
 
     /**
@@ -33,7 +33,7 @@ class LanguageController extends Controller
         $lang_json_file = file_get_contents(resource_path('lang/languages.json'));
         $languages = json_decode($lang_json_file); 
        
-        return view('seller.language.create',compact('languages'));
+        return view('seller.language.create',['languages' => $languages]);
     }
 
     /**
@@ -87,8 +87,8 @@ class LanguageController extends Controller
             }
         }
 
-        if ($is_key_exists == false) {
-            array_push($languages,$data);
+        if ($is_key_exists === false) {
+            $languages[] = $data;
         }
         
  

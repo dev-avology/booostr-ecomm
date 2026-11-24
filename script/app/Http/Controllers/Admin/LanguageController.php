@@ -33,7 +33,7 @@ class LanguageController extends Controller
             $actives=json_decode($actives->value);
             $data=[];
             foreach ($actives as $key => $value) {
-                array_push($data, $key);
+                $data[] = $key;
             }
             $actives=$data;
 
@@ -41,7 +41,7 @@ class LanguageController extends Controller
         else{
            $actives=[]; 
         }      
-        return view('admin.language.index',compact('posts','actives'));
+        return view('admin.language.index',['posts' => $posts, 'actives' => $actives]);
 
     }
 
@@ -60,7 +60,7 @@ class LanguageController extends Controller
         $countries= json_decode(file_get_contents($countries),true);
 
         
-        return view('admin.language.create',compact('countries'));
+        return view('admin.language.create',['countries' => $countries]);
     }
 
     /**
@@ -127,7 +127,7 @@ class LanguageController extends Controller
           $file=base_path('resources/lang/'.$id.'.json');
           $posts=file_get_contents($file);
           $posts=json_decode($posts);
-          return view('admin.language.edit',compact('posts','id'));
+          return view('admin.language.edit',['posts' => $posts, 'id' => $id]);
       }
       /**
        * Update the specified resource in storage.

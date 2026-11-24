@@ -59,7 +59,7 @@ class WelcomeController extends Controller
         SEOTools::twitter()->setSite($seo->twitter_site_title ?? null);
         SEOTools::jsonLd()->addImage(asset('uploads/logo.png'));
 
-        return view('welcome',compact('info','services','plans','blogs','demos'));
+        return view('welcome',['info' => $info, 'services' => $services, 'plans' => $plans, 'blogs' => $blogs, 'demos' => $demos]);
     }
 
     public function subscribe(Request $request)
@@ -103,7 +103,7 @@ class WelcomeController extends Controller
         SEOTools::twitter()->setSite($seo->twitter_site_title ?? null);
         SEOTools::jsonLd()->addImage(asset('uploads/logo.png'));
 
-        return view('demos',compact('demos'));
+        return view('demos',['demos' => $demos]);
 
     }
 

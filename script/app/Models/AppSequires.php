@@ -21,7 +21,7 @@ class AppSequires extends Model
     {
         try {
             return Crypt::decryptString($value);
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return $value; 
         }
     }

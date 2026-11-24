@@ -24,8 +24,7 @@ class SellerMiddleware
             }
             return $next($request);
            
-        } else {
-            return redirect()->away('https://app.booostr.co');
-        } 
+        }
+         return redirect()->away('https://app.booostr.co'); 
     }
 }

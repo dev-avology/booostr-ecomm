@@ -10,11 +10,8 @@ class TicketCancelledRefundMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public array $data;
-
-    public function __construct(array $data)
+    public function __construct(public array $data)
     {
-        $this->data = $data;
     }
 
     public function build()

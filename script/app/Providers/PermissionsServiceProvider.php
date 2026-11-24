@@ -38,7 +38,7 @@ class PermissionsServiceProvider extends ServiceProvider
 
       
         foreach ($folders as $folder => $permission) {
-            if (!($this->getPermission($folder) >= $permission)) {
+            if ($this->getPermission($folder) < $permission) {
                 $this->addFileAndSetErrors($folder, $permission, false);
             } else {
                 $this->addFile($folder, $permission, true);
@@ -81,10 +81,10 @@ class PermissionsServiceProvider extends ServiceProvider
      */
     private function addFile($folder, $permission, $isSet)
     {
-        array_push($this->results['permissions'], [
+        $this->results['permissions'][] = [
             'folder' => $folder,
             'permission' => $permission,
             'isSet' => $isSet,
-        ]);
+        ];
     }
 }

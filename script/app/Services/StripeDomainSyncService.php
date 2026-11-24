@@ -11,11 +11,9 @@ class StripeDomainSyncService
     public function run($tenantId)
     {
 
-        $domainRow = tenancy()->central(function () use ($tenantId) {
-            return \Stancl\Tenancy\Database\Models\Domain::where('tenant_id', $tenantId)
-                ->latest('id')
-                ->first();
-        });
+        $domainRow = tenancy()->central(fn() => \Stancl\Tenancy\Database\Models\Domain::where('tenant_id', $tenantId)
+            ->latest('id')
+            ->first());
 
         if (!$domainRow?->domain) {
             return; 
@@ -28,7 +26,7 @@ class StripeDomainSyncService
 
         // Stripe key
         $gateway = Getway::where('status','!=',0)
-            ->where('namespace','=','App\Lib\Stripe')
+            ->where('namespace','=',\App\Lib\Stripe::class)
             ->first();
 
         $gwData = json_decode($gateway->data ?? '{}', true);

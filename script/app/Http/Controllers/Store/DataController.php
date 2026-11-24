@@ -181,7 +181,7 @@ class DataController extends Controller
         $data['preview']=$preview;
         $galleries=[];
         
-        array_push($galleries,$preview);
+        $galleries[] = $preview;
 
         
 
@@ -366,13 +366,7 @@ class DataController extends Controller
             $q->whereHas('term', function($t) {
                 $t->where('status', 1)->webProducts();
             });
-       })->with('preview')->orderBy('menu_status','ASC')->get()->map(function ($q){
-        $data['id']=$q->id;
-        $data['name']=$q->name;
-        $data['slug']=$q->slug;
-        $data['preview']=asset($q->preview->content ?? 'uploads/default.png');
-        return $data;
-       });
+       })->with('preview')->orderBy('menu_status','ASC')->get()->map(fn($q) => ['id' => $q->id, 'name' => $q->name, 'slug' => $q->slug, 'preview' => asset($q->preview->content ?? 'uploads/default.png')]);
 
        $cats_ids=[];
        $final_products=[];
@@ -384,7 +378,7 @@ class DataController extends Controller
            $final_products[$row['id']]['products']=[];
            
            
-           array_push($cats_ids,$row['id']);
+           $cats_ids[] = $row['id'];
        }
 
        
@@ -394,10 +388,8 @@ class DataController extends Controller
         $is_random=$types['is_product_random'] ?? false;
 
         $products=Term::query()->where('type','product')->where('status',1)->webProducts()->with(['firstprice','lastprice','termcategories'])->whereHas('firstprice');
-         if (count($cats_ids ?? []) != 0) {
-            $products=$products->whereHas('termcategories',function($q) use ($cats_ids) {
-               return $q->whereIn('category_id',$cats_ids);
-            });
+         if (count($cats_ids ?? []) !== 0) {
+            $products=$products->whereHas('termcategories',fn($q) => $q->whereIn('category_id',$cats_ids));
         }
 
         $products= $with == '' ? $products : $products->with($with);
@@ -476,34 +468,26 @@ class DataController extends Controller
         if (isset($request->minPrice)) {
             if (!empty($request->minPrice)) {
                 $minPrice=$request->minPrice;
-                $products=$products->whereHas('prices',function($q) use ($minPrice){
-                   return $q->where('price','>=',$minPrice);
-               });
+                $products=$products->whereHas('prices',fn($q) => $q->where('price','>=',$minPrice));
             }
         }
 
         if (isset($request->maxPrice)) {
             if (!empty($request->maxPrice)) {
                 $maxPrice=$request->maxPrice;
-                $products=$products->whereHas('prices',function($q) use ($maxPrice){
-                   return $q->where('price','<=',$maxPrice);
-               });
+                $products=$products->whereHas('prices',fn($q) => $q->where('price','<=',$maxPrice));
             }
         }
 
         $products= $random != false ?  $products->inRandomOrder() : $products;
-        if (count($request->categories ?? []) != 0) {
-            $products=$products->whereHas('termcategories',function($q) use ($request) {
-               return $q->whereIn('category_id',$request->categories);
-            });
+        if (count($request->categories ?? []) !== 0) {
+            $products=$products->whereHas('termcategories',fn($q) => $q->whereIn('category_id',$request->categories));
         }
 
-        if (count($request->variations ?? []) != 0) {
-            $products=$products->whereHas('prices',function($q) use ($request) {
-               return $q->whereIn('category_id',$request->variations);
-            });
+        if (count($request->variations ?? []) !== 0) {
+            $products=$products->whereHas('prices',fn($q) => $q->whereIn('category_id',$request->variations));
         }
-        $products=$with_paginate != false ? $products->paginate($limit) :  $products->take($limit)->get();
+        $products=$with_paginate !== false ? $products->paginate($limit) :  $products->take($limit)->get();
 
         return  $products;
 
@@ -520,7 +504,7 @@ class DataController extends Controller
         $products= $with == '' ? $products : $products->with($with);
         $products=$orderby == 'ASC' ? $products : $products->latest();
         $products=$products->whereHas('discount');
-        $products=$with_paginate == true || $with_paginate == 'true' ? $products->paginate($limit) :  $products->take($limit)->get();
+        $products=$with_paginate === true || $with_paginate == 'true' ? $products->paginate($limit) :  $products->take($limit)->get();
 
         return  $products;
     }
@@ -529,17 +513,7 @@ class DataController extends Controller
     {
        
 
-       return $posts=Category::where('type','parent_attribute')->where('featured',1)->whereHas('categories')->with('categories')->latest()->get()->map(function($q){
-            $data['title']=$q->name;
-            $data['id']=$q->id;
-            $data['childs']=$q->categories->map(function($childs){
-               $child['title']=$childs->name ?? '';
-               $child['id']=$childs->id ?? '';
-               return $child;
-            });
-
-            return $data;
-       });
+       return $posts=Category::where('type','parent_attribute')->where('featured',1)->whereHas('categories')->with('categories')->latest()->get()->map(fn($q) => ['title' => $q->name, 'id' => $q->id, 'childs' => $q->categories->map(fn($childs) => ['title' => $childs->name ?? '', 'id' => $childs->id ?? ''])]);
 
     }
 
@@ -553,15 +527,7 @@ class DataController extends Controller
         $products=Term::query()->where('type','blog')->where('status',1);
         $products= $with == '' ? $products : $products->with($with);
         $products=$orderby == 'ASC' ? $products : $products->latest();
-        $products=$products->take($limit)->get()->map(function ($q) use ($with){
-            $data['title']=Str::limit($q->title,40);
-            $data['url']=url('/blog',$q->slug);
-            $data['short_description']=Str::limit($q->excerpt->value ?? '',60);
-            $data['preview']=asset($q->preview->value ?? 'uploads/default.png');
-            $data['time']=Carbon::parse($q->updated_at)->format('d M, Y.');
-
-            return $data;
-        });
+        $products=$products->take($limit)->get()->map(fn($q) => ['title' => Str::limit($q->title,40), 'url' => url('/blog',$q->slug), 'short_description' => Str::limit($q->excerpt->value ?? '',60), 'preview' => asset($q->preview->value ?? 'uploads/default.png'), 'time' => Carbon::parse($q->updated_at)->format('d M, Y.')]);
 
         return  $products;
     }
@@ -579,7 +545,7 @@ class DataController extends Controller
         $reviews= $with == '' ? $reviews : $reviews->with($with);
         $reviews=$orderby == 'ASC' ? $reviews : $reviews->latest();
         
-        $reviews=$with_paginate == true || $with_paginate == 'true' ? $reviews->paginate($limit) :  $reviews->take($limit)->get();
+        $reviews=$with_paginate === true || $with_paginate == 'true' ? $reviews->paginate($limit) :  $reviews->take($limit)->get();
 
         return $reviews;
 

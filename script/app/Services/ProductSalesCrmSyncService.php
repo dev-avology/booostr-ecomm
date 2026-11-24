@@ -81,7 +81,7 @@ class ProductSalesCrmSyncService
 
     public function hasContactGroupChanged(?ProductSalesCrmSync $sync, ?string $newListName, ?string $newGroupId = null): bool
     {
-        if (!$sync) {
+        if (!$sync instanceof \App\Models\ProductSalesCrmSync) {
             return false;
         }
 
@@ -109,7 +109,7 @@ class ProductSalesCrmSyncService
         string $newSyncMode,
         ?string $newListName
     ): bool {
-        if (!$previousSync || $previousSync->sync_mode !== 'all_results') {
+        if (!$previousSync instanceof \App\Models\ProductSalesCrmSync || $previousSync->sync_mode !== 'all_results') {
             return false;
         }
 
@@ -122,7 +122,7 @@ class ProductSalesCrmSyncService
 
     public function hasSyncModeChanged(?ProductSalesCrmSync $sync, string $newSyncMode): bool
     {
-        if (!$sync) {
+        if (!$sync instanceof \App\Models\ProductSalesCrmSync) {
             return false;
         }
 
@@ -131,7 +131,7 @@ class ProductSalesCrmSyncService
 
     public function isExpandingScopeToAllResults(?ProductSalesCrmSync $sync, string $newSyncMode): bool
     {
-        return $sync
+        return $sync instanceof \App\Models\ProductSalesCrmSync
             && $sync->sync_mode === 'current_page'
             && $newSyncMode === 'all_results';
     }
@@ -145,11 +145,11 @@ class ProductSalesCrmSyncService
         $groupChanged = $this->hasContactGroupChanged($existing, $newListName, $newGroupId);
         $scopeChanged = $this->hasSyncModeChanged($existing, $newSyncMode);
 
-        if ($existing && $existing->sync_status === 'syncing' && !$groupChanged && !$scopeChanged) {
+        if ($existing instanceof \App\Models\ProductSalesCrmSync && $existing->sync_status === 'syncing' && !$groupChanged && !$scopeChanged) {
             return $existing;
         }
 
-        if ($existing && $groupChanged) {
+        if ($existing instanceof \App\Models\ProductSalesCrmSync && $groupChanged) {
             $this->resetSyncContactsForRestart($existing);
         }
 
@@ -231,9 +231,7 @@ class ProductSalesCrmSyncService
             ->where('product_sales_crm_sync_id', '!=', $sync->id)
             ->orderByDesc('synced_at')
             ->get()
-            ->unique(function ($row) {
-                return $row->source_type . ':' . $row->source_id;
-            });
+            ->unique(fn($row) => $row->source_type . ':' . $row->source_id);
 
         if ($previousContacts->isEmpty()) {
             return 0;
@@ -302,7 +300,7 @@ class ProductSalesCrmSyncService
     {
         $sync = $this->getActiveContinuousSyncForProduct($productId);
 
-        if (!$sync) {
+        if (!$sync instanceof \App\Models\ProductSalesCrmSync) {
             return null;
         }
 
@@ -318,7 +316,7 @@ class ProductSalesCrmSyncService
     {
         $sync = $this->getPausedContinuousSyncForProduct($productId);
 
-        if (!$sync) {
+        if (!$sync instanceof \App\Models\ProductSalesCrmSync) {
             return null;
         }
 
@@ -334,7 +332,7 @@ class ProductSalesCrmSyncService
     {
         $sync = $this->getActiveContinuousSyncForProduct($productId);
 
-        if (!$sync) {
+        if (!$sync instanceof \App\Models\ProductSalesCrmSync) {
             return null;
         }
 
@@ -562,7 +560,7 @@ class ProductSalesCrmSyncService
         foreach ($productIds as $productId) {
             $sync = $this->getActiveContinuousSyncForProduct((int) $productId);
 
-            if (!$sync || $sync->sync_status !== 'active' || $sync->is_ticket_product) {
+            if (!$sync instanceof \App\Models\ProductSalesCrmSync || $sync->sync_status !== 'active' || $sync->is_ticket_product) {
                 continue;
             }
 
@@ -578,7 +576,7 @@ class ProductSalesCrmSyncService
 
         $sync = $this->getActiveContinuousSyncForProduct((int) $ticket->term_id);
 
-        if (!$sync || $sync->sync_status !== 'active' || !$sync->is_ticket_product) {
+        if (!$sync instanceof \App\Models\ProductSalesCrmSync || $sync->sync_status !== 'active' || !$sync->is_ticket_product) {
             return;
         }
 
@@ -869,7 +867,7 @@ class ProductSalesCrmSyncService
 
     public function formatStatusPayload(?ProductSalesCrmSync $sync, ?int $productId = null): array
     {
-        $productIdForHistory = $productId ?? ($sync ? $sync->product_id : null);
+        $productIdForHistory = $productId ?? ($sync instanceof \App\Models\ProductSalesCrmSync ? $sync->product_id : null);
         $hasSyncHistory = $productIdForHistory
             ? $this->hasAnySyncHistoryForProduct((int) $productIdForHistory)
             : false;
@@ -883,14 +881,14 @@ class ProductSalesCrmSyncService
             : null;
 
         $effectiveSync = $sync ?: ($pausedSync ?: $latestSync);
-        $lastSyncedAt = $effectiveSync ? optional($effectiveSync->last_synced_at)->format('m/d/Y') : null;
-        $lastSyncType = $effectiveSync ? $effectiveSync->sync_type : null;
+        $lastSyncedAt = $effectiveSync instanceof \App\Models\ProductSalesCrmSync ? optional($effectiveSync->last_synced_at)->format('m/d/Y') : null;
+        $lastSyncType = $effectiveSync instanceof \App\Models\ProductSalesCrmSync ? $effectiveSync->sync_type : null;
 
-        if (!$sync) {
+        if (!$sync instanceof \App\Models\ProductSalesCrmSync) {
             return [
                 'continuous_active' => false,
                 'continuous_paused' => (bool) $pausedSync,
-                'sync_status' => $pausedSync ? $pausedSync->sync_status : null,
+                'sync_status' => $pausedSync instanceof \App\Models\ProductSalesCrmSync ? $pausedSync->sync_status : null,
                 'sync_mode' => $effectiveSync->sync_mode ?? null,
                 'last_synced_at' => $lastSyncedAt,
                 'last_sync_type' => $lastSyncType,

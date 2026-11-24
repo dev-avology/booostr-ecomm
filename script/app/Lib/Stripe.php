@@ -15,9 +15,8 @@ class Stripe {
          if(Session::has('fund_callback'))
          {
             return url(Session::get('fund_callback')['success_url']);
-        }else{
-            return url('partner/payment/success');
         }
+         return url('partner/payment/success');
     }
 
     public static function redirect_if_payment_faild()
@@ -25,9 +24,8 @@ class Stripe {
         if(Session::has('fund_callback'))
         {
             return url(Session::get('fund_callback')['cancel_url']);
-        }else{
-            return url('partner/payment/failed');
         }
+        return url('partner/payment/failed');
     }
 
     public function view(){
@@ -35,9 +33,9 @@ class Stripe {
         if(Session::has('stripe_credentials')){
             $Info=Session::get('stripe_credentials');
             if (tenant() != null) {
-              return view(baseview('payments/stripe'),compact('Info'));
+              return view(baseview('payments/stripe'),['Info' => $Info]);
             }
-           return view('merchant.plan.payment.stripe',compact('Info'));
+           return view('merchant.plan.payment.stripe',['Info' => $Info]);
         }
         abort(404);
     }
@@ -121,12 +119,10 @@ class Stripe {
             Session::forget('stripe_credentials');
             return redirect(Stripe::redirect_if_payment_success());
         }
-        else{
-            $data['payment_status'] = 0;
-            Session::put('payment_info',$data);
-           Session::forget('stripe_credentials');
-           return redirect(Stripe::redirect_if_payment_faild());
-        }
+        $data['payment_status'] = 0;
+        Session::put('payment_info',$data);
+        Session::forget('stripe_credentials');
+        return redirect(Stripe::redirect_if_payment_faild());
     }
     public static function isfraud($creds){
         $payment_id = $creds['payment_id'];
@@ -140,7 +136,7 @@ class Stripe {
             [],
         );
         return $response->status === "succeeded" ? 1 : 0;
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             return 0;
         }
 
@@ -208,7 +204,7 @@ class Stripe {
                     $intentPayload['customer'] = $customerId;
                     try {
                         \Stripe\PaymentMethod::attach($paymentMethodId, ['customer' => $customerId]);
-                    } catch (\Throwable $attachError) {
+                    } catch (\Throwable) {
                         // Already attached to this customer (or not attachable) — safe to continue.
                     }
                 }
@@ -421,7 +417,7 @@ class Stripe {
             }
 
             return $customer->id ?? null;
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Do not block checkout if customer sync fails; charge can still proceed.
             return null;
         }
@@ -466,9 +462,7 @@ class Stripe {
             'state'       => $array['state'] ?? null,
             'country'     => self::normalizeStripeCountry($array['country'] ?? null),
             'postal_code' => $array['zip'] ?? null,
-        ], static function ($value) {
-            return $value !== null && $value !== '';
-        });
+        ], static fn($value) => $value !== null && $value !== '');
     }
 
     protected static function buildPaymentMethodBillingDetails(array $array): array
@@ -479,10 +473,8 @@ class Stripe {
             'name'  => $array['name'] ?? null,
             'email' => !empty($array['email']) ? trim((string)$array['email']) : null,
             'phone' => $array['phone'] ?? null,
-            'address' => !empty($address) ? $address : null,
-        ], static function ($value) {
-            return $value !== null && $value !== '';
-        });
+            'address' => $address !== [] ? $address : null,
+        ], static fn($value) => $value !== null && $value !== '');
     }
 
     /**
@@ -491,7 +483,7 @@ class Stripe {
     protected static function syncPaymentMethodBillingDetails(string $paymentMethodId, array $array, string $secret_key): void
     {
         $billingDetails = self::buildPaymentMethodBillingDetails($array);
-        if (empty($billingDetails)) {
+        if ($billingDetails === []) {
             return;
         }
 
@@ -500,7 +492,7 @@ class Stripe {
             \Stripe\PaymentMethod::update($paymentMethodId, [
                 'billing_details' => $billingDetails,
             ]);
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Non-fatal: payment can still proceed without billing sync.
         }
     }
@@ -518,18 +510,16 @@ class Stripe {
             'address_state'   => $address['state'] ?? null,
             'address_zip'     => $address['postal_code'] ?? null,
             'address_country' => $address['country'] ?? null,
-        ], static function ($value) {
-            return $value !== null && $value !== '';
-        });
+        ], static fn($value) => $value !== null && $value !== '');
 
-        if (empty($payload)) {
+        if ($payload === []) {
             return;
         }
 
         try {
             \Stripe\Stripe::setApiKey($secret_key);
             \Stripe\Customer::updateSource($customerId, $cardId, $payload);
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Non-fatal: payment can still proceed without billing sync.
         }
     }
@@ -549,7 +539,7 @@ class Stripe {
         $data['test_mode']=$test_mode;
        // $application_fee_amount = $array['application_fee_amount'];
 
-        if (!empty($array['transaction_id']) && strpos($array['transaction_id'], 'pi_') === 0) {
+        if (!empty($array['transaction_id']) && str_starts_with($array['transaction_id'], 'pi_')) {
             try {
                 \Stripe\Stripe::setApiKey($secret_key);
                 $intent = \Stripe\PaymentIntent::capture($array['transaction_id']);
@@ -619,12 +609,12 @@ class Stripe {
 
 
        if($array['refund_application_fee']){
-         $totalAmount = $totalAmount + $array['application_fee_amount'];
+         $totalAmount += $array['application_fee_amount'];
        }
 
 
        if($array['refund_card_fee']){
-         $totalAmount = $totalAmount + $array['card_fee_amount'];
+         $totalAmount += $array['card_fee_amount'];
        }
 
 
@@ -633,10 +623,10 @@ class Stripe {
         $stripe->setApiKey($secret_key);
 
 
-         $transaction = $stripe->refund(array(
+         $transaction = $stripe->refund([
                 'amount'                   => $totalAmount,
                 'transactionReference'     => $array['transaction_id'],
-            ));
+            ]);
 
          if($array['refund_application_fee'] == true || $array['refund_card_fee'] == true){
             $transaction->setRefundApplicationFee(true)->setReverseTransfer(true);

@@ -30,6 +30,6 @@ class OrderController extends Controller
         else{
             $orders = Order::where('user_id', Auth::id())->with('plan', 'getway')->latest()->paginate(25);
         }
-        return view('merchant.order.index',compact('orders'));
+        return view('merchant.order.index',['orders' => $orders]);
     }
 }

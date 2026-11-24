@@ -22,7 +22,7 @@ class TableController extends Controller
           $posts=  $posts->where('name','LIKE','%'.$request->src.'%');
         }
         $posts=$posts->latest()->paginate(20);
-        return view('seller.table.index',compact('posts','request'));
+        return view('seller.table.index',['posts' => $posts, 'request' => $request]);
     }
 
     /**
@@ -47,7 +47,7 @@ class TableController extends Controller
     {
          abort_if(!getpermission('website_settings'),401);
         $info=Category::where('type','table')->findorFail($id);
-        return view('seller.table.edit',compact('info'));
+        return view('seller.table.edit',['info' => $info]);
     }
 
    

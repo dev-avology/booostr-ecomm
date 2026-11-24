@@ -27,7 +27,7 @@ class DomainController extends Controller
     public function index()
     {
     	$posts=Tenant::where('user_id',Auth::id())->with('orderwithplan')->latest()->paginate(50);
-    	return view('merchant.domain.index',compact('posts'));
+    	return view('merchant.domain.index',['posts' => $posts]);
     }
 
     public function create()
@@ -49,9 +49,8 @@ class DomainController extends Controller
       if($tenant)
       {
         return response()->json(['errors'=>'Store URL is unavailable']);
-      }else{
-        return response()->json('success');
       }
+      return response()->json('success');
     }
 
 
@@ -94,7 +93,7 @@ class DomainController extends Controller
       
       $plans = Plan::where([['status', 1], ['is_default', 0]])->get();
       $orders = Order::where('user_id', Auth::id())->with('plan', 'getway')->latest()->paginate(25);
-      return view('merchant.plan.index',compact('plans','orders'));
+      return view('merchant.plan.index',['plans' => $plans, 'orders' => $orders]);
     }
 
     public function edit($id)
@@ -103,7 +102,7 @@ class DomainController extends Controller
     	$info=Tenant::where('user_id',Auth::id())->where('status',1)->findorFail($id);
       $obj=new Plan;
       $arr= $obj->plandata;
-    	return view('merchant.domain.edit',compact('info','arr'));
+    	return view('merchant.domain.edit',['info' => $info, 'arr' => $arr]);
     }
 
     public function domainConfig($id)
@@ -113,7 +112,7 @@ class DomainController extends Controller
 
         $dns=Option::where('key','dns_settings')->first();
         $dns=json_decode($dns->value ?? '');
-        return view('merchant.domain.config',compact('info','plan','dns'));
+        return view('merchant.domain.config',['info' => $info, 'plan' => $plan, 'dns' => $dns]);
     }
 
     public function update(Request $request,$id)
@@ -378,12 +377,8 @@ class DomainController extends Controller
     //check is valid domain name
     public function is_valid_domain_name($domain_name)
     {
-      if(filter_var(gethostbyname($domain_name), FILTER_VALIDATE_IP))
-      {
-        return TRUE;
-      }
-      return false;
-   }
+        return (bool) filter_var(gethostbyname($domain_name), FILTER_VALIDATE_IP);
+    }
 
    //check A record
    public function dnscheckRecordA($domain)
@@ -400,7 +395,7 @@ class DomainController extends Controller
             $ip=false;
           }
 
-        } catch (Exception $e) {
+        } catch (Exception) {
           $ip=false;
         }
 
@@ -434,7 +429,7 @@ class DomainController extends Controller
         }
               
           }
-          catch (Exception $e) {
+          catch (Exception) {
               $cname=false;
           }
           
@@ -451,7 +446,7 @@ class DomainController extends Controller
    {
       Session::forget('domain_transfer_info');
       $info=Tenant::where('user_id',Auth::id())->where('status',1)->findorFail($id);
-      return view('merchant.domain.transferview',compact('info'));
+      return view('merchant.domain.transferview',['info' => $info]);
    }
 
    //send otp to the user
@@ -471,7 +466,7 @@ class DomainController extends Controller
 
        $data = [
             'name'    => Auth::user()->name,
-            'otp' => rand(10000,30000),
+            'otp' => random_int(10000,30000),
             'tenant_id' => $id,
             'email'=>$request->email,
             'type'=>'otp'
@@ -533,7 +528,7 @@ class DomainController extends Controller
       $plan=json_decode($info->plan_info);
       $instruction=Option::where('key','developer_instruction')->first();
       $instruction=json_decode($instruction->value ?? '');
-      return view('merchant.domain.dev',compact('info','plan','instruction'));
+      return view('merchant.domain.dev',['info' => $info, 'plan' => $plan, 'instruction' => $instruction]);
    }
 
 
@@ -565,7 +560,7 @@ class DomainController extends Controller
           \Config::set('app.env', 'local');
           Artisan::call('cache:clear --tags='.$id);
      }
-     $info->cache_version=rand(10,20);
+     $info->cache_version=random_int(10,20);
      $info->save();
 
      return response()->json('Store cache cleared');
@@ -609,9 +604,7 @@ class DomainController extends Controller
 
    public function loginByDomain($id)
    {
-    $domain=Domain::where('status',1)->whereHas('tenant',function($q){
-      return $q->where('user_id',Auth::id())->where('status',1);
-    })->findorFail($id);
+    $domain=Domain::where('status',1)->whereHas('tenant',fn($q) => $q->where('user_id',Auth::id())->where('status',1))->findorFail($id);
 
      $data=Tenant::where([['user_id',Auth::id()],['status',1],['will_expire','>',now()]])->findorFail($domain->tenant_id);
      $data->auth_token=Str::random(40).Auth::id();

@@ -19,6 +19,6 @@ class Domain extends Model
 
     public function tenant()
     {
-    	return $this->belongsTo('App\Tenant');
+    	return $this->belongsTo(\App\Tenant::class);
     }
 }

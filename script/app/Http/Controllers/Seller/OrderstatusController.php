@@ -24,7 +24,7 @@ class OrderstatusController extends Controller
           $posts=  $posts->where('name','LIKE','%'.$request->src.'%');
         }
         $posts=$posts->orderBy('featured','ASC')->paginate(20);
-        return view("seller.orderstatus.index",compact('posts','request'));
+        return view("seller.orderstatus.index",['posts' => $posts, 'request' => $request]);
     }
 
     /**
@@ -62,7 +62,7 @@ class OrderstatusController extends Controller
     {
         abort_if(!getpermission('order'),401);
         $info=Category::findorFail($id);
-        return view("seller.orderstatus.edit",compact('info'));
+        return view("seller.orderstatus.edit",['info' => $info]);
     }
 
    

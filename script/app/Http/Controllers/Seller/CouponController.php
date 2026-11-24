@@ -21,7 +21,7 @@ class CouponController extends Controller
           $posts=  $posts->where('code','LIKE','%'.$request->src.'%');
         }
         $posts=$posts->paginate(30);
-        return view("seller.coupon.index",compact('posts','request'));
+        return view("seller.coupon.index",['posts' => $posts, 'request' => $request]);
     }
 
     /**
@@ -132,7 +132,7 @@ class CouponController extends Controller
 
        
 
-        return view("seller.coupon.edit",compact('info'));
+        return view("seller.coupon.edit",['info' => $info]);
     }
 
     /**

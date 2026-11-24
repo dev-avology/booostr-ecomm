@@ -258,9 +258,7 @@ class PosApiController extends Controller
        ->whereIn('list_type', [0,2])->with('media','category','firstprice', 'lastprice')->whereHas('firstprice')->whereHas('lastprice')->selectRaw('*, (SELECT MAX(price) FROM prices WHERE term_id = terms.id) AS max_price, (SELECT MIN(price) FROM prices WHERE term_id = terms.id) AS min_price');
 
         if (!empty($request->category_id) && $request->category_id != 'all') {
-            $posts = $posts->whereHas('termcategories', function ($query) use ($request) {
-                return $query->where('category_id', $request->category_id);
-            });
+            $posts = $posts->whereHas('termcategories', fn($query) => $query->where('category_id', $request->category_id));
         }
 
         $posts = $posts->latest()->paginate(50);
@@ -500,10 +498,10 @@ class PosApiController extends Controller
         $medias=json_decode($info->medias->value ?? '');
         $preview=asset($info->preview->value ?? 'uploads/default.png');
         $galleries=[];
-        array_push($galleries,$preview);
+        $galleries[] = $preview;
 
         foreach($medias ?? [] as $row){
-            array_push($galleries,asset($row));
+            $galleries[] = asset($row);
         }
         unset($info->medias);
         unset($info->preview);
@@ -787,7 +785,7 @@ class PosApiController extends Controller
         $booster_platform_fee = ceil($booster_platform_fee * 100) / 100; 
 
         if( ($request->payment_method == 'card') ||  ($request->payment_method == 'reader')){
-            $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+            $gateway=Getway::where('status','!=',0)->where('namespace','=',\App\Lib\Stripe::class)->first();
         } else { // Payment Method: CASH
             $gateway=Getway::where('name','cash')->first();
         }
@@ -868,16 +866,16 @@ class PosApiController extends Controller
                     
                     $data['qty'] = $item['cart_quantity'];
                     $data['amount'] = $item['max_price'];
-                    array_push($oder_items, $data);
+                    $oder_items[] = $data;
                     
-                    array_push($priceids, ['order_id' => $order->id, 'price_id' => $info->firstprice->id, 'qty' => $item['cart_quantity']]);
+                    $priceids[] = ['order_id' => $order->id, 'price_id' => $info->firstprice->id, 'qty' => $item['cart_quantity']];
                     
-                    $total_weight = $total_weight + ($info->firstprice->weight ?? 0);     
+                    $total_weight += $info->firstprice->weight ?? 0;     
                 }
             }
             
 
-            if (!empty($oder_items)) {
+            if ($oder_items !== []) {
                 $order->orderitems()->insert($oder_items);
             }
 
@@ -934,7 +932,7 @@ class PosApiController extends Controller
                 // ]);
             }
 
-            if (count($priceids) != 0) {
+            if (count($priceids) !== 0) {
                 $order->orderstockitems()->insert($priceids);
             }
             
@@ -948,7 +946,7 @@ class PosApiController extends Controller
 
             trigger_product_sales_crm_sync_after_order($order->id);
             return response()->json(["status" => true, "message" => "Order Successfull.",'data'=>$data]);
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();        
             return response()->json(["status" => false, "message" => "Some thing went wrong."],404);
         }
@@ -1005,7 +1003,7 @@ class PosApiController extends Controller
             'category_type'=> 'Booostr Ecommerce',
             'booster_id' =>Tenant('club_id'),
             'coaid'=>41,
-            'contactname'=>isset($ordermeta['name'])?$ordermeta['name']:'Guest User',
+            'contactname'=>$ordermeta['name'] ?? 'Guest User',
             //'memo'=>'Booostr Ecommerce',
             'user_id' => 0,
             'revenue_name'=>'4-850 Booostr Ecommerce',
@@ -1050,7 +1048,7 @@ class PosApiController extends Controller
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']); // Set content type header
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $response = curl_exec($ch);
@@ -1220,7 +1218,7 @@ class PosApiController extends Controller
         $data['Getway'] = Getway::all();
         $data['tenant_logo'] = env('WP_URL').tenant()->logo;
 
-        if($data){
+        if($data !== []){
             return response()->json(["status" => true, "message" => 'Store data fetched successfully', "result" => $data]);
         }
     }
@@ -1241,7 +1239,7 @@ class PosApiController extends Controller
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']); // Set content type header
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $response = curl_exec($ch);
@@ -1466,7 +1464,7 @@ class PosApiController extends Controller
                }
             }
 
-            $exist_qty=$exist_qty+$request->qty;
+            $exist_qty += $request->qty;
 
             $weight=$price->weight ?? 0;
 
@@ -1475,9 +1473,7 @@ class PosApiController extends Controller
                 return $stockCheck;
             }
 
-            $existingCartItem = Cart::search(function ($cartItem, $rowId) use ($info, $price) {
-                return $cartItem->id == $info->id;
-            });
+            $existingCartItem = Cart::search(fn($cartItem, $rowId) => $cartItem->id == $info->id);
             
             if ($existingCartItem->isNotEmpty() && (int)$request->variation_id == $existingCartItem->first()->options->options->first()->id) {
                 $rowId = $existingCartItem->first()->rowId;
@@ -1510,7 +1506,7 @@ class PosApiController extends Controller
                }
             }
 
-            $exist_qty=$exist_qty+$request->qty;
+            $exist_qty += $request->qty;
 
             $price=$info->firstprice;
             $weight=$price->weight ?? 0;
@@ -1520,9 +1516,7 @@ class PosApiController extends Controller
                 return $stockCheck;
             }
 
-            $existingCartItem = Cart::search(function ($cartItem, $rowId) use ($info, $price) {
-                return $cartItem->id == $info->id ? $rowId:false;
-            });
+            $existingCartItem = Cart::search(fn($cartItem, $rowId) => $cartItem->id == $info->id ? $rowId:false);
 
             if ($existingCartItem->isNotEmpty()) {
                 $rowId = $existingCartItem->first()->rowId;
@@ -1556,7 +1550,7 @@ class PosApiController extends Controller
         }
         try {
             Cart::store($cartid);
-        } catch (Exception $e) {
+        } catch (Exception) {
             Cart::updatestore($cartid);
         }
         $productcartdata['cartid'] = $cartid;
@@ -1712,7 +1706,7 @@ class PosApiController extends Controller
         //resave cart
         try{
             Cart::store($cartid);
-        }catch(Exception $e){
+        }catch(Exception){
             Cart::updatestore($cartid);
         }
         $productcartdata['cartid'] = $cartid;
@@ -1818,16 +1812,14 @@ class PosApiController extends Controller
     if(Cart::content()->isEmpty()){
         return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
     }
-    $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
-        return $cartItem->rowId == $id?$rowId:false;
-    });
+    $rowid=Cart::content()->filter(fn($cartItem, $rowId) => $cartItem->rowId == $id?$rowId:false);
 
     if($rowid->isNotEmpty()){
         Cart::remove($rowid->first()->rowId);//remove
     }
     try{
         Cart::store($cartid);
-    }catch(Exception $e){
+    }catch(Exception){
         Cart::updatestore($cartid);
     }
     $productcartdata['cartid'] = $cartid;
@@ -1951,9 +1943,7 @@ class PosApiController extends Controller
          return response()->json(["status" => false, "message" => 'Your cart is empty', "result" => []],404);
      }
 
-     $cartFilter=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
-         return $cartItem->rowId == $id?$rowId:false;
-     });
+     $cartFilter=Cart::content()->filter(fn($cartItem, $rowId) => $cartItem->rowId == $id?$rowId:false);
 
      $pId = '';
 
@@ -1977,9 +1967,7 @@ class PosApiController extends Controller
          }
      }
 
-     $rowid=Cart::content()->filter(function ($cartItem, $rowId) use($id) {
-         return $cartItem->rowId == $id?$rowId:false;
-     });
+     $rowid=Cart::content()->filter(fn($cartItem, $rowId) => $cartItem->rowId == $id?$rowId:false);
      
      if($rowid->isNotEmpty()){
          Cart::update($rowid->first()->rowId, $request->qty);//QTY update
@@ -1987,7 +1975,7 @@ class PosApiController extends Controller
 
      try{
          Cart::store($cartid);
-     }catch(Exception $e){
+     }catch(Exception){
          Cart::updatestore($cartid);
      }
 
@@ -2210,9 +2198,8 @@ class PosApiController extends Controller
             $result = $this->enrichPosOrderListWithRefundTransactions($info);
 
             return response()->json(['error' => false, 'message' => 'Order list fetched successfully', 'result' => $result,'heighest_sell_terms' =>$termData]);
-        } else {
-            return response()->json(['error' => true, 'message' => 'No orders found', 'result' => null]);
         }
+        return response()->json(['error' => true, 'message' => 'No orders found', 'result' => null]);
     }
 
     /**
@@ -2315,7 +2302,7 @@ class PosApiController extends Controller
             ? get_order_partial_refund_log_entries((int) $order->id)
             : [];
 
-        if (empty($partialRefundLogs) && !empty($partialLogsRaw)) {
+        if ($partialRefundLogs === [] && !empty($partialLogsRaw)) {
             $partialRefundLogs = $this->normalizePosPartialRefundLogsFromMeta($partialLogsRaw);
         }
 
@@ -2330,7 +2317,7 @@ class PosApiController extends Controller
 
         $refundLogs = $partialRefundLogs;
 
-        if (empty($refundLogs) && (int) $order->payment_status === 5 && !empty($lastTransaction)) {
+        if ($refundLogs === [] && (int) $order->payment_status === 5 && $lastTransaction !== []) {
             $amountCents = (int) ($lastTransaction['amount_refunded'] ?? $lastTransaction['amount'] ?? 0);
 
             $refundLogs[] = [
@@ -2451,7 +2438,7 @@ public function posEmailSend(Request $request){
 
         $name = explode(' ',$client_name);
 
-         $contact_manager_data = array(
+         $contact_manager_data = [
              'first_name' => $name[0],
              'last_name' => $name[1]??'',
              'user_id' =>  $wpuid ??0,
@@ -2467,12 +2454,12 @@ public function posEmailSend(Request $request){
              'booster_id' =>Tenant('club_id'),
              'booster_level_id' => 1,
              'customer_tag' => 'POS store customer',
-         );	  
+         ];	  
 
          $subtotal = 0;
             
          foreach ($order->orderitems ?? [] as $row){
-             $subtotal = $subtotal + $row->amount*$row->qty;
+             $subtotal += $row->amount*$row->qty;
          }
 
          $user_recipt = [
@@ -2495,9 +2482,8 @@ public function posEmailSend(Request $request){
 
         if(isset($recipt)){
             return response()->json(['error'=>false,'message'=>'Email sent successfully.']);
-        }else{
-            return response()->json(['error'=>true,'message'=>'Some thing went wrong.']);
         }
+        return response()->json(['error'=>true,'message'=>'Some thing went wrong.']);
     }
     return response()->json(['error'=>true,'message'=>'Some thing went wrong.']);
 }
@@ -2518,7 +2504,7 @@ private function send_order_recipts($data){
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']); // Set content type header
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     $response = curl_exec($ch);
@@ -2532,7 +2518,7 @@ private function send_order_recipts($data){
 }
 
     public function stipeCardReaderConnectionToken(Request $request){
-        $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        $gateway=Getway::where('status','!=',0)->where('namespace','=',\App\Lib\Stripe::class)->first();
         $gateway_data_info = json_decode($gateway->data);
 
         Stripe::setApiKey($gateway->test_mode == 1 ? $gateway_data_info->test_secret_key : $gateway_data_info->secret_key);
@@ -2589,7 +2575,7 @@ private function send_order_recipts($data){
         // Calculate what club receives
         $club_receives = $order_total - $total_application_fee;
         
-        $gateway = Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        $gateway = Getway::where('status','!=',0)->where('namespace','=',\App\Lib\Stripe::class)->first();
         if (!$gateway) {
             return response()->json(['message' => 'Stripe gateway not configured.'], 500);
         }
@@ -2662,7 +2648,7 @@ private function send_order_recipts($data){
     public function stripePublishableKey(Request $request)
     {
         $gateway = Getway::where('status', '!=', 0)
-            ->where('namespace', '=', 'App\Lib\Stripe')
+            ->where('namespace', '=', \App\Lib\Stripe::class)
             ->first();
     
 
@@ -2847,7 +2833,7 @@ private function send_order_recipts($data){
 
       $total_discount=str_replace(',','',Cart::discount());
 
-      $total_amount =  $total_amount + $shipping_price;
+      $total_amount += $shipping_price;
 
       // Cash: no card processing / cover fees (Stripe fee path unchanged).
       if ($isCashPayment) {
@@ -2876,7 +2862,7 @@ private function send_order_recipts($data){
           
         }
 
-        $total_amount = $total_amount+$cover_fee;
+        $total_amount += $cover_fee;
       }
 
       $revenue = $total_amount-($tax + $booster_platform_fee + $credit_card_fee);
@@ -2907,7 +2893,7 @@ private function send_order_recipts($data){
             ];
         } else {
             $gateway_settings = Getway::where('status', '!=', 0)
-            ->where('namespace', 'App\Lib\Stripe')
+            ->where('namespace', \App\Lib\Stripe::class)
             ->first();
           
 
@@ -3058,18 +3044,18 @@ private function send_order_recipts($data){
             //    }
 
                 if($row->options->options == []){
-                        array_push($priceids, ['order_id' => $order->id, 'price_id' => $row->options->price_id[0], 'qty' => $row->qty]);
+                        $priceids[] = ['order_id' => $order->id, 'price_id' => $row->options->price_id[0], 'qty' => $row->qty];
                 }else{
                     foreach ($row->options->options as $optionVal) {
-                        array_push($priceids, ['order_id' => $order->id, 'price_id' => $optionVal->id, 'qty' => (int)$row->qty]);
+                        $priceids[] = ['order_id' => $order->id, 'price_id' => $optionVal->id, 'qty' => (int)$row->qty];
                     }
                 }
 
                  $item['qty']    = $row->qty;
                  $item['amount'] = $row->price;
 
-                $total_weight = $total_weight + $row->weight;
-                array_push($oder_items, $item);
+                $total_weight += $row->weight;
+                $oder_items[] = $item;
                 $cartid = $row->instance;
             }
 
@@ -3144,7 +3130,7 @@ private function send_order_recipts($data){
                         ['order_id' => $order->id, 'key' => 'payment_intent_id'],
                         ['value' => $resolvedPaymentIntentId]
                     );
-                } catch (\Throwable $e) {
+                } catch (\Throwable) {
                     // ignore if error
                 }
             }
@@ -3165,12 +3151,12 @@ private function send_order_recipts($data){
                         ['order_id' => $order->id, 'key' => 'last_transcation_log'],
                         ['value' => $logVal]
                     );
-                } catch (\Throwable $e) {
+                } catch (\Throwable) {
                     // ignore if error
                 }
             }
             
-            if (count($priceids) != 0) {
+            if (count($priceids) !== 0) {
                 $order->orderstockitems()->insert($priceids);
             }
     
@@ -3210,7 +3196,7 @@ private function send_order_recipts($data){
                             $orderInfoMeta->save();
                         }
                     }
-                } catch (\Throwable $e) {
+                } catch (\Throwable) {
                     // ignore
                 }
             }
@@ -3373,7 +3359,7 @@ private function send_order_recipts($data){
                 foreach (['payment_intent_id', 'payment_intent', 'paymentIntentId', 'paymentIntent', 'id'] as $pdKey) {
                     if (!empty($pdRaw[$pdKey]) && is_string($pdRaw[$pdKey])) {
                         $cand = trim($pdRaw[$pdKey]);
-                        if (strpos($cand, 'pi_') === 0 || in_array($pdKey, ['payment_intent_id', 'paymentIntentId', 'payment_intent'], true)) {
+                        if (str_starts_with($cand, 'pi_') || in_array($pdKey, ['payment_intent_id', 'paymentIntentId', 'payment_intent'], true)) {
                             return $cand;
                         }
                     }
@@ -3393,7 +3379,7 @@ private function send_order_recipts($data){
             if (empty($cand) && method_exists($request, 'json')) {
                 $cand = $request->json($tokKey);
             }
-            if (!empty($cand) && is_string($cand) && strpos(trim($cand), 'pi_') === 0) {
+            if (!empty($cand) && is_string($cand) && str_starts_with(trim($cand), 'pi_')) {
                 return trim($cand);
             }
         }
@@ -3406,15 +3392,15 @@ private function send_order_recipts($data){
         }
 
         // 5. From $order->transaction_id if starting with 'pi_'
-        if (!empty($order->transaction_id) && is_string($order->transaction_id) && strpos($order->transaction_id, 'pi_') === 0) {
+        if (!empty($order->transaction_id) && is_string($order->transaction_id) && str_starts_with($order->transaction_id, 'pi_')) {
             return $order->transaction_id;
         }
 
         // 6. From $paymentresult or $chargeResult payment_id if starting with 'pi_'
-        if (!empty($paymentresult['payment_id']) && is_string($paymentresult['payment_id']) && strpos($paymentresult['payment_id'], 'pi_') === 0) {
+        if (!empty($paymentresult['payment_id']) && is_string($paymentresult['payment_id']) && str_starts_with($paymentresult['payment_id'], 'pi_')) {
             return $paymentresult['payment_id'];
         }
-        if (!empty($chargeResult['payment_id']) && is_string($chargeResult['payment_id']) && strpos($chargeResult['payment_id'], 'pi_') === 0) {
+        if (!empty($chargeResult['payment_id']) && is_string($chargeResult['payment_id']) && str_starts_with($chargeResult['payment_id'], 'pi_')) {
             return $chargeResult['payment_id'];
         }
 
@@ -3428,13 +3414,13 @@ private function send_order_recipts($data){
                     $tLog = json_decode($tLog, true) ?: [];
                 }
                 if (is_array($tLog)) {
-                    if (!empty($tLog['payment_intent']) && is_string($tLog['payment_intent']) && strpos($tLog['payment_intent'], 'pi_') === 0) {
+                    if (!empty($tLog['payment_intent']) && is_string($tLog['payment_intent']) && str_starts_with($tLog['payment_intent'], 'pi_')) {
                         return (string) $tLog['payment_intent'];
                     }
-                    if (!empty($tLog['id']) && is_string($tLog['id']) && strpos($tLog['id'], 'pi_') === 0) {
+                    if (!empty($tLog['id']) && is_string($tLog['id']) && str_starts_with($tLog['id'], 'pi_')) {
                         return (string) $tLog['id'];
                     }
-                    if (!empty($tLog['payment_intent_id']) && is_string($tLog['payment_intent_id']) && strpos($tLog['payment_intent_id'], 'pi_') === 0) {
+                    if (!empty($tLog['payment_intent_id']) && is_string($tLog['payment_intent_id']) && str_starts_with($tLog['payment_intent_id'], 'pi_')) {
                         return (string) $tLog['payment_intent_id'];
                     }
                     if (!empty($tLog['charges']['data'][0]['payment_intent']) && is_string($tLog['charges']['data'][0]['payment_intent'])) {
@@ -3448,27 +3434,27 @@ private function send_order_recipts($data){
         }
 
         // 8. If transaction_id is a Stripe charge 'ch_...', retrieve PaymentIntent from Stripe Charge
-        $candidateChargeId = (!empty($order->transaction_id) && is_string($order->transaction_id) && strpos($order->transaction_id, 'ch_') === 0)
+        $candidateChargeId = (!empty($order->transaction_id) && is_string($order->transaction_id) && str_starts_with($order->transaction_id, 'ch_'))
             ? $order->transaction_id
-            : ((!empty($paymentresult['payment_id']) && is_string($paymentresult['payment_id']) && strpos($paymentresult['payment_id'], 'ch_') === 0)
+            : ((!empty($paymentresult['payment_id']) && is_string($paymentresult['payment_id']) && str_starts_with($paymentresult['payment_id'], 'ch_'))
                 ? $paymentresult['payment_id']
                 : null);
 
         if (!empty($candidateChargeId)) {
             try {
-                $gwSettings = Getway::where('status', '!=', 0)->where('namespace', 'App\Lib\Stripe')->first();
+                $gwSettings = Getway::where('status', '!=', 0)->where('namespace', \App\Lib\Stripe::class)->first();
                 if ($gwSettings && !empty($gwSettings->data)) {
                     $gwData = json_decode($gwSettings->data, true);
                     $sKey = ($gwSettings->test_mode == 1) ? ($gwData['test_secret_key'] ?? '') : ($gwData['secret_key'] ?? '');
                     if (!empty($sKey)) {
                         \Stripe\Stripe::setApiKey($sKey);
                         $stripeCharge = \Stripe\Charge::retrieve($candidateChargeId);
-                        if (!empty($stripeCharge->payment_intent) && is_string($stripeCharge->payment_intent) && strpos($stripeCharge->payment_intent, 'pi_') === 0) {
+                        if (!empty($stripeCharge->payment_intent) && is_string($stripeCharge->payment_intent) && str_starts_with($stripeCharge->payment_intent, 'pi_')) {
                             return (string) $stripeCharge->payment_intent;
                         }
                     }
                 }
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 // Safe fallback
             }
         }

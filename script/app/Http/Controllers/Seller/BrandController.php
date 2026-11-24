@@ -26,7 +26,7 @@ class BrandController extends Controller
           $posts=  $posts->where('name','LIKE','%'.$request->src.'%');
         }
         $posts=$posts->latest()->paginate(20);
-        return view("seller.brand.index",compact('posts','request'));
+        return view("seller.brand.index",['posts' => $posts, 'request' => $request]);
     }
 
     public function makeSlug($title,$type)
@@ -94,7 +94,7 @@ class BrandController extends Controller
          abort_if(!getpermission('products'),401);
         if(!$id) return back();
         $info=Category::with('description','preview','icon')->findorFail($id);
-        return view("seller.brand.edit",compact('info'));
+        return view("seller.brand.edit",['info' => $info]);
     }
 
     

@@ -30,7 +30,7 @@ class PageController extends Controller
         $store_banner_image = optionfromcache('banner_logo') ?: (get_option('banner_logo') ?: '');
         $store_banner_url = optionfromcache('banner_url') ?: (get_option('banner_url') ?: '');
 
-        return view(baseview('index'), compact('store_banner_image', 'store_banner_url'));
+        return view(baseview('index'), ['store_banner_image' => $store_banner_image, 'store_banner_url' => $store_banner_url]);
     }
 
     public function category_product(Request $request)
@@ -57,7 +57,7 @@ class PageController extends Controller
         $products_page_product_ads_banner=$page_data->products_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->products_page_product_ads_link ?? '';
 
-        return view(baseview('products'),compact('page_title','products_page_description','products_page_banner','products_page_product_ads_banner','products_page_product_ads_link','request'));
+        return view(baseview('products'),['page_title' => $page_title, 'products_page_description' => $products_page_description, 'products_page_banner' => $products_page_banner, 'products_page_product_ads_banner' => $products_page_product_ads_banner, 'products_page_product_ads_link' => $products_page_product_ads_link, 'request' => $request]);
     }
 
     public function deals(Request $request)
@@ -76,7 +76,7 @@ class PageController extends Controller
         $products_page_product_ads_banner=$page_data->deal_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->deal_page_product_ads_link ?? '';
 
-        return view(baseview('deals'),compact('page_title','products_page_description','products_page_banner','products_page_product_ads_banner','products_page_product_ads_link','request'));
+        return view(baseview('deals'),['page_title' => $page_title, 'products_page_description' => $products_page_description, 'products_page_banner' => $products_page_banner, 'products_page_product_ads_banner' => $products_page_product_ads_banner, 'products_page_product_ads_link' => $products_page_product_ads_link, 'request' => $request]);
     }
 
     public function brand($slug)
@@ -99,7 +99,7 @@ class PageController extends Controller
         $products_page_product_ads_banner=$page_data->products_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->products_page_product_ads_link ?? '';
 
-        return view(baseview('products'),compact('categoryid','page_data','page_title','products_page_description','products_page_banner','products_page_product_ads_banner','products_page_product_ads_link'));
+        return view(baseview('products'),['categoryid' => $categoryid, 'page_data' => $page_data, 'page_title' => $page_title, 'products_page_description' => $products_page_description, 'products_page_banner' => $products_page_banner, 'products_page_product_ads_banner' => $products_page_product_ads_banner, 'products_page_product_ads_link' => $products_page_product_ads_link]);
     }
 
      public function featured($slug)
@@ -122,7 +122,7 @@ class PageController extends Controller
         $products_page_product_ads_banner=$page_data->products_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->products_page_product_ads_link ?? '';
 
-        return view(baseview('products'),compact('categoryid','page_data','page_title','products_page_description','products_page_banner','products_page_product_ads_banner','products_page_product_ads_link'));
+        return view(baseview('products'),['categoryid' => $categoryid, 'page_data' => $page_data, 'page_title' => $page_title, 'products_page_description' => $products_page_description, 'products_page_banner' => $products_page_banner, 'products_page_product_ads_banner' => $products_page_product_ads_banner, 'products_page_product_ads_link' => $products_page_product_ads_link]);
     }
 
     public function tag($slug)
@@ -145,7 +145,7 @@ class PageController extends Controller
         $products_page_product_ads_banner=$page_data->products_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->products_page_product_ads_link ?? '';
 
-        return view(baseview('products'),compact('categoryid','page_data','page_title','products_page_description','products_page_banner','products_page_product_ads_banner','products_page_product_ads_link'));
+        return view(baseview('products'),['categoryid' => $categoryid, 'page_data' => $page_data, 'page_title' => $page_title, 'products_page_description' => $products_page_description, 'products_page_banner' => $products_page_banner, 'products_page_product_ads_banner' => $products_page_product_ads_banner, 'products_page_product_ads_link' => $products_page_product_ads_link]);
     }
 
     public function category($slug)
@@ -167,7 +167,7 @@ class PageController extends Controller
         $products_page_product_ads_banner=$page_data->products_page_product_ads_banner ?? '';
         $products_page_product_ads_link=$page_data->products_page_product_ads_link ?? '';
 
-        return view(baseview('products'),compact('categoryid','page_data','page_title','products_page_description','products_page_banner','products_page_product_ads_banner','products_page_product_ads_link'));
+        return view(baseview('products'),['categoryid' => $categoryid, 'page_data' => $page_data, 'page_title' => $page_title, 'products_page_description' => $products_page_description, 'products_page_banner' => $products_page_banner, 'products_page_product_ads_banner' => $products_page_product_ads_banner, 'products_page_product_ads_link' => $products_page_product_ads_link]);
     }
 
     public function productView($slug)
@@ -183,10 +183,10 @@ class PageController extends Controller
         $preview=asset($info->preview->value ?? 'uploads/default.png');
         $galleries=[];
         
-        array_push($galleries,$preview);
+        $galleries[] = $preview;
 
         foreach($medias ?? [] as $row){
-            array_push($galleries,$row);
+            $galleries[] = $row;
         }
 
         $productDesc = !empty($seo->description) ? $seo->description : (!empty($info->excerpt->value) ? $info->excerpt->value : null);
@@ -208,7 +208,7 @@ class PageController extends Controller
             $product_page_banner = get_option('banner_logo') ?: '';
         }
        
-        return view(baseview('details'),compact('info','galleries','home_data','product_page_banner'));
+        return view(baseview('details'),['info' => $info, 'galleries' => $galleries, 'home_data' => $home_data, 'product_page_banner' => $product_page_banner]);
     }
 
     public function page($slug)
@@ -220,7 +220,7 @@ class PageController extends Controller
         store_set_seo($info->title ?? 'Page', $meta->page_excerpt ?? null);
         
         //return view(baseview('page'),compact('info','meta'));
-        return view('store.checkout.page',compact('info','meta'));
+        return view('store.checkout.page',['info' => $info, 'meta' => $meta]);
     }
 
     public function menu()
@@ -229,7 +229,7 @@ class PageController extends Controller
         store_set_seo('Products');
 
         $page_data=$home_data->meta ?? '';
-        return view(baseview('menu'),compact('page_data'));
+        return view(baseview('menu'),['page_data' => $page_data]);
     }
 
     public function cart()
@@ -245,7 +245,7 @@ class PageController extends Controller
 
         $page_data=$home_data->meta ?? '';
 
-        return view(baseview('cart'),compact('page_data'));
+        return view(baseview('cart'),['page_data' => $page_data]);
     }
 
     public function wishlist()
@@ -265,7 +265,7 @@ class PageController extends Controller
         store_set_seo('Wishlist');
 
         $page_data=$home_data->meta ?? '';
-        return view(baseview('wishlist'),compact('contents','products','page_data'));
+        return view(baseview('wishlist'),['contents' => $contents, 'products' => $products, 'page_data' => $page_data]);
     }
 
     public function checkout(Request $request)
@@ -301,7 +301,7 @@ class PageController extends Controller
         $pickup_order=$order_settings->pickup_order ?? 'off';
         $pre_order=$order_settings->pre_order ?? 'off';
         $source_code=$order_settings->source_code ?? 'on';
-        return view(baseview('checkout'),compact('locations','getways','request','order_method','order_settings','invoice_data','meta','page_data','pickup_order','pre_order','source_code'));
+        return view(baseview('checkout'),['locations' => $locations, 'getways' => $getways, 'request' => $request, 'order_method' => $order_method, 'order_settings' => $order_settings, 'invoice_data' => $invoice_data, 'meta' => $meta, 'page_data' => $page_data, 'pickup_order' => $pickup_order, 'pre_order' => $pre_order, 'source_code' => $source_code]);
     }
 
     public function thanks(Request $request)
@@ -313,7 +313,7 @@ class PageController extends Controller
         $club_info = tenant_club_info();
 
         store_set_seo('Thanks');
-        return view(baseview('thanks'), compact('orderno', 'order', 'club_info'));
+        return view(baseview('thanks'), ['orderno' => $orderno, 'order' => $order, 'club_info' => $club_info]);
     }
 
     public function contact()
@@ -325,7 +325,7 @@ class PageController extends Controller
         $club_info = tenant_club_info();
         $formBaseUrl = rtrim(env("BOOOSTR_FORM_EMBED_URL") ?: 'https://booostr.co', '/');
 
-        return view(baseview('contact'), compact('club_id', 'form_id', 'club_info', 'formBaseUrl'));
+        return view(baseview('contact'), ['club_id' => $club_id, 'form_id' => $form_id, 'club_info' => $club_info, 'formBaseUrl' => $formBaseUrl]);
     }
 
     protected function getBooostrClubContactFormId($club_id)

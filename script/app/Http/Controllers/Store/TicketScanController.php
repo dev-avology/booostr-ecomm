@@ -58,7 +58,7 @@ class TicketScanController extends Controller
             'used_at' => now(),
         ]);
     
-        return view('ticket.scan-successs', compact('ticket'));
+        return view('ticket.scan-successs', ['ticket' => $ticket]);
     }
     
     public function calendar($uuid)
@@ -247,7 +247,7 @@ class TicketScanController extends Controller
                 }
 
                 $eventTicketObject['validTimeInterval'] = $interval;
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 // Skip validTimeInterval if dates are malformed
             }
         }
@@ -455,7 +455,7 @@ class TicketScanController extends Controller
     
         $tickets = EventTicket::where('order_id', $ticket->order_id)->get();
     
-        return view('ticket.print', compact('tickets'));
+        return view('ticket.print', ['tickets' => $tickets]);
     }
 
 }

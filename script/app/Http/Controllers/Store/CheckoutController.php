@@ -53,7 +53,7 @@ class CheckoutController extends Controller
         $home_data=optionfromcache('cart_page');
         store_set_seo('Cart');
         $page_data=$home_data->meta ?? '';
-        return view(baseview('cart'),compact('page_data'));
+        return view(baseview('cart'),['page_data' => $page_data]);
     }
 
 
@@ -213,7 +213,7 @@ class CheckoutController extends Controller
        // $store_state = trim($address[count($address)-2]);
         $store_state = isset($address[count($address)-2])?trim($address[count($address)-2]):'';
 
-        if(isset($customer['state']) && ($customer['state'] == '' || $store_state != trim($customer['state']))){
+        if(isset($customer['state']) && ($customer['state'] == '' || $store_state !== trim($customer['state']))){
             $tax = 0;
             Cart::setGlobalTax($tax);
         }else{
@@ -237,7 +237,7 @@ class CheckoutController extends Controller
         }else{
             $locations=[];
         }
-        $getways=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        $getways=Getway::where('status','!=',0)->where('namespace','=',\App\Lib\Stripe::class)->first();
 
         $order_method=$request->t ?? 'delivery';
 
@@ -267,11 +267,9 @@ class CheckoutController extends Controller
             ->get();
         
         // Get flat product type IDs from cart
-        $selected_product_type = $terms->flatMap(function ($term) use ($p_types) {
-            return $term->termcategories
-                ->pluck('category_id')
-                ->intersect($p_types);
-        })->unique()->values()->all();
+        $selected_product_type = $terms->flatMap(fn($term) => $term->termcategories
+            ->pluck('category_id')
+            ->intersect($p_types))->unique()->values()->all();
         
         $count = count($selected_product_type);
         
@@ -376,7 +374,7 @@ class CheckoutController extends Controller
        $cover_fee =  $credit_card_fee1 + $booster_platform_fee1;
 
 
-        return view('store.checkout.checkout-form',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee','cover_fee'));
+        return view('store.checkout.checkout-form',['locations' => $locations, 'states_data' => $states_data, 'getways' => $getways, 'request' => $request, 'order_method' => $order_method, 'order_settings' => $order_settings, 'invoice_data' => $invoice_data, 'page_data' => $page_data, 'pickup_order' => $pickup_order, 'pre_order' => $pre_order, 'source_code' => $source_code, 'payment_data' => $payment_data, 'shipping_methods' => $shipping_methods, 'shipping_price' => $shipping_price, 'customer' => $customer, 'order_type' => $order_type, 'credit_card_fee' => $credit_card_fee, 'booster_platform_fee' => $booster_platform_fee, 'cover_fee' => $cover_fee]);
     }
 
 
@@ -451,7 +449,7 @@ class CheckoutController extends Controller
        // $store_state = trim($address[count($address)-2]);
         $store_state = isset($address[count($address)-2])?trim($address[count($address)-2]):'';
 
-        if(isset($customer['state']) && ($customer['state'] == '' || $store_state != trim($customer['state']))){
+        if(isset($customer['state']) && ($customer['state'] == '' || $store_state !== trim($customer['state']))){
             $tax = 0;
             Cart::setGlobalTax($tax);
         }else{
@@ -475,7 +473,7 @@ class CheckoutController extends Controller
         }else{
             $locations=[];
         }
-        $getways=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        $getways=Getway::where('status','!=',0)->where('namespace','=',\App\Lib\Stripe::class)->first();
 
         $order_method=$request->t ?? 'delivery';
 
@@ -505,11 +503,9 @@ class CheckoutController extends Controller
             ->get();
         
         // Get flat product type IDs from cart
-        $selected_product_type = $terms->flatMap(function ($term) use ($p_types) {
-            return $term->termcategories
-                ->pluck('category_id')
-                ->intersect($p_types);
-        })->unique()->values()->all();
+        $selected_product_type = $terms->flatMap(fn($term) => $term->termcategories
+            ->pluck('category_id')
+            ->intersect($p_types))->unique()->values()->all();
         
         $count = count($selected_product_type);
         
@@ -613,7 +609,7 @@ class CheckoutController extends Controller
        $cover_fee =  $credit_card_fee1 + $booster_platform_fee1;
 
 
-        return view('store.checkout.checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee','cover_fee'));
+        return view('store.checkout.checkout',['locations' => $locations, 'states_data' => $states_data, 'getways' => $getways, 'request' => $request, 'order_method' => $order_method, 'order_settings' => $order_settings, 'invoice_data' => $invoice_data, 'page_data' => $page_data, 'pickup_order' => $pickup_order, 'pre_order' => $pre_order, 'source_code' => $source_code, 'payment_data' => $payment_data, 'shipping_methods' => $shipping_methods, 'shipping_price' => $shipping_price, 'customer' => $customer, 'order_type' => $order_type, 'credit_card_fee' => $credit_card_fee, 'booster_platform_fee' => $booster_platform_fee, 'cover_fee' => $cover_fee]);
     }
 
     public function subdomainCheckout(Request $request)
@@ -679,7 +675,7 @@ class CheckoutController extends Controller
         $address = explode(',', $club_info['address'] ?? '');
         $store_state = isset($address[count($address) - 2]) ? trim($address[count($address) - 2]) : '';
 
-        if (isset($customer['state']) && ($customer['state'] == '' || $store_state != trim($customer['state']))) {
+        if (isset($customer['state']) && ($customer['state'] == '' || $store_state !== trim($customer['state']))) {
             $tax = 0;
             Cart::setGlobalTax($tax);
         } else {
@@ -702,7 +698,7 @@ class CheckoutController extends Controller
         } else {
             $locations = [];
         }
-        $getways = Getway::where('status', '!=', 0)->where('namespace', '=', 'App\Lib\Stripe')->first();
+        $getways = Getway::where('status', '!=', 0)->where('namespace', '=', \App\Lib\Stripe::class)->first();
 
         $order_method = $request->t ?? 'delivery';
 
@@ -731,11 +727,9 @@ class CheckoutController extends Controller
             ->get();
 
         // Get flat product type IDs from cart
-        $selected_product_type = $terms->flatMap(function ($term) use ($p_types) {
-            return $term->termcategories
-                ->pluck('category_id')
-                ->intersect($p_types);
-        })->unique()->values()->all();
+        $selected_product_type = $terms->flatMap(fn($term) => $term->termcategories
+            ->pluck('category_id')
+            ->intersect($p_types))->unique()->values()->all();
 
         $count = count($selected_product_type);
 
@@ -897,31 +891,7 @@ class CheckoutController extends Controller
         $booster_platform_fee1 = booster_club_chagre($fee_base);
         $cover_fee = $credit_card_fee1 + $booster_platform_fee1;
 
-        return view('store.checkout.new-checkout', compact(
-            'locations',
-            'states_data',
-            'getways',
-            'request',
-            'order_method',
-            'order_settings',
-            'invoice_data',
-            'page_data',
-            'pickup_order',
-            'pre_order',
-            'source_code',
-            'payment_data',
-            'shipping_methods',
-            'shipping_price',
-            'customer',
-            'order_type',
-            'credit_card_fee',
-            'booster_platform_fee',
-            'cover_fee',
-            'shipping_options',
-            'pickup_details',
-            'allow_inperson_pickup',
-            'ticket_fee_total'
-        ));
+        return view('store.checkout.new-checkout', ['locations' => $locations, 'states_data' => $states_data, 'getways' => $getways, 'request' => $request, 'order_method' => $order_method, 'order_settings' => $order_settings, 'invoice_data' => $invoice_data, 'page_data' => $page_data, 'pickup_order' => $pickup_order, 'pre_order' => $pre_order, 'source_code' => $source_code, 'payment_data' => $payment_data, 'shipping_methods' => $shipping_methods, 'shipping_price' => $shipping_price, 'customer' => $customer, 'order_type' => $order_type, 'credit_card_fee' => $credit_card_fee, 'booster_platform_fee' => $booster_platform_fee, 'cover_fee' => $cover_fee, 'shipping_options' => $shipping_options, 'pickup_details' => $pickup_details, 'allow_inperson_pickup' => $allow_inperson_pickup, 'ticket_fee_total' => $ticket_fee_total]);
     }
 
 
@@ -979,7 +949,7 @@ class CheckoutController extends Controller
        // $store_state = trim($address[count($address)-2]);
         $store_state = isset($address[count($address)-2])?trim($address[count($address)-2]):'';
 
-        if(isset($customer['state']) && ($customer['state'] == '' || $store_state != trim($customer['state']))){
+        if(isset($customer['state']) && ($customer['state'] == '' || $store_state !== trim($customer['state']))){
             $tax = 0;
             Cart::setGlobalTax($tax);
         }else{
@@ -1003,7 +973,7 @@ class CheckoutController extends Controller
         }else{
             $locations=[];
         }
-        $getways=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+        $getways=Getway::where('status','!=',0)->where('namespace','=',\App\Lib\Stripe::class)->first();
 
         $order_method=$request->t ?? 'delivery';
 
@@ -1033,11 +1003,9 @@ class CheckoutController extends Controller
             ->get();
         
         // Get flat product type IDs from cart
-        $selected_product_type = $terms->flatMap(function ($term) use ($p_types) {
-            return $term->termcategories
-                ->pluck('category_id')
-                ->intersect($p_types);
-        })->unique()->values()->all();
+        $selected_product_type = $terms->flatMap(fn($term) => $term->termcategories
+            ->pluck('category_id')
+            ->intersect($p_types))->unique()->values()->all();
         
         $count = count($selected_product_type);
         
@@ -1233,8 +1201,7 @@ class CheckoutController extends Controller
        
 
 
-        return view('store.checkout.new-checkout',compact('locations','states_data','getways','request','order_method','order_settings','invoice_data','page_data','pickup_order','pre_order','source_code','payment_data','shipping_methods','shipping_price','customer','order_type','credit_card_fee','booster_platform_fee',
-        'cover_fee','shipping_options','pickup_details','allow_inperson_pickup','ticket_fee_total'));
+        return view('store.checkout.new-checkout',['locations' => $locations, 'states_data' => $states_data, 'getways' => $getways, 'request' => $request, 'order_method' => $order_method, 'order_settings' => $order_settings, 'invoice_data' => $invoice_data, 'page_data' => $page_data, 'pickup_order' => $pickup_order, 'pre_order' => $pre_order, 'source_code' => $source_code, 'payment_data' => $payment_data, 'shipping_methods' => $shipping_methods, 'shipping_price' => $shipping_price, 'customer' => $customer, 'order_type' => $order_type, 'credit_card_fee' => $credit_card_fee, 'booster_platform_fee' => $booster_platform_fee, 'cover_fee' => $cover_fee, 'shipping_options' => $shipping_options, 'pickup_details' => $pickup_details, 'allow_inperson_pickup' => $allow_inperson_pickup, 'ticket_fee_total' => $ticket_fee_total]);
     }
 
     public function newMakeOrder(Request $request)
@@ -1406,11 +1373,11 @@ class CheckoutController extends Controller
         
        }
 
-       $total_amount = $total_amount+$cover_fee;
+       $total_amount += $cover_fee;
 
        $revenue = $total_amount-($tax + $booster_platform_fee + $credit_card_fee);
 
-       $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+       $gateway=Getway::where('status','!=',0)->where('namespace','=',\App\Lib\Stripe::class)->first();
 
        //Process Payment
         $gateway_data_info = json_decode($gateway->data);
@@ -1546,7 +1513,7 @@ class CheckoutController extends Controller
 
             if($couponcode != null){
                 $coupon = Coupon::where('code',$couponcode)->first();
-                $coupon->used_count =  $coupon->used_count + 1 ;
+                $coupon->used_count += 1 ;
                 $coupon->save();
             }
 
@@ -1578,22 +1545,22 @@ class CheckoutController extends Controller
                 if (!empty($row->options->price_id) && is_array($row->options->price_id)) {
                     foreach ($row->options->price_id as $pId) {
                         if (!empty($pId)) {
-                            array_push($priceids, ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty]);
+                            $priceids[] = ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty];
                         }
                     }
                 } elseif (!empty($row->options->options) && is_iterable($row->options->options)) {
                     foreach ($row->options->options as $optionVal) {
                         $pId = is_object($optionVal) ? ($optionVal->id ?? null) : (is_array($optionVal) ? ($optionVal['id'] ?? ($optionVal['price_id'] ?? null)) : null);
                         if ($pId) {
-                            array_push($priceids, ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty]);
+                            $priceids[] = ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty];
                         }
                     }
                 }
 
                 $data['qty'] = $row->qty;
                 $data['amount'] = $row->price;
-                $total_weight = $total_weight + $row->weight;
-                array_push($oder_items, $data);
+                $total_weight += $row->weight;
+                $oder_items[] = $data;
                 $cartid = $row->instance;
             }
 
@@ -1602,7 +1569,7 @@ class CheckoutController extends Controller
             if ($request->order_method == 'table') {
                 $order->ordertable()->attach($request->table);
             }
-             if ($order_method == 'delivery' && !$hasOnlyEventTickets) {
+             if ($order_method === 'delivery' && !$hasOnlyEventTickets) {
                 $delivery_info['address'] = $request->shipping['address'].' '. $request->shipping['city'].', '.$request->shipping['state'].', '.$request->shipping['country'];
                 $delivery_info['post_code'] = $request->shipping['post_code'];
                 $delivery_info['shipping_method'] = $request->shipping_method;
@@ -1669,7 +1636,7 @@ class CheckoutController extends Controller
                 // ]);
             }
 
-            if (count($priceids) != 0) {
+            if (count($priceids) !== 0) {
                 $order->orderstockitems()->insert($priceids);
             }
 
@@ -1686,7 +1653,7 @@ class CheckoutController extends Controller
             
              $name = explode(' ',$request->name);
 
-            $contact_manager_data = array(
+            $contact_manager_data = [
                 'first_name' => $name[0],
                 'last_name' => $name[1]??'',
                 'user_id' =>  $request->wpuid ??0,
@@ -1704,13 +1671,13 @@ class CheckoutController extends Controller
                 'customer_tag' => 'online store customer',
                 'addedsource' => 'storetool',
                 'opt_in_tools' => $sms_consent,
-            );	
+            ];	
             
            
             $subtotal = 0;
             
             foreach ($order->orderitems ?? [] as $row){
-                $subtotal = $subtotal + $row->amount*$row->qty;
+                $subtotal += $row->amount*$row->qty;
             }
 
            $user_recipt = [
@@ -1774,7 +1741,7 @@ class CheckoutController extends Controller
                 Session::forget('couponDiscount');
             }
 
-            if(strpos($redirect_url, 'login-customizer') !== false){
+            if(str_contains($redirect_url, 'login-customizer')){
                $redirect_url = str_replace('login-customizer', 'listing/'.tenant('id'), $redirect_url);
             }
 
@@ -1783,7 +1750,7 @@ class CheckoutController extends Controller
 
             return redirect()->route('checkout.payment', $order->invoice_no);
 
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
 
         // dd($th);die;
@@ -1795,12 +1762,12 @@ class CheckoutController extends Controller
     }
     
     
-    function paymentPage($order_id)
+    public function paymentPage($order_id)
     {
 
         $order = Order::with(['ordermeta', 'orderitems', 'shippingwithinfo'])->findOrFail($order_id);
 
-        $gateway = Getway::where('status','!=',0)->where('namespace','App\Lib\Stripe')->first();
+        $gateway = Getway::where('status','!=',0)->where('namespace',\App\Lib\Stripe::class)->first();
         $gateway_data = json_decode($gateway->data);
         
         $publishable_key = $gateway->test_mode ? $gateway_data->test_publishable_key : $gateway_data->publishable_key;
@@ -1893,19 +1860,7 @@ $base_total = $subtotal
         $total = $base_total + $cover_fee;
         // $ticket_fee_total = $meta['ticket_fee_total'] ?? 0;
 
-        return view('store.checkout.payment', compact(
-            'order',
-            'subtotal',
-            'discount',
-            'tax',
-            'delivery_fee',
-            'cover_fee',
-            'total',
-            'client_secret',
-             'publishable_key',
-             'stripe_customer',
-             'ticket_fee_total'
-        ));
+        return view('store.checkout.payment', ['order' => $order, 'subtotal' => $subtotal, 'discount' => $discount, 'tax' => $tax, 'delivery_fee' => $delivery_fee, 'cover_fee' => $cover_fee, 'total' => $total, 'client_secret' => $client_secret, 'publishable_key' => $publishable_key, 'stripe_customer' => $stripe_customer, 'ticket_fee_total' => $ticket_fee_total]);
 
     }
 
@@ -2045,7 +2000,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
     }
 }
 
-    function processPayment(Request $request, $order_id)
+    public function processPayment(Request $request, $order_id)
     {
         
      $redirect_url=Session::has('redirect_url')?Session::get('redirect_url'):'https://www.boostr.co';
@@ -2054,7 +2009,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             
             $order = Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule')->findOrFail($order_id);
             
-             $gateway = Getway::where('status','!=',0)->where('namespace','App\Lib\Stripe')->first();
+             $gateway = Getway::where('status','!=',0)->where('namespace',\App\Lib\Stripe::class)->first();
              $gateway_data = json_decode($gateway->data);
              
          $publishable_key = $gateway->test_mode ? $gateway_data->test_publishable_key : $gateway_data->publishable_key;
@@ -2196,7 +2151,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
         	$redirect_url = $parts['scheme'] . '://' . $parts['host'] . $parts['path'];
         }
         
-        if(strpos($redirect_url, 'login-customizer') !== false){
+        if(str_contains($redirect_url, 'login-customizer')){
            $redirect_url = str_replace('login-customizer', 'listing/'.tenant('id'), $redirect_url);
         }
         
@@ -2269,7 +2224,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
        
        $sub_total = $revenue - $shippingPrice;
        
-               $contact_manager_data = array(
+               $contact_manager_data = [
 									'first_name' => $name[0] ?? '',
 									'last_name' => $name[1] ?? '',
 									'user_id' =>  $ordermeta['wpuid'] ?? 0,
@@ -2288,7 +2243,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
                                     'customer_tag' => 'online store customer',
                                     'addedsource' => 'storetool',
                                     'opt_in_tools' => $ordermeta['sms_consent'] ?? 0,
-								);
+								];
 								
 								
 			$user_recipt = [
@@ -2436,7 +2391,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
        $total_discount=str_replace(',','',Cart::discount());
 
-       $total_amount =  $total_amount + $shipping_price;
+       $total_amount += $shipping_price;
 
        $credit_card_fee = credit_card_fee($total_amount);
 
@@ -2459,11 +2414,11 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
         
        }
 
-       $total_amount = $total_amount+$cover_fee;
+       $total_amount += $cover_fee;
 
        $revenue = $total_amount-($tax + $booster_platform_fee + $credit_card_fee);
 
-       $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+       $gateway=Getway::where('status','!=',0)->where('namespace','=',\App\Lib\Stripe::class)->first();
        //Process Payment
         $gateway_data_info = json_decode($gateway->data);
         $payment_data['currency']   = strtoupper($gateway->currency_name) ?? 'USD';
@@ -2565,7 +2520,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
             if($couponcode != null){
                 $coupon = Coupon::where('code',$couponcode)->first();
-                $coupon->used_count =  $coupon->used_count + 1 ;
+                $coupon->used_count += 1 ;
                 $coupon->save();
             }
 
@@ -2591,22 +2546,22 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
                 if (!empty($row->options->price_id) && is_array($row->options->price_id)) {
                     foreach ($row->options->price_id as $pId) {
                         if (!empty($pId)) {
-                            array_push($priceids, ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty]);
+                            $priceids[] = ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty];
                         }
                     }
                 } elseif (!empty($row->options->options) && is_iterable($row->options->options)) {
                     foreach ($row->options->options as $optionVal) {
                         $pId = is_object($optionVal) ? ($optionVal->id ?? null) : (is_array($optionVal) ? ($optionVal['id'] ?? ($optionVal['price_id'] ?? null)) : null);
                         if ($pId) {
-                            array_push($priceids, ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty]);
+                            $priceids[] = ['order_id' => $order->id, 'price_id' => $pId, 'qty' => (int)$row->qty];
                         }
                     }
                 }
 
                 $data['qty'] = $row->qty;
                 $data['amount'] = $row->price;
-                $total_weight = $total_weight + $row->weight;
-                array_push($oder_items, $data);
+                $total_weight += $row->weight;
+                $oder_items[] = $data;
                 $cartid = $row->instance;
             }
 
@@ -2615,7 +2570,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             if ($request->order_method == 'table') {
                 $order->ordertable()->attach($request->table);
             }
-            if ($order_method == 'delivery') {
+            if ($order_method === 'delivery') {
                 $delivery_info['address'] = $request->shipping['address'].' '. $request->shipping['city'].', '.$request->shipping['state'].', '.$request->shipping['country'];
                 $delivery_info['post_code'] = $request->shipping['post_code'];
                 $delivery_info['shipping_method'] = $request->shipping_method;
@@ -2670,7 +2625,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
                 ]);
             }
 
-            if (count($priceids) != 0) {
+            if (count($priceids) !== 0) {
                 $order->orderstockitems()->insert($priceids);
             }
 
@@ -2685,7 +2640,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
            $name = explode(' ',$request->name);
 
-            $contact_manager_data = array(
+            $contact_manager_data = [
                 'first_name' => $name[0],
                 'last_name' => $name[1]??'',
                 'user_id' =>  $request->wpuid ??0,
@@ -2702,12 +2657,12 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
                 'booster_level_id' => 1,
                 'customer_tag' => 'online store customer',
                 'addedsource' => 'storetool',
-            );	  
+            ];	  
 
             $subtotal = 0;
             
             foreach ($order->orderitems ?? [] as $row){
-                $subtotal = $subtotal + $row->amount*$row->qty;
+                $subtotal += $row->amount*$row->qty;
             }
 
             $user_recipt = [
@@ -2769,7 +2724,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
                 Session::forget('couponDiscount');
             }
 
-            if(strpos($redirect_url, 'login-customizer') !== false){
+            if(str_contains($redirect_url, 'login-customizer')){
                $redirect_url = str_replace('login-customizer', 'listing/'.tenant('id'), $redirect_url);
             }
 
@@ -2787,12 +2742,11 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
     </script>
 ", 200)->header('Content-Type', 'text/html');
 
-            }else{
-                return redirect()->away($redirect_url . '/?tab=thankyou&club_id='.Tenant('club_id').'&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
             }
+            return redirect()->away($redirect_url . '/?tab=thankyou&club_id='.Tenant('club_id').'&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
 
             //return redirect()->away($redirect_url . '/?tab=thankyou&club_id='.Tenant('club_id').'&invoice_id='.$order->invoice_no.'&type=success&message=Thanks for your purchase. Your order number is ' . $order->invoice_no);
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             DB::rollback();
 
         // dd($th); die;
@@ -2852,9 +2806,9 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 'Content-Type: application/json',
-                'Content-Length: ' . strlen($jsonData))
+                'Content-Length: ' . strlen($jsonData)]
             );
         
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -2871,6 +2825,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
     
             return $server_output;
         }
+        return null;
 
     }
     
@@ -2895,7 +2850,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']); // Set content type header
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $response = curl_exec($ch);
@@ -2984,16 +2939,14 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
             Session::forget('stripe_credentials');
             return redirect(Stripe::redirect_if_payment_success());
         }
-        else{
-            $data['payment_status'] = 0;
-            Session::put('payment_info',$data);
-           Session::forget('stripe_credentials');
-           return redirect(Stripe::redirect_if_payment_faild());
-        }
+        $data['payment_status'] = 0;
+        Session::put('payment_info',$data);
+        Session::forget('stripe_credentials');
+        return redirect(Stripe::redirect_if_payment_faild());
     }
 
 
-    function get_stripe_paymentIntent(Request $request){
+    public function get_stripe_paymentIntent(Request $request){
 
         if(Session::has('cartid')){
            $cartid =  Session::get('cartid');
@@ -3046,7 +2999,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
         $club_receives = $total_amount - $total_application_fee;
 
-           $gateway=Getway::where('status','!=',0)->where('namespace','=','App\Lib\Stripe')->first();
+           $gateway=Getway::where('status','!=',0)->where('namespace','=',\App\Lib\Stripe::class)->first();
 
            $gateway_data_info = json_decode($gateway->data);
 
@@ -3075,9 +3028,8 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
 
            return response()->json(['total_amount' => $total_amount, 'client_secret' => $intent->client_secret], 200);
 
-        }else{
-            return response()->json(['error' => 'Cart ID not found'], 404);
         }
+        return response()->json(['error' => 'Cart ID not found'], 404);
 
     }
 
@@ -3087,7 +3039,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
         abort_if(!Session::has('invoice_no'),404);
         $orderno=Session::get('invoice_no');
         store_set_seo('Thanks');
-        return view(baseview('thanks'),compact('orderno'));
+        return view(baseview('thanks'),['orderno' => $orderno]);
     }
 
     public function applyTax(Request $request)
@@ -3098,7 +3050,7 @@ for ($i = 1; $i <= (int) $item->qty; $i++) {
         //$state = trim($address[count($address)-2]);
         $store_state = isset($address[count($address)-2])?trim($address[count($address)-2]):'';
 
-        if($request->shipping_state == '' || $store_state != trim($request->shipping_state)){
+        if($request->shipping_state == '' || $store_state !== trim($request->shipping_state)){
             $tax = 0;
             Cart::setGlobalTax($tax);
         }else{

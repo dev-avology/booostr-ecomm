@@ -21,7 +21,7 @@ class FeaturesController extends Controller
             $posts=$posts->where('name','LIKE','%'.$request->src.'%');
          }
          $posts=$posts->orderBy('menu_status','ASC')->paginate(30); 
-        return view("seller.features.index",compact('posts','request'));
+        return view("seller.features.index",['posts' => $posts, 'request' => $request]);
         
     }
 
@@ -46,7 +46,7 @@ class FeaturesController extends Controller
     {
         abort_if(!getpermission('products'),401);
         $info=Category::where('type','product_feature')->findorFail($id);
-        return view('seller.features.edit',compact('info'));
+        return view('seller.features.edit',['info' => $info]);
     }
 
     

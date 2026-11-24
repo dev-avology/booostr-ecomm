@@ -32,7 +32,7 @@ class TenantSyncService
                 $state = $ordermeta->billing->state??'California';
                 $post_code = $ordermeta->billing->post_code??'94501';
                 $donor_name = isset($ordermeta->name)? $ordermeta->name.' (POS Order)':'Guest User'.' (POS Order)';
-                $receipt_title = isset($ordermeta->name)? $ordermeta->name:'Guest User';
+                $receipt_title = $ordermeta->name ?? 'Guest User';
             }else{
                 $customer_tag = 'online store customer';
 
@@ -42,7 +42,7 @@ class TenantSyncService
                 $state = $ordermeta->billing->state??'';
                 $post_code = $ordermeta->billing->post_code??'';
                 $donor_name = isset($ordermeta->name)? $ordermeta->name.' (Online Order)':'Guest User'.' (Online Order)';
-                $receipt_title = isset($ordermeta->name)? $ordermeta->name:'Guest User';
+                $receipt_title = $ordermeta->name ?? 'Guest User';
 
             }
 
@@ -60,7 +60,7 @@ class TenantSyncService
 
             if($item_count > 0){
 
-            $contact_manager_data = array(
+            $contact_manager_data = [
                 'first_name' => $name[0]??'',
                 'last_name' => $name[1]??'',
                 'user_id' =>  !empty($ordermeta->wpuid) ? (int)$ordermeta->wpuid:0,
@@ -76,7 +76,7 @@ class TenantSyncService
                 'booster_id' =>Tenant('club_id'),
                 'booster_level_id' => 1,
                 'customer_tag' => $customer_tag,
-            );
+            ];
             
 
             $subtotal = 0;
@@ -89,7 +89,7 @@ class TenantSyncService
                     $productIds[] = (int)$row->term->id;
                  }
                 
-                $subtotal = $subtotal + $row->amount*$row->qty;
+                $subtotal += $row->amount*$row->qty;
             }
 
             $order_date = Carbon::parse($order->created_at)->format('Y-m-d');
@@ -155,7 +155,7 @@ class TenantSyncService
                     'category_type'=> 'Booostr Ecommerce',
                     'booster_id' =>Tenant('club_id'),
                     'coaid'=>41,
-                    'contactname'=>isset($ordermeta['name']) ? $ordermeta['name'] : '',
+                    'contactname'=>$ordermeta['name'] ?? '',
                     //'memo'=>'Booostr Ecommerce',
                     'user_id' =>  $ordermeta['wpuid']??0,
                     'revenue_name'=>'4-850 Booostr Ecommerce',
@@ -196,7 +196,7 @@ class TenantSyncService
             //$url = ($url != '') ? $url.'/user-recipt-financial-manager-sync' : "https://staging3.booostr.co/wp-json/store-api/v1/user-recipt-sync";
             $url = ($url != '') ? $url.'/user-recipt-financial-manager-sync' : "";
          
-            if($url != ""){
+            if($url !== ""){
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);     
@@ -204,7 +204,7 @@ class TenantSyncService
                 curl_setopt($ch, CURLOPT_URL, $url);
                 curl_setopt($ch, CURLOPT_POST, 1);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // Encode data as URL-encoded 
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json')); // Set content type header
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']); // Set content type header
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             
                 $response = curl_exec($ch);

@@ -36,7 +36,7 @@ class AttributeController extends Controller
         }
     }
 
-    return view("seller.attribute.index", compact('posts', 'request'));
+    return view("seller.attribute.index", ['posts' => $posts, 'request' => $request]);
 }
 
     /**
@@ -84,7 +84,7 @@ class AttributeController extends Controller
                     $arr['slug']=$row;
                     $arr['type']='child_attribute';
                     $arr['category_id']=$parent->id;
-                    array_push($childs, $arr);
+                    $childs[] = $arr;
                 }
                
             }
@@ -131,7 +131,7 @@ class AttributeController extends Controller
         foreach($info->categories as $arrCat){
            $info->addcheck = in_array($arrCat['id'], $variationCheck);
         }
-        return view("seller.attribute.edit",compact('info'));
+        return view("seller.attribute.edit",['info' => $info]);
     }
 
     /**
@@ -174,7 +174,7 @@ class AttributeController extends Controller
                 $oldchild->name = $name;
                 $oldchild->position = $swapped[$position];
                 $oldchild->save();
-                array_push($oldchilids, $oldchild->id);
+                $oldchilids[] = $oldchild->id;
 
             }
         }
@@ -190,7 +190,7 @@ class AttributeController extends Controller
                     $arr['position']= $key;
                     $arr['type']='child_attribute';
                     $arr['category_id']=$parent->id;
-                    array_push($childs, $arr);
+                    $childs[] = $arr;
                 }
                
             }

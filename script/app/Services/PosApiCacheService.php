@@ -31,12 +31,12 @@ class PosApiCacheService
         try {
             $value = Redis::get($this->versionStorageKey());
 
-            if ($value === null || $value === false || $value === '') {
+            if (in_array($value, [null, false, ''], true)) {
                 return 1;
             }
 
             return max(1, (int) $value);
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return 1;
         }
     }

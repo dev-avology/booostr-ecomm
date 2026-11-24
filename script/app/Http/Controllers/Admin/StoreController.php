@@ -31,7 +31,7 @@ class StoreController extends Controller
         abort_if(!Auth()->user()->can('domain.list'),401);
         $posts=Tenant::query()->with('user','domain')->latest()->paginate(40);
         
-        return view('admin.domain.index',compact('posts'));
+        return view('admin.domain.index',['posts' => $posts]);
     }
 
     /**
@@ -44,7 +44,7 @@ class StoreController extends Controller
         abort_if(!Auth()->user()->can('domain.create'),401);
         $plans=Plan::query()->where('status',1)->latest()->get();
         $getaways=Getway::where('status',1)->get();
-        return view('admin.domain.create',compact('plans','getaways'));
+        return view('admin.domain.create',['plans' => $plans, 'getaways' => $getaways]);
     }
 
     public function dnsSettingView()
@@ -52,7 +52,7 @@ class StoreController extends Controller
         abort_if(!Auth()->user()->can('dns.settings'),401);
         $info=Option::where('key','dns_settings')->first();
         $info=json_decode($info->value ?? '');
-        return view('admin.domain.dns',compact('info'));
+        return view('admin.domain.dns',['info' => $info]);
     }
 
     public function dnsUpdate(Request $request)
@@ -144,7 +144,7 @@ class StoreController extends Controller
        
         $tax_amount= ($plan->price / 100) * $tax->value;
         $uid=\App\Tenant::count();
-        $uid=$uid+1;
+        $uid += 1;
         $maxorder=Order::count();
 
         $status=1;
@@ -213,7 +213,7 @@ class StoreController extends Controller
             
             DB::commit();
            
-            } catch (Exception $e) {
+            } catch (Exception) {
               DB::rollback();
 
               $error['errors']['email']='Oops database credintials is wrong';
@@ -260,7 +260,7 @@ class StoreController extends Controller
     {
         abort_if(!Auth()->user()->can('domain.show'),401);
         $info=Tenant::with('subdomain','customdomain')->findorFail($id);
-        return view('admin.domain.show',compact('info'));
+        return view('admin.domain.show',['info' => $info]);
     }
 
     /**
@@ -273,7 +273,7 @@ class StoreController extends Controller
     {
         abort_if(!Auth()->user()->can('domain.edit'),401);
         $info=Tenant::findorFail($id);
-        return view('admin.domain.edit',compact('info'));
+        return view('admin.domain.edit',['info' => $info]);
     }
     
 
@@ -322,7 +322,7 @@ class StoreController extends Controller
     {
         abort_if(!Auth()->user()->can('domain.edit'),401);
         $info=Tenant::findorFail($id);
-        return view('admin.domain.dbconfig',compact('info'));
+        return view('admin.domain.dbconfig',['info' => $info]);
     }
 
    
@@ -367,7 +367,7 @@ class StoreController extends Controller
         }
 
         DB::commit();
-        } catch (Exception $e) {
+        } catch (Exception) {
             DB::rollback();
             $error['errors']['database']='Oops something wrong with demoimport please check the database credintials';
             return response()->json($error,422);
@@ -390,7 +390,7 @@ class StoreController extends Controller
         $plan=new \App\Models\Plan;
         $features=$plan->plandata;
        
-        return view('admin.domain.planconfig',compact('info','features'));
+        return view('admin.domain.planconfig',['info' => $info, 'features' => $features]);
     }
 
     //update plandata
@@ -434,7 +434,7 @@ class StoreController extends Controller
                   Storage::disk('public')->deleteDirectory('uploads/'.$tenant->uid);
                    try {
                     \App\Models\Tenant::destroy($row);
-                   } catch (\Throwable $th) {
+                   } catch (\Throwable) {
                        
                    }
                    
@@ -454,7 +454,7 @@ class StoreController extends Controller
        $info=Option::where('key','developer_instruction')->first();
        $info=json_decode($info->value ?? '');
 
-       return view('admin.domain.instruction',compact('info'));
+       return view('admin.domain.instruction',['info' => $info]);
     }
 
     public function instructionUpdate(Request $request)

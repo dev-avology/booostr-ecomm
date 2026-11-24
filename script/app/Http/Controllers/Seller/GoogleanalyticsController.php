@@ -14,7 +14,7 @@ class GoogleanalyticsController extends Controller
     public function index()
     {
         $info=get_option('googleanalytics',true);
-        return view('seller.googleanalytics.index',compact('info'));
+        return view('seller.googleanalytics.index',['info' => $info]);
     }
 
     public function store(Request $request)
@@ -78,12 +78,10 @@ class GoogleanalyticsController extends Controller
     {
         return $country = \Analytics::performQuery(Period::days($period),'ga:sessions',['dimensions'=>'ga:country','dimension'=>'ga:latitude','dimension'=>'ga:longitude','sort'=>'-ga:sessions']);
         
-        $result= collect($country['rows'] ?? [])->map(function (array $dateRow) {
-            return [
-                'country' =>  $dateRow[0],
-                'sessions' => (int) $dateRow[1],
-            ];
-        });
+        $result= collect($country['rows'] ?? [])->map(fn(array $dateRow) => [
+            'country' =>  $dateRow[0],
+            'sessions' => (int) $dateRow[1],
+        ]);
         
         return $result;
     }
@@ -93,13 +91,7 @@ class GoogleanalyticsController extends Controller
     public function fetchTotalVisitorsAndPageViews($period)
     {
         
-        return \Analytics::fetchTotalVisitorsAndPageViews(Period::days($period))->map(function($data)
-        {
-            $row['date']=$data['date']->format('Y-m-d');
-            $row['visitors']=$data['visitors'];
-            $row['pageViews']=$data['pageViews'];
-            return $row;
-        });
+        return \Analytics::fetchTotalVisitorsAndPageViews(Period::days($period))->map(fn($data) => ['date' => $data['date']->format('Y-m-d'), 'visitors' => $data['visitors'], 'pageViews' => $data['pageViews']]);
                 
     }
     public function fetchMostVisitedPages($period)

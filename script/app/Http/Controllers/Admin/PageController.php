@@ -19,7 +19,7 @@ class PageController extends Controller
     {
         abort_if(!Auth()->user()->can('page.index'), 401);
         $all_page = Term::where('type', 'page')->paginate(20);
-        return view('admin.page.index', compact('all_page'));
+        return view('admin.page.index', ['all_page' => $all_page]);
     }
 
     /**
@@ -101,7 +101,7 @@ class PageController extends Controller
     {
         abort_if(!Auth()->user()->can('page.edit'), 401);
         $page_edit = Term::findOrFail($id);
-        return view('admin.page.edit', compact('page_edit'));
+        return view('admin.page.edit', ['page_edit' => $page_edit]);
     }
 
     /**

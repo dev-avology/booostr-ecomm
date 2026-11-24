@@ -46,7 +46,7 @@ class BlogController extends Controller
 
        
 
-        return view('blog.show',compact('blog','blogs'));
+        return view('blog.show',['blog' => $blog, 'blogs' => $blogs]);
     }
 
     public function search(Request $request)
@@ -82,7 +82,7 @@ class BlogController extends Controller
         SEOTools::twitter()->setSite($seo->twitter_site_title ?? null);
         SEOTools::jsonLd()->addImage(asset('uploads/logo.png'));
 
-        return view('blog.list',compact('blogs','recent_blogs'));
+        return view('blog.list',['blogs' => $blogs, 'recent_blogs' => $recent_blogs]);
     }
 
     public function lists()
@@ -116,6 +116,6 @@ class BlogController extends Controller
         SEOTools::twitter()->setSite($seo->twitter_site_title ?? null);
         SEOTools::jsonLd()->addImage(asset('uploads/logo.png'));
 
-        return view('blog.list',compact('blogs','recent_blogs'));
+        return view('blog.list',['blogs' => $blogs, 'recent_blogs' => $recent_blogs]);
     }
 }

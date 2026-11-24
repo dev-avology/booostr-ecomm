@@ -18,9 +18,8 @@ class IsinstalledMiddleware
     {
         if(env('DB_DATABASE') != null){
             return $next($request);
-        }else{
-            return redirect('/install');
         }
+        return redirect('/install');
         
     }
 }

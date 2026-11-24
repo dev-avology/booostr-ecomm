@@ -13,17 +13,13 @@ use App\Models\Category;
 class PosUserEmail extends Mailable
 {
     use Queueable, SerializesModels;
-    public $data;
-    public $subject;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($data,$subject)
+    public function __construct(public $data, public $subject)
     {
-        $this->data = $data;
-        $this->subject = $subject;
     }
 
     /**

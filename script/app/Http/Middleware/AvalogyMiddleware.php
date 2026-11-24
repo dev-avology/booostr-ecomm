@@ -22,8 +22,7 @@ class AvalogyMiddleware
                 'message' => 'Sorry, you seems spam, and we blocked you',
             ];
             return response()->json($response, 413);
-        }else{
-            return $next($request);
         }
+        return $next($request);
     }
 }

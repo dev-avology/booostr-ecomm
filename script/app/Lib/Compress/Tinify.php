@@ -18,19 +18,19 @@ class Tinify
 
 			
 
-		} catch(\Tinify\AccountException $e) {
+		} catch(\Tinify\AccountException) {
          // Verify your API key and account limit.
 			return false;
-		} catch(\Tinify\ClientException $e) {
+		} catch(\Tinify\ClientException) {
          // Check your source image and request options.
 			return false;
-		} catch(\Tinify\ServerException $e) {
+		} catch(\Tinify\ServerException) {
          // Temporary issue with the Tinify API.
 			return false;
-		} catch(\Tinify\ConnectionException $e) {
+		} catch(\Tinify\ConnectionException) {
         // A network connection error occurred.
 			return false;
-		} catch(Exception $e) {
+		} catch(Exception) {
          // Something else went wrong, unrelated to the Tinify API.
 			return false;
 		}

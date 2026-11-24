@@ -42,7 +42,7 @@ class RegisterController extends Controller
         SEOTools::twitter()->setSite($seo->twitter_site_title ?? null);
         SEOTools::jsonLd()->addImage(asset('uploads/logo.png'));
 
-        return view('register',compact('email'));
+        return view('register',['email' => $email]);
     }
 
     public function login()

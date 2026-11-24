@@ -10,9 +10,8 @@ class Payu {
         if(Session::has('fund_callback'))
         {
             return url(Session::get('fund_callback')['success_url']);
-        }else{
-            return url('partner/payment/success');
         }
+        return url('partner/payment/success');
     }
 
     public static function redirect_if_payment_faild()
@@ -20,9 +19,7 @@ class Payu {
         if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['cancel_url']);
         }
-        else{
-            return url('partner/payment/failed');
-        }
+        return url('partner/payment/failed');
     }
 
     public static function fallback()
@@ -38,9 +35,9 @@ class Payu {
         if(Session::has('payu_credentials')){
             $Info=Session::get('payu_credentials');
             if (tenant() != null) {
-              return view(baseview('payments/payu'),compact('Info'));
+              return view(baseview('payments/payu'),['Info' => $Info]);
             }
-            return view('merchant.plan.payment.payu',compact('Info'));
+            return view('merchant.plan.payment.payu',['Info' => $Info]);
         }
         abort(404);
     }
@@ -80,14 +77,14 @@ class Payu {
             $test_mode=true;
         }
 
-        if ($test_mode == false) {
+        if ($test_mode === false) {
 			$url='https://secure.payu.in/_payment';
 		}
 		else{
 			$url='https://sandboxsecure.payu.in/_payment';
 		}
 
-		$info = array(
+		$info = [
 			'key'=> $array['merchant_key'],
 			'test_mode '=> $test_mode,
 			'txnid' => $txnid,
@@ -102,7 +99,7 @@ class Payu {
 			'surl'=> Payu::fallback(),
 			'udf5'=> 'BOLT_KIT_PHP7',
 			'furl'=> Payu::redirect_if_payment_faild(),
-		);  
+		];  
 
         $hash=hash('sha512', $info['key'].'|'.$info['txnid'].'|'.$info['amount'].'|'.$info['productinfo'].'|'.$info['firstname'].'|'.$info['email'].'|||||'.$info['udf5'].'||||||'.$info['salt']);
 
@@ -113,7 +110,7 @@ class Payu {
        $data = array_merge($data,$info);
        Session::put('payu_credentials',$data);
 
-        if ($data) {
+        if ($data !== []) {
             return redirect()->route('payu.view');
         }	
         
@@ -142,13 +139,11 @@ class Payu {
              Session::forget('payu_credentials');
              Session::put('payment_info',$data); 
             return redirect(Payu::redirect_if_payment_success());
-        }      
-        else{
-            $data['payment_status'] = 0;  
-            Session::put('payment_info',$data); 
-            Session::forget('payu_credentials');
-            return redirect(Payu::redirect_if_payment_faild());
         }
+        $data['payment_status'] = 0;
+        Session::put('payment_info',$data);
+        Session::forget('payu_credentials');
+        return redirect(Payu::redirect_if_payment_faild());
     }
 
 }

@@ -198,7 +198,7 @@ class CouponApiController extends Controller
     {
         try {
             Cart::store($cartId);
-        } catch (Exception $e) {
+        } catch (Exception) {
             Cart::updatestore($cartId);
         }
     }
@@ -239,9 +239,7 @@ class CouponApiController extends Controller
     private function discountCartProduct(Coupon $coupon): array
     {
         $productIds = json_decode($coupon->coupon_for_id);
-        $filteredCart = Cart::content()->filter(function ($item) use ($productIds) {
-            return in_array($item->id, (array) $productIds);
-        });
+        $filteredCart = Cart::content()->filter(fn($item) => in_array($item->id, (array) $productIds));
 
         if ($filteredCart->count() == 0) {
             return [
@@ -251,12 +249,8 @@ class CouponApiController extends Controller
             ];
         }
 
-        $filteredSubTotal = $filteredCart->sum(function ($item) {
-            return $item->price * (int) $item->qty;
-        });
-        $filteredCount = $filteredCart->sum(function ($item) {
-            return (int) $item->qty;
-        });
+        $filteredSubTotal = $filteredCart->sum(fn($item) => $item->price * (int) $item->qty);
+        $filteredCount = $filteredCart->sum(fn($item) => (int) $item->qty);
 
         if ($coupon->min_amount_option == 1 && $filteredSubTotal < $coupon->min_amount) {
             return [
@@ -294,9 +288,7 @@ class CouponApiController extends Controller
             $query->whereIn('id', (array) $catId);
         })->pluck('id')->toArray();
 
-        $filteredCart = Cart::content()->filter(function ($item) use ($termData) {
-            return in_array($item->id, $termData);
-        });
+        $filteredCart = Cart::content()->filter(fn($item) => in_array($item->id, $termData));
 
         if ($filteredCart->count() == 0) {
             return [
@@ -306,12 +298,8 @@ class CouponApiController extends Controller
             ];
         }
 
-        $filteredSubTotal = $filteredCart->sum(function ($item) {
-            return $item->price * $item->qty;
-        });
-        $filteredCount = $filteredCart->sum(function ($item) {
-            return (int) $item->qty;
-        });
+        $filteredSubTotal = $filteredCart->sum(fn($item) => $item->price * $item->qty);
+        $filteredCount = $filteredCart->sum(fn($item) => (int) $item->qty);
 
         if ($coupon->min_amount_option == 1 && $filteredSubTotal < $coupon->min_amount) {
             return [
@@ -346,9 +334,7 @@ class CouponApiController extends Controller
     {
         // Cart::subtotal() is post-discount (priceTotal - discountTotal); keep the
         // response subtotal equal to the cart's original Subtotal (price x qty).
-        $subtotal = (float) Cart::content()->sum(function ($item) {
-            return (float) $item->price * (int) $item->qty;
-        });
+        $subtotal = (float) Cart::content()->sum(fn($item) => (float) $item->price * (int) $item->qty);
         $tax = (float) str_replace(',', '', Cart::tax());
         $discount = (float) str_replace(',', '', Cart::discount());
         $total = (float) str_replace(',', '', Cart::total());

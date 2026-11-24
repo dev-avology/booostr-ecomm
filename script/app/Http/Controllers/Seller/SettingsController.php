@@ -57,7 +57,7 @@ class SettingsController extends Controller
         }
 
         
-        return view('seller.settings.pwa',compact('pwa'));
+        return view('seller.settings.pwa',['pwa' => $pwa]);
     }
 
     public function custom_css_js()
@@ -79,7 +79,7 @@ class SettingsController extends Controller
             $js='';
         }
 
-        return view('seller.settings.custom_css_js',compact('css','js'));
+        return view('seller.settings.custom_css_js',['css' => $css, 'js' => $js]);
     }
 
     public function custom_css_js_update(Request $request)

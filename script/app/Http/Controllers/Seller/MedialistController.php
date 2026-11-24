@@ -13,7 +13,7 @@ class MedialistController extends Controller
     {
         abort_if(!getpermission('website_settings'),401);
         $medialists = Media::query()->latest()->paginate(30);
-        return view('seller.media.index',compact('medialists'));
+        return view('seller.media.index',['medialists' => $medialists]);
     }
 
     public function create()
@@ -63,17 +63,15 @@ class MedialistController extends Controller
                        
                     }
                     
-                } catch (Exception $e) {
+                } catch (Exception) {
 
                 }
                  return response()->json('Media Deleted');
-            }else{
-                $errors['errors']['error']='Oops! Please select Any Status.';
-                return response()->json($errors,401);
             }
-        }else{
-            $errors['errors']['error']='Oops! Please select Any Status.Please select any checkbox.';
+            $errors['errors']['error']='Oops! Please select Any Status.';
             return response()->json($errors,401);
-        } 
+        }
+        $errors['errors']['error']='Oops! Please select Any Status.Please select any checkbox.';
+        return response()->json($errors,401); 
     }
 }

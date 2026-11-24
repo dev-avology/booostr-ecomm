@@ -19,14 +19,14 @@ class ThemesettingsController extends Controller
     {
         abort_if(!Auth()->user()->can('site.settings'),401);
         $info = get_option('theme',true);
-        return view('admin.theme.general',compact('info'));
+        return view('admin.theme.general',['info' => $info]);
     }
 
     public function serviceindex()
     {
          abort_if(!Auth()->user()->can('site.settings'),401);
         $services = Term::where('type','service')->latest()->paginate(20);
-        return view('admin.theme.services.index',compact('services'));
+        return view('admin.theme.services.index',['services' => $services]);
     }
 
     public function servicecreate()
@@ -83,7 +83,7 @@ class ThemesettingsController extends Controller
     {
          abort_if(!Auth()->user()->can('site.settings'),401);
         $service = Term::with('servicemeta')->findOrFail($id);
-        return view('admin.theme.services.edit',compact('service'));
+        return view('admin.theme.services.edit',['service' => $service]);
     }
 
     public function serviceupdate(Request $request,$id)
@@ -251,7 +251,7 @@ class ThemesettingsController extends Controller
     {
          abort_if(!Auth()->user()->can('site.settings'),401);
         $info = get_option('footer_theme',true);
-        return view('admin.theme.footer',compact('info'));
+        return view('admin.theme.footer',['info' => $info]);
     }
 
     public function footerupdate(Request $request)
@@ -290,7 +290,7 @@ class ThemesettingsController extends Controller
             ['type','theme_demo'],
             ['status',1]
         ])->paginate(20);
-        return view('admin.theme.demo.index',compact('demos'));
+        return view('admin.theme.demo.index',['demos' => $demos]);
     }
 
     public function demo_create()
@@ -341,7 +341,7 @@ class ThemesettingsController extends Controller
     public function demo_edit($id)
     {
         $theme_demo = Term::with('meta')->findOrFail($id);
-        return view('admin.theme.demo.edit',compact('theme_demo'));
+        return view('admin.theme.demo.edit',['theme_demo' => $theme_demo]);
     }
 
     public function demo_update(Request $request,$id)

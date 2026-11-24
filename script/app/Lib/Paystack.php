@@ -12,18 +12,16 @@ class Paystack {
     {
         if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['success_url']);
-        }else{
-            return url('partner/payment/success');
         }
+        return url('partner/payment/success');
     }
 
     public static function redirect_if_payment_faild()
     {
         if(Session::has('fund_callback')){
             return url(Session::get('fund_callback')['cancel_url']);
-        }else{
-            return url('partner/payment/failed');
         }
+        return url('partner/payment/failed');
     }
 
     public static function fallback()
@@ -36,9 +34,9 @@ class Paystack {
         if(Session::has('paystack_credentials')){
             $Info=Session::get('paystack_credentials');
             if (tenant() != null) {
-              return view(baseview('payments/paystack'),compact('Info'));
+              return view(baseview('payments/paystack'),['Info' => $Info]);
             }
-           return view('merchant.plan.payment.paystack',compact('Info'));
+           return view('merchant.plan.payment.paystack',['Info' => $Info]);
         }
         abort(404);
     }
@@ -98,7 +96,7 @@ class Paystack {
 
         $info=Session::get('paystack_credentials');
         $curl = curl_init();
-		curl_setopt_array($curl, array(
+		curl_setopt_array($curl, [
 			CURLOPT_URL => "https://api.paystack.co/transaction/verify/".$request->ref_id,
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_ENCODING => "",
@@ -106,11 +104,11 @@ class Paystack {
 			CURLOPT_TIMEOUT => 30,
 			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 			CURLOPT_CUSTOMREQUEST => "GET",
-			CURLOPT_HTTPHEADER => array(
+			CURLOPT_HTTPHEADER => [
 				"Authorization: Bearer ".$info['secret_key']."",
 				"Cache-Control: no-cache",
-			),
-		));
+			],
+		]);
 
         $response = curl_exec($curl);
 
@@ -123,32 +121,31 @@ class Paystack {
              $data['payment_status'] = 0;  
              Session::put('payment_info',$data); 
 			 return redirect(Paystack::redirect_if_payment_faild());
-		} else {
-			$data=json_decode($response);
-			if($data->status == true && $data->data->status == 'success'){
+		}
+        $data=json_decode($response);
+        if($data->status == true && $data->data->status == 'success'){
 				$ref_id=$data->data->reference;
 				$amount=$data->data->amount/100;
 				if($amount != $info['amount']){
-                    return abort(404);
-                }
+                return abort(404);
+            }
 
 				$pay_data['payment_id'] = $ref_id;
 				$pay_data['payment_method'] = "paystack";
-                $pay_data['getway_id'] = $info['getway_id'];
-                $pay_data['amount'] = $info['main_amount'];
-                $pay_data['charge'] = $info['charge'];
-                $pay_data['status'] = 1;
-                $pay_data['payment_status'] = 1;
-                $pay_data['is_fallback'] = $info['is_fallback'];
+            $pay_data['getway_id'] = $info['getway_id'];
+            $pay_data['amount'] = $info['main_amount'];
+            $pay_data['charge'] = $info['charge'];
+            $pay_data['status'] = 1;
+            $pay_data['payment_status'] = 1;
+            $pay_data['is_fallback'] = $info['is_fallback'];
 
-                
+            
 
-                Session::forget('paystack_credentials');
-                Session::put('payment_info',$pay_data);
+            Session::forget('paystack_credentials');
+            Session::put('payment_info',$pay_data);
 
 				return redirect(Paystack::redirect_if_payment_success());
 			}
-		}
         Session::forget('paystack_credentials');
         return redirect(Paystack::redirect_if_payment_faild());
 
@@ -160,7 +157,7 @@ class Paystack {
         $reference = $cred['payment_id'];
         try {
             $curl = curl_init();
-            curl_setopt_array($curl, array(
+            curl_setopt_array($curl, [
             CURLOPT_URL => "https://api.paystack.co/transaction/verify/".$reference,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
@@ -168,11 +165,11 @@ class Paystack {
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "GET",
-            CURLOPT_HTTPHEADER => array(
+            CURLOPT_HTTPHEADER => [
             "Authorization: Bearer ". $secret_key,
             "Cache-Control: no-cache",
-            ),
-        ));
+            ],
+        ]);
         
         $response = curl_exec($curl);
         $err = curl_error($curl);
@@ -181,9 +178,10 @@ class Paystack {
         if (array_key_exists('data', $arr)) {
             return $arr['data']['status'] === "success" ? 1 : 0;
         }
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             return 0;
         }
+        return null;
 
     }
 }

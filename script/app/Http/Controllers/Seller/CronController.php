@@ -27,7 +27,7 @@ class CronController extends Controller
                $discounts= Discount::where('ending_date','<=' ,Carbon::today())->whereHas('term')->get();
                $term_ids=[];
                foreach ($discounts ?? [] as $key => $row) {
-                  array_push($term_ids,$row->term_id);
+                  $term_ids[] = $row->term_id;
                }
                $prices=Price::where('old_price','!=',null)->whereIn('term_id',$term_ids)->get();
                DB::beginTransaction();
@@ -42,11 +42,11 @@ class CronController extends Controller
                   
               }
               DB::commit();
-              } catch (\Throwable $th) {
+              } catch (\Throwable) {
                 DB::rollback();
                
              }  
-             if (count($term_ids) != 0) {
+             if (count($term_ids) !== 0) {
                 Discount::whereIn('term_id',$term_ids)->delete();
                 return true;
              }
@@ -54,9 +54,10 @@ class CronController extends Controller
             }
 
 
-        } catch (\Exception $e) {
+        } catch (\Exception) {
          return false;
        }
+        return null;
 
        
     }

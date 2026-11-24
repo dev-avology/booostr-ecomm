@@ -14,12 +14,12 @@ class Terms extends Model
 
 	public function meta()
 	{
-		return 	$this->hasOne('App\Meta','term_id','id');
+		return 	$this->hasOne(\App\Meta::class,'term_id','id');
 	}
 
 	public function floor_plans()
 	{
-		return 	$this->hasMany('App\Meta','term_id','id')->where('type','floor_plan');
+		return 	$this->hasMany(\App\Meta::class,'term_id','id')->where('type','floor_plan');
 	}
 
 	
@@ -37,16 +37,16 @@ class Terms extends Model
 
 	public function category()
 	{
-		return $this->hasOne('App\PostCategory','term_id')->where('type','category');
+		return $this->hasOne(\App\PostCategory::class,'term_id')->where('type','category');
 	}
 
 	public function property_type()
 	{
-		return $this->hasOne('App\PostCategory','term_id')->where('type','category')->with('category');
+		return $this->hasOne(\App\PostCategory::class,'term_id')->where('type','category')->with('category');
 	}
 	public function property_status_type()
 	{
-		return $this->hasOne('App\PostCategory','term_id')->where('type','status')->with('category');
+		return $this->hasOne(\App\PostCategory::class,'term_id')->where('type','status')->with('category');
 	}
 
 	public function post_city()
@@ -57,23 +57,23 @@ class Terms extends Model
 	
 	public function postcategory()
 	{
-		return $this->hasMany('App\PostCategory','term_id');
+		return $this->hasMany(\App\PostCategory::class,'term_id');
 	}
 	public function related()
 	{
-		return $this->hasMany('App\PostCategory','term_id');
+		return $this->hasMany(\App\PostCategory::class,'term_id');
 	}
 
 
 
 	public function Productcategory()
 	{
-		return $this->hasMany('App\PostCategory','term_id')->where('type','product_category');
+		return $this->hasMany(\App\PostCategory::class,'term_id')->where('type','product_category');
 	}
 	
 	public function user()
 	{
-		return $this->belongsTo('App\Models\User')->select('slug','name','id','email','avatar')->with('usermeta');
+		return $this->belongsTo(\App\Models\User::class)->select('slug','name','id','email','avatar')->with('usermeta');
 	}
 
 	public function medias()
@@ -84,38 +84,38 @@ class Terms extends Model
 	public function preview()
 	{
 		
-		return $this->hasOne('App\Meta','term_id')->where('type','preview')->select('id','term_id','type','content');		
+		return $this->hasOne(\App\Meta::class,'term_id')->where('type','preview')->select('id','term_id','type','content');		
 	}
 
 	public function gallery()
 	{
 		
-		return $this->hasOne('App\Meta','term_id')->where('type','gallery')->select('id','term_id','type','content');		
+		return $this->hasOne(\App\Meta::class,'term_id')->where('type','gallery')->select('id','term_id','type','content');		
 	}
 
 	public function seo()
 	{
-		return $this->hasOne('App\Meta','term_id')->where('type','seo')->select('id','term_id','type','content');
+		return $this->hasOne(\App\Meta::class,'term_id')->where('type','seo')->select('id','term_id','type','content');
 	}
 
 	public function excerpt()
 	{
-		return $this->hasOne('App\Meta','term_id')->where('type','excerpt')->select('term_id','type','content');
+		return $this->hasOne(\App\Meta::class,'term_id')->where('type','excerpt')->select('term_id','type','content');
 	}
 
 	public function content()
 	{
-		return $this->hasOne('App\Meta','term_id')->where('type','content')->select('term_id','type','content');
+		return $this->hasOne(\App\Meta::class,'term_id')->where('type','content')->select('term_id','type','content');
 	}
 
 	public function finished_at()
 	{
-		return $this->hasOne('App\Meta','term_id')->where('type','finished_at')->select('term_id','type','content');
+		return $this->hasOne(\App\Meta::class,'term_id')->where('type','finished_at')->select('term_id','type','content');
 	}
 
 	public function open_sell_date()
 	{
-		return $this->hasOne('App\Meta','term_id')->where('type','open_sell_date')->select('term_id','type','content');
+		return $this->hasOne(\App\Meta::class,'term_id')->where('type','open_sell_date')->select('term_id','type','content');
 	}
 
 	
@@ -157,17 +157,17 @@ class Terms extends Model
 
 	public function min_price()
 	{
-		return $this->belongsTo('App\Models\Price','id','term_id')->where('type','min_price');
+		return $this->belongsTo(\App\Models\Price::class,'id','term_id')->where('type','min_price');
 	}
 
 	public function max_price()
 	{
-		return $this->belongsTo('App\Models\Price','id','term_id')->where('type','max_price');
+		return $this->belongsTo(\App\Models\Price::class,'id','term_id')->where('type','max_price');
 	}
 
 	public function post_state()
 	{
-		return $this->hasOne('App\PostCategory','term_id')->where('type','state')->with('category');
+		return $this->hasOne(\App\PostCategory::class,'term_id')->where('type','state')->with('category');
 	}
 
 	public function featured_option()
@@ -200,25 +200,25 @@ class Terms extends Model
 	
 	public function youtube_url()
 	{
-		return $this->hasOne('App\Meta','term_id')->where('type','youtube_url')->select('term_id','type','content');
+		return $this->hasOne(\App\Meta::class,'term_id')->where('type','youtube_url')->select('term_id','type','content');
 	}
 
 	public function virtual_tour()
 	{
-		return $this->hasOne('App\Meta','term_id')->where('type','virtual_tour')->select('term_id','type','content');
+		return $this->hasOne(\App\Meta::class,'term_id')->where('type','virtual_tour')->select('term_id','type','content');
 	}
 
 	public function reviews()
 	{
-		return $this->hasMany('App\Models\Review','term_id');
+		return $this->hasMany(\App\Models\Review::class,'term_id');
 	}
 
 	public function contact_type(){
-		return $this->hasOne('App\Meta','term_id')->where('type','contact_type')->select('term_id','type','content');
+		return $this->hasOne(\App\Meta::class,'term_id')->where('type','contact_type')->select('term_id','type','content');
 	}
 
 	public function favourite_to_users()
     {
-        return $this->belongsToMany('App\Models\User')->withTimestamps();
+        return $this->belongsToMany(\App\Models\User::class)->withTimestamps();
 	}
 }

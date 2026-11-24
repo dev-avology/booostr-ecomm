@@ -21,7 +21,7 @@ class RoleController extends Controller
        abort_if(!Auth()->user()->can('role.list'),401);
         
         $roles = Role::where('id','!=',1)->get();
-        return view('seller.role.index', compact('roles'));
+        return view('seller.role.index', ['roles' => $roles]);
         
     }
 
@@ -35,7 +35,7 @@ class RoleController extends Controller
         abort_if(!Auth()->user()->can('role.list'),401);
         $permisions = Permission::all();
         $permission_groups = User::getPermissionGroup();
-        return view('seller.role.create', compact('permisions', 'permission_groups'));
+        return view('seller.role.create', ['permisions' => $permisions, 'permission_groups' => $permission_groups]);
         
     }
 
@@ -89,7 +89,7 @@ class RoleController extends Controller
         $role = Role::findById($id);
         $all_permissions = Permission::all();
         $permission_groups = User::getpermissionGroups();
-        return view('seller.role.edit', compact('role', 'all_permissions', 'permission_groups'));
+        return view('seller.role.edit', ['role' => $role, 'all_permissions' => $all_permissions, 'permission_groups' => $permission_groups]);
         
     }
 

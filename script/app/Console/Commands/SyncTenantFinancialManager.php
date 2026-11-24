@@ -188,7 +188,7 @@ class SyncTenantFinancialManager extends Command
                 // even if capture was already synced / skipped).
                 if ((int) $order->payment_status === 1) {
                     $partialEntries = get_order_partial_refund_log_entries((int) $order->id);
-                    if (!empty($partialEntries)) {
+                    if ($partialEntries !== []) {
                         $syncedPartial = get_financial_manager_partial_refund_synced_fingerprints((int) $order->id);
 
                         foreach ($partialEntries as $partialEntry) {

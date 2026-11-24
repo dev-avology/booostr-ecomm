@@ -39,7 +39,7 @@ class PartnerCreateStoreService
             return response()->json(['status' => 0, 'message' => $validator->errors()], 422);
         }
 
-        if ($existingTenant && $this->isStoreProvisioningComplete($existingTenant)) {
+        if ($existingTenant instanceof \App\Models\Tenant && $this->isStoreProvisioningComplete($existingTenant)) {
             $name = $existingTenant->id;
             $storeData = $this->buildStoreData($request, $name, $clubId, $existingTenant);
             $plan = Plan::where([['status', 1]])->findOrFail(1);
@@ -47,13 +47,13 @@ class PartnerCreateStoreService
             return $this->buildSuccessResponse($existingTenant, $name, $storeData, $plan);
         }
 
-        if ($existingTenant) {
+        if ($existingTenant instanceof \App\Models\Tenant) {
             $name = $existingTenant->id;
         }
 
         $domainName = $name . '.' . env('APP_PROTOCOLESS_URL');
         $domain = Domain::where('domain', $domainName)->first();
-        if ($domain && (!$existingTenant || $domain->tenant_id !== $existingTenant->id)) {
+        if ($domain && (!$existingTenant instanceof \App\Models\Tenant || $domain->tenant_id !== $existingTenant->id)) {
             return response()->json(['status' => 0, 'message' => 'Store URL is unavailable'], 422);
         }
 
@@ -105,7 +105,7 @@ class PartnerCreateStoreService
             return $validator;
         }
 
-        if ($existingTenant) {
+        if ($existingTenant instanceof \App\Models\Tenant) {
             return $validator;
         }
 
@@ -136,7 +136,7 @@ class PartnerCreateStoreService
 
         if ($request->filled('logo')) {
             $storeData['logo'] = $request->input('logo');
-        } elseif ($existingTenant && !empty($existingTenant->logo)) {
+        } elseif ($existingTenant instanceof \App\Models\Tenant && !empty($existingTenant->logo)) {
             $storeData['logo'] = $existingTenant->logo;
         }
 
@@ -145,7 +145,7 @@ class PartnerCreateStoreService
 
     protected function resolveOrCreateTrialOrder(Request $request, ?Tenant $existingTenant, int $clubId, Plan $plan): Order
     {
-        if ($existingTenant && !empty($existingTenant->order_id)) {
+        if ($existingTenant instanceof \App\Models\Tenant && !empty($existingTenant->order_id)) {
             return Order::findOrFail($existingTenant->order_id);
         }
 
@@ -187,7 +187,7 @@ class PartnerCreateStoreService
         string $name,
         int $clubId
     ): Tenant {
-        if ($existingTenant) {
+        if ($existingTenant instanceof \App\Models\Tenant) {
             if (empty($existingTenant->order_id)) {
                 $existingTenant->order_id = $order->id;
                 $existingTenant->save();
@@ -340,7 +340,7 @@ class PartnerCreateStoreService
             : self::STEP_TENANT;
 
         $copy = $this->stepFailureCopy($step);
-        $technical = trim($e->getPrevious() ? $e->getPrevious()->getMessage() : $e->getMessage());
+        $technical = trim($e->getPrevious() instanceof \Throwable ? $e->getPrevious()->getMessage() : $e->getMessage());
         $message = $copy['message'];
         if ($technical !== '') {
             $message .= ' (' . $technical . ')';
@@ -409,24 +409,20 @@ class PartnerCreateStoreService
 
     protected function stepFailureCopy(string $step): array
     {
-        switch ($step) {
-            case self::STEP_ORDER:
-                return [
-                    'message' => 'Store setup stopped while creating the trial order. Please retry the same createstore API request to continue from the next step.',
-                    'next' => 'On retry, we will resume tenant and store database creation, then complete domain linking.',
-                ];
-            case self::STEP_DOMAIN:
-                return [
-                    'message' => 'Store setup stopped while linking the store domain. Please retry the same createstore API request to finish setup.',
-                    'next' => 'On retry, we will complete domain linking and return your store login details.',
-                ];
-            case self::STEP_TENANT:
-            default:
-                return [
-                    'message' => 'Store setup stopped while creating the tenant and store database. Please retry the same createstore API request to continue.',
-                    'next' => 'On retry, we will resume tenant provisioning and complete domain setup.',
-                ];
-        }
+        return match ($step) {
+            self::STEP_ORDER => [
+                'message' => 'Store setup stopped while creating the trial order. Please retry the same createstore API request to continue from the next step.',
+                'next' => 'On retry, we will resume tenant and store database creation, then complete domain linking.',
+            ],
+            self::STEP_DOMAIN => [
+                'message' => 'Store setup stopped while linking the store domain. Please retry the same createstore API request to finish setup.',
+                'next' => 'On retry, we will complete domain linking and return your store login details.',
+            ],
+            default => [
+                'message' => 'Store setup stopped while creating the tenant and store database. Please retry the same createstore API request to continue.',
+                'next' => 'On retry, we will resume tenant provisioning and complete domain setup.',
+            ],
+        };
     }
 
     protected function findTenantByStoreOrClub(string $name, int $clubId): ?Tenant

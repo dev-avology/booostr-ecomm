@@ -22,7 +22,7 @@ class EnvController extends Controller
         $countries= base_path('resources/lang/langlist.json');
         $countries= json_decode(file_get_contents($countries),true);
 
-        return view('admin.settings.env',compact('countries'));
+        return view('admin.settings.env',['countries' => $countries]);
     }
 
     

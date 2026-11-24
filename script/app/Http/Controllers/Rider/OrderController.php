@@ -62,14 +62,12 @@ class OrderController extends Controller
            
         }
 
-         return view('rider.order.index',compact('orders','orders_counts','complete_orders','pending_orders','cancelled_orders','request'));
+         return view('rider.order.index',['orders' => $orders, 'orders_counts' => $orders_counts, 'complete_orders' => $complete_orders, 'pending_orders' => $pending_orders, 'cancelled_orders' => $cancelled_orders, 'request' => $request]);
     }
 
     public function show($id)
     {
-        $info=Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule','ordertable')->whereHas('shipping',function($q){
-            return $q->where('user_id',Auth::id());
-        })->findorFail($id);
+        $info=Order::with('orderstatus','orderitems','getway','user','shippingwithinfo','ordermeta','getway','schedule','ordertable')->whereHas('shipping',fn($q) => $q->where('user_id',Auth::id()))->findorFail($id);
         $ordermeta=json_decode($info->ordermeta->value ?? '');
         $order_status=Category::where([['type','status'],['status',1]])->orderBy('featured','ASC')->get();
         if ($info->order_method == 'delivery') {
@@ -78,7 +76,7 @@ class OrderController extends Controller
         else{
             $riders=[];
         }
-        return view('rider.order.show',compact('info','ordermeta','order_status','riders'));
+        return view('rider.order.show',['info' => $info, 'ordermeta' => $ordermeta, 'order_status' => $order_status, 'riders' => $riders]);
     }
 
     public function delivered(Request $request)
@@ -107,23 +105,18 @@ class OrderController extends Controller
                 $ordershipping->save();
 
                 return response()->json('Order Delivery Completed.');
-            }else{
-                $errors['errors']['error']='The OTP number is invalid.';
-                return response()->json($errors,401);
             }
+            $errors['errors']['error']='The OTP number is invalid.';
+            return response()->json($errors,401);
         }
-        else{
-            $order->status_id = 1;
-            if ($request->payment_status) {
-                $order->payment_status = $request->payment_status;
-            }
-            $order->save();
-
-            $ordershipping->status_id=1;
-            $ordershipping->save();
-
-            return response()->json('Order Delivery Completed.');
+        $order->status_id = 1;
+        if ($request->payment_status) {
+            $order->payment_status = $request->payment_status;
         }
+        $order->save();
+        $ordershipping->status_id=1;
+        $ordershipping->save();
+        return response()->json('Order Delivery Completed.');
 
 
 
@@ -131,9 +124,7 @@ class OrderController extends Controller
 
     public function cancelled($id)
     {
-        $order = Order::whereHas('shipping',function($q){
-            return $q->where('user_id',Auth::id());
-        })->findOrFail($id);
+        $order = Order::whereHas('shipping',fn($q) => $q->where('user_id',Auth::id()))->findOrFail($id);
         $order->status_id = 2;
         $order->save();
 

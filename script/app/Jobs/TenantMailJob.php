@@ -13,15 +13,13 @@ use App\Mail\Orderstatusmail;
 class TenantMailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    protected $details;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($details)
+    public function __construct(protected $details)
     {
-        $this->details = $details;
     }
 
 

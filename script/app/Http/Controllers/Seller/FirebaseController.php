@@ -15,7 +15,7 @@ class FirebaseController extends Controller
     {
        abort_if(!getpermission('website_settings'),401);
         $posts=Devicetoken::with('user')->latest()->paginate(20);
-        return view('seller.notification.index',compact('posts','request'));
+        return view('seller.notification.index',['posts' => $posts, 'request' => $request]);
     }
 
     public function create()
@@ -28,7 +28,7 @@ class FirebaseController extends Controller
     {
         abort_if(!getpermission('website_settings'),401);
        $tokens=Devicetoken::pluck('token')->all();
-       if (count($tokens ?? []) == 0) {
+       if (count($tokens ?? []) === 0) {
             $errors['errors']['error']='Subscribers not available';
             return response()->json($errors,401);
        }
@@ -46,7 +46,7 @@ class FirebaseController extends Controller
     {
         abort_if(!getpermission('website_settings'),401);
         $posts=Devicetoken::findorFail($id);
-        return view('seller.notification.show',compact('id'));
+        return view('seller.notification.show',['id' => $id]);
 
     }
 
@@ -96,7 +96,7 @@ class FirebaseController extends Controller
             return response()->json($errors,401);
         }
 
-        if (count($request->id ?? []) == 0) {
+        if (count($request->id ?? []) === 0) {
             $errors['errors']['error']='Select Some Token';
             return response()->json($errors,401);
         }

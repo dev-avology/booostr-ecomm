@@ -112,23 +112,19 @@ class QuickSaleOrderService
             return false;
         }
 
-        if ($refundedQuantities === null) {
-            $refundedQuantities = json_decode(
-                (string) (\App\Models\Ordermeta::where('order_id', $order->id)
-                    ->where('key', 'quick_sale_partial_refunded_items')
-                    ->value('value') ?? '{}'),
-                true
-            ) ?: [];
-        }
+        $refundedQuantities ??= json_decode(
+            (string) (\App\Models\Ordermeta::where('order_id', $order->id)
+                ->where('key', 'quick_sale_partial_refunded_items')
+                ->value('value') ?? '{}'),
+            true
+        ) ?: [];
 
-        if ($refundedDollarAmounts === null) {
-            $refundedDollarAmounts = json_decode(
-                (string) (\App\Models\Ordermeta::where('order_id', $order->id)
-                    ->where('key', 'quick_sale_partial_dollar_refunded_items')
-                    ->value('value') ?? '{}'),
-                true
-            ) ?: [];
-        }
+        $refundedDollarAmounts ??= json_decode(
+            (string) (\App\Models\Ordermeta::where('order_id', $order->id)
+                ->where('key', 'quick_sale_partial_dollar_refunded_items')
+                ->value('value') ?? '{}'),
+            true
+        ) ?: [];
 
         foreach ($order->quickSaleOrderItems as $line) {
             $unitAmount = round((float) $line->unit_amount, 2);

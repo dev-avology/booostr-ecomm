@@ -36,9 +36,7 @@ class TenancyServiceProvider extends ServiceProvider
             // Tenant events
             Events\CreatingTenant::class => [],
             Events\TenantCreated::class => [
-                JobPipeline::make($databasePipeline)->send(function (Events\TenantCreated $event) {
-                    return $event->tenant;
-                })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
+                JobPipeline::make($databasePipeline)->send(fn(Events\TenantCreated $event) => $event->tenant)->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
             ],
             Events\SavingTenant::class => [],
             Events\TenantSaved::class => [],
@@ -48,9 +46,7 @@ class TenancyServiceProvider extends ServiceProvider
             Events\TenantDeleted::class => [
                 JobPipeline::make([
                     Jobs\DeleteDatabase::class,
-                ])->send(function (Events\TenantDeleted $event) {
-                    return $event->tenant;
-                })->shouldBeQueued(env('QUEUE_WORKER',false)), // `false` by default, but you probably want to make this `true` for production.
+                ])->send(fn(Events\TenantDeleted $event) => $event->tenant)->shouldBeQueued(env('QUEUE_WORKER',false)), // `false` by default, but you probably want to make this `true` for production.
             ],
 
             // Domain events
@@ -107,18 +103,14 @@ class TenancyServiceProvider extends ServiceProvider
         $this->bootEvents();
         $this->mapRoutes();
         $this->makeTenancyMiddlewareHighestPriority();
-        \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::$onFail = function () {
-          return view('expire');
-        };
+        \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::$onFail = (fn() => view('expire'));
         \Stancl\Tenancy\Middleware\InitializeTenancyByPath::$onFail = function () {
            abort(404);
         };
-        \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::$onFail = function () {
-           return response()->json([
-               'status' => 'error',
-               'message' => 'Tenant could not be identified by request data.',
-           ], 400);
-        };
+        \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::$onFail = (fn() => response()->json([
+            'status' => 'error',
+            'message' => 'Tenant could not be identified by request data.',
+        ], 400));
         Event::listen(TenancyBootstrapped::class, function (TenancyBootstrapped $event) {
             // \Spatie\Permission\PermissionRegistrar::$cacheKey = 'spatie.permission.cache.tenant.' . $event->tenancy->tenant->id;
             // Config::set('permission.cache.key', 'spatie.permission.cache.tenant.' . $event->tenancy->tenant->id);
