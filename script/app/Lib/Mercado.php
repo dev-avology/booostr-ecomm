@@ -66,38 +66,34 @@ class Mercado
 
         try {
             //Payment
-            MercadoPago\SDK::setAccessToken($data['secret_key']);
-            $payment = new MercadoPago\Payment();
-            $preference = new MercadoPago\Preference();
-            $payer = new MercadoPago\Payer();
-            $payer->name = $name;
-            $payer->email = $email;
-            $payer->date_created = Carbon::now();
+            \MercadoPago\MercadoPagoConfig::setAccessToken($data['secret_key']);
 
             if (tenant() != null) {
                 $url = route('order.mercadopago.status');
-            }
-            else{
+            } else {
                 $url = route('merchant.mercadopago.status');
             }
-             
-            $preference->back_urls = [
-                "success" => $url,
-                "failure" => Mercado::redirect_if_payment_faild(),
-                "pending" => $url,
-            ];
 
-            $preference->auto_return = "approved";
-
-            // Create a preference item
-            $item = new MercadoPago\Item();
-            $item->title = $billName;
-            $item->quantity = 1;
-            $item->unit_price = $amount;
-            $preference->items = [$item];
-            $preference->payer = $payer;
-            $preference->save();
-
+            $client = new \MercadoPago\Client\Preference\PreferenceClient();
+            $preference = $client->create([
+                "items" => [
+                    [
+                        "title" => $billName,
+                        "quantity" => 1,
+                        "unit_price" => (float) $amount,
+                    ]
+                ],
+                "payer" => [
+                    "name" => $name,
+                    "email" => $email,
+                ],
+                "back_urls" => [
+                    "success" => $url,
+                    "failure" => Mercado::redirect_if_payment_faild(),
+                    "pending" => $url,
+                ],
+                "auto_return" => "approved",
+            ]);
 
             $data['preference_id'] = $preference->id;
             $redirectUrl = $test_mode == 1 ? $preference->sandbox_init_point : $preference->init_point;
