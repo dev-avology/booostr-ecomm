@@ -27,20 +27,29 @@
                @php
                   $url = env("WP_API_URL");
                   $url = ($url != '') ? $url.'/logo-tenant?tenant='.tenant()->club_id : "https://staging3.booostr.co/wp-json/store-api/v1/logo-tenant";
-                  $curl = curl_init();
-                  curl_setopt_array($curl, array(
-                    CURLOPT_URL => $url,
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => '',
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 0,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => 'GET',
-                  ));
-                  $logo = curl_exec($curl);
-                  curl_close($curl);
-                  $result = json_decode($logo, true);
+                  $result = null;
+                  try {
+                      if (function_exists('curl_init')) {
+                          $curl = curl_init();
+                          curl_setopt_array($curl, array(
+                            CURLOPT_URL => $url,
+                            CURLOPT_RETURNTRANSFER => true,
+                            CURLOPT_ENCODING => '',
+                            CURLOPT_MAXREDIRS => 10,
+                            CURLOPT_TIMEOUT => 3,
+                            CURLOPT_FOLLOWLOCATION => true,
+                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                            CURLOPT_CUSTOMREQUEST => 'GET',
+                          ));
+                          $logo = curl_exec($curl);
+                          $result = json_decode($logo, true);
+                      } elseif (class_exists(\Illuminate\Support\Facades\Http::class)) {
+                          $response = \Illuminate\Support\Facades\Http::timeout(3)->get($url);
+                          $result = $response->json();
+                      }
+                  } catch (\Throwable $e) {
+                      $result = null;
+                  }
               @endphp
 
         <!-- <img alt="image" src='https://ui-avatars.com/api/?name={{Auth()->user()->name}}' class="rounded-circle profile-widget-picture "> -->
