@@ -9,7 +9,7 @@
         "artesaos/seotools": "^1.2",
         "aws/aws-sdk-php": "^3.337",
         "barryvdh/laravel-dompdf": "^2.1|^3.0",
-        "hardevine/shoppingcart": "^3.4",
+        "anayarojo/shoppingcart": "^4.2",
         "darkaonline/l5-swagger": "^8.6",
         "doctrine/dbal": "^3.8|^4.0",
         "firebase/php-jwt": "^6.11",
@@ -80,7 +80,8 @@
         }
     },
     "config": {
-        "optimize-autoloader": true,
+        "platform-check": false,
+        "optimize-autoloader": false,
         "preferred-install": "dist",
         "sort-packages": true,
         "allow-plugins": {
