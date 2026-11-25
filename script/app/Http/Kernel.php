@@ -13,6 +13,16 @@ use App\Http\Middleware\RiderMiddleware;
 use App\Http\Middleware\Tenantenvironment;
 use App\Http\Middleware\Usermiddleware;
 
+/**
+ * @deprecated Upgraded to Laravel 13.
+ *
+ * Middleware and route groups are now centrally configured in:
+ * bootstrap/app.php
+ *
+ * This class is preserved purely for backward compatibility with legacy references.
+ * To register or modify middleware aliases, global middleware, or route groups,
+ * please edit: bootstrap/app.php
+ */
 class Kernel extends HttpKernel
 {
     /**
