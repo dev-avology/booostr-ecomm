@@ -16,7 +16,7 @@ class IsinstalledMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if(env('DB_DATABASE') != null){
+        if (!empty(config('database.connections.mysql.database')) || !empty(env('DB_DATABASE'))) {
             return $next($request);
         }
         return redirect('/install');

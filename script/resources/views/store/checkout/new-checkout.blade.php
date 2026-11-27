@@ -776,7 +776,7 @@ input[type="checkbox"]:checked {
                             </div>
                         </div>
                         <input type="hidden" name="wpuid" value="{{ $customer['wpuid'] }}">
-                        @if(isset($customer['guest']) && $customer['guest'] != '')
+                        @if(!empty($customer['guest']) && $customer['guest'] == '1')
                           <input type="hidden" name="guest" value="1">
                         @endif
                     </form>

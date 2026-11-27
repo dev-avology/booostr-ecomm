@@ -295,6 +295,7 @@ class CustomerController extends Controller
             \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
             Auth::login($authenticatedUser, $remember);
             session(['seller_session_active' => false]);
+            session()->forget(['customer_data', 'is_guest']);
 
             // Auto-claim unassigned guest orders placed with customer's email
             $this->claimGuestOrdersByEmail($authenticatedUser);

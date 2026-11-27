@@ -636,38 +636,37 @@ class CheckoutController extends Controller
         }
 
         // Build customer data
-        if (Session::has('customer_data')) {
+        if (Auth::check()) {
+            $user = Auth::user();
+            $meta = !empty($user->meta) ? json_decode($user->meta, true) : [];
+            $customer = [
+                "name"    => $user->name ?? '',
+                "email"   => $user->email ?? '',
+                "phone"   => $user->phone ?? ($meta['phone'] ?? ''),
+                "address" => $meta['address'] ?? '',
+                "city"    => $meta['city'] ?? '',
+                "state"   => $meta['state'] ?? '',
+                "country" => $meta['country'] ?? 'USA',
+                "zip"     => $meta['zip'] ?? '',
+                "wpuid"   => $meta['wpuid'] ?? '',
+                "guest"   => "0",
+            ];
+            Session::put('customer_data', $customer);
+        } elseif (Session::has('customer_data')) {
             $customer = Session::get('customer_data');
         } else {
-            if (Auth::check()) {
-                $user = Auth::user();
-                $meta = !empty($user->meta) ? json_decode($user->meta, true) : [];
-                $customer = [
-                    "name"    => $user->name ?? '',
-                    "email"   => $user->email ?? '',
-                    "phone"   => $meta['phone'] ?? '',
-                    "address" => $meta['address'] ?? '',
-                    "city"    => $meta['city'] ?? '',
-                    "state"   => $meta['state'] ?? '',
-                    "country" => $meta['country'] ?? 'USA',
-                    "zip"     => $meta['zip'] ?? '',
-                    "wpuid"   => $meta['wpuid'] ?? '',
-                    "guest"   => "0",
-                ];
-            } else {
-                $customer = [
-                    "name"    => $request->name ?? '',
-                    "email"   => $request->email ?? '',
-                    "phone"   => $request->phone ?? '',
-                    "address" => $request->address ?? '',
-                    "city"    => $request->city ?? '',
-                    "state"   => $request->state ?? '',
-                    "country" => $request->country ?? 'USA',
-                    "zip"     => $request->zip ?? '',
-                    "wpuid"   => $request->wpuid ?? '',
-                    "guest"   => "1",
-                ];
-            }
+            $customer = [
+                "name"    => $request->name ?? '',
+                "email"   => $request->email ?? '',
+                "phone"   => $request->phone ?? '',
+                "address" => $request->address ?? '',
+                "city"    => $request->city ?? '',
+                "state"   => $request->state ?? '',
+                "country" => $request->country ?? 'USA',
+                "zip"     => $request->zip ?? '',
+                "wpuid"   => $request->wpuid ?? '',
+                "guest"   => "1",
+            ];
             Session::put('customer_data', $customer);
         }
 

@@ -747,17 +747,23 @@ function credit_card_fee_for_pos($total,$payment_identifiers){
 function tenant_club_is_pro(){
 
 	$club_id =tenant('club_id');
-
-	$response = Http::withOptions([
-		'verify' => false,
-	])->post(env('WP_API_URL').'/get-store-club-info', [
-		'club_id' => $club_id
-	]);
-
-	if ($response->successful()) {
-	    $result = $response->json();
-		return $result['data']['is_pro'] ?? false;
+	$apiUrl = env('WP_API_URL');
+	if (empty($apiUrl)) {
+		return false;
 	}
+
+	try {
+		$response = Http::withOptions([
+			'verify' => false,
+		])->post(rtrim($apiUrl, '/') . '/get-store-club-info', [
+			'club_id' => $club_id
+		]);
+
+		if ($response->successful()) {
+		    $result = $response->json();
+			return $result['data']['is_pro'] ?? false;
+		}
+	} catch (\Throwable) {}
 
 	return false;
 }
@@ -766,17 +772,23 @@ function tenant_club_is_pro(){
 function tenant_club_pro_live_info(){
 
 	$club_id =tenant('club_id');
-
-	$response = Http::withOptions([
-		'verify' => false,
-	])->post(env('WP_API_URL').'/get-store-club-info', [
-		'club_id' => $club_id
-	]);
-
-	if ($response->successful()) {
-	    $result = $response->json();
-		return $result['data'];
+	$apiUrl = env('WP_API_URL');
+	if (empty($apiUrl)) {
+		return false;
 	}
+
+	try {
+		$response = Http::withOptions([
+			'verify' => false,
+		])->post(rtrim($apiUrl, '/') . '/get-store-club-info', [
+			'club_id' => $club_id
+		]);
+
+		if ($response->successful()) {
+		    $result = $response->json();
+			return $result['data'];
+		}
+	} catch (\Throwable) {}
 
 	return false;
 }
@@ -1853,6 +1865,7 @@ if (!function_exists('post_partial_refund_to_financial_manager')) {
         //   net_revenue        = transaction_amount - Sales Tax - Processing Fees
         $refundedItemTotal = (float) ($remaining['refunded_item_total'] ?? 0);
         $refundedTaxTotal = (float) ($remaining['refunded_tax_total'] ?? 0);
+        $transactionAmount = max(0, round($orderTotal - $refundedItemTotal - $refundedTaxTotal, 2));
         $isCash = (($gateway && $gateway->name === 'cash') || (int)($order->order_from ?? 0) === 5);
         $netRevenue = $isCash 
             ? round($transactionAmount - $salesTax, 2)

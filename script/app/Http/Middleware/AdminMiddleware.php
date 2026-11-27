@@ -18,7 +18,8 @@ class AdminMiddleware
     {
         if (Auth::check() && Auth::User()->role_id == 1) {
             
-            if (str_replace('www.', '', $request->getHost()) != env('APP_PROTOCOLESS_URL')) {
+            $centralDomain = config('app.protocoless_url') ?: (env('APP_PROTOCOLESS_URL') ?: (parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'booostrstore.co'));
+            if (str_replace('www.', '', $request->getHost()) != $centralDomain) {
                 Auth::logout();
                 abort(404);
             }

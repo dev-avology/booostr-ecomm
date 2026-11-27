@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'protocoless_url' => env('APP_PROTOCOLESS_URL') ?: (parse_url(env('APP_URL', 'https://booostrstore.co'), PHP_URL_HOST) ?: 'booostrstore.co'),
+
     'asset_url' => env('ASSET_URL', null),
 
     /*

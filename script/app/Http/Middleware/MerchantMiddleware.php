@@ -19,7 +19,8 @@ class MerchantMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (Auth::user() &&  Auth::user()->role_id == 2) {
-            if (str_replace('www.', '', $request->getHost()) != env('APP_PROTOCOLESS_URL')) {
+            $centralDomain = config('app.protocoless_url') ?: (env('APP_PROTOCOLESS_URL') ?: (parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'booostrstore.co'));
+            if (str_replace('www.', '', $request->getHost()) != $centralDomain) {
                 Auth::logout();
                 abort(404);
             }

@@ -31,7 +31,8 @@ class Tenantenvironment
             $url=$request->getHost();
             $url=str_replace('www.','',$url);
             $url= preg_replace("/^([a-zA-Z0-9].*\.)?([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z.]{2,})$/", '$2', $url);
-            if ($url != env('APP_PROTOCOLESS_URL')) {
+            $centralDomain = config('app.protocoless_url') ?: (env('APP_PROTOCOLESS_URL') ?: (parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'booostrstore.co'));
+            if ($url != $centralDomain) {
                if (tenant('custom_domain') != 'on') {
                    die('<center>Oops Custom domain not support</center>');
                }
