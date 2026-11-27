@@ -849,7 +849,8 @@
 }
 
 .order-detail-bulk-actions .selectric-items {
-    min-width: 240px;
+    min-width: 290px;
+    width: auto;
     z-index: 1050;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -863,6 +864,7 @@
     display: flex;
     align-items: center;
     box-sizing: border-box;
+    white-space: nowrap;
 }
 
 .order-detail-bulk-actions .btn {
